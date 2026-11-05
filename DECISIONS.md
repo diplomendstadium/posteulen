@@ -102,3 +102,18 @@
 | D-26 | 2026-11-05 | `npm audit`-Regel wie F-03; `minimatch` per `overrides` | Antwort F-03 | – |
 | D-27 | 2026-11-05 | Push-Zugang des Agenten über einen Deploy-Key (`~/.ssh/posteulen-github-deploy`, ohne Passphrase, nur dieses Repository, Schreibrecht), eingebunden per repo-lokalem `core.sshCommand`; GitHub-Hostschlüssel gegen den veröffentlichten Fingerabdruck geprüft | geringste Rechte: kein Zugriff auf das übrige GitHub-Konto | persönlicher SSH-Schlüssel oder Access-Token des Kontos (zu weitreichend) |
 | D-28 | 2026-11-05 | Tags signiert ausschließlich der Auftraggeber; der Agent bereitet den Befehl vor und signiert nie selbst | Die Freigabe einer Stufe ist zugleich ihre Unterschrift; ein kompromittierter Git-Hoster kann keine Version auf den Server bringen | Signatur durch einen Agenten-Schlüssel (schwächere Aussage) |
+
+---
+
+## Teil D – Entscheidungen in Stufe 0
+
+| Nr. | Datum | Entscheidung | Begründung | Verworfen |
+|---|---|---|---|---|
+| D-29 | 2026-11-05 | Vor jedem Update bleibt neben der verschlüsselten Sicherung eine **unverschlüsselte** Momentaufnahme in `/var/lib/posteulen/snapshots` (0600, Dienstbenutzer), gelöscht nach 7 Tagen | Der Server besitzt den privaten Backup-Schlüssel absichtlich nicht; ohne Klartext-Kopie wären automatischer Rückfall und `--rollback` (SPEC 16.3) unmöglich. Die Kopie liegt neben der Datenbank mit denselben Rechten, ist also nicht schwächer geschützt; Aufbewahrung wie Backups (7 Tage, SPEC 8.11) | privaten Backup-Schlüssel auf dem Server lassen (würde die Verschlüsselung der Backups entwerten) |
+| D-30 | 2026-11-05 | Zweite Trusted-Types-Policy `posteulen-sw`, die genau die URL `/sw.js` erlaubt | Ohne sie blockiert Trusted Types `serviceWorker.register()` (im Browser gefunden) | Trusted Types abschalten |
+| D-31 | 2026-11-05 | `.shellcheckrc` schaltet nur SC1111 ab (deutsche Anführungszeichen „…“ in Meldungen) | Die Skripte geben deutsche Meldungen aus (SPEC 16.1); die Zeichen stehen absichtlich in Zeichenketten | englische Anführungszeichen in deutschen Texten |
+| D-32 | 2026-11-05 | Symbole in Kacheln und Navigation vorerst als Unicode-Zeichen (u. a. 🦉 als System-Emoji); Ersatz durch eigene SVG-Symbole im Design-Feinschliff (Stufe 6) | Stufe 0 verlangt nur eine leere Hülle; Text steht immer daneben, Symbole sind `aria-hidden` | sofort eigene Symbolsätze zeichnen |
+| D-33 | 2026-11-05 | Strikte CSP nur im Produktions-Build (`npm start`, Server); im Entwicklungsmodus (`npm run dev`) ohne CSP | Vite injiziert im Entwicklungsmodus Styles zur Laufzeit; alle E2E-Tests laufen gegen den Produktions-Build mit CSP | Nonces im Dev-Server (zusätzlicher Aufwand ohne Nutzen für Produktion) |
+| D-34 | 2026-11-05 | Installation auf dem Server: partieller Git-Klon (`--filter=blob:none`) als Bare-Repository; Releases entstehen per `git archive` | Bilder älterer Versionen werden nicht geladen (F-Bilder: Repository wird groß); Releases enthalten kein `.git` | vollständiger Klon (lädt die komplette Bildhistorie) |
+| D-35 | 2026-11-05 | `minimatch` per `overrides` auf 11.0.4 (2026-11-02), Ausnahme von D-10 als Sicherheitskorrektur | GHSA-g3hv-75wg-m249 | warten, bis die Version 14 Tage alt ist |
+| D-36 | 2026-11-05 | shellcheck 0.10.0 auf dem Entwicklungsrechner per `apt-get download` aus der signierten Debian-Quelle, entpackt nach `~/.cache/posteulen-tools` (kein root nötig) | `npm test` prüft die Skripte; Server brauchen shellcheck nicht | Binärdatei von GitHub (keine signierte Quelle) |

@@ -1,7 +1,8 @@
 # PostEulen.de – Abhängigkeiten
 
 > Stand: Schritt P (2026-11-05). Geplante Versionen; das Lockfile pinnt sie in Stufe 0 exakt. Regel für die Versionswahl (D-10): die neueste Version, die mindestens 14 Tage alt ist (Stichtag 2026-10-22). Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
-> `npm audit` vom 2026-11-05: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 Funde (siehe unten; Regel: D-26).
+> `npm audit` vom 2026-11-05 (Stufe 0, Lockfile): Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 1 niedriger Fund (`deepmerge`, siehe unten; Regel: D-26).
+> In Stufe 0 installiert: alle Pakete aus „Laufzeit – Backend“ außer `@fastify/cookie`, `@hpke/*`, `libsodium-wrappers-sumo`, `altcha-lib`, `suncalc` (folgen mit Stufe 1–3). Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Stand Stufe 0: 309 Pakete; Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
 
@@ -50,6 +51,10 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `@vitest/coverage-v8` | 5.0.5 | MIT | Abdeckung |
 | `fast-check` | 4.10.2 | MIT | Property-based Tests |
 | `@playwright/test` | 1.64.1 | Apache-2.0 | Ende-zu-Ende-Tests, Screenshots (Browser werden nur auf dem Entwicklungsrechner geladen, nie auf dem Server) |
+| `@types/node` | 26.6.5 | MIT | Typen für Node.js |
+| `@types/web-push` | 3.6.4 | MIT | Typen für web-push |
+| `@eslint/js` | 10.0.1 | MIT | Grundregeln für ESLint |
+| `globals` | 17.13.0 | MIT | Liste globaler Bezeichner für ESLint |
 | `sharp` | 0.35.5 | Apache-2.0 (libvips: LGPL-3.0) | Eulenbilder → WebP beim Build; vorkompilierte Binärdatei für amd64 und arm64, nichts wird auf dem Server kompiliert (D-16) |
 
 ## Werkzeug Kartendaten (`tools/map/`, nur Entwicklungsrechner, D-09)
@@ -71,12 +76,13 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `caddy` 2.11.x | Cloudsmith `caddy/stable` (offizielle Caddy-Quelle), `signed-by` | Apache-2.0 | Reverse Proxy, HTTPS, statische Dateien |
 | `age` 1.2.1 | Debian | BSD-3-Clause | Verschlüsselung der Backups |
 | `git`, `nftables`/`ufw`, `unattended-upgrades`, `ca-certificates`, `curl`, `gnupg` | Debian | GPL/LGPL/MIT | Betrieb |
-| `shellcheck` | Debian (nur Entwicklung und Test) | GPL-3.0 | Skriptprüfung |
+| `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
+| `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |
 
 ## Bekannte Funde (`npm audit`, 2026-11-05)
 
 | Paket | Schwere | Advisory | Weg | Bewertung |
 |---|---|---|---|---|
-| `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | Behoben in 11.0.1 (2026-10-27). Vorschlag: `overrides` auf ≥ 11.0.1, sobald 14 Tage alt bzw. sofort als Sicherheitsausnahme |
+| `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | **Behoben:** per `overrides` auf 11.0.4 (D-35) |
 | `deepmerge` 4.3.1 | niedrig | GHSA-gcqx-w48m-w2h4 (Prototype Poisoning) | `@sveltejs/vite-plugin-svelte` (nur Build) | Keine korrigierte Version verfügbar; verarbeitet nur eigene Build-Konfiguration, keine fremden Eingaben |
 | `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge). Auf 1.1.1 wechseln, sobald veröffentlicht |
