@@ -51,6 +51,15 @@ letters() {
     node /opt/posteulen/current/deploy/test/vm-account.ts "$1" "$ACCOUNT_NAME" "$ACCOUNT_PASSWORD" "${2:-}"
 }
 account_registered=0
+wait_delivered() {
+  local _
+  for _ in $(seq 1 36); do
+    [[ $(sql "SELECT status FROM letters") == *delivered* ]] && return 0
+    sleep 5
+  done
+  diag
+  return 1
+}
 diag() {
   echo "   Diagnose: $(date -u +%H:%M:%S) UTC"
   sql "SELECT type, due_at, attempts FROM scheduled_events" | sed 's/^/   Warteschlange: /'
@@ -104,6 +113,9 @@ fi
 if has_letter_support; then
   check "Zweites Konto, Koppeln und Brief (Ende-zu-Ende)" letters letters-setup
   check "Absender liest den eigenen Brief" letters letters-check
+  # Die vorläufige Eule braucht 2 Minuten; die Warteschlange stellt dann zu (SPEC 4.5).
+  check "Warteschlange stellt den Brief zu (höchstens 3 Minuten)" wait_delivered
+  check "Empfänger liest den Brief" letters letters-check --delivered
 fi
 check "Dienst läuft als posteulen" runs_as_service_user
 check "Geheimnis-Datei 0640 root:posteulen" secrets_permissions
@@ -134,7 +146,6 @@ check "Geheimnisse unverändert" test "$(fingerprint)" = "$before"
 check "Verschlüsselte Sicherung vor dem Update" update_backup_exists
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
-has_letter_support && diag
 
 echo "── 4. Kaputtes Update $v2 → $v3 wird zurückgerollt"
 if posteulen-update "$v3" --yes; then check "kaputtes Update schlägt fehl" false; else check "kaputtes Update schlägt fehl" true; fi
