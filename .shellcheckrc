@@ -1,0 +1,3 @@
+# Deutsche Anführungszeichen „…“ in Meldungen sind gewollt (SPEC 16.1: deutsche Meldungen).
+disable=SC1111
+external-sources=true

@@ -1,0 +1,53 @@
+{
+  "name": "posteulen",
+  "private": true,
+  "type": "module",
+  "description": "PostEulen.de – Ende-zu-Ende-verschlüsselte Briefe per Eule",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=26.0.0 <27.0.0"
+  },
+  "workspaces": [
+    "shared",
+    "backend",
+    "web",
+    "admin"
+  ],
+  "scripts": {
+    "start": "node scripts/start.ts",
+    "dev": "node scripts/dev.ts",
+    "build": "npm run build -w web && npm run build -w admin",
+    "preview": "node backend/src/dev/preview.ts",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc -p tsconfig.json && npm run typecheck -w web && npm run typecheck -w admin",
+    "test": "node scripts/test-all.ts",
+    "test:unit": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:vm": "bash deploy/test/run-vm-tests.sh",
+    "deps:report": "node scripts/deps-report.ts"
+  },
+  "overrides": {
+    "minimatch": "11.0.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@types/node": "26.6.5",
+    "@types/web-push": "3.6.4",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "10.13.0",
+    "eslint-plugin-svelte": "3.23.1",
+    "fast-check": "4.10.2",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-svelte": "4.1.1",
+    "sharp": "0.35.5",
+    "svelte-check": "4.7.7",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

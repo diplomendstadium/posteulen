@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["es2024", "dom"]
+  },
+  "include": [
+    "shared/src",
+    "shared/test",
+    "backend/src",
+    "backend/test",
+    "scripts",
+    "e2e",
+    "*.config.ts"
+  ]
+}

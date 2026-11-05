@@ -1,0 +1,11 @@
+node_modules/
+**/dist/
+coverage/
+test-results/
+playwright-report/
+web/src/generated/
+docs/screenshots/
+images/
+package-lock.json
+*.md
+readme.txt
