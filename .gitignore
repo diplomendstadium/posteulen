@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+.vite/
+*.log
+.env
+.env.*
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+/data/
+secrets.json
