@@ -34,7 +34,7 @@
 - Spiellogik in `shared/game/`: Großkreis, Sonnenstand (SunCalc), Flugsimulation mit Tag/Nacht, Wasser-Regel, Schlafpausen, Küken-Rhythmus, Positionsinterpolation, Neuplanung; Energie, Pflegemaske, Gold-Arithmetik, Eulenzustände.
 - Backend: Schema 4 (Eulen, Flüge, Buchungen), Eulenkauf/-pflege, Flugvorschau, Briefe/Gold/Geschenke mit echten Eulen und Begleitbriefen, Umkehren (9.5), Umzug-Neuplanung (9.4.6, Aufruf durch den Wohnortwechsel in Stufe 4), tägliches Gold, Finanzübersicht, Kartendaten; Aushilfseule bis Stufe 4 (D-65).
 - Web: Eulen, Menagerie (Kauf), Finanzen, Karte (Tag/Nacht, Eulen, Kontakte), Eulenwahl beim Versand, Bildeinblendungen, Ankunftsbilder in Chat und Systemchat; Kartendaten als eigener Chunk.
-- Tests: siehe Stufenbericht.
+- Tests: 286 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 88 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.2`.
 
 ## Offen
 - Tag `v0.1.0-stufe.3` signieren und pushen (Auftraggeber, D-28).
