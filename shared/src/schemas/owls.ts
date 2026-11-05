@@ -4,8 +4,8 @@ import { GOLD, LETTER } from '../constants.ts';
 import { SPECIES } from '../species.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
 
-/** An own owl or the stand-in owl of stage 3 (D-65). */
-export const OwlRef = v.union([Id, v.literal('stand_in')]);
+/** An own or loan owl. */
+export const OwlRef = Id;
 
 export const Recipients = v.pipe(
   v.array(Id),
@@ -50,4 +50,16 @@ export const GiftPrepare = v.strictObject({
 export const CoverSend = v.strictObject({
   token: Id,
   cover: v.optional(CoverLetter),
+});
+
+export const OwlTreat = v.strictObject({ kind: v.picklist(['self', 'vet']) });
+
+export const Loan = v.strictObject({
+  species: v.picklist(SPECIES.map((species) => species.id)),
+});
+
+export const ChickGiftPrepare = v.strictObject({
+  chickId: Id,
+  recipient: Id,
+  withCover: v.boolean(),
 });

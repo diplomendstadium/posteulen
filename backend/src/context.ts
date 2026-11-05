@@ -48,6 +48,7 @@ export interface Context {
     readonly fakeCredential: Uint8Array;
     readonly nameLock: Uint8Array;
     readonly invite: Uint8Array;
+    readonly loanName: Uint8Array;
   };
   readonly landMask: Uint8Array;
   readonly altcha: Altcha;
@@ -82,9 +83,11 @@ export interface Context {
 export interface TransportToken {
   readonly senderId: string;
   readonly purpose: 'letter' | 'gold' | 'gift';
-  /** Own owl ID or `stand_in` (D-65). */
+  /** Own or loan owl, or the chick of a chick gift. */
   readonly owlId: string;
-  readonly kind: 'letter' | 'cover_gold' | 'cover_owl';
+  readonly kind: 'letter' | 'cover_gold' | 'cover_owl' | 'cover_chick';
+  /** Gift flight of a chick (9.9). */
+  readonly chick?: boolean;
   readonly parchment: 'small' | 'large';
   readonly recipients: readonly string[];
   /** Letters to be sent (none for gold or a gift without a cover letter). */
@@ -135,6 +138,7 @@ export async function createContext(
       fakeCredential: await deriveServerKey(secrets, SERVER_CONTEXTS.FAKE_CREDENTIAL),
       nameLock: await deriveServerKey(secrets, SERVER_CONTEXTS.NAME_LOCK),
       invite: await deriveServerKey(secrets, SERVER_CONTEXTS.INVITE),
+      loanName: await deriveServerKey(secrets, SERVER_CONTEXTS.LOAN_NAME),
     },
     landMask,
     altcha: new Altcha(Buffer.from(altchaKey).toString('hex'), options.altchaMaxCounter ?? 50_000),

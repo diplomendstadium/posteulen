@@ -4,6 +4,8 @@ import { openLetter, sealLetter, type LetterMeta } from '@posteulen/shared/crypt
 import { TIME } from '@posteulen/shared/constants.ts';
 import {
   advanceTo,
+  borrowOwl,
+  NO_OWL,
   buyOwl,
   couple,
   HAMBURG,
@@ -39,12 +41,12 @@ async function send(
   to: Person[],
   text: string,
   parchment: 'small' | 'large' = 'small',
-  owlId = 'stand_in',
+  owlId?: string,
 ) {
   const prepared = await from.agent.json<Prepared>('POST', '/api/letters/prepare', {
     recipients: to.map((p) => p.id),
     parchment,
-    owlId,
+    owlId: owlId ?? (await borrowOwl(from)),
   });
   if (prepared.status !== 200) return prepared;
   const items = [];
@@ -224,7 +226,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(own[0]?.opened).toMatchObject({ ok: true, text: 'Hallo Ben, wie geht es dir?' });
     expect(own[0]?.letter.status).toBe('in_flight');
 
-    // Berlin → Hamburg (about 255 km) with the stand-in Waldkauz: some hours.
+    // Berlin → Hamburg (about 255 km) with a loan owl: some hours.
     expect(arrival(sent) - app.clock.now).toBeGreaterThan(8 * TIME.HOUR);
     app.clock.now = arrival(sent) - 1;
     expect(app.ctx.queue.runDue()).toBe(0);
@@ -263,7 +265,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     await couple(anna, clara);
     setGold(app, anna, 100);
     const owl = await buyOwl(app, anna);
-    // The stand-in owl carries only one letter (like a loan owl, 9.6).
+    // A loan owl carries only one letter (9.6).
     expect((await send(anna, [clara, ben], 'Rundbrief', 'large')).body).toMatchObject({
       code: 'owl_recipients',
     });
@@ -272,17 +274,18 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(arrival(sent, 1)).toBeGreaterThan(arrival(sent, 0));
     expect(sent.body).toMatchObject({ returnsAt: expect.any(Number) });
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      100 - 60 - 1,
+      100 - 60 - 1 - 1, // owl, large parchment, the loan owl of the refused attempt
     );
     const ids = app.db.all<{ id: string }>('SELECT id FROM letters');
     expect(new Set(ids.map((r) => r.id)).size).toBe(2);
   });
 
   it('rejects wrong lengths, foreign tokens and non-contacts', async () => {
+    const annaOwl = await borrowOwl(anna);
     const prepared = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
-      owlId: 'stand_in',
+      owlId: annaOwl,
     });
     const letter = prepared.body.letters[0]!;
     const shortCipher = toBase64Url(new Uint8Array(4135));
@@ -305,7 +308,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     const prepared2 = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
-      owlId: 'stand_in',
+      owlId: annaOwl,
     });
     expect(
       (
@@ -328,7 +331,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [stranger.id],
           parchment: 'small',
-          owlId: 'stand_in',
+          owlId: NO_OWL,
         })
       ).body,
     ).toMatchObject({ code: 'recipient_invalid' });
@@ -337,7 +340,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [anna.id],
           parchment: 'small',
-          owlId: 'stand_in',
+          owlId: NO_OWL,
         })
       ).body,
     ).toMatchObject({ code: 'recipient_invalid' });
@@ -353,7 +356,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [ben.id],
           parchment: 'small',
-          owlId: 'stand_in',
+          owlId: NO_OWL,
         })
       ).body,
     ).toMatchObject({ code: 'key_warning' });
@@ -362,7 +365,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await ben.agent.json('POST', '/api/letters/prepare', {
           recipients: [anna.id],
           parchment: 'small',
-          owlId: 'stand_in',
+          owlId: NO_OWL,
         })
       ).body,
     ).toMatchObject({ code: 'key_warning' });
@@ -415,8 +418,9 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     )!.ref;
     app.ctx.queue.schedule('flight_stop', first, app.clock.now + 2 * TIME.DAY);
     app.clock.now += 3 * TIME.DAY;
-    // The finished flight drops its leftover events, so the duplicate never runs.
-    expect(app.ctx.queue.runDue()).toBe(2);
+    // Two stops and the two (no longer relevant) loan expiries; the finished flight drops its
+    // leftover events, so the duplicate never runs.
+    expect(app.ctx.queue.runDue()).toBe(4);
     expect(app.db.all("SELECT 1 FROM scheduled_events WHERE type = 'flight_stop'")).toEqual([]);
     const received = await readAll(ben, anna, anna);
     expect(received.map((r) => r.opened.ok && r.opened.text)).toEqual(['eins', 'zwei']);

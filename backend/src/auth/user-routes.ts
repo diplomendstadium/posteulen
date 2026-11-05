@@ -22,6 +22,7 @@ import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
+import { cancelDeletion } from '../accounts/lifecycle.ts';
 import { ipKey } from '../security/ip.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import {
@@ -255,8 +256,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
           "UPDATE users SET state = 'active', deletion_requested_at = NULL WHERE id = ?",
           userId,
         );
+        cancelDeletion(ctx, userId, now, (work) => work());
       }
-      ctx.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', utcDay(now), userId);
+      ctx.db.run(
+        'UPDATE users SET last_active_date = ?, inactivity_warned_on = NULL WHERE id = ?',
+        utcDay(now),
+        userId,
+      );
       return { token: createUserSession(ctx.db, userId, now), deletionCancelled };
     });
     ctx.hub.close(userId);
@@ -441,7 +447,12 @@ export function profileOf(ctx: Context, userId: string) {
     home_lat: number;
     home_lon: number;
     created_on: string;
-  }>('SELECT name_display, gold, home_lat, home_lon, created_on FROM users WHERE id = ?', userId);
+    home_changed_on: string;
+    name_changed_year: number | null;
+  }>(
+    'SELECT name_display, gold, home_lat, home_lon, created_on, home_changed_on, name_changed_year FROM users WHERE id = ?',
+    userId,
+  );
   if (!row) throw new HttpError(401, 'unauthorized', { reason: 'no_session' });
   return {
     id: userId,
@@ -449,5 +460,10 @@ export function profileOf(ctx: Context, userId: string) {
     gold: row.gold,
     home: { lat: row.home_lat / 100, lon: row.home_lon / 100 },
     createdOn: row.created_on,
+    // Name: once per calendar year (7.4); home: every 21 days (7.3).
+    nameChangedYear: row.name_changed_year,
+    homeChangeFrom: utcDay(
+      Date.parse(`${row.home_changed_on}T00:00:00Z`) + ACCOUNT.HOME_CHANGE_MIN_DAYS * TIME.DAY,
+    ),
   };
 }

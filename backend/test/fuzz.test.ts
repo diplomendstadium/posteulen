@@ -98,6 +98,12 @@ describe('stage-3 endpoints reject malformed input of a logged-in user', () => {
       '/api/gold/send',
       '/api/letters/prepare',
       '/api/system-messages/arrival-shown',
+      '/api/menagerie/loan',
+      `/api/owls/${id}/treat`,
+      `/api/owls/${id}/papeterie`,
+      `/api/clutches/${id}/gift/prepare`,
+      `/api/clutches/${id}/gift/send`,
+      '/api/account/delete',
     ];
     const payloads = fc.oneof(
       bodies,
@@ -107,18 +113,20 @@ describe('stage-3 endpoints reject malformed input of a logged-in user', () => {
         recipient: fc.string(),
         recipients: fc.array(fc.string()),
         amount: fc.oneof(fc.integer(), fc.double()),
-        owlId: fc.oneof(fc.string(), fc.constant('stand_in'), fc.constant(id)),
+        owlId: fc.oneof(fc.string(), fc.constant(id)),
         withCover: fc.anything(),
         token: fc.string(),
         cover: fc.anything(),
         parchment: fc.string(),
         ids: fc.array(fc.string()),
+        kind: fc.oneof(fc.string(), fc.constant('vet'), fc.constant('self')),
+        chickId: fc.oneof(fc.string(), fc.constant(id)),
       }),
     );
     await fc.assert(
       fc.asyncProperty(fc.constantFrom(...posts), payloads, async (url, body) => {
         const response = await someone.agent.request('POST', url, body === undefined ? null : body);
-        expect([200, 400, 404, 410, 413, 415, 429]).toContain(response.statusCode);
+        expect([200, 400, 403, 404, 410, 413, 415, 429]).toContain(response.statusCode);
       }),
       { numRuns: 300 },
     );
@@ -147,6 +155,15 @@ describe('every protected endpoint requires its session (SPEC 17.3)', () => {
     ['POST', '/api/gold/send'],
     ['GET', '/api/map'],
     ['POST', '/api/system-messages/arrival-shown'],
+    ['GET', '/api/menagerie'],
+    ['POST', '/api/menagerie/loan'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/treat'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/papeterie'],
+    ['POST', '/api/clutches/AAAAAAAAAAAAAAAAAAAAAA/gift/prepare'],
+    ['POST', '/api/clutches/AAAAAAAAAAAAAAAAAAAAAA/gift/send'],
+    ['PATCH', '/api/account/name'],
+    ['PATCH', '/api/account/home'],
+    ['POST', '/api/account/delete'],
   ];
   const adminRoutes: [string, string][] = [
     ['GET', '/api/me'],
@@ -162,6 +179,11 @@ describe('every protected endpoint requires its session (SPEC 17.3)', () => {
     ['GET', '/api/errors'],
     ['PATCH', '/api/errors/1'],
     ['DELETE', '/api/errors/1'],
+    ['GET', '/api/stats'],
+    ['GET', '/api/settings/inactivity'],
+    ['PUT', '/api/settings/inactivity'],
+    ['GET', '/api/broadcasts'],
+    ['POST', '/api/broadcasts'],
   ];
 
   it.each(userRoutes)('user %s %s → 401', async (method, url) => {

@@ -38,7 +38,7 @@ export const KeyPackageSchema = v.strictObject({
   privateKeys: Base64Url(182, 182),
 });
 
-const Home = v.strictObject({
+export const Home = v.strictObject({
   lat: v.pipe(v.number(), v.minValue(-90), v.maxValue(90)),
   lon: v.pipe(v.number(), v.minValue(-180), v.maxValue(180)),
 });
@@ -71,7 +71,7 @@ export const LoginFinish = v.strictObject({
 });
 
 export const ReauthStart = v.strictObject({
-  purpose: v.picklist(['password']),
+  purpose: v.picklist(['password', 'delete']),
   startLoginRequest: OpaqueStartLoginRequest,
   altcha: v.optional(AltchaPayload),
 });
@@ -118,4 +118,19 @@ export const RegistrationModeUpdate = v.strictObject({
 
 export const ErrorLogUpdate = v.strictObject({
   read: v.literal(true),
+});
+
+export const AccountDelete = v.strictObject({ token: Id });
+
+export const NameChange = v.strictObject({ name: v.pipe(v.string(), v.maxLength(100)) });
+
+export const HomeChange = v.strictObject({ home: Home });
+
+export const InactivityUpdate = v.strictObject({
+  days: v.pipe(v.number(), v.integer(), v.minValue(60), v.maxValue(3650)),
+});
+
+/** Broadcast: plain text up to 3 000 characters (SPEC 13 item 6). */
+export const Broadcast = v.strictObject({
+  text: v.pipe(v.string(), v.minLength(1), v.maxLength(3000)),
 });

@@ -75,3 +75,22 @@ export function listInvites(ctx: Context, now: number) {
       expiresAt: row.expires_at,
     }));
 }
+
+/** Automatic deletion after N days without activity (SPEC 9.10, 13 item 4). */
+export function getInactivityDays(db: Database): number {
+  const row = db.get<{ value: string }>("SELECT value FROM settings WHERE key = 'inactivity_days'");
+  const days = Number(row?.value);
+  return Number.isInteger(days) && days >= ACCOUNT.AUTO_DELETE_MIN_DAYS
+    ? days
+    : ACCOUNT.AUTO_DELETE_DEFAULT_DAYS;
+}
+
+export function setInactivityDays(db: Database, days: number): void {
+  if (!Number.isInteger(days) || days < ACCOUNT.AUTO_DELETE_MIN_DAYS || days > 3650) {
+    throw new Error('invalid inactivity period');
+  }
+  db.run(
+    "INSERT INTO settings (key, value) VALUES ('inactivity_days', ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+    String(days),
+  );
+}

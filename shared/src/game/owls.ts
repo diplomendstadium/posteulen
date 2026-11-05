@@ -36,6 +36,11 @@ export function canCare(owl: OwlFacts): boolean {
   return ['home', 'sick', 'self_care', 'brooding'].includes(owl.state);
 }
 
+/** Papeterie: own adult healthy owls at home, not brooding (9.7). */
+export function canLendToPapeterie(owl: OwlFacts): boolean {
+  return owl.kind === 'own' && !owl.isChick && owl.state === 'home';
+}
+
 export function canRelease(owl: OwlFacts): boolean {
   return owl.kind === 'own' && !owl.isChick && ['home', 'sick', 'self_care'].includes(owl.state);
 }

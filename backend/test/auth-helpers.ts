@@ -272,3 +272,21 @@ export function advanceTo(app: TestApp, at: number): number {
   app.clock.now = Math.max(app.clock.now, at);
   return app.ctx.queue.runDue();
 }
+
+/** Borrows a loan owl of today's offer (one per species, at most three, SPEC 9.6). */
+export async function borrowOwl(who: Person): Promise<string> {
+  const menagerie = await who.agent.json<{ offer: { species: string; loaned: boolean }[] }>(
+    'GET',
+    '/api/menagerie',
+  );
+  const free = menagerie.body.offer.find((item) => !item.loaned);
+  if (!free) throw new Error('no free loan species');
+  const loaned = await who.agent.json<{ owl: { id: string } }>('POST', '/api/menagerie/loan', {
+    species: free.species,
+  });
+  if (loaned.status !== 200) throw new Error(`loan failed: ${JSON.stringify(loaned.body)}`);
+  return loaned.body.owl.id;
+}
+
+/** A syntactically valid ID that belongs to no owl. */
+export const NO_OWL = 'AAAAAAAAAAAAAAAAAAAAAA';

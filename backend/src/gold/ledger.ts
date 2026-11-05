@@ -14,7 +14,10 @@ export type TransactionType =
   | 'large_parchment'
   | 'transfer_out'
   | 'transfer_in'
-  | 'transfer_refund';
+  | 'transfer_refund'
+  | 'loan'
+  | 'treatment'
+  | 'papeterie_wage';
 
 function record(
   db: Database,

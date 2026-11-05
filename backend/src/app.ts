@@ -15,6 +15,9 @@ import { PushService } from './push/service.ts';
 import { registerFlightHandlers } from './flights/service.ts';
 import { registerFlightRoutes } from './flights/routes.ts';
 import { registerOwlRoutes } from './owls/routes.ts';
+import { registerLifecycleHandlers } from './owls/lifecycle.ts';
+import { registerAccountHandlers } from './accounts/lifecycle.ts';
+import { registerAccountRoutes } from './accounts/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
 
 export interface App {
@@ -76,6 +79,8 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   ctx.push = new PushService(ctx, options.pushSender);
   registerLetterHandlers(ctx);
   registerFlightHandlers(ctx);
+  registerLifecycleHandlers(ctx);
+  registerAccountHandlers(ctx);
   registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);
@@ -84,6 +89,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerOwlRoutes(userApi, ctx);
   registerGoldRoutes(userApi, ctx);
   registerFlightRoutes(userApi, ctx);
+  registerAccountRoutes(userApi, ctx);
   registerAdminRoutes(adminApi, ctx);
 
   return {

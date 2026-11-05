@@ -3,7 +3,7 @@
  * (shared/game/flight.ts), stored as a segment list and executed through the event queue –
  * one event per stop. Re-planning happens only on a move (9.4.6) and when turning back (9.5).
  */
-import { TIME } from '@posteulen/shared/constants.ts';
+import { FLIGHT, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   owlSpeedKmh,
   positionAt,
@@ -24,6 +24,7 @@ import { credit } from '../gold/ledger.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { displayName } from '../contacts/model.ts';
 import type { NotificationType } from '../push/service.ts';
+import { afterReturnHome, scheduleAdult } from '../owls/lifecycle.ts';
 
 export type OwlKind = 'own' | 'loan' | 'stand_in' | 'bot';
 export type Purpose = 'letter' | 'gold' | 'gift';
@@ -56,12 +57,6 @@ export interface FlightRow {
   readonly state: 'active' | 'done';
 }
 
-/**
- * Stand-in owl of stage 3 (D-65): until the menagerie lends owls (stage 4) everybody can send
- * one letter or gold to one recipient with it. Values of a Waldkauz, full energy, no return.
- */
-export const STAND_IN_OWL = { id: 'stand_in', name: 'Postkauz Paul', species: 'waldkauz' } as const;
-
 export function flightEnvironment(ctx: Context): FlightEnvironment {
   return {
     isLand: (lat, lon) => isLand(ctx.landMask, lat, lon),
@@ -78,15 +73,20 @@ export function homeOf(ctx: Context, userId: string): Point {
   return { lat: row.home_lat / 100, lon: row.home_lon / 100 };
 }
 
-export function profileFor(ctx: Context, speciesId: string): FlightProfile {
+export function profileFor(ctx: Context, speciesId: string, chick = false): FlightProfile {
   const species = speciesById(speciesId);
   if (!species) throw new Error(`unknown species ${speciesId}`);
   return {
-    speedKmh: owlSpeedKmh(species.speedFactor),
+    // Chicks: 10 km/h, 1 hour of flight and 1 hour of rest, independent of energy (9.9).
+    speedKmh: chick ? FLIGHT.CHICK_SPEED_KMH : owlSpeedKmh(species.speedFactor),
     maxEnergy: species.maxEnergy,
-    mode: 'adult',
+    mode: chick ? 'chick' : 'adult',
     ...(ctx.flightTimeScale !== 1 ? { timeScale: ctx.flightTimeScale } : {}),
   };
+}
+
+function isChickFlight(flight: FlightRow): boolean {
+  return (JSON.parse(flight.profile) as FlightProfile).mode === 'chick';
 }
 
 export interface FlightOwl {
@@ -104,6 +104,8 @@ export interface PlanRequest {
   /** Own owls fly home after the last recipient; loan, stand-in and gifted owls do not. */
   readonly returnsHome: boolean;
   readonly now: number;
+  /** A chick on its gift flight (9.9). */
+  readonly chick?: boolean;
 }
 
 export interface PlannedFlight {
@@ -114,7 +116,7 @@ export interface PlannedFlight {
 
 /** Plans a flight without storing anything (preview, SPEC 8.4 step 4 and 9.4.3). */
 export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
-  const profile = profileFor(ctx, request.owl.species);
+  const profile = profileFor(ctx, request.owl.species, request.chick === true);
   const home = homeOf(ctx, request.holderId);
   const route: RouteStop[] = request.recipients.map((userId) => ({
     userId,
@@ -239,7 +241,12 @@ function saveRoute(
 }
 
 /** Re-plans the pending stops from the state at `now` and replaces the events (9.4.6, 9.5). */
-function replanPending(ctx: Context, flight: FlightRow, route: RouteStop[], now: number): void {
+export function replanFlight(
+  ctx: Context,
+  flight: FlightRow,
+  route: RouteStop[],
+  now: number,
+): void {
   const pending = route
     .map((stop, index) => ({ stop, index }))
     .filter(({ stop }) => stop.status === 'pending');
@@ -264,7 +271,7 @@ function replanPending(ctx: Context, flight: FlightRow, route: RouteStop[], now:
   }
 }
 
-function finish(ctx: Context, flightId: string): void {
+export function finishFlight(ctx: Context, flightId: string): void {
   ctx.db.run("UPDATE flights SET state = 'done' WHERE id = ?", flightId);
   ctx.db.run(
     "DELETE FROM scheduled_events WHERE type = 'flight_stop' AND substr(ref, 1, 23) = ?",
@@ -296,6 +303,20 @@ function arriveHome(
     ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
   }
   addSystemMessage(ctx, flight.holder_id, 'owl_home', { owl: flight.owl_name }, at, after);
+  if (flight.owl_id) {
+    const owl = ctx.db.get<{ is_chick: number; hatched_at: number | null }>(
+      'SELECT is_chick, hatched_at FROM owls WHERE id = ?',
+      flight.owl_id,
+    );
+    if (owl?.is_chick === 1) {
+      // A returned chick grows up at home, not before day 14 after hatching (9.9).
+      const adultAt = (owl.hatched_at ?? at) + OWL.CHICK_ADULT_AT_MOTHER_DAYS * TIME.DAY;
+      scheduleAdult(ctx, flight.owl_id, Math.max(at, adultAt));
+    } else {
+      // Eggs or a sickness rolled during the flight (9.8, 9.9).
+      afterReturnHome(ctx, flight.owl_id, at, after);
+    }
+  }
   after(() => ctx.hub.notify(flight.holder_id, 'owls', 'profile', 'map'));
 }
 
@@ -361,16 +382,22 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       utcDay(at),
       flight.owl_id,
     );
+    const chick = isChickFlight(flight);
+    if (chick) {
+      // At the recipient a chick grows up 7 days after its arrival (9.9).
+      ctx.db.run('UPDATE owls SET clutch_id = NULL WHERE id = ?', flight.owl_id);
+      scheduleAdult(ctx, flight.owl_id, at + OWL.CHICK_ADULT_AT_RECIPIENT_DAYS * TIME.DAY);
+    }
     addSystemMessage(
       ctx,
       recipient,
-      'owl_gift_received',
+      chick ? 'chick_gift_received' : 'owl_gift_received',
       { name: senderName, owl: flight.owl_name, species: flight.owl_species },
       at,
       after,
-      image,
+      chick && image ? `${image}:chick` : image,
     );
-    push = 'owl_gift';
+    push = chick ? 'chick_gift' : 'owl_gift';
     after(() => ctx.hub.notify(recipient, 'owls'));
   }
   ctx.push.notify(recipient, push, letters[0]?.id ?? flight.id, at, after);
@@ -396,10 +423,25 @@ export function registerFlightHandlers(ctx: Context): void {
     if (stop.type === 'deliver') deliver(ctx, flight, stop, event.logicalAt, tools.after);
     else arriveHome(ctx, flight, stop, event.logicalAt, tools.after);
     if (!route.some((other) => other.status === 'pending')) {
-      finish(ctx, flight.id);
+      finishFlight(ctx, flight.id);
       // Loan owls vanish after the delivery (9.6).
       if (flight.owl_kind === 'loan' && flight.owl_id) {
         ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
+      }
+      const holder = ctx.db.get<{ state: string }>(
+        'SELECT state FROM users WHERE id = ?',
+        flight.holder_id,
+      );
+      if (holder?.state === 'deleting') {
+        // Owls of a deleted account vanish after their last delivery (7.7 item 3).
+        if (flight.owl_id) {
+          ctx.db.run(
+            'DELETE FROM owls WHERE id = ? AND owner_id = ?',
+            flight.owl_id,
+            flight.holder_id,
+          );
+        }
+        ctx.queue.schedule('account_purge', flight.holder_id, event.logicalAt);
       }
     }
   });
@@ -456,7 +498,10 @@ export function turnBack(
     ctx,
     flight.holder_id,
     'letter_returned',
-    { name: displayName(ctx.db, userId) ?? '', cargo: flight.purpose },
+    {
+      name: displayName(ctx.db, userId) ?? '',
+      cargo: flight.purpose === 'gift' && isChickFlight(flight) ? 'chick' : flight.purpose,
+    },
     now,
     after,
   );
@@ -467,15 +512,15 @@ export function turnBack(
   if (!hasHome) {
     // Loan and stand-in owls have no home: they vanish at once (9.5).
     saveRoute(ctx, fresh, route);
-    finish(ctx, flight.id);
+    finishFlight(ctx, flight.id);
     if (flight.owl_kind === 'loan' && flight.owl_id) {
       ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
     }
   } else if (route.some((stop) => stop.status === 'pending')) {
-    replanPending(ctx, fresh, route, now);
+    replanFlight(ctx, fresh, route, now);
   } else {
     saveRoute(ctx, fresh, route);
-    finish(ctx, flight.id);
+    finishFlight(ctx, flight.id);
   }
   after(() => ctx.hub.notify(flight.holder_id, 'chats', 'map', 'owls', 'profile'));
   return true;
@@ -517,7 +562,7 @@ export function rerouteForMove(ctx: Context, userId: string, now: number, after:
       }
     }
     if (!touched) continue;
-    replanPending(ctx, flight, route, now);
+    replanFlight(ctx, flight, route, now);
     changed++;
     after(() => ctx.hub.notify(flight.holder_id, 'map', 'owls', 'chats'));
   }

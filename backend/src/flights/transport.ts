@@ -6,19 +6,14 @@ import { TIME } from '@posteulen/shared/constants.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
-import { maxRecipients, speciesById } from '@posteulen/shared/game/owls.ts';
+import { maxRecipients } from '@posteulen/shared/game/owls.ts';
 import type { Context, TransportToken } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { randomId } from '../security/ids.ts';
 import { recipientProblem } from '../contacts/model.ts';
 import { currentEnergy, isReady, type OwlRow } from '../owls/model.ts';
-import {
-  startFlight,
-  STAND_IN_OWL,
-  type FlightOwl,
-  type Purpose,
-  type RouteStop,
-} from './service.ts';
+import { startFlight, type FlightOwl, type Purpose, type RouteStop } from './service.ts';
+import { setChickGiftStarter } from '../owls/lifecycle.ts';
 
 export const TOKEN_MS = 5 * TIME.MINUTE;
 
@@ -27,20 +22,8 @@ export interface ChosenOwl extends FlightOwl {
   readonly returnsHome: boolean;
 }
 
-/** The owl for a transport: an own ready owl or the stand-in owl (D-65). */
+/** The owl for a transport: an own or loan owl that is ready (9.2.5). */
 export function chooseOwl(ctx: Context, userId: string, owlId: string, now: number): ChosenOwl {
-  if (owlId === STAND_IN_OWL.id) {
-    const species = speciesById(STAND_IN_OWL.species);
-    return {
-      id: null,
-      kind: 'stand_in',
-      name: STAND_IN_OWL.name,
-      species: STAND_IN_OWL.species,
-      energy: species?.maxEnergy ?? 0,
-      maxRecipients: 1,
-      returnsHome: false,
-    };
-  }
   const owl = ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ? AND owner_id = ?', owlId, userId);
   if (!owl || owl.state === 'gift_flight') throw new HttpError(404, 'not_found');
   if (!isReady(owl)) throw new HttpError(400, 'owl_not_ready');
@@ -130,6 +113,25 @@ export function checkLetters(
   return checked.sort((a, b) => order.indexOf(a.letterId) - order.indexOf(b.letterId));
 }
 
+/** A chick for its gift flight: own, at home (9.9). */
+export function chooseChick(ctx: Context, userId: string, chickId: string, now: number): ChosenOwl {
+  const chick = ctx.db.get<OwlRow>(
+    "SELECT * FROM owls WHERE id = ? AND owner_id = ? AND is_chick = 1 AND state = 'home'",
+    chickId,
+    userId,
+  );
+  if (!chick) throw new HttpError(400, 'owl_not_ready');
+  return {
+    id: chick.id,
+    kind: 'own',
+    name: chick.name ?? '',
+    species: chick.species,
+    energy: currentEnergy(ctx, chick, now),
+    maxRecipients: 1,
+    returnsHome: false,
+  };
+}
+
 /**
  * Departure (inside a transaction): the owl leaves home, the letters are stored in flight,
  * the plan is simulated and the stops are scheduled.
@@ -140,7 +142,9 @@ export function depart(
   letters: readonly CheckedLetter[],
   now: number,
 ): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
-  const owl = chooseOwl(ctx, token.senderId, token.owlId, now);
+  const owl = token.chick
+    ? chooseChick(ctx, token.senderId, token.owlId, now)
+    : chooseOwl(ctx, token.senderId, token.owlId, now);
   if (token.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
   if (owl.id) {
     const state = token.purpose === 'gift' ? 'gift_flight' : 'flying';
@@ -161,6 +165,7 @@ export function depart(
     now,
     purpose: token.purpose as Purpose,
     gold: token.gold,
+    chick: token.chick === true,
   });
   for (const letter of letters) {
     const stop = route.find(
@@ -194,3 +199,23 @@ export function depart(
   }
   return { flightId: id, route, owl };
 }
+
+// The lot of the chick gift (9.9) starts a gift flight without a cover letter.
+setChickGiftStarter((ctx, input) => {
+  depart(
+    ctx,
+    {
+      senderId: input.holderId,
+      purpose: 'gift',
+      owlId: input.chickId,
+      kind: 'cover_chick',
+      parchment: 'small',
+      recipients: [input.recipient],
+      letters: [],
+      gold: 0,
+      chick: true,
+    },
+    [],
+    input.now,
+  );
+});

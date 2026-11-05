@@ -15,7 +15,22 @@ export type SystemMessageType =
   | 'password_changed'
   | 'owl_home'
   | 'gold_arrived'
-  | 'owl_gift_received';
+  | 'owl_gift_received'
+  | 'chick_gift_received'
+  | 'owl_sick'
+  | 'owl_healthy'
+  | 'eggs_laid'
+  | 'chicks_hatched'
+  | 'chicks_hatched_gift'
+  | 'clutch_reminder'
+  | 'clutch_lot'
+  | 'clutch_kept'
+  | 'chick_adult'
+  | 'loan_expired'
+  | 'papeterie_done'
+  | 'deletion_warning'
+  | 'deletion_cancelled'
+  | 'broadcast';
 
 export function addSystemMessage(
   ctx: Context,

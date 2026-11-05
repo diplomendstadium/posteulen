@@ -5,6 +5,8 @@ import { sealLetter } from '@posteulen/shared/crypto/letter.ts';
 import { rerouteForMove } from '../src/flights/service.ts';
 import {
   advanceTo,
+  borrowOwl,
+  NO_OWL,
   buyOwl,
   couple,
   HAMBURG,
@@ -281,10 +283,9 @@ describe('flights with own owls (SPEC 9.4)', () => {
     const preview = await anna.agent.json<{
       owls: { id: string; arrivals: { at: number }[]; returnsAt: number | null }[];
     }>('POST', '/api/flights/preview', { recipients: [ben.id] });
-    expect(preview.body.owls.map((owl) => owl.id)).toEqual([id, 'stand_in']);
+    expect(preview.body.owls.map((owl) => owl.id)).toEqual([id]);
     const own = preview.body.owls[0]!;
     expect(own.returnsAt).toBeGreaterThan(own.arrivals[0]!.at);
-    expect(preview.body.owls[1]!.returnsAt).toBe(null);
 
     const sent = await sendGold(anna, ben, 5, id);
     expect(sent.body.arrivesAt).toBe(own.arrivals[0]!.at);
@@ -363,8 +364,8 @@ describe('flights with own owls (SPEC 9.4)', () => {
 
 describe('gold transfers (SPEC 9.1.4)', () => {
   it('checks the limits, debits at departure and credits on arrival with one push', async () => {
-    setGold(app, anna, 110);
-    expect((await sendGold(anna, ben, 10, 'stand_in')).body).toMatchObject({
+    setGold(app, anna, 111); // 0,1 for the loan owl
+    expect((await sendGold(anna, ben, 11, NO_OWL)).body).toMatchObject({
       code: 'transfer_remaining',
     });
     expect(
@@ -372,12 +373,12 @@ describe('gold transfers (SPEC 9.1.4)', () => {
         await anna.agent.json('POST', '/api/gold/prepare', {
           recipient: ben.id,
           amount: 201,
-          owlId: 'stand_in',
+          owlId: NO_OWL,
           withCover: false,
         })
       ).status,
     ).toBe(400);
-    expect((await sendGold(anna, anna, 1, 'stand_in')).body).toMatchObject({
+    expect((await sendGold(anna, anna, 1, NO_OWL)).body).toMatchObject({
       code: 'recipient_invalid',
     });
     await ben.agent.json('PUT', '/api/push/subscription', {
@@ -385,7 +386,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
       keys: { p256dh: 'B'.repeat(87), auth: 'A'.repeat(22) },
     });
     await app.ctx.push.idle();
-    const sent = await sendGold(anna, ben, 9, 'stand_in');
+    const sent = await sendGold(anna, ben, 9, await borrowOwl(anna));
     expect(sent.status).toBe(200);
     expect(gold(anna)).toBe(101);
     expect(gold(ben)).toBe(GOLD.START);
@@ -401,8 +402,8 @@ describe('gold transfers (SPEC 9.1.4)', () => {
     }>('GET', '/api/system-messages');
     expect(messages.body.messages.at(-1)).toMatchObject({
       type: 'gold_arrived',
-      params: { name: 'Anna', amount: 9, owl: 'Postkauz Paul' },
-      arrivalImage: 'waldkauz',
+      params: { name: 'Anna', amount: 9, owl: expect.any(String) },
+      arrivalImage: expect.any(String),
     });
     const finance = await ben.agent.json<{
       transactions: { type: string; amount: number; counterpart: string | null }[];
@@ -414,7 +415,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
 
   it('delivers a cover letter with the gold; the letter carries the arrival image', async () => {
     setGold(app, anna, 200);
-    const sent = await sendGold(anna, ben, 20, 'stand_in', 'Für dich!');
+    const sent = await sendGold(anna, ben, 20, await borrowOwl(anna), 'Für dich!');
     expect(sent.status).toBe(200);
     advanceTo(app, sent.body.arrivesAt!);
     const letters = await ben.agent.json<{ letters: { kind: string; status: string }[] }>(
@@ -438,7 +439,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
       {
         recipient: ben.id,
         amount: 1,
-        owlId: 'stand_in',
+        owlId: await borrowOwl(anna),
         withCover: true,
       },
     );
@@ -458,18 +459,18 @@ describe('gold transfers (SPEC 9.1.4)', () => {
     ).toBe(400);
   });
 
-  it('turns back: gold returns home with an own owl, at once with the stand-in owl (SPEC 9.5)', async () => {
+  it('turns back: gold returns home with an own owl, at once with a loan owl (SPEC 9.5)', async () => {
     setGold(app, anna, 300);
     const id = await buyOwl(app, anna);
     const withOwl = await sendGold(anna, ben, 20, id, 'Gruß');
-    const withStandIn = await sendGold(anna, ben, 10, 'stand_in');
+    const withStandIn = await sendGold(anna, ben, 10, await borrowOwl(anna));
     expect(withOwl.status).toBe(200);
     expect(withStandIn.status).toBe(200);
-    expect(gold(anna)).toBe(300 - 60 - 30);
+    expect(gold(anna)).toBe(300 - 60 - 30 - 1);
     app.clock.now += TIME.HOUR;
     await ben.agent.json('DELETE', `/api/contacts/${anna.id}`);
-    // Stand-in owl: refund at once.
-    expect(gold(anna)).toBe(300 - 60 - 20);
+    // Loan owl: refund at once.
+    expect(gold(anna)).toBe(300 - 60 - 20 - 1);
     const letters = await anna.agent.json<{ letters: { status: string }[] }>(
       'GET',
       `/api/chats/${ben.id}/letters`,
@@ -481,7 +482,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
     )!;
     expect(home.arrivesAt).toBeLessThan(app.clock.now + 2 * TIME.HOUR);
     advanceTo(app, home.arrivesAt);
-    expect(gold(anna)).toBe(300 - 60);
+    expect(gold(anna)).toBe(300 - 60 - 1);
     expect(gold(ben)).toBe(GOLD.START);
     expect((await systemTypes(anna)).filter((type) => type === 'letter_returned')).toHaveLength(2);
     expect(
@@ -608,11 +609,11 @@ describe('owl gifts (SPEC 9.2.7)', () => {
     expect(await owls(ben)).toEqual([]);
   });
 
-  it('cannot give away the stand-in owl, an unnamed or a flying owl', async () => {
+  it('cannot give away a loan owl or an unnamed owl', async () => {
     setGold(app, anna, 200);
     expect(
       (
-        await anna.agent.json('POST', '/api/owls/stand_in/gift/prepare', {
+        await anna.agent.json('POST', `/api/owls/${await borrowOwl(anna)}/gift/prepare`, {
           recipient: ben.id,
           withCover: false,
         })

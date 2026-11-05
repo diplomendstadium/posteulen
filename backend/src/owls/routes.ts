@@ -3,13 +3,14 @@
  * flight preview for choosing an owl (8.4 step 4).
  */
 import type { FastifyInstance } from 'fastify';
-import { GOLD } from '@posteulen/shared/constants.ts';
+import { GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
 import { energyAfterFeeding, markCare, startEnergy } from '@posteulen/shared/game/energy.ts';
 import { priceTenths } from '@posteulen/shared/game/gold.ts';
 import {
   canBuyMore,
   canCare,
   canGift,
+  canLendToPapeterie,
   canRelease,
   canRenameInYear,
   randomSex,
@@ -18,22 +19,27 @@ import {
 import { checkOwlName } from '@posteulen/shared/names.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import {
+  ChickGiftPrepare,
   CoverSend,
   FlightPreview,
   GiftPrepare,
+  Loan,
   OwlBuy,
   OwlName,
+  OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
+import { loanOwl, loanIdentityFor, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { debit } from '../gold/ledger.ts';
-import { planFlight, STAND_IN_OWL } from '../flights/service.ts';
+import { planFlight } from '../flights/service.ts';
 import {
   checkLetters,
   checkRecipients,
+  chooseChick,
   chooseOwl,
   depart,
   newLetters,
@@ -64,9 +70,18 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT * FROM owls WHERE owner_id = ? AND state != 'gift_flight' ORDER BY created_at, id",
       me,
     );
+    const clutches = ctx.db.all<{ id: string; hatched_at: number }>(
+      "SELECT id, hatched_at FROM clutches WHERE owner_id = ? AND gift_state = 'open'",
+      me,
+    );
     return {
       owls: rows.map((owl) => owlView(ctx, owl, now)),
       canBuy: canBuyMore(ownOwlCount(ctx, me)),
+      // Chicks of which one must be given away within 24 hours (9.9).
+      clutches: clutches.map((clutch) => ({
+        id: clutch.id,
+        giftDeadline: clutch.hatched_at + OWL.CHICK_GIFT_DEADLINE_HOURS * TIME.HOUR,
+      })),
     };
   });
 
@@ -189,14 +204,14 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, body.recipients, now);
     const own = ctx.db
       .all<OwlRow>(
-        "SELECT * FROM owls WHERE owner_id = ? AND state = 'home' ORDER BY created_at, id",
+        // Own owls first, then loan owls (9.6).
+        "SELECT * FROM owls WHERE owner_id = ? AND state = 'home' ORDER BY kind DESC, created_at, id",
         me,
       )
       .filter(isReady)
       .map((owl) => owl.id);
-    const candidates = [...own, STAND_IN_OWL.id];
     const owls = [];
-    for (const owlId of candidates) {
+    for (const owlId of own) {
       const owl = chooseOwl(ctx, me, owlId, now);
       if (body.recipients.length > owl.maxRecipients) continue;
       const planned = planFlight(ctx, {
@@ -277,6 +292,184 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const letters = checkLetters(token, body.cover ? [body.cover] : []);
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
+      const { route, owl } = depart(ctx, token, letters, now);
+      return {
+        owl: { name: owl.name, species: owl.species },
+        arrivesAt: route[0]?.arrivesAt ?? now,
+      };
+    });
+    ctx.hub.notify(me, 'owls', 'map', 'chats');
+    return result;
+  });
+
+  /** Treatment of a sick owl (9.8): own care 0.2 gold / 7 days, vet 1.0 gold / 24 hours. */
+  app.post('/api/owls/:id/treat', { preHandler: authenticated }, async (request) => {
+    const id = owlIdParam(request.params);
+    const body = parse(OwlTreat, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    ctx.db.transaction(() => {
+      const owl = ownOwl(ctx, me, id);
+      if (owl.state !== 'sick') throw new HttpError(400, 'owl_not_sick');
+      const vet = body.kind === 'vet';
+      debit(ctx.db, me, 'treatment', vet ? GOLD.VET_PRICE : GOLD.SELF_CARE_PRICE, now);
+      const until = now + (vet ? OWL.VET_HOURS * TIME.HOUR : OWL.SELF_CARE_DAYS * TIME.DAY);
+      // At the vet the owl is away and does not regenerate: freeze its energy now.
+      ctx.db.run(
+        'UPDATE owls SET state = ?, state_until = ?, energy = ?, energy_at = ? WHERE id = ?',
+        vet ? 'vet' : 'self_care',
+        until,
+        currentEnergy(ctx, owl, now),
+        now,
+        id,
+      );
+      ctx.queue.schedule('treatment_end', id, until);
+    });
+    ctx.hub.notify(me, 'owls', 'profile', 'finance');
+    return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
+  });
+
+  /** Lend an owl to the papeterie for 7 days (9.7). */
+  app.post('/api/owls/:id/papeterie', { preHandler: authenticated }, async (request) => {
+    const id = owlIdParam(request.params);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const owl = ownOwl(ctx, me, id);
+    if (!canLendToPapeterie(facts(owl)) || owl.name === null)
+      throw new HttpError(400, 'owl_not_home');
+    const until = now + OWL.PAPETERIE_DAYS * TIME.DAY;
+    ctx.db.transaction(() => {
+      ctx.db.run(
+        "UPDATE owls SET state = 'papeterie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
+        until,
+        currentEnergy(ctx, owl, now),
+        now,
+        id,
+      );
+      ctx.queue.schedule('papeterie_end', id, until);
+    });
+    ctx.hub.notify(me, 'owls');
+    return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
+  });
+
+  /** Today's offer with the names rolled for this user (9.6). */
+  app.get('/api/menagerie', { preHandler: authenticated }, async (request) => {
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const day = utcDay(now);
+    const loans = ctx.db.all<{ species: string }>(
+      "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
+      me,
+    );
+    return {
+      day,
+      maxLoans: MENAGERIE.MAX_CONCURRENT_LOANS,
+      loans: loans.length,
+      offer: offerOf(ctx, day).map((species) => ({
+        species,
+        ...loanIdentityFor(ctx, me, day, species),
+        loaned: loans.some((loan) => loan.species === species),
+      })),
+    };
+  });
+
+  app.post('/api/menagerie/loan', { preHandler: authenticated }, async (request) => {
+    const body = parse(Loan, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const owl = ctx.db.transaction(() => {
+      if (!offerOf(ctx, utcDay(now)).includes(body.species))
+        throw new HttpError(400, 'loan_not_offered');
+      const loans = ctx.db.all<{ species: string }>(
+        "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
+        me,
+      );
+      if (loans.length >= MENAGERIE.MAX_CONCURRENT_LOANS) throw new HttpError(400, 'loan_limit');
+      if (loans.some((loan) => loan.species === body.species))
+        throw new HttpError(400, 'loan_species');
+      debit(ctx.db, me, 'loan', GOLD.LOAN_PRICE, now);
+      return loanOwl(ctx, me, body.species, now);
+    });
+    ctx.hub.notify(me, 'owls', 'profile', 'finance');
+    return { owl: owlView(ctx, owl, now) };
+  });
+
+  /** The holder gives one chick of a clutch away, optionally with a cover letter (9.9). */
+  app.post('/api/clutches/:id/gift/prepare', { preHandler: authenticated }, async (request) => {
+    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+      throw new HttpError(429, 'rate_limited');
+    const clutchId = owlIdParam(request.params);
+    const body = parse(ChickGiftPrepare, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const clutch = ctx.db.get<{ gift_state: string }>(
+      'SELECT gift_state FROM clutches WHERE id = ? AND owner_id = ?',
+      clutchId,
+      me,
+    );
+    if (!clutch) throw new HttpError(404, 'not_found');
+    if (clutch.gift_state !== 'open') throw new HttpError(400, 'clutch_done');
+    const chick = ctx.db.get<{ name: string | null }>(
+      'SELECT name FROM owls WHERE id = ? AND clutch_id = ? AND owner_id = ?',
+      body.chickId,
+      clutchId,
+      me,
+    );
+    if (!chick) throw new HttpError(404, 'not_found');
+    if (chick.name === null) throw new HttpError(400, 'owl_unnamed');
+    checkRecipients(ctx, me, [body.recipient], now);
+    const planned = planFlight(ctx, {
+      holderId: me,
+      owl: chooseChick(ctx, me, body.chickId, now),
+      recipients: [body.recipient],
+      returnsHome: false,
+      now,
+      chick: true,
+    });
+    const letters = body.withCover ? newLetters([body.recipient], now) : [];
+    const token = randomId();
+    ctx.letterTokens.set(
+      token,
+      {
+        senderId: me,
+        purpose: 'gift',
+        owlId: body.chickId,
+        kind: 'cover_chick',
+        parchment: 'small',
+        recipients: [body.recipient],
+        letters,
+        gold: 0,
+        chick: true,
+      },
+      TOKEN_MS,
+      now,
+    );
+    return {
+      token,
+      letters,
+      keys: body.withCover ? publicKeys(ctx, [body.recipient]) : [],
+      arrivesAt: planned.route[0]?.arrivesAt ?? now,
+    };
+  });
+
+  app.post('/api/clutches/:id/gift/send', { preHandler: authenticated }, async (request) => {
+    const clutchId = owlIdParam(request.params);
+    const body = parse(CoverSend, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const token = ctx.letterTokens.take(body.token, now);
+    if (!token || token.senderId !== me || !token.chick) {
+      throw new HttpError(410, 'letter_token_expired');
+    }
+    const letters = checkLetters(token, body.cover ? [body.cover] : []);
+    checkRecipients(ctx, me, token.recipients, now);
+    const result = ctx.db.transaction(() => {
+      const done = ctx.db.run(
+        "UPDATE clutches SET gift_state = 'sent' WHERE id = ? AND owner_id = ? AND gift_state = 'open'",
+        clutchId,
+        me,
+      );
+      if (done.changes !== 1) throw new HttpError(400, 'clutch_done');
       const { route, owl } = depart(ctx, token, letters, now);
       return {
         owl: { name: owl.name, species: owl.species },

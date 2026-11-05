@@ -20,6 +20,7 @@ import { ipKey } from '../security/ip.ts';
 import { loginThrottle } from '../auth/user-routes.ts';
 import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
 import { createInvite, getRegistrationMode, listInvites, setRegistrationMode } from './settings.ts';
+import { registerAdminOperations } from './operations.ts';
 
 const ADMIN_KEY = 'admin';
 /** Endpoints allowed while the initial password must still be changed (SPEC 13). */
@@ -257,6 +258,8 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     setSessionCookie(reply, spec, session);
     return { ok: true };
   });
+
+  registerAdminOperations(app, ctx, authenticated);
 
   // ── Registrierung und Einladungscodes (SPEC 13 item 3) ──
   app.get('/api/settings/registration', { preHandler: authenticated }, async () => ({

@@ -107,7 +107,12 @@ export function resolveSession(
   // Activity only as a date, and only for requests the user triggered (SPEC 9.10).
   const today = utcDay(now);
   if (!options.background && row.last_active_date !== today) {
-    ctx.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', today, row.user_id);
+    // Any activity ends a running inactivity warning (9.10).
+    ctx.db.run(
+      'UPDATE users SET last_active_date = ?, inactivity_warned_on = NULL WHERE id = ?',
+      today,
+      row.user_id,
+    );
   }
   return { id: row.user_id, nameDisplay: row.name_display, tokenHash: hash };
 }

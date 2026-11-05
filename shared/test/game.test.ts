@@ -24,6 +24,7 @@ import {
   canBuyMore,
   canCare,
   canGift,
+  canLendToPapeterie,
   canRelease,
   canRename,
   canRenameInYear,
@@ -210,6 +211,10 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canRelease({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(canRelease({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
     expect(canRename({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
+    expect(canLendToPapeterie({ ...own, state: 'home' })).toBe(true);
+    expect(canLendToPapeterie({ ...own, state: 'sick' })).toBe(false);
+    expect(canLendToPapeterie({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
+    expect(canLendToPapeterie({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(regenerates('brooding')).toBe(true);
     expect(regenerates('vet')).toBe(false);
     expect(regenerates('flying')).toBe(false);
