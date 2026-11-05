@@ -8,6 +8,9 @@ const encoder = new TextEncoder();
 export type Field = string | number | Uint8Array;
 
 function fieldBytes(field: Field): Uint8Array {
+  if (typeof field !== 'string' && typeof field !== 'number' && !(field instanceof Uint8Array)) {
+    throw new TypeError('missing or invalid field');
+  }
   if (typeof field === 'string') return encoder.encode(field.normalize('NFC'));
   if (typeof field === 'number') {
     if (!Number.isSafeInteger(field) || field < 0) throw new RangeError('invalid integer field');
@@ -47,4 +50,33 @@ export function fromBase64Url(text: string): Uint8Array {
   const out = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
   return out;
+}
+
+/** Reads `count` length-prefixed fields; returns them and the remaining bytes. */
+export function decodeFields(
+  bytes: Uint8Array,
+  count: number,
+): { fields: Uint8Array[]; rest: Uint8Array } {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const fields: Uint8Array[] = [];
+  let offset = 0;
+  for (let i = 0; i < count; i++) {
+    if (offset + 4 > bytes.length) throw new RangeError('truncated field header');
+    const length = view.getUint32(offset);
+    if (offset + 4 + length > bytes.length) throw new RangeError('truncated field');
+    fields.push(bytes.subarray(offset + 4, offset + 4 + length));
+    offset += 4 + length;
+  }
+  return { fields, rest: bytes.subarray(offset) };
+}
+
+export function fieldText(field: Uint8Array): string {
+  return new TextDecoder('utf-8', { fatal: true }).decode(field);
+}
+
+export function fieldNumber(field: Uint8Array): number {
+  if (field.length !== 8) throw new RangeError('invalid number field');
+  const value = new DataView(field.buffer, field.byteOffset, 8).getBigUint64(0);
+  if (value > BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('number too large');
+  return Number(value);
 }

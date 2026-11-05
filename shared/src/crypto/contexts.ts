@@ -11,6 +11,7 @@ export const CONTEXTS = {
   AD_MASTER_KEY: 'PostEulen/ad/master-key/v1',
   AD_IDENTITY_KEYS: 'PostEulen/ad/identity-keys/v1',
   AD_VAULT: 'PostEulen/ad/vault/v1',
+  AD_REQUEST_LABEL: 'PostEulen/ad/request-label/v1',
 } as const;
 
 /** Server-side derivations from the root secret (ARCHITECTURE 2.5). */

@@ -48,6 +48,7 @@ describe('canonical encoding (D-14)', () => {
     expect(encodeFields('c', 'é')).toEqual(encodeFields('c', 'é'));
     expect(() => encodeFields('c', -1)).toThrow(RangeError);
     expect(() => encodeFields('c', 1.5)).toThrow(RangeError);
+    expect(() => encodeFields('c', undefined as unknown as string)).toThrow(TypeError);
   });
 
   it('round-trips base64url', () => {
