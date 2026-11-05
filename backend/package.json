@@ -1,0 +1,13 @@
+{
+  "name": "@posteulen/backend",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "posteulen-cli": "./src/cli.ts"
+  },
+  "dependencies": {
+    "@serenity-kit/opaque": "1.1.0",
+    "fastify": "5.12.7",
+    "web-push": "3.6.7"
+  }
+}

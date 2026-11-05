@@ -1,0 +1,80 @@
+import fs from 'node:fs';
+import type { FastifyInstance } from 'fastify';
+import type { Config } from './config.ts';
+import { openDatabase, type Database } from './db/database.ts';
+import { loadMigrations, migrate, schemaState } from './db/migrate.ts';
+import { buildApi } from './http/server.ts';
+import { loadSecrets, secretsFingerprint, type Secrets } from './secrets.ts';
+
+export interface App {
+  readonly config: Config;
+  readonly db: Database;
+  readonly secrets: Secrets;
+  readonly userApi: FastifyInstance;
+  readonly adminApi: FastifyInstance;
+  close(): Promise<void>;
+}
+
+export class StartupError extends Error {}
+
+/** Checks that database and secrets file belong together (ARCHITECTURE 10.3). */
+export async function verifySecretsFingerprint(db: Database, secrets: Secrets): Promise<void> {
+  const expected = await secretsFingerprint(secrets);
+  const row = db.get<{ value: string }>("SELECT value FROM meta WHERE key = 'secrets_fingerprint'");
+  if (row === undefined) {
+    db.run("INSERT INTO meta (key, value) VALUES ('secrets_fingerprint', ?)", expected);
+  } else if (row.value !== expected) {
+    throw new StartupError(
+      'Die Geheimnis-Datei passt nicht zu dieser Datenbank. Bitte die zugehörige gesicherte Geheimnis-Datei zurückspielen.',
+    );
+  }
+}
+
+export async function createApp(config: Config): Promise<App> {
+  const secrets = loadSecrets(config.secretsFile);
+  fs.mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
+  const db = openDatabase(config.databaseFile);
+  try {
+    const migrations = loadMigrations();
+    const state = schemaState(db, migrations);
+    if (state.kind === 'too_new') {
+      throw new StartupError(
+        `Die Datenbank (Schema ${state.version}) ist neuer als diese Programmversion (Schema ${state.latest}). Start abgebrochen.`,
+      );
+    }
+    if (state.kind === 'pending') {
+      if (config.env === 'production') {
+        throw new StartupError(
+          `Datenbank-Migrationen stehen aus (Schema ${state.version} → ${state.latest}). Bitte „posteulen-cli migrate“ ausführen.`,
+        );
+      }
+      migrate(db, migrations);
+    }
+    await verifySecretsFingerprint(db, secrets);
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+
+  const hsts = config.env === 'production';
+  const logLevel = config.env === 'test' ? undefined : config.logLevel;
+  const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
+  const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
+
+  return {
+    config,
+    db,
+    secrets,
+    userApi,
+    adminApi,
+    async close() {
+      await Promise.allSettled([userApi.close(), adminApi.close()]);
+      db.close();
+    },
+  };
+}
+
+export async function listen(app: App): Promise<void> {
+  await app.userApi.listen({ host: app.config.host, port: app.config.userPort });
+  await app.adminApi.listen({ host: app.config.host, port: app.config.adminPort });
+}
