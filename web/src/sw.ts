@@ -89,24 +89,26 @@ sw.addEventListener('push', (event) => {
         ? PUSH_TEXTS.letterBody
         : PUSH_TEXTS.newsBody;
   const id = typeof data.id === 'string' && /^[A-Za-z0-9_-]{22}$/.test(data.id) ? data.id : null;
+  // Show the notification and confirm receipt independently: a display problem must not
+  // hide that the push arrived (SPEC 11.4).
   event.waitUntil(
-    (async () => {
-      await sw.registration.showNotification('PostEulen', {
+    Promise.allSettled([
+      sw.registration.showNotification('PostEulen', {
         body,
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
         lang: 'de',
         ...(id ? { tag: id } : {}),
-      });
-      if (id) {
-        await fetch('/api/push/ack', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-posteulen': '1' },
-          body: JSON.stringify({ id }),
-          credentials: 'omit',
-        }).catch(() => undefined);
-      }
-    })(),
+      }),
+      id
+        ? fetch('/api/push/ack', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-posteulen': '1' },
+            body: JSON.stringify({ id }),
+            credentials: 'omit',
+          })
+        : Promise.resolve(),
+    ]),
   );
 });
 

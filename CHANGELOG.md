@@ -3,6 +3,15 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## Unveröffentlicht (geht in v0.1.0-stufe.3 ein)
+
+- Behoben: Web Push wurde nie zugestellt (Verbindungsaufbau zum Push-Dienst), und die Anzeige blieb bei
+  „wird geprüft …“ stehen.
+
+### Hinweise für Betreiber
+
+- Nach dem Update in den Einstellungen „Benachrichtigungen einrichten“ erneut auslösen.
+
 ## v0.1.0-stufe.2 – Kontakte und Briefe
 
 - Koppeln per Namen (gleiche Antwort, ob es den Namen gibt), 24 h gültige Anfragen, höchstens 20 pro Tag.

@@ -138,7 +138,7 @@
 | D-48 | 2026-11-05 | Der Passwortwechsel lehnt ein Schlüsselpaket ab, dessen verschlüsselte private Schlüssel sich geändert haben | SPEC 5.6 Punkt 5: Identitätsschlüssel bleiben unverändert | nur Format prüfen |
 | D-49 | 2026-11-05 | Service Worker lädt beim ersten Installieren **nicht** neu, nur bei einem echten Versionswechsel | sonst gingen gerade ausgefüllte Formulare verloren (im E2E-Test gefunden) | immer neu laden |
 | D-50 | 2026-11-05 | Folgende Teile von SPEC 5.2–5.6 folgen in späteren Stufen, weil ihre Grundlage noch fehlt: Systemnachricht „Passwort geändert“ (Systemchat, Stufe 2); Push-Abos beim Login löschen (Push, Stufe 2); drei Bots und Tag-0-Brief bei der Registrierung (Stufe 5); Kontolöschung mit 24-Stunden-Frist (Stufe 4; der Login hebt einen Löschantrag bereits auf) | Stufenplan SPEC 18 | Platzhalter-Implementierungen |
-| D-51 | 2026-11-05 | Messung Argon2id (64 MiB, t = 3, p = 4) im Browser: Chromium auf dem Entwicklungsrechner 259 ms; Messung auf einem Mittelklasse-Handy steht aus (F-06, Seite `/messung`) | SPEC 5.3 | – |
+| D-51 | 2026-11-05 | Messung Argon2id (64 MiB, t = 3, p = 4) im Browser: Chromium auf dem Entwicklungsrechner 259 ms; **Pixel 3 XL 964 ms**, Laptop des Auftraggebers 146 ms (gemessen vom Auftraggeber über `/messung`). Parameter bleiben (F-06 erledigt) | SPEC 5.3: unter 1 s auf einem älteren Mittelklasse-Handy ist für eine Anmeldung gut vertretbar | p = 1 oder Web Worker (nicht nötig) |
 | D-52 | 2026-11-05 | VM-Test: installiert zuerst das Tag der vorigen Stufe, aktualisiert dann; ein Testkonto (registriert über HTTPS mit dem Krypto-Code des Releases) muss sich nach jedem Update, Rückfall und jeder Wiederherstellung anmelden und dieselben Schlüssel entpacken | SPEC 17.6 | nur Datenbankinhalte prüfen |
 
 ---
@@ -158,3 +158,11 @@
 | D-61 | 2026-11-05 | Web-Push-Ende-zu-Ende ist in den automatischen Tests nur mit nachgebildetem Push-Dienst geprüft (Unit-Tests); echte Zustellung über Mozilla/Google/UnifiedPush muss auf einem Gerät erfolgen | Playwright-Browser können keine echten Push-Abos anlegen | – |
 | D-62 | 2026-11-05 | E2E-Tests ignorieren in WebKit nur die Meldung „… /api/… due to access control checks“ (abgebrochene gleiche-Origin-Anfragen beim Seitenwechsel) | WebKit-Eigenheit; gleiche Origin kann CORS nicht verletzen | Fehlerprüfung in WebKit abschalten |
 | D-63 | 2026-11-05 | Lage Web Push auf Google-freiem Android vor Stufe 2 erneut geprüft: unverändert (IronFox 159.0.1, UnifiedPush-AC 1.0.8); Test im Emulator steht aus (kein Android-Emulator auf dem Entwicklungsrechner) | SPEC 11.7 | – |
+
+---
+
+## Teil G – Fehlerbehebung nach Stufe 2 (Rückmeldung des Auftraggebers)
+
+| Nr. | Datum | Entscheidung | Begründung | Verworfen |
+|---|---|---|---|---|
+| D-64 | 2026-11-06 | **Fehler:** Kein Web Push kam an, die Anzeige blieb bei „wird geprüft …“. **Ursache:** Die Verbindung zur geprüften IP nutzt einen eigenen `lookup`; Node ruft ihn mit `{ all: true }` auf und erwartet eine Liste – die Antwort im alten Format ließ jede Anfrage mit „Invalid IP address“ scheitern. Zusätzlich galt ein nie bestätigter Test unbegrenzt als „läuft“. **Behebung:** `lookup` beantwortet beide Formen; neuer Test gegen einen echten lokalen TLS-Server (SNI/Host, keine Weiterleitungen, falsches Zertifikat); der Test gilt nur 60 s bzw. bis zum Fehlschlag als laufend; der Service Worker bestätigt den Empfang auch, wenn die Anzeige scheitert; ein E2E-Test schickt ein Push-Ereignis in den Service Worker und erwartet „aktiv und bestätigt“ | Rückmeldung des Auftraggebers; die bisherigen Tests prüften nur Ablehnungen, nicht den Erfolgsweg | – |

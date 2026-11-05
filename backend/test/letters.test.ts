@@ -469,6 +469,30 @@ describe('push (SPEC 11.3, 11.4)', () => {
     await gone.close();
   });
 
+  it('ends the test after 60 s or at once when sending failed (regression: "wird geprüft" forever)', async () => {
+    await ben.agent.json('PUT', '/api/push/subscription', subscription);
+    await app.ctx.push.idle();
+    expect((await ben.agent.json('GET', '/api/push/status')).body).toMatchObject({
+      state: 'testing',
+    });
+    app.clock.now += 61_000;
+    expect((await ben.agent.json('GET', '/api/push/status')).body).toMatchObject({
+      state: 'unconfirmed',
+      testFailed: false,
+    });
+
+    const failing = await testApp({ pushStatus: 500 });
+    const dora = await person(failing, 'Dora');
+    await dora.agent.json('PUT', '/api/push/subscription', subscription);
+    await failing.ctx.push.idle();
+    expect((await dora.agent.json('GET', '/api/push/status')).body).toMatchObject({
+      state: 'unconfirmed',
+      testFailed: true,
+    });
+    expect(failing.db.all('SELECT what FROM error_log')).toHaveLength(1);
+    await failing.close();
+  });
+
   it('removes the push subscription on logout and on login elsewhere (SPEC 5.3, 11.3)', async () => {
     await ben.agent.json('PUT', '/api/push/subscription', subscription);
     expect(app.db.all('SELECT * FROM push_subscriptions')).toHaveLength(1);

@@ -1,7 +1,12 @@
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   checkEndpointUrl,
   isPublicAddress,
+  postToAddress,
   resolvePublic,
   sendPush,
 } from '../src/push/transport.ts';
@@ -77,5 +82,86 @@ describe('SSRF protection for push endpoints (SPEC 11.3)', () => {
       async () => [{ address: '192.168.0.1', family: 4 }],
     );
     expect(result).toEqual({ error: 'private address' });
+  });
+});
+
+describe('HTTPS connection to the checked address (regression: Node asks lookup with all: true)', () => {
+  const fixtures = path.resolve(import.meta.dirname, 'fixtures');
+  const key = fs.readFileSync(path.join(fixtures, 'push-test-key.pem'));
+  const cert = fs.readFileSync(path.join(fixtures, 'push-test-cert.pem'));
+
+  async function withServer(
+    handler: http.RequestListener,
+    run: (port: number) => Promise<void>,
+  ): Promise<void> {
+    const server = https.createServer({ key, cert }, handler);
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    try {
+      await run((server.address() as { port: number }).port);
+    } finally {
+      server.close();
+    }
+  }
+
+  it('connects, sends SNI/Host of the push service and returns the status', async () => {
+    let seen: { host: string | undefined; body: string } = { host: undefined, body: '' };
+    await withServer(
+      (req, res) => {
+        let body = '';
+        req.on('data', (chunk: Buffer) => (body += chunk.toString()));
+        req.on('end', () => {
+          seen = { host: req.headers.host, body };
+          res.writeHead(201).end();
+        });
+      },
+      async (port) => {
+        const result = await postToAddress({
+          url: new URL('https://push.test/send/abc'),
+          target: { address: '127.0.0.1', family: 4 },
+          method: 'POST',
+          headers: { 'content-type': 'application/octet-stream', TTL: 60 },
+          body: Buffer.from('verschlüsselt'),
+          testOnly: { port, ca: cert },
+        });
+        expect(result).toEqual({ status: 201 });
+      },
+    );
+    expect(seen.host).toMatch(/^push\.test(:\d+)?$/);
+    expect(seen.body).toBe('verschlüsselt');
+  });
+
+  it('does not follow redirects and limits the response size', async () => {
+    await withServer(
+      (_req, res) =>
+        res.writeHead(301, { location: 'https://127.0.0.1/' }).end('x'.repeat(100_000)),
+      async (port) => {
+        const result = await postToAddress({
+          url: new URL('https://push.test/x'),
+          target: { address: '127.0.0.1', family: 4 },
+          method: 'POST',
+          headers: {},
+          body: null,
+          testOnly: { port, ca: cert },
+        });
+        expect(result).toEqual({ status: 301 });
+      },
+    );
+  });
+
+  it('rejects a certificate that does not match the push service name', async () => {
+    await withServer(
+      (_req, res) => res.writeHead(201).end(),
+      async (port) => {
+        const result = await postToAddress({
+          url: new URL('https://other.test/x'),
+          target: { address: '127.0.0.1', family: 4 },
+          method: 'POST',
+          headers: {},
+          body: null,
+          testOnly: { port, ca: cert },
+        });
+        expect('error' in result).toBe(true);
+      },
+    );
   });
 });

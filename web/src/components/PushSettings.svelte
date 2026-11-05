@@ -7,6 +7,7 @@
     pushSupported,
     sendTest,
     serverStatus,
+    waitForConfirmation,
     type PushState,
   } from '../lib/push.ts';
   import { live } from '../lib/live.svelte.ts';
@@ -17,7 +18,12 @@
 
   onMount(() => {
     if (!pushSupported()) pushState = 'unavailable';
-    else void serverStatus().then((result) => (pushState = result.state));
+    else
+      void serverStatus().then((result) => {
+        pushState = result.state;
+        // A test still running (e.g. after a reload) is awaited instead of shown forever.
+        if (result.state === 'testing') void run(waitForConfirmation);
+      });
   });
 
   const label = $derived(
@@ -44,7 +50,7 @@
 
 <section class="card" aria-labelledby="push-title">
   <h2 id="push-title">{de.push.title}</h2>
-  <p role="status"><strong>Status:</strong> <span data-testid="push-pushState">{label}</span></p>
+  <p role="status"><strong>Status:</strong> <span data-testid="push-state">{label}</span></p>
   {#if pushState === 'denied'}<p>{de.push.denied}</p>{/if}
   {#if isIos() && pushState === 'unavailable'}<p>{de.push.iosHint}</p>{/if}
   {#if pushSupported()}

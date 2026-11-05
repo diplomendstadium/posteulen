@@ -28,8 +28,15 @@ function base64UrlToBytes(text: string): Uint8Array<ArrayBuffer> {
   return out;
 }
 
-export async function serverStatus(): Promise<{ state: PushState; needsVerification?: boolean }> {
-  return api<{ state: PushState; needsVerification?: boolean }>('GET', '/api/push/status');
+export async function serverStatus(): Promise<{
+  state: PushState;
+  needsVerification?: boolean;
+  testFailed?: boolean;
+}> {
+  return api<{ state: PushState; needsVerification?: boolean; testFailed?: boolean }>(
+    'GET',
+    '/api/push/status',
+  );
 }
 
 /** Subscribes (any refusal means "not available") and runs the end-to-end test. */
@@ -70,8 +77,10 @@ export async function sendTest(): Promise<PushState> {
 export async function waitForConfirmation(): Promise<PushState> {
   const deadline = Date.now() + SECURITY.PUSH_VERIFY_SECONDS * 1000;
   while (Date.now() < deadline) {
-    const { state } = await serverStatus();
+    const { state, testFailed } = await serverStatus();
     if (state === 'confirmed') return 'confirmed';
+    // The server could not hand the test to the push service: no point in waiting longer.
+    if (testFailed || state === 'unconfirmed' || state === 'none') return 'unconfirmed';
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   return 'unconfirmed';

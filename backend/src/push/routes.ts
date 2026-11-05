@@ -1,6 +1,7 @@
 /** Push subscription, verification (SPEC 11.4) and "Neuigkeiten" (SPEC 11.5). */
 import type { FastifyInstance } from 'fastify';
 import { IdList, PushAck, PushSubscriptionInput } from '@posteulen/shared/schemas/letters.ts';
+import { SECURITY } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { ipKey } from '../security/ip.ts';
@@ -81,23 +82,31 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT MIN(created_at) AS oldest FROM notifications WHERE user_id = ? AND push_state = 'sent' AND type != 'push_test'",
       me,
     )?.oldest;
-    const testPending =
-      ctx.db.get("SELECT 1 FROM notifications WHERE user_id = ? AND type = 'push_test'", me) !==
-      undefined;
+    // The test counts as running for 60 s (SPEC 11.4); a failed send ends it at once.
+    const test = ctx.db.get<{ created_at: number; push_state: string }>(
+      "SELECT created_at, push_state FROM notifications WHERE user_id = ? AND type = 'push_test' ORDER BY created_at DESC LIMIT 1",
+      me,
+    );
+    const now = ctx.now();
+    const testRunning =
+      test !== undefined &&
+      test.push_state !== 'failed' &&
+      now - test.created_at < SECURITY.PUSH_VERIFY_SECONDS * 1000;
     return {
       state:
         subscription.last_confirmed_at !== null
           ? 'confirmed'
-          : testPending
+          : testRunning
             ? 'testing'
             : 'unconfirmed',
+      testFailed: test?.push_state === 'failed',
       endpoint: subscription.endpoint,
       confirmedAt: subscription.last_confirmed_at,
       needsVerification:
         subscription.last_confirmed_at === null ||
         (unconfirmed !== null &&
           unconfirmed !== undefined &&
-          unconfirmed < ctx.now() - 60 * 60 * 1000 &&
+          unconfirmed < now - 60 * 60 * 1000 &&
           unconfirmed > subscription.last_confirmed_at),
     };
   });

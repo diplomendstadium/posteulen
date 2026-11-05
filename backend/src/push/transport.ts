@@ -159,18 +159,64 @@ export async function sendPush(
     payload,
     { vapidDetails: vapid, TTL: 24 * 60 * 60, urgency: 'normal', contentEncoding: 'aes128gcm' },
   );
+  return postToAddress({
+    url,
+    target,
+    method: details.method,
+    headers: details.headers as Record<string, string | number>,
+    body: details.body ?? null,
+  });
+}
+
+export interface PostRequest {
+  readonly url: URL;
+  /** The already checked address; the connection goes exactly there. */
+  readonly target: { readonly address: string; readonly family: number };
+  readonly method: string;
+  readonly headers: Record<string, string | number>;
+  readonly body: Buffer | string | null;
+  /** Only for tests: port and trust anchor of a local TLS server. */
+  readonly testOnly?: { readonly port: number; readonly ca: string | Buffer };
+}
+
+/**
+ * One HTTPS request to a fixed address (D-06): SNI and Host are the push service's name, no
+ * second DNS lookup, no redirects (https.request never follows them), timeout, size limit.
+ */
+export function postToAddress(request: PostRequest): Promise<SendResult> {
+  const { url, target } = request;
   return new Promise<SendResult>((resolve) => {
-    const request = https.request(
+    let settled = false;
+    const finish = (result: SendResult): void => {
+      if (!settled) {
+        settled = true;
+        resolve(result);
+      }
+    };
+    const outgoing = https.request(
       {
-        method: details.method,
+        method: request.method,
         host: url.hostname,
         servername: url.hostname,
-        port: 443,
+        port: request.testOnly?.port ?? 443,
         path: `${url.pathname}${url.search}`,
-        headers: details.headers as Record<string, string | number>,
+        headers: request.headers,
         timeout: TIMEOUT_MS,
-        // Connect exactly to the checked address – no second DNS lookup.
-        lookup: (_hostname, _options, callback) => callback(null, target.address, target.family),
+        ...(request.testOnly ? { ca: request.testOnly.ca } : {}),
+        // Connect exactly to the checked address. Node asks with { all: true } (happy
+        // eyeballs) and then expects a list – answering the old way fails every request.
+        lookup: (_hostname, options, callback) => {
+          if (options.all) {
+            (
+              callback as unknown as (
+                error: null,
+                addresses: { address: string; family: number }[],
+              ) => void
+            )(null, [{ address: target.address, family: target.family }]);
+          } else {
+            callback(null, target.address, target.family);
+          }
+        },
       },
       (response) => {
         let size = 0;
@@ -178,14 +224,14 @@ export async function sendPush(
           size += chunk.length;
           if (size > MAX_RESPONSE_BYTES) response.destroy();
         });
-        response.on('end', () => resolve({ status: response.statusCode ?? 0 }));
-        response.on('close', () => resolve({ status: response.statusCode ?? 0 }));
-        response.on('error', () => resolve({ error: 'response' }));
+        response.on('end', () => finish({ status: response.statusCode ?? 0 }));
+        response.on('close', () => finish({ status: response.statusCode ?? 0 }));
+        response.on('error', () => finish({ error: 'response' }));
       },
     );
-    request.on('timeout', () => request.destroy(new Error('timeout')));
-    request.on('error', (error) => resolve({ error: error.message }));
-    if (details.body) request.write(details.body);
-    request.end();
+    outgoing.on('timeout', () => outgoing.destroy(new Error('timeout')));
+    outgoing.on('error', (error) => finish({ error: error.message }));
+    if (request.body) outgoing.write(request.body);
+    outgoing.end();
   });
 }
