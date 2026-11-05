@@ -18,8 +18,8 @@ import {
 import { fromBase64Url, toBase64Url } from '../../shared/src/crypto/encoding.ts';
 import type { IdentityKeys } from '../../shared/src/crypto/keypackage.ts';
 
-const BASE = 'https://posteulen.test';
-const STATE = '/root/vmtest-account.json';
+const BASE = process.env['POSTEULEN_TEST_BASE'] ?? 'https://posteulen.test';
+const STATE = process.env['POSTEULEN_TEST_STATE'] ?? '/root/vmtest-account.json';
 let cookie = '';
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {

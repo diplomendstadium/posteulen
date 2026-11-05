@@ -51,6 +51,14 @@ letters() {
     node /opt/posteulen/current/deploy/test/vm-account.ts "$1" "$ACCOUNT_NAME" "$ACCOUNT_PASSWORD" "${2:-}"
 }
 account_registered=0
+diag() {
+  echo "   Diagnose: $(date -u +%H:%M:%S) UTC"
+  sql "SELECT type, due_at, attempts FROM scheduled_events" | sed 's/^/   Warteschlange: /'
+  sql "SELECT status, arrives_at, sent_at FROM letters" | sed 's/^/   Briefe: /'
+  sql "SELECT what, cause FROM error_log" | sed 's/^/   Fehlerprotokoll: /'
+  node -e 'console.log("   Jetzt (ms):", Date.now())'
+  journalctl -u posteulen --no-pager -n 15 | sed 's/^/   journal: /'
+}
 
 apt-get update -qq && apt-get install -y -qq git >/dev/null
 git clone --quiet --bare /tmp/posteulen.bundle /srv/posteulen.git
@@ -126,6 +134,7 @@ check "Geheimnisse unverändert" test "$(fingerprint)" = "$before"
 check "Verschlüsselte Sicherung vor dem Update" update_backup_exists
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
+has_letter_support && diag
 
 echo "── 4. Kaputtes Update $v2 → $v3 wird zurückgerollt"
 if posteulen-update "$v3" --yes; then check "kaputtes Update schlägt fehl" false; else check "kaputtes Update schlägt fehl" true; fi
