@@ -14,6 +14,8 @@ import {
 import { createApp, listen } from '../app.ts';
 import { loadConfig } from '../config.ts';
 import { createSecretsFileIfMissing } from '../secrets.ts';
+import { adminExists, setInitialAdminPassword } from '../admin/admin-auth.ts';
+import { setRegistrationMode, type RegistrationMode } from '../admin/settings.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../../..');
 const WEB_PORT = Number(process.env['POSTEULEN_PREVIEW_WEB_PORT'] ?? 8080);
@@ -97,7 +99,20 @@ const config = loadConfig({
   POSTEULEN_ADMIN_ORIGIN: `http://localhost:${ADMIN_PORT}`,
   POSTEULEN_LOG_LEVEL: process.env['POSTEULEN_LOG_LEVEL'] ?? 'warn',
 });
-const app = await createApp(config);
+const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
+if (relaxed && config.env !== 'development') throw new Error('relaxed limits only in development');
+const app = await createApp(config, { relaxedLimits: relaxed });
+// Local convenience only: an admin with a one-time password (written to the data folder)
+// and, if requested, an initial registration mode.
+if (!adminExists(app.db)) {
+  const password = await setInitialAdminPassword(app.db, app.secrets.opaqueServerSetup);
+  fs.writeFileSync(path.join(DATA_DIR, 'admin-erstpasswort.txt'), `${password}\n`, { mode: 0o600 });
+  console.warn(`Admin-Erstpasswort (lokal): ${password}`);
+}
+const mode = process.env['POSTEULEN_PREVIEW_REGISTRATION'];
+if (mode === 'open' || mode === 'invite' || mode === 'closed') {
+  setRegistrationMode(app.db, mode as RegistrationMode);
+}
 await listen(app);
 const web = staticServer(path.join(ROOT, 'web/dist'), config.userPort).listen(
   WEB_PORT,

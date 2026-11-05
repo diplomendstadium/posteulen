@@ -72,7 +72,7 @@ describe('migrations (SPEC 16.3)', () => {
     ).toThrow('boom');
     expect(db.get("SELECT * FROM settings WHERE key = 'k'")).toBeUndefined();
     expect(() => db.transaction(() => db.transaction(() => 1))).toThrow(/nested/);
-    expect(db.all('SELECT * FROM settings')).toEqual([]);
+    expect(db.all("SELECT key FROM settings WHERE key = 'k'")).toEqual([]);
     db.close();
   });
 });

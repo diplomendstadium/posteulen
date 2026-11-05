@@ -13,6 +13,7 @@ import { loadMigrations, migrate, schemaState } from './db/migrate.ts';
 import { createSecretsFileIfMissing, loadSecrets } from './secrets.ts';
 import { verifySecretsFingerprint } from './app.ts';
 import { generateCaddyfile } from './ops/caddyfile.ts';
+import { adminExists, setInitialAdminPassword } from './admin/admin-auth.ts';
 
 function fail(message: string): never {
   console.error(`Fehler: ${message}`);
@@ -84,6 +85,28 @@ async function main(argv: string[]): Promise<void> {
       return;
     }
 
+    case 'admin-init':
+    case 'admin-reset': {
+      // admin-init: only if no administrator exists yet (install); admin-reset: always (SPEC 13).
+      const config = configFromEnv();
+      const secrets = loadSecrets(config.secretsFile);
+      const db = openDatabase(config.databaseFile);
+      try {
+        if (schemaState(db, loadMigrations()).kind !== 'current')
+          fail('Bitte zuerst „posteulen-cli migrate“ ausführen.');
+        if (command === 'admin-init' && adminExists(db)) {
+          console.log('Adminzugang vorhanden – unverändert.');
+          return;
+        }
+        const password = await setInitialAdminPassword(db, secrets.opaqueServerSetup);
+        console.log(`ADMIN-ERSTPASSWORT: ${password}`);
+        console.log('Es wird nur jetzt angezeigt. Beim ersten Login muss es geändert werden.');
+      } finally {
+        db.close();
+      }
+      return;
+    }
+
     case 'caddyfile': {
       const { values } = parseArgs({
         args: rest,
@@ -129,7 +152,7 @@ async function main(argv: string[]): Promise<void> {
 
     default:
       console.error(
-        'Aufruf: posteulen-cli <setup|migrate|check|caddyfile|backup|version|schema-version>',
+        'Aufruf: posteulen-cli <setup|migrate|check|admin-init|admin-reset|caddyfile|backup|version|schema-version>',
       );
       process.exit(2);
   }

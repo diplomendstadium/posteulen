@@ -1,4 +1,5 @@
 import Fastify, { LogController, type FastifyInstance, type FastifyError } from 'fastify';
+import cookie from '@fastify/cookie';
 import { VERSION } from '@posteulen/shared/version.ts';
 import {
   apiHeaders,
@@ -8,6 +9,8 @@ import {
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import type { Database } from '../db/database.ts';
 import { loggerOptions } from '../log.ts';
+import { logError } from '../ops/error-log.ts';
+import { HttpError } from './errors.ts';
 
 export type ApiKind = 'user' | 'admin';
 
@@ -72,6 +75,7 @@ export function buildApi(options: ApiOptions): FastifyInstance {
 
   // Only JSON request bodies (SPEC 6).
   app.removeContentTypeParser('text/plain');
+  void app.register(cookie);
 
   const headers = apiHeaders({ hsts: options.hsts });
 
@@ -106,12 +110,33 @@ export function buildApi(options: ApiOptions): FastifyInstance {
     return undefined;
   });
 
-  app.setErrorHandler((error: FastifyError, request, reply) => {
+  app.setErrorHandler((error: FastifyError | HttpError, request, reply) => {
+    reply.headers(headers);
+    if (error instanceof HttpError) {
+      if (error.status === 429 && typeof error.extra['retryAfterSeconds'] === 'number') {
+        reply.header('retry-after', String(error.extra['retryAfterSeconds']));
+      }
+      return reply.code(error.status).send({ code: error.code, ...error.extra });
+    }
     const mapped = mapFastifyError(error);
     if (mapped.status >= 500) {
       request.log.error({ err: { code: error.code, message: error.message } }, 'request failed');
+      try {
+        logError(
+          options.db,
+          {
+            component: options.kind === 'user' ? 'Nutzer-API' : 'Admin-API',
+            severity: 'error',
+            what: `Unerwarteter Fehler bei ${request.method} ${request.routeOptions.url ?? 'unbekannter Pfad'}`,
+            cause: 'Programmfehler oder unerwarteter Zustand der Datenbank.',
+            action: 'Mit „journalctl -u posteulen“ die Uhrzeit prüfen und den Fehler melden.',
+          },
+          Date.now(),
+        );
+      } catch {
+        // The error log must never break the error response.
+      }
     }
-    reply.headers(headers);
     return reply.code(mapped.status).send({ code: mapped.code });
   });
 

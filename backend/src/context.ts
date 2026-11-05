@@ -1,0 +1,124 @@
+/**
+ * Everything request handlers need, created once per process: database, secrets, derived
+ * server keys, clock, rate limits and short-lived in-memory state (D-17).
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
+import { MASK_BYTES } from '@posteulen/shared/map/landmask.ts';
+import type { Config } from './config.ts';
+import type { Database } from './db/database.ts';
+import { deriveServerKey, type Secrets } from './secrets.ts';
+import { Altcha } from './security/altcha.ts';
+import { Ephemeral, LoginGuard, RateLimiter } from './security/limits.ts';
+
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+
+export interface LoginAttempt {
+  readonly kind: 'user' | 'admin' | 'reauth' | 'admin-reauth';
+  readonly userId: string | null;
+  readonly nameKey: string;
+  readonly ipKey: string;
+  readonly serverLoginState: string;
+  readonly purpose?: string;
+}
+
+export interface Reservation {
+  readonly userId: string;
+  readonly display: string;
+  readonly key: string;
+  readonly inviteHmac: Buffer | null;
+}
+
+export interface ReauthToken {
+  readonly subject: string;
+  readonly purpose: string;
+}
+
+export interface Context {
+  readonly config: Config;
+  readonly db: Database;
+  readonly secrets: Secrets;
+  readonly keys: {
+    readonly fakeCredential: Uint8Array;
+    readonly nameLock: Uint8Array;
+    readonly invite: Uint8Array;
+  };
+  readonly landMask: Uint8Array;
+  readonly altcha: Altcha;
+  now(): number;
+  readonly guards: {
+    readonly names: LoginGuard;
+    readonly ips: LoginGuard;
+    readonly admin: LoginGuard;
+  };
+  readonly limits: {
+    readonly general: RateLimiter;
+    readonly expensive: RateLimiter;
+    readonly registration: RateLimiter;
+    readonly session: RateLimiter;
+    readonly admin: RateLimiter;
+  };
+  readonly attempts: Ephemeral<LoginAttempt>;
+  readonly reservations: Ephemeral<Reservation>;
+  readonly reauthTokens: Ephemeral<ReauthToken>;
+}
+
+export const LAND_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/landmask.bin');
+
+export interface ContextOptions {
+  readonly now?: () => number;
+  /** Proof-of-work difficulty; tests use a tiny value. */
+  readonly altchaMaxCounter?: number;
+  /** Only for automated local tests: many accounts from one IP (never on servers). */
+  readonly relaxedLimits?: boolean;
+}
+
+export async function createContext(
+  config: Config,
+  db: Database,
+  secrets: Secrets,
+  options: ContextOptions = {},
+): Promise<Context> {
+  const landMask = new Uint8Array(fs.readFileSync(LAND_MASK_FILE));
+  if (landMask.length !== MASK_BYTES) throw new Error('land mask has the wrong size');
+  const altchaKey = await deriveServerKey(secrets, SERVER_CONTEXTS.ALTCHA);
+  return {
+    config,
+    db,
+    secrets,
+    keys: {
+      fakeCredential: await deriveServerKey(secrets, SERVER_CONTEXTS.FAKE_CREDENTIAL),
+      nameLock: await deriveServerKey(secrets, SERVER_CONTEXTS.NAME_LOCK),
+      invite: await deriveServerKey(secrets, SERVER_CONTEXTS.INVITE),
+    },
+    landMask,
+    altcha: new Altcha(Buffer.from(altchaKey).toString('hex'), options.altchaMaxCounter ?? 50_000),
+    now: options.now ?? Date.now,
+    guards: {
+      names: new LoginGuard(),
+      // Per IP more generous: many people may share one address.
+      ips: new LoginGuard(20, 10),
+      admin: new LoginGuard(),
+    },
+    limits: options.relaxedLimits
+      ? {
+          general: new RateLimiter(100_000, MINUTE),
+          expensive: new RateLimiter(100_000, MINUTE),
+          registration: new RateLimiter(100_000, HOUR),
+          session: new RateLimiter(100_000, MINUTE),
+          admin: new RateLimiter(100_000, MINUTE),
+        }
+      : {
+          general: new RateLimiter(600, MINUTE),
+          expensive: new RateLimiter(30, MINUTE),
+          registration: new RateLimiter(5, HOUR),
+          session: new RateLimiter(300, MINUTE),
+          admin: new RateLimiter(120, MINUTE),
+        },
+    attempts: new Ephemeral(),
+    reservations: new Ephemeral(),
+    reauthTokens: new Ephemeral(),
+  };
+}

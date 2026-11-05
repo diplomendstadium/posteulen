@@ -5,6 +5,9 @@ import { openDatabase, type Database } from './db/database.ts';
 import { loadMigrations, migrate, schemaState } from './db/migrate.ts';
 import { buildApi } from './http/server.ts';
 import { loadSecrets, secretsFingerprint, type Secrets } from './secrets.ts';
+import { createContext, type Context, type ContextOptions } from './context.ts';
+import { registerUserRoutes } from './auth/user-routes.ts';
+import { registerAdminRoutes } from './admin/admin-routes.ts';
 
 export interface App {
   readonly config: Config;
@@ -12,6 +15,7 @@ export interface App {
   readonly secrets: Secrets;
   readonly userApi: FastifyInstance;
   readonly adminApi: FastifyInstance;
+  readonly ctx: Context;
   close(): Promise<void>;
 }
 
@@ -30,7 +34,7 @@ export async function verifySecretsFingerprint(db: Database, secrets: Secrets): 
   }
 }
 
-export async function createApp(config: Config): Promise<App> {
+export async function createApp(config: Config, options: ContextOptions = {}): Promise<App> {
   const secrets = loadSecrets(config.secretsFile);
   fs.mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
   const db = openDatabase(config.databaseFile);
@@ -58,8 +62,11 @@ export async function createApp(config: Config): Promise<App> {
 
   const hsts = config.env === 'production';
   const logLevel = config.env === 'test' ? undefined : config.logLevel;
+  const ctx = await createContext(config, db, secrets, options);
   const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
+  registerUserRoutes(userApi, ctx);
+  registerAdminRoutes(adminApi, ctx);
 
   return {
     config,
@@ -67,6 +74,7 @@ export async function createApp(config: Config): Promise<App> {
     secrets,
     userApi,
     adminApi,
+    ctx,
     async close() {
       await Promise.allSettled([userApi.close(), adminApi.close()]);
       db.close();
