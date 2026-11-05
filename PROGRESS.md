@@ -18,7 +18,7 @@
 ## Offen
 - Tag `v0.1.0-stufe.0` signieren und pushen (Auftraggeber, D-28).
 - Freigabe für Stufe 1.
-- Eulenbilder: 48 von 175 Dateien vorhanden (Liste: `web/src/generated/owl-images/missing.json` nach dem Build).
+- Eulenbilder vollständig: 17 Arten × 7 Bilder = 119 Dateien (D-37).
 
 ## Nächste Stufe: 1 – Konten und Krypto
 Kartenwerkzeug und Land/Wasser-Maske, Namensregeln, Registrierung (Modi, Einladungscodes, ALTCHA), Login/Logout, Einzel-Sitzung, Schlüsselpaket, IndexedDB, Passwortwechsel, Wohnort-Pin; Adminpanel: Login, Erstpasswort, Reset, Registrierungsmodus, Einladungscodes, Fehlerprotokoll; Argon2-Messseite.

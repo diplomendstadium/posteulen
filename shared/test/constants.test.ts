@@ -5,10 +5,10 @@ import { OWL_NAMES, AUNT_NAMES, UNCLE_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
-  it('has 25 species with unique ids and image names', () => {
-    expect(SPECIES).toHaveLength(25);
-    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(25);
-    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(25);
+  it('has 17 species with unique ids and image names', () => {
+    expect(SPECIES).toHaveLength(17);
+    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(17);
+    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(17);
   });
 
   it('keeps all values inside the ranges of SPEC 9.2.1', () => {
@@ -32,14 +32,15 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     expect(OWL_IMAGE_KINDS).toHaveLength(7);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
-    expect(OWL_IMAGE_KINDS.map((k) => owlImageFileName('Uhu', k.suffix))).toEqual([
-      'Uhu.png',
-      'Uhu-Abflug.png',
-      'Uhu-Ankunft.png',
-      'Uhu-Fuettern.png',
-      'Uhu-Streicheln.png',
-      'Uhu-Grummelig.png',
-      'Uhu-Kueken.png',
+    expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
+    expect(OWL_IMAGE_KINDS.map((k) => owlImageFileName('Schleiereule', k.suffix))).toEqual([
+      'Schleiereule.png',
+      'Schleiereule-Abflug.png',
+      'Schleiereule-Ankunft.png',
+      'Schleiereule-Fuettern.png',
+      'Schleiereule-Streicheln.png',
+      'Schleiereule-Grummelig.png',
+      'Schleiereule-Kueken.png',
     ]);
   });
 });

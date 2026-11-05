@@ -323,7 +323,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Gold per Eule an einen Kontakt schicken (9.1.4), optional mit Begleitbrief.
 
 ### 8.7 Menagerie
-- **Kaufen:** alle 25 Eulenarten, immer verfügbar, mit Bild, Preis und Werten.
+- **Kaufen:** alle 17 Eulenarten (Anhang B), immer verfügbar, mit Bild, Preis und Werten.
 - **Leihen:** das Tagesangebot (3 Arten) mit den für diesen Nutzer gewürfelten Namen (9.6).
 
 ### 8.8 Adressbuch
@@ -879,10 +879,11 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 
 ## Anhang B – Eulenarten
 
+In v0.1 gibt es 17 Arten – genau die, für die Bilder vorliegen (Absprache vom 2026-11-05).
+
 | Art | Bildname (Dateien) | Preis | Energiepunkte | Fluggeschwindigkeitsfaktor | Erholungsfaktor |
 |---|---|---|---|---|---|
 | Bartkauz | Bartkauz | 19 | 760 | 0,90 | 0,85 |
-| Bindenfischeule | Bindenfischeule | 43 | 980 | 0,50 | 0,75 |
 | Brillenkauz | Brillenkauz | 34 | 640 | 1,15 | 1,15 |
 | Elfenkauz | Elfenkauz | 40 | 100 | 1,65 | 2,00 |
 | Haubenkauz | Haubenkauz | 48 | 540 | 1,20 | 1,20 |
@@ -890,24 +891,17 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Mähnenkauz | Maehnenkauz | 49 | 330 | 1,10 | 1,50 |
 | Maskeneule | Maskeneule | 45 | 340 | 1,35 | 1,50 |
 | Milchuhu | Milchuhu | 35 | 1080 | 0,90 | 0,60 |
-| Perlkauz | Perlkauz | 26 | 160 | 1,50 | 1,90 |
-| Rauhfußkauz | Rauhfusskauz | 13 | 230 | 1,30 | 1,65 |
 | Riesenfischuhu | Riesenfischuhu | 50 | 1200 | 0,70 | 0,50 |
 | Riesenkauz | Riesenkauz | 44 | 900 | 1,80 | 0,90 |
-| Rußeule | Russeule | 47 | 670 | 1,40 | 1,00 |
 | Schleiereule | Schleiereule | 7 | 380 | 1,45 | 1,50 |
 | Schneeeule | Schneeeule | 24 | 990 | 1,75 | 0,85 |
-| Schwarzbindeneule | Schwarzbindeneule | 46 | 490 | 1,15 | 1,30 |
 | Sperbereule | Sperbereule | 22 | 440 | 2,00 | 1,40 |
-| Steinkauz | Steinkauz | 9 | 240 | 1,40 | 1,80 |
 | Sumpfohreule | Sumpfohreule | 16 | 430 | 1,35 | 1,40 |
 | Südliche Weißgesichtseule | Suedliche-Weissgesichtseule | 32 | 300 | 1,30 | 1,65 |
-| Uhu | Uhu | 12 | 1140 | 1,00 | 0,55 |
 | Waldkauz | Waldkauz | 6 | 540 | 1,10 | 1,25 |
 | Waldohreule | Waldohreule | 8 | 410 | 1,35 | 1,45 |
-| Zwergohreule | Zwergohreule | 11 | 150 | 1,60 | 1,95 |
 
-**Bilddateien:** sieben je Art im Ordner `/images/`, zusammen 175 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
+**Bilddateien:** sieben je Art im Ordner `/images/`, zusammen 119 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
 
 | Bild | Dateiname | Beispiel Waldkauz |
 |---|---|---|
