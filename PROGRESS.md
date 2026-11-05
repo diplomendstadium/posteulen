@@ -1,24 +1,24 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** P – Plan (abgeschlossen, wartet auf Feedback)
+**Aktuelle Stufe:** 0 – Gerüst (abgeschlossen, wartet auf Feedback und Tag-Signatur)
 **Stand:** 2026-11-05
 
-## Erledigt (Stufe P)
-- SPEC vollständig gelesen.
-- `ARCHITECTURE.md`: Komponenten, Krypto-Formate, Datenmodell, API, 11 Sequenzdiagramme, Ereignis-Warteschlange, Bedrohungen und Maßnahmen, Installations- und Update-Konzept.
-- `DEPENDENCIES.md`: geplante Versionen und Lizenzen, Audit-Ergebnis.
-- `DECISIONS.md`: Prüfergebnisse P-1 bis P-7, Entscheidungen D-01 bis D-25.
-- Prüfskripte (OPAQUE, libsodium, HPKE, HKDF, `node:sqlite`) im Scratchpad ausgeführt; sie werden in Stufe 0/1 als Tests ins Repository übernommen.
+## Erledigt
+### Stufe P
+- SPEC gelesen; `ARCHITECTURE.md`, `DEPENDENCIES.md`, `DECISIONS.md` (P-1 bis P-7, D-01 bis D-28); Antworten F-01 bis F-11 eingetragen; SPEC 4.1 und 11.7 nach Absprache angepasst.
 
-- Antworten F-01 bis F-11 erhalten und eingetragen (`DECISIONS.md`, Teil C); SPEC 4.1 und 11.7 nach Absprache angepasst.
-- Lokales Git-Repository angelegt (`main`, Remote `git@github.com:diplomendstadium/posteulen.git`), `deploy/allowed_signers` mit dem Signierschlüssel des Auftraggebers. Noch kein Commit.
+### Stufe 0
+- npm-Workspaces `shared`, `backend`, `web`, `admin`; TypeScript strict, ESLint, Prettier, Vitest, Playwright; `npm start`, `npm run dev`, `npm test`, `npm run test:vm`.
+- shared: Konstanten (Anhang A), Eulenarten (B), Namen (D, E), Texte `texts/de.ts`, Sicherheits-Header, HKDF (WebCrypto), Kontext-Strings, Version.
+- Backend: `node:sqlite` mit WAL/secure_delete/Fremdschlüsseln, Migrationen mit Schema-Schutz, Geheimnis-Datei (einmalig, nie überschrieben), Prüfsumme Geheimnis-Datei ↔ DB, zwei API-Listener mit Origin-/Header-/Fetch-Metadata-Prüfung, nur JSON, 64 KiB, Fehler ohne Interna, Logging ohne IPs; CLI `setup|migrate|check|caddyfile|backup|version|schema-version`.
+- Web/Admin: App-Hülle im Grund-Design (Startseite, Übersicht mit Kacheln und unterer Navigation, Platzhalterseiten), eigener Router, Service Worker (App-Hülle, offline), Offline-Hinweis, Manifest, Icons, Bilder-Pipeline mit Platzhaltern.
+- Betrieb: `install.sh`, `posteulen-update` + `update.sh` (Rückfall, `--rollback`, `--check`, `--verify-tags`), `configure.sh`, `backup.sh` (age), systemd-Units (gehärtet, Exposure 1.5), Caddyfile-Generator, `readme.txt` (Entwurf), `CHANGELOG.md`.
+- Tests: 44 Unit-Tests, 56 E2E-Tests (Chromium, Firefox, WebKit), VM-Test 32/32.
 
 ## Offen
-- Deploy-Key `~/.ssh/posteulen-github-deploy.pub` muss auf GitHub mit Schreibrecht eingetragen werden.
-- Commit-Identität (Name und E-Mail; das Repository ist öffentlich).
-- Umgang mit den Originalbildern im Repository (ca. 2,3 MB je Bild, bei 175 Bildern ca. 400 MB).
-- Freigabe für Stufe 0.
-- Eulenbilder: 48 von 175 Dateien vorhanden (8 Arten ohne Küken-Bild; 17 Arten fehlen ganz).
+- Tag `v0.1.0-stufe.0` signieren und pushen (Auftraggeber, D-28).
+- Freigabe für Stufe 1.
+- Eulenbilder: 48 von 175 Dateien vorhanden (Liste: `web/src/generated/owl-images/missing.json` nach dem Build).
 
-## Nächste Stufe: 0 – Gerüst
-Siehe verfeinerten Stufenplan im Stufenbericht P.
+## Nächste Stufe: 1 – Konten und Krypto
+Kartenwerkzeug und Land/Wasser-Maske, Namensregeln, Registrierung (Modi, Einladungscodes, ALTCHA), Login/Logout, Einzel-Sitzung, Schlüsselpaket, IndexedDB, Passwortwechsel, Wohnort-Pin; Adminpanel: Login, Erstpasswort, Reset, Registrierungsmodus, Einladungscodes, Fehlerprotokoll; Argon2-Messseite.
