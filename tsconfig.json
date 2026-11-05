@@ -11,6 +11,8 @@
     "backend/test",
     "scripts",
     "e2e",
+    "deploy/test",
+    "tools/map/build.ts",
     "*.config.ts"
   ]
 }

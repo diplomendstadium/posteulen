@@ -23,17 +23,26 @@ interface Guard {
  */
 export const test = base.extend<{ guard: Guard }>({
   guard: [
-    async ({ page }, use) => {
+    async ({ page, browserName }, use) => {
       const guard: Guard = { foreignRequests: [], consoleErrors: [] };
       page.on('request', (request) => {
         const url = new URL(request.url());
         if (url.protocol === 'data:' || url.protocol === 'blob:') return;
         if (!ALLOWED_HOSTS.has(url.host)) guard.foreignRequests.push(request.url());
       });
+      // WebKit reports same-origin fetches that are aborted by a navigation (e.g. logout) as
+      // "access control" failures, as console error or page error. Same-origin requests cannot
+      // fail CORS, so this is noise (D-62).
+      const abortedInWebkit = (text: string): boolean =>
+        browserName === 'webkit' &&
+        /localhost:180\d\d\/api\/\S* due to access control checks/.test(text);
       page.on('console', (message) => {
-        if (message.type() === 'error') guard.consoleErrors.push(message.text());
+        if (message.type() !== 'error' || abortedInWebkit(message.text())) return;
+        guard.consoleErrors.push(message.text());
       });
-      page.on('pageerror', (error) => guard.consoleErrors.push(error.message));
+      page.on('pageerror', (error) => {
+        if (!abortedInWebkit(error.message)) guard.consoleErrors.push(error.message);
+      });
       await page.addInitScript(() => {
         document.addEventListener('securitypolicyviolation', (event) => {
           console.error(`CSP violation: ${event.violatedDirective} ${event.blockedURI}`);
