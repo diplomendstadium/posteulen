@@ -1,7 +1,7 @@
 PostEulen.de – Installationsanleitung
 =====================================
 
-ENTWURF (Stand: Stufe 0). Diese Anleitung wächst mit jeder Stufe und wird in Stufe 6
+ENTWURF (Stand: Stufe 1). Diese Anleitung wächst mit jeder Stufe und wird in Stufe 6
 fertiggestellt. Abschnitte, die erst später gelten, sind markiert.
 
 PostEulen ist ein Ende-zu-Ende-verschlüsselter Messenger, bei dem Eulen die Briefe bringen.
@@ -84,17 +84,29 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): --test-mode verwendet lo
 Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
 
 
-3. Erster Login im Adminpanel   (ab Stufe 1)
---------------------------------------------
+3. Erster Login im Adminpanel
+-----------------------------
 
-Folgt mit Stufe 1: Erstpasswort aus der Zusammenfassung, Pflicht-Passwortwechsel,
-OpenAI-Key, Registrierungsmodus. Passwort vergessen: sudo posteulen-cli admin-reset.
+* Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das
+  Admin-Erstpasswort. Damit unter https://admin.posteulen.de anmelden.
+* Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes.
+* Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für
+  alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen
+  angezeigt.
+* Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage lang.
+* OpenAI-Key: ab Stufe 5.
+* Adminpasswort vergessen? Auf dem Server:
+      sudo posteulen-cli admin-reset
+  erzeugt ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben
+  unberührt.
 
 
 4. Funktionstest
 ----------------
 
-Im Browser https://posteulen.de öffnen. Ab Stufe 1: Konto anlegen; ab Stufe 2: Brief schicken.
+Im Browser https://posteulen.de öffnen, ein Konto anlegen (vorher im Adminpanel die
+Registrierung öffnen oder einen Einladungscode erzeugen), abmelden und wieder anmelden.
+Ab Stufe 2: Brief schicken.
 Auf dem Server zeigt „sudo posteulen-cli check“, ob Datenbank und Geheimnis-Datei
 zusammenpassen.
 
@@ -203,6 +215,8 @@ Voraussetzung: Node.js 26 (z. B. aus https://deb.nodesource.com oder https://nod
 
     npm start          installiert Abhängigkeiten, baut und startet lokal:
                        App http://localhost:8080, Verwaltung http://localhost:8081
+                       (Admin-Erstpasswort: data/admin-erstpasswort.txt; Registrierung öffnen
+                       mit POSTEULEN_PREVIEW_REGISTRATION=open npm start)
     npm run dev        Entwicklungsmodus mit automatischem Neuladen (Port 5173/5174)
     npm test           alle Prüfungen und Tests
     npm run test:vm    Installations- und Update-Test in einer Debian-13-VM (QEMU/KVM)
