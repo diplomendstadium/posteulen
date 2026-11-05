@@ -1,0 +1,174 @@
+/**
+ * Builds WebP variants of the owl images and the app icons (SPEC 9.2.6, 15).
+ * Missing images become placeholders; the build warns but does not fail.
+ * Files are looked up via the table in shared/species.ts (SPEC Anhang B), never by splitting
+ * file names. A case-insensitive match ignoring spaces is accepted with a warning.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import sharp from 'sharp';
+import { SPECIES, OWL_IMAGE_KINDS, owlImageFileName } from '@posteulen/shared/species.ts';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
+const SOURCE_DIR = path.join(ROOT, 'images');
+const OUT_DIR = path.join(ROOT, 'web/src/generated/owl-images');
+const ICON_DIR = path.join(ROOT, 'web/public/icons');
+const LOGO = path.join(ROOT, 'web/assets/logo.svg');
+
+/** Overlay kinds get an additional large variant (SPEC 9.2.6). */
+const OVERLAY_KINDS = new Set(['departure', 'arrival', 'feeding', 'petting', 'chick']);
+const SIZES = [160, 480] as const;
+const LARGE = 960;
+
+function normalizeFileName(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '');
+}
+
+function placeholderSvg(): Buffer {
+  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+  <rect width="960" height="960" fill="#efe2c6"/>
+  <path d="M300 420c0-110 72-186 180-186s180 76 180 186v150c0 104-76 176-180 176s-180-72-180-176z" fill="#cbb48a"/>
+  <path d="M300 350l-40-100 110 60zM660 350l40-100-110 60z" fill="#cbb48a"/>
+  <circle cx="410" cy="430" r="58" fill="#efe2c6"/><circle cx="550" cy="430" r="58" fill="#efe2c6"/>
+  <text x="480" y="860" font-family="sans-serif" font-size="64" text-anchor="middle" fill="#5a4630">Bild folgt</text>
+</svg>`);
+}
+
+interface CacheEntry {
+  readonly source: string;
+  readonly fingerprint: string;
+}
+
+function fingerprintOf(file: string): string {
+  const stat = fs.statSync(file);
+  return `${stat.size}-${stat.mtimeMs}`;
+}
+
+async function writeVariants(
+  input: Buffer | string,
+  base: string,
+  large: boolean,
+): Promise<Record<string, string>> {
+  const files: Record<string, string> = {};
+  const sizes = large ? [...SIZES, LARGE] : [...SIZES];
+  for (const size of sizes) {
+    const file = `${base}-${size}.webp`;
+    await sharp(input)
+      .resize(size, size, { fit: 'cover' })
+      .webp({ quality: 82, effort: 5 })
+      .toFile(path.join(OUT_DIR, file));
+    files[`s${size}`] = file;
+  }
+  return files;
+}
+
+async function buildOwlImages(): Promise<void> {
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  const cacheFile = path.join(OUT_DIR, '.cache.json');
+  const cache: Record<string, CacheEntry> = fs.existsSync(cacheFile)
+    ? (JSON.parse(fs.readFileSync(cacheFile, 'utf8')) as Record<string, CacheEntry>)
+    : {};
+  const available = fs.existsSync(SOURCE_DIR) ? fs.readdirSync(SOURCE_DIR) : [];
+  const exact = new Set(available);
+  const tolerant = new Map(available.map((file) => [normalizeFileName(file), file]));
+
+  const missing: string[] = [];
+  const warnings: string[] = [];
+  const manifest: Record<string, Record<string, Record<string, string>>> = {};
+
+  await writeVariants(placeholderSvg(), 'owl-placeholder', true);
+
+  for (const species of SPECIES) {
+    const entry: Record<string, Record<string, string>> = {};
+    manifest[species.id] = entry;
+    for (const { kind, suffix } of OWL_IMAGE_KINDS) {
+      const expected = owlImageFileName(species.imageName, suffix);
+      let source: string | undefined;
+      if (exact.has(expected)) source = expected;
+      else if (tolerant.has(normalizeFileName(expected))) {
+        source = tolerant.get(normalizeFileName(expected));
+        warnings.push(`${expected}: gefunden als „${source}“ (Schreibweise bitte angleichen)`);
+      }
+      if (source === undefined) {
+        missing.push(expected);
+        continue;
+      }
+      const sourcePath = path.join(SOURCE_DIR, source);
+      const base = `owl-${species.imageName}-${kind}`;
+      const key = `${species.id}/${kind}`;
+      const fingerprint = fingerprintOf(sourcePath);
+      const large = OVERLAY_KINDS.has(kind);
+      const outputs = large ? [...SIZES, LARGE] : [...SIZES];
+      const upToDate =
+        cache[key]?.fingerprint === fingerprint &&
+        cache[key]?.source === source &&
+        outputs.every((size) => fs.existsSync(path.join(OUT_DIR, `${base}-${size}.webp`)));
+      const files: Record<string, string> = {};
+      if (upToDate) {
+        for (const size of outputs) files[`s${size}`] = `${base}-${size}.webp`;
+      } else {
+        Object.assign(files, await writeVariants(sourcePath, base, large));
+        cache[key] = { source, fingerprint };
+      }
+      entry[kind] = files;
+    }
+  }
+
+  fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
+  fs.writeFileSync(path.join(OUT_DIR, 'missing.json'), JSON.stringify(missing, null, 2));
+
+  const urlOf = (file: string): string => `new URL('./${file}', import.meta.url).href`;
+  const lines = [
+    '// Generated by web/scripts/build-images.ts – do not edit.',
+    'export interface OwlImageFiles { readonly s160: string; readonly s480: string; readonly s960?: string }',
+    `export const OWL_PLACEHOLDER: OwlImageFiles = { s160: ${urlOf('owl-placeholder-160.webp')}, s480: ${urlOf('owl-placeholder-480.webp')}, s960: ${urlOf('owl-placeholder-960.webp')} };`,
+    'export const OWL_IMAGES: Readonly<Record<string, Readonly<Record<string, OwlImageFiles>>>> = {',
+  ];
+  for (const [speciesId, kinds] of Object.entries(manifest)) {
+    const entries = Object.entries(kinds).map(
+      ([kind, files]) =>
+        `${JSON.stringify(kind)}: { ${Object.entries(files)
+          .map(([size, file]) => `${size}: ${urlOf(file)}`)
+          .join(', ')} }`,
+    );
+    lines.push(`  ${JSON.stringify(speciesId)}: { ${entries.join(', ')} },`);
+  }
+  lines.push('};', '');
+  fs.writeFileSync(path.join(OUT_DIR, 'manifest.ts'), lines.join('\n'));
+
+  for (const warning of warnings) console.warn(`Warnung Eulenbild: ${warning}`);
+  if (missing.length > 0) {
+    console.warn(
+      `Warnung: ${missing.length} von ${SPECIES.length * OWL_IMAGE_KINDS.length} Eulenbildern fehlen – Platzhalter werden verwendet (Liste: web/src/generated/owl-images/missing.json).`,
+    );
+  }
+}
+
+async function buildIcons(): Promise<void> {
+  fs.mkdirSync(ICON_DIR, { recursive: true });
+  const svg = fs.readFileSync(LOGO);
+  fs.copyFileSync(LOGO, path.join(ICON_DIR, 'icon.svg'));
+  for (const size of [192, 512]) {
+    await sharp(svg, { density: 300 })
+      .resize(size, size)
+      .png()
+      .toFile(path.join(ICON_DIR, `icon-${size}.png`));
+  }
+  await sharp(svg, { density: 300 })
+    .resize(180, 180)
+    .flatten({ background: '#f4ead5' })
+    .png()
+    .toFile(path.join(ICON_DIR, 'apple-touch-icon.png'));
+  // Maskable: logo inside the 80 % safe zone on a full-bleed background.
+  const inner = await sharp(svg, { density: 300 }).resize(410, 410).png().toBuffer();
+  await sharp({ create: { width: 512, height: 512, channels: 4, background: '#f4ead5' } })
+    .composite([{ input: inner, gravity: 'center' }])
+    .png()
+    .toFile(path.join(ICON_DIR, 'maskable-512.png'));
+  const digest = crypto.createHash('sha256').update(svg).digest('hex').slice(0, 8);
+  fs.writeFileSync(path.join(ICON_DIR, '.source'), digest);
+}
+
+await buildOwlImages();
+await buildIcons();

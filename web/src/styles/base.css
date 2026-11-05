@@ -1,0 +1,195 @@
+/*
+ * Grund-Design (SPEC 14): Pergament, Siegel, Federkiel – ruhig und übersichtlich.
+ * Kontraste (WCAG 2.2 AA) sind in e2e/contrast geprüft; Text steht nie auf Texturen.
+ */
+:root {
+  --parchment: #f4ead5;
+  --parchment-deep: #e9d9b6;
+  --paper: #fffaf0;
+  --ink: #2b1d0e;
+  --ink-soft: #4d3a24;
+  --wood: #5a2e0e;
+  --wood-dark: #3f1f08;
+  --seal: #8b1e1e;
+  --line: #8a6a3f;
+  --focus: #0b5cad;
+  --on-wood: #fff8e7;
+  --radius: 0.75rem;
+  --shadow: 0 1px 3px rgb(43 29 14 / 0.18);
+  --font-body: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --font-display: 'Cinzel Decorative', Georgia, serif;
+  --nav-height: 4rem;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--wood-dark);
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--seal);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--wood-dark);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* User and owl names always use the legible body font (SPEC 7.1, 14). */
+.name {
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  background: var(--wood);
+  color: var(--on-wood);
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 2px solid var(--wood);
+  background: var(--wood);
+  color: var(--on-wood);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button:hover {
+  background: var(--wood-dark);
+  border-color: var(--wood-dark);
+  color: var(--on-wood);
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--wood-dark);
+}
+
+.button.secondary:hover {
+  background: var(--parchment-deep);
+}
+
+.button[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+input[type='text'],
+input[type='password'] {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.notice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--wood);
+  background: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
