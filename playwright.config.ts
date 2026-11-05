@@ -2,14 +2,30 @@ import os from 'node:os';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-const WEB_PORT = 18080;
-const ADMIN_PORT = 18081;
-
-export const WEB_URL = `http://localhost:${WEB_PORT}`;
-export const ADMIN_URL = `http://localhost:${ADMIN_PORT}`;
+// One data folder per run; workers inherit it through the environment.
+process.env['POSTEULEN_E2E_DIR'] ??= path.join(os.tmpdir(), `posteulen-e2e-${Date.now()}`);
+const RUN_DIR = process.env['POSTEULEN_E2E_DIR'];
 
 const mobile = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true };
 const desktop = { viewport: { width: 1440, height: 900 } };
+
+function preview(name: string, ports: [number, number, number, number], registration: string) {
+  return {
+    command: 'node backend/src/dev/preview.ts',
+    url: `http://localhost:${ports[0]}/api/health`,
+    reuseExistingServer: false,
+    timeout: 60_000,
+    env: {
+      POSTEULEN_PREVIEW_WEB_PORT: String(ports[0]),
+      POSTEULEN_PREVIEW_ADMIN_PORT: String(ports[1]),
+      POSTEULEN_USER_PORT: String(ports[2]),
+      POSTEULEN_ADMIN_PORT: String(ports[3]),
+      POSTEULEN_DATA_DIR: path.join(RUN_DIR, name),
+      POSTEULEN_PREVIEW_REGISTRATION: registration,
+      POSTEULEN_PREVIEW_RELAXED_LIMITS: '1',
+    },
+  };
+}
 
 export default defineConfig({
   testDir: 'e2e',
@@ -17,9 +33,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: true,
   retries: 0,
+  timeout: 60_000,
   reporter: [['list']],
   use: {
-    baseURL: WEB_URL,
+    baseURL: 'http://localhost:18080',
     locale: 'de-DE',
     timezoneId: 'Europe/Berlin',
     serviceWorkers: 'allow',
@@ -30,17 +47,9 @@ export default defineConfig({
     { name: 'firefox-desktop', use: { ...devices['Desktop Firefox'], ...desktop } },
     { name: 'webkit-mobile', use: { ...devices['iPhone 15'], ...mobile, isMobile: true } },
   ],
-  webServer: {
-    command: 'node backend/src/dev/preview.ts',
-    url: `${WEB_URL}/api/health`,
-    reuseExistingServer: false,
-    timeout: 60_000,
-    env: {
-      POSTEULEN_PREVIEW_WEB_PORT: String(WEB_PORT),
-      POSTEULEN_PREVIEW_ADMIN_PORT: String(ADMIN_PORT),
-      POSTEULEN_USER_PORT: '13001',
-      POSTEULEN_ADMIN_PORT: '13002',
-      POSTEULEN_DATA_DIR: path.join(os.tmpdir(), `posteulen-e2e-${process.pid}`),
-    },
-  },
+  webServer: [
+    preview('main', [18080, 18081, 13001, 13002], 'open'),
+    // Separate instance for admin tests: mode changes must not affect other tests.
+    preview('admin', [18090, 18091, 13011, 13012], 'closed'),
+  ],
 });

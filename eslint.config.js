@@ -14,6 +14,7 @@ export default tseslint.config(
       'test-results/',
       'playwright-report/',
       'web/src/generated/',
+      'tools/map/.cache/',
     ],
   },
   js.configs.recommended,
@@ -58,7 +59,18 @@ export default tseslint.config(
     },
   },
   {
-    files: ['backend/src/cli.ts', 'scripts/**/*.ts', 'web/scripts/**/*.ts', 'deploy/**/*.ts'],
+    files: [
+      'backend/src/cli.ts',
+      'scripts/**/*.ts',
+      'web/scripts/**/*.ts',
+      'deploy/**/*.ts',
+      'tools/**/*.ts',
+    ],
     rules: { 'no-console': 'off' },
+  },
+  {
+    // Tests and the offline map tool may assert values they just created.
+    files: ['**/test/**/*.ts', 'e2e/**/*.ts', 'tools/**/*.ts'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
 );

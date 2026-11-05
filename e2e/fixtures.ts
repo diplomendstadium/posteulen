@@ -1,7 +1,15 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 export const ADMIN_URL = 'http://localhost:18081';
-const ALLOWED_HOSTS = new Set(['localhost:18080', 'localhost:18081']);
+/** Second instance for admin tests (ARCHITECTURE: E2E). */
+export const ISOLATED_WEB_URL = 'http://localhost:18090';
+export const ISOLATED_ADMIN_URL = 'http://localhost:18091';
+const ALLOWED_HOSTS = new Set([
+  'localhost:18080',
+  'localhost:18081',
+  'localhost:18090',
+  'localhost:18091',
+]);
 
 interface Guard {
   /** Requests to any other host (SPEC 2.2, 17.4). */
