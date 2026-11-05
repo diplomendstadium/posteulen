@@ -67,6 +67,8 @@ export default defineConfig({
     __POSTEULEN_PUSH_TEXTS__: JSON.stringify({
       testBody: de.push.testBody,
       letterBody: de.push.letterBody,
+      goldBody: de.push.goldBody,
+      giftBody: de.push.giftBody,
       newsBody: de.push.newsBody,
     }),
   },

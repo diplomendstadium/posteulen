@@ -6,7 +6,13 @@
 declare const __POSTEULEN_SHELL__: string;
 
 /** Push texts from texts/de.ts, inlined at build time (a classic service worker cannot import). */
-declare const __POSTEULEN_PUSH_TEXTS__: { testBody: string; letterBody: string; newsBody: string };
+declare const __POSTEULEN_PUSH_TEXTS__: {
+  testBody: string;
+  letterBody: string;
+  goldBody: string;
+  giftBody: string;
+  newsBody: string;
+};
 const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__;
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
@@ -62,8 +68,15 @@ sw.addEventListener('fetch', (event) => {
           return Response.error();
         }
         if (response.ok) {
-          const cache = await caches.open(RUNTIME);
-          await cache.put(event.request, response.clone());
+          // Storing must not fail the response: if the page goes away mid-download, the
+          // copy is aborted (Firefox reported that as an error of the service worker).
+          const copy = response.clone();
+          event.waitUntil(
+            caches
+              .open(RUNTIME)
+              .then((cache) => cache.put(event.request, copy))
+              .catch(() => undefined),
+          );
         }
         return response;
       })(),
@@ -87,7 +100,11 @@ sw.addEventListener('push', (event) => {
       ? PUSH_TEXTS.testBody
       : data.type === 'letter_arrived'
         ? PUSH_TEXTS.letterBody
-        : PUSH_TEXTS.newsBody;
+        : data.type === 'gold_arrived'
+          ? PUSH_TEXTS.goldBody
+          : data.type === 'owl_gift'
+            ? PUSH_TEXTS.giftBody
+            : PUSH_TEXTS.newsBody;
   const id = typeof data.id === 'string' && /^[A-Za-z0-9_-]{22}$/.test(data.id) ? data.id : null;
   // Show the notification and confirm receipt independently: a display problem must not
   // hide that the push arrived (SPEC 11.4).

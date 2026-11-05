@@ -44,8 +44,7 @@ export function energyAfterFeeding(current: number, species: Species): number {
 /** Random start energy 60–100 % of the maximum (9.2.3); `random` in [0, 1). */
 export function startEnergy(species: Species, random: number): number {
   const share =
-    OWL.START_ENERGY_MIN_SHARE +
-    (OWL.START_ENERGY_MAX_SHARE - OWL.START_ENERGY_MIN_SHARE) * random;
+    OWL.START_ENERGY_MIN_SHARE + (OWL.START_ENERGY_MAX_SHARE - OWL.START_ENERGY_MIN_SHARE) * random;
   return Math.round(species.maxEnergy * share * 100) / 100;
 }
 

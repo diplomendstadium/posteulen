@@ -5,11 +5,13 @@
   import Compose from '../components/Compose.svelte';
   import LetterText from '../components/LetterText.svelte';
   import { api } from '../lib/api.ts';
-  import { dateTime, time } from '../lib/format.ts';
+  import { dateTime } from '../lib/format.ts';
   import { loadConversation, type ShownLetter } from '../lib/letters.ts';
   import { live } from '../lib/live.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
+  import { showOwlImage } from '../lib/overlay.svelte.ts';
+  import { formatGold } from '@posteulen/shared/game/gold.ts';
 
   let { peerId }: { peerId: string } = $props();
 
@@ -31,10 +33,19 @@
         .map((l) => l.id);
       if (unread.length > 0 && document.visibilityState === 'visible')
         await api('POST', '/api/letters/read', { ids: unread });
-      const unseen = letters
-        .filter((l) => l.role === 'recipient' && !l.arrivalSeen)
-        .map((l) => l.id);
-      if (unseen.length > 0) await api('POST', '/api/letters/arrival-seen', { ids: unseen });
+      const unseen = letters.filter(
+        (l) => l.role === 'recipient' && l.status === 'delivered' && !l.arrivalSeen,
+      );
+      if (unseen.length > 0) {
+        // Arrival image of the owl that landed last (SPEC 9.2.6), once per delivery.
+        const latest = unseen.reduce((a, b) => (b.arrivesAt > a.arrivesAt ? b : a));
+        showOwlImage(
+          latest.owl.species,
+          'arrival',
+          fill(de.owls.arrives, { name: latest.owl.name }),
+        );
+        await api('POST', '/api/letters/arrival-seen', { ids: unseen.map((l) => l.id) });
+      }
     } catch {
       // Offline or navigated away: the next update (SSE or return to the app) loads again.
     }
@@ -50,10 +61,18 @@
     void load();
   });
 
+  function coverText(letter: ShownLetter): string | null {
+    if (letter.kind === 'cover_gold')
+      return fill(de.letters.coverGold, { amount: `${formatGold(letter.coverGold ?? 0)} Gold` });
+    if (letter.kind === 'cover_owl') return fill(de.letters.coverOwl, { owl: letter.owl.name });
+    if (letter.kind === 'cover_chick') return fill(de.letters.coverChick, { owl: letter.owl.name });
+    return null;
+  }
+
   function statusText(letter: ShownLetter): string {
     if (letter.status === 'returned') return de.letters.returned;
     if (letter.status === 'in_flight')
-      return fill(de.letters.inFlight, { time: time(letter.arrivesAt) });
+      return fill(de.letters.inFlight, { time: dateTime(letter.arrivesAt) });
     return letter.read ? de.letters.read : de.letters.delivered;
   }
 
@@ -77,6 +96,7 @@
 <ol class="letters" aria-live="polite">
   {#each letters as letter (letter.id)}
     <li class:mine={letter.role === 'sender'}>
+      {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
       <p class="meta">
         {dateTime(letter.sentAt)} · {letter.parchment === 'large'
           ? de.letters.large
@@ -147,6 +167,12 @@
     margin-left: auto;
     background: #f7eedb;
     border-color: var(--wood);
+  }
+
+  .cover {
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+    color: var(--wood-dark);
   }
 
   .meta,

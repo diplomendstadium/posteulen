@@ -3,13 +3,25 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
-## Unveröffentlicht (geht in v0.1.0-stufe.3 ein)
+## v0.1.0-stufe.3 – Eulen, Flug, Karte, Gold
 
+- Menagerie: alle 17 Eulenarten kaufen (Pflicht-Benennung), Eulenübersicht mit Energie, Zustand und
+  Abwesenheit; Streicheln, Füttern (0,1 Gold, einmal am Tag), Umbenennen (einmal pro Kalenderjahr), Freilassen.
+- Echte Eulenflüge: vollständige Vorausberechnung mit Tag/Nacht (Sonnenstand), Land/Wasser-Maske,
+  10-Stunden-Schlafpausen, Gleitflug über Wasser, Mehrfachempfänger und Rückflug; Vorschau je Eule beim Versand.
+- Umkehren bei Kontakttrennung (übersprungene Empfänger, Gold zurück, Geschenk zurück); Neuberechnung bei Umzug.
+- Bildeinblendungen bei Abflug, Ankunft, Füttern und Streicheln (schließt per Tippen/Escape/von selbst).
+- Karte mit Tag und Nacht, Wohnorten der Kontakte und eigenen Eulen unterwegs; Kartendaten werden erst bei Bedarf geladen.
+- Finanzübersicht mit den letzten 20 Buchungen; tägliches Gold um 15:00 UTC; Gold per Eule (0,1–20,0, Rest > 10,0)
+  und Eulengeschenke, jeweils optional mit Begleitbrief.
+- Aushilfseule „Postkauz Paul“ trägt bis zur Einführung der Leiheulen kostenlos einzelne Briefe und Gold.
 - Behoben: Web Push wurde nie zugestellt (Verbindungsaufbau zum Push-Dienst), und die Anzeige blieb bei
   „wird geprüft …“ stehen.
 
 ### Hinweise für Betreiber
 
+- Die Datenbank wird beim Update migriert (Schema 4: Eulen, Flüge, Buchungen). Briefe, die noch mit der
+  vorläufigen Eule aus Stufe 2 unterwegs sind, werden wie geplant zugestellt.
 - Nach dem Update in den Einstellungen „Benachrichtigungen einrichten“ erneut auslösen.
 
 ## v0.1.0-stufe.2 – Kontakte und Briefe

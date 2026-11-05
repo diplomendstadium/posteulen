@@ -4,23 +4,54 @@
    * touch and buttons; tapping reports the geographic position. No tile server, no foreign
    * hosts (SPEC 12.2).
    */
-  import type { Snippet } from 'svelte';
+  import { onMount, type Snippet } from 'svelte';
   import { de } from '@posteulen/shared/texts/de.ts';
   import { project, unproject } from '@posteulen/shared/map/projection.ts';
-  import { MAP_DATA } from '../lib/map/map-data.ts';
+  import { loadMapData, type MapData } from '../lib/map/map-data.ts';
+  import { nightRuns } from '../lib/map/night.ts';
 
   let {
     onpick,
     markers,
     label = de.map.label,
+    nightAt = null,
   }: {
     onpick?: (position: { lat: number; lon: number }) => void;
     markers?: Snippet<[(lat: number, lon: number) => { x: number; y: number }, number]>;
     label?: string;
+    /** Draw night areas for this time (SPEC 12.1); null: no day/night layer. */
+    nightAt?: number | null;
   } = $props();
 
-  const full = MAP_DATA.viewBox;
-  let view = $state({ x: full[0], y: full[1], w: full[2], h: full[3] });
+  // Fallback frame until the map data is loaded (same as the generated view box).
+  let data = $state<MapData | null>(null);
+  let full = $state<readonly [number, number, number, number]>([-1860.3, -1120.4, 3127.8, 2915.8]);
+  let view = $state({ x: -1860.3, y: -1120.4, w: 3127.8, h: 2915.8 });
+
+  onMount(() => {
+    void loadMapData().then((loaded) => {
+      data = loaded;
+      full = loaded.viewBox;
+      view = { x: full[0], y: full[1], w: full[2], h: full[3] };
+    });
+  });
+
+  const night = $derived.by(() => {
+    if (nightAt === null) return [];
+    return nightRuns(nightAt).map((run) => {
+      const points: string[] = [];
+      const edge = (lat: number, from: number, to: number): void => {
+        const steps = Math.max(1, Math.ceil(Math.abs(to - from)));
+        for (let i = 0; i <= steps; i++) {
+          const p = project(lat, from + ((to - from) * i) / steps);
+          points.push(`${p.x.toFixed(1)},${(-p.y).toFixed(1)}`);
+        }
+      };
+      edge(run.lat0, run.lon0, run.lon1);
+      edge(run.lat1, run.lon1, run.lon0);
+      return points.join(' ');
+    });
+  });
   let svg: SVGSVGElement | undefined = $state();
   const scale = $derived(view.w / full[2]);
   const labelMinArea = $derived(25_000 * scale * scale);
@@ -156,11 +187,21 @@
     onkeydown={keydown}
   >
     <rect class="water" x={full[0]} y={full[1]} width={full[2]} height={full[3]} />
-    {#each MAP_DATA.countries as country (country.id)}
+    {#if !data}
+      <text class="label" x={full[0] + full[2] / 2} y={full[1] + full[3] / 2} font-size="80"
+        >{de.map.loading}</text
+      >
+    {/if}
+    {#each data?.countries ?? [] as country (country.id)}
       <path class="country" d={country.d} stroke-width={1.2 * scale} />
     {/each}
-    <path class="lake" d={MAP_DATA.lakes} />
-    {#each MAP_DATA.countries as country (country.id)}
+    {#if data}<path class="lake" d={data.lakes} />{/if}
+    {#if night.length > 0}
+      <g class="night" data-testid="night-layer">
+        {#each night as points, index (index)}<polygon {points} />{/each}
+      </g>
+    {/if}
+    {#each data?.countries ?? [] as country (country.id)}
       {#if country.label && country.area >= labelMinArea}
         <text class="label" x={country.label[0]} y={country.label[1]} font-size={34 * scale}
           >{country.name}</text
@@ -218,6 +259,13 @@
     fill: #f2e6c9;
     stroke: #8a6a3f;
     stroke-linejoin: round;
+  }
+
+  .night polygon {
+    fill: rgb(25 30 70 / 28%);
+    stroke: rgb(25 30 70 / 28%);
+    stroke-width: 0.5;
+    pointer-events: none;
   }
 
   .label {

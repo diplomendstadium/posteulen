@@ -17,7 +17,13 @@ import {
 } from '@posteulen/shared/game/owls.ts';
 import { checkOwlName } from '@posteulen/shared/names.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
-import { CoverSend, FlightPreview, GiftPrepare, OwlBuy, OwlName } from '@posteulen/shared/schemas/owls.ts';
+import {
+  CoverSend,
+  FlightPreview,
+  GiftPrepare,
+  OwlBuy,
+  OwlName,
+} from '@posteulen/shared/schemas/owls.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -34,7 +40,15 @@ import {
   publicKeys,
   TOKEN_MS,
 } from '../flights/transport.ts';
-import { currentEnergy, facts, isReady, ownOwl, ownOwlCount, owlView, type OwlRow } from './model.ts';
+import {
+  currentEnergy,
+  facts,
+  isReady,
+  ownOwl,
+  ownOwlCount,
+  owlView,
+  type OwlRow,
+} from './model.ts';
 
 function owlIdParam(params: unknown): string {
   return parse(Id, (params as { id?: unknown }).id);
@@ -99,7 +113,12 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run('UPDATE owls SET name = ? WHERE id = ?', checked.display, id);
     } else {
       if (!canRenameInYear(owl.renamed_year, year)) throw new HttpError(400, 'owl_rename_blocked');
-      ctx.db.run('UPDATE owls SET name = ?, renamed_year = ? WHERE id = ?', checked.display, year, id);
+      ctx.db.run(
+        'UPDATE owls SET name = ?, renamed_year = ? WHERE id = ?',
+        checked.display,
+        year,
+        id,
+      );
     }
     ctx.hub.notify(me, 'owls');
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
@@ -169,7 +188,10 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const now = ctx.now();
     checkRecipients(ctx, me, body.recipients, now);
     const own = ctx.db
-      .all<OwlRow>("SELECT * FROM owls WHERE owner_id = ? AND state = 'home' ORDER BY created_at, id", me)
+      .all<OwlRow>(
+        "SELECT * FROM owls WHERE owner_id = ? AND state = 'home' ORDER BY created_at, id",
+        me,
+      )
       .filter(isReady)
       .map((owl) => owl.id);
     const candidates = [...own, STAND_IN_OWL.id];
@@ -256,7 +278,10 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
       const { route, owl } = depart(ctx, token, letters, now);
-      return { owl: { name: owl.name, species: owl.species }, arrivesAt: route[0]?.arrivesAt ?? now };
+      return {
+        owl: { name: owl.name, species: owl.species },
+        arrivesAt: route[0]?.arrivesAt ?? now,
+      };
     });
     ctx.hub.notify(me, 'owls', 'map', 'chats');
     return result;

@@ -39,10 +39,20 @@ function sleeps(segments: Segment[]): Segment[] {
 describe('flight simulation (SPEC 9.4, 17.2)', () => {
   it('uses 1 energy per km at night and 1.5 per km by day; speed 25 km/h × factor', () => {
     expect(owlSpeedKmh(1.2)).toBe(30);
-    const atNight = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(50) }], night);
+    const atNight = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(50) }],
+      night,
+    );
     expect(atNight.arrivals[0]?.energy).toBeCloseTo(50, 1);
     expect(atNight.arrivals[0]?.at).toBe(T0 + 2 * TIME.HOUR);
-    const byDay = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(50) }], day);
+    const byDay = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(50) }],
+      day,
+    );
     expect(byDay.arrivals[0]?.energy).toBeCloseTo(25, 1);
     expect(byDay.arrivals[0]?.at).toBe(T0 + 2 * TIME.HOUR);
   });
@@ -50,14 +60,24 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
   it('switches the rate within the flight when day turns into night', () => {
     // Day for the first hour (25 km), night afterwards (25 km): 37.5 + 25.
     const env: FlightEnvironment = { isLand: () => true, isDay: (at) => at < T0 + TIME.HOUR };
-    const result = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(50) }], env);
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(50) }],
+      env,
+    );
     expect(result.arrivals[0]?.energy).toBeCloseTo(100 - 37.5 - 25, 0);
     const flights = result.segments.filter((segment) => segment.kind === 'fly');
     expect(flights.length).toBeGreaterThanOrEqual(2);
   });
 
   it('sleeps 10 hours over land when empty and continues with full energy', () => {
-    const result = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(150) }], night);
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(150) }],
+      night,
+    );
     const pauses = sleeps(result.segments);
     expect(pauses).toHaveLength(1);
     const pause = pauses[0];
@@ -75,7 +95,12 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
       isLand: (_lat, lon) => lon * KM_PER_DEG < 80 || lon * KM_PER_DEG > 130,
       isDay: () => false,
     };
-    const result = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(200) }], env);
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(200) }],
+      env,
+    );
     const pause = sleeps(result.segments)[0];
     expect(pause).toBeDefined();
     if (pause?.kind === 'sleep') {
@@ -88,7 +113,12 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
   });
 
   it('starts with the sleep pause when sent with 0 energy', () => {
-    const result = simulate(owl, { at: T0, position: home, energy: 0 }, [{ index: 0, point: east(25) }], night);
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 0 },
+      [{ index: 0, point: east(25) }],
+      night,
+    );
     expect(result.segments[0]?.kind).toBe('sleep');
     expect(result.segments[0]?.t0).toBe(T0);
     expect(result.arrivals[0]?.at).toBe(T0 + 11 * TIME.HOUR);
@@ -112,7 +142,12 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
   });
 
   it('a loan owl has no return flight: the plan ends at the recipient', () => {
-    const result = simulate(owl, { at: T0, position: home, energy: 100 }, [{ index: 0, point: east(30) }], night);
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(30) }],
+      night,
+    );
     expect(result.end.position).toEqual(east(30));
     expect(result.segments.at(-1)?.kind).toBe('stop');
   });
@@ -172,7 +207,12 @@ describe('chick flight (SPEC 9.9)', () => {
   const chick: FlightProfile = { speedKmh: FLIGHT.CHICK_SPEED_KMH, maxEnergy: 100, mode: 'chick' };
 
   it('alternates 1 hour of flight and 1 hour of rest at 10 km/h', () => {
-    const result = simulate(chick, { at: T0, position: home, energy: 50 }, [{ index: 0, point: east(35) }], night);
+    const result = simulate(
+      chick,
+      { at: T0, position: home, energy: 50 },
+      [{ index: 0, point: east(35) }],
+      night,
+    );
     // 10 km per hour: fly 1 h, rest 1 h, ... 3.5 h of flight and 3 rests.
     expect(sleeps(result.segments)).toHaveLength(3);
     expect(result.arrivals[0]?.at).toBe(T0 + 6.5 * TIME.HOUR);
@@ -184,7 +224,12 @@ describe('chick flight (SPEC 9.9)', () => {
       isLand: (_lat, lon) => lon * KM_PER_DEG < 8 || lon * KM_PER_DEG > 14,
       isDay: () => true,
     };
-    const result = simulate(chick, { at: T0, position: home, energy: 0 }, [{ index: 0, point: east(30) }], env);
+    const result = simulate(
+      chick,
+      { at: T0, position: home, energy: 0 },
+      [{ index: 0, point: east(30) }],
+      env,
+    );
     const rest = sleeps(result.segments)[0];
     if (rest?.kind !== 'sleep') throw new Error('expected a rest');
     expect(rest.at.lon * KM_PER_DEG).toBeGreaterThan(13.9);
@@ -217,17 +262,40 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
     ];
     const original = simulate(owl, start, stops, night);
     for (const hours of [1, 4.5, 8, 20]) {
-      const again = replan(owl, original.segments, T0 + hours * TIME.HOUR, stops.slice(hours > 16 ? 1 : 0), night);
-      expect(Math.abs((again.arrivals.at(-1)?.at ?? 0) - (original.arrivals.at(-1)?.at ?? 0))).toBeLessThan(
-        2 * TIME.MINUTE,
+      const again = replan(
+        owl,
+        original.segments,
+        T0 + hours * TIME.HOUR,
+        stops.slice(hours > 16 ? 1 : 0),
+        night,
       );
+      expect(
+        Math.abs((again.arrivals.at(-1)?.at ?? 0) - (original.arrivals.at(-1)?.at ?? 0)),
+      ).toBeLessThan(2 * TIME.MINUTE);
     }
   });
 
   it('a recipient moves: the rest of the route is re-planned from the current position', () => {
-    const original = simulate(owl, start, [{ index: 0, point: east(50) }, { index: 1, point: home }], night);
+    const original = simulate(
+      owl,
+      start,
+      [
+        { index: 0, point: east(50) },
+        { index: 1, point: home },
+      ],
+      night,
+    );
     const at = T0 + TIME.HOUR;
-    const moved = replan(owl, original.segments, at, [{ index: 0, point: east(75) }, { index: 1, point: home }], night);
+    const moved = replan(
+      owl,
+      original.segments,
+      at,
+      [
+        { index: 0, point: east(75) },
+        { index: 1, point: home },
+      ],
+      night,
+    );
     // 25 km flown; 50 km further to the new place.
     expectTime(moved.arrivals[0]?.at, T0 + 3 * TIME.HOUR);
     // Past segments are kept.
@@ -236,7 +304,15 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
   });
 
   it('the holder moves during the return flight', () => {
-    const original = simulate(owl, start, [{ index: 0, point: east(20) }, { index: 1, point: home }], night);
+    const original = simulate(
+      owl,
+      start,
+      [
+        { index: 0, point: east(20) },
+        { index: 1, point: home },
+      ],
+      night,
+    );
     const at = T0 + TIME.HOUR; // 5 km back towards home
     const moved = replan(owl, original.segments, at, [{ index: 1, point: east(-15) }], night);
     // At 15 km on the way back; 30 km to the new home.
@@ -254,7 +330,15 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
   });
 
   it('turning back: the owl flies home from where it is', () => {
-    const original = simulate(owl, start, [{ index: 0, point: east(40) }, { index: 1, point: home }], night);
+    const original = simulate(
+      owl,
+      start,
+      [
+        { index: 0, point: east(40) },
+        { index: 1, point: home },
+      ],
+      night,
+    );
     const back = replan(owl, original.segments, T0 + TIME.HOUR, [{ index: 1, point: home }], night);
     expect(back.arrivals).toHaveLength(1);
     expectTime(back.arrivals[0]?.at, T0 + 2 * TIME.HOUR);
@@ -266,7 +350,13 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
     const original = simulate(chick, start, [{ index: 0, point: east(30) }], night);
     const state = stateAt(original.segments, T0 + 0.5 * TIME.HOUR);
     expect(state?.chickFlownMs).toBe(0.5 * TIME.HOUR);
-    const back = replan(chick, original.segments, T0 + 0.5 * TIME.HOUR, [{ index: 1, point: home }], night);
+    const back = replan(
+      chick,
+      original.segments,
+      T0 + 0.5 * TIME.HOUR,
+      [{ index: 1, point: home }],
+      night,
+    );
     expectTime(back.arrivals[0]?.at, T0 + TIME.HOUR);
   });
 
@@ -276,7 +366,9 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
 });
 
 describe('with the real land mask and sun (SPEC 12.3, 17.2)', () => {
-  const mask = new Uint8Array(fs.readFileSync(path.resolve(import.meta.dirname, '../data/landmask.bin')));
+  const mask = new Uint8Array(
+    fs.readFileSync(path.resolve(import.meta.dirname, '../data/landmask.bin')),
+  );
   const env: FlightEnvironment = {
     isLand: (lat, lon) => isLand(mask, lat, lon),
     isDay,
@@ -286,7 +378,8 @@ describe('with the real land mask and sun (SPEC 12.3, 17.2)', () => {
     const bergen = { lat: 60.39, lon: 5.32 };
     const stockholm = { lat: 60.45, lon: 22.27 }; // Turku
     let maxLat = 0;
-    for (let i = 0; i <= 100; i++) maxLat = Math.max(maxLat, interpolate(bergen, stockholm, i / 100).lat);
+    for (let i = 0; i <= 100; i++)
+      maxLat = Math.max(maxLat, interpolate(bergen, stockholm, i / 100).lat);
     expect(maxLat).toBeGreaterThan(MAP.NORTH_LAT);
     const top = interpolate(bergen, stockholm, 0.5);
     expect(env.isLand(top.lat, top.lon)).toBe(false);

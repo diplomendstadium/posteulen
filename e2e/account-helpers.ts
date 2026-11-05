@@ -18,7 +18,14 @@ export const PASSWORD = 'ein langes Passwort fuer Tests';
 
 export async function registerViaUi(
   page: Page,
-  options: { base?: string; name?: string; password?: string; inviteCode?: string } = {},
+  options: {
+    base?: string;
+    name?: string;
+    password?: string;
+    inviteCode?: string;
+    /** Keys pressed on the map before Enter, e.g. ['+', 'ArrowRight'] for another home. */
+    mapKeys?: readonly string[];
+  } = {},
 ): Promise<{ name: string; password: string }> {
   const name = options.name ?? uniqueName();
   const password = options.password ?? PASSWORD;
@@ -29,6 +36,8 @@ export async function registerViaUi(
   await page.getByLabel('Passwort wiederholen').fill(password);
   // Keyboard: Enter picks the centre of the map (land in France).
   await page.getByRole('application', { name: 'Karte von Westeuropa' }).focus();
+  await expect(page.locator('path.country').first()).toBeAttached();
+  for (const key of options.mapKeys ?? []) await page.keyboard.press(key);
   await page.keyboard.press('Enter');
   await expect(page.getByText(/^Gewählt:/)).toBeVisible();
   await page.getByRole('checkbox').check();

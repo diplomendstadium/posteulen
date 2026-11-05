@@ -41,5 +41,8 @@ export function transferProblem(balance: number, amount: number): TransferProble
 
 /** Largest amount that may be sent right now (0 if none). */
 export function maxTransfer(balance: number): number {
-  return Math.max(0, Math.min(GOLD.TRANSFER_MAX, balance - GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE - 1));
+  return Math.max(
+    0,
+    Math.min(GOLD.TRANSFER_MAX, balance - GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE - 1),
+  );
 }

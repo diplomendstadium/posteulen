@@ -243,7 +243,8 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `POST /letters/read` | Lesebestätigung (Liste von Brief-IDs) | Empfänger | N |
 | `POST /letters/arrival-seen` | Ankunftsbild gezeigt | Empfänger | N |
 | `DELETE /chats/:peer` | Chat löschen | Sitzung, eigener Chat | N |
-| `POST /letters/prepare` | Empfänger, Eule, Pergament, Art → Brief-IDs, `sentAt`, öffentliche Schlüssel, Flugvorschau, Token | bestätigte aktive Kontakte, Eule einsatzbereit | T |
+| `POST /flights/preview` | Empfänger → einsatzbereite Eulen (eigene, bis Stufe 4 die Aushilfseule, D-65) mit berechneter Ankunft je Empfänger und Rückkehr, ohne Speichern | bestätigte aktive Kontakte | T |
+| `POST /letters/prepare` | Empfänger, Eule, Pergament → Brief-IDs, `sentAt`, öffentliche Schlüssel, Token | bestätigte aktive Kontakte, Eule einsatzbereit | T |
 | `POST /letters/send` | Chiffrate und Wraps je Empfänger → Abflug | Token | N |
 | `POST /bot-letters/send` | Klartextbrief an einen Bot | eigener Bot, 24-Stunden-Sperre | N |
 | `POST /gold/prepare`, `/gold/send` | Überweisung, optional mit Begleitbrief | Kontakt aktiv, Mensch | T/N |
@@ -260,6 +261,7 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `GET /finance` | Goldstand und letzte 20 Buchungen | Sitzung | N |
 | `GET /map` | Wohnorte der Kontakte und Bots, eigene Flugpläne | Sitzung | N |
 | `GET /news` · `POST /news/seen` | „Neuigkeiten“ (11.5) | Sitzung | N |
+| `GET /system-messages` · `POST /system-messages/seen` · `/system-messages/arrival-shown` | Systemchat; Ankunftsbild einer Lieferung ohne Brief gezeigt (D-70) | Sitzung | N |
 | `GET /push/key` · `PUT /push/subscription` · `DELETE /push/subscription` · `POST /push/test` | Push-Abo und Verifikation | Sitzung | N |
 | `POST /push/ack` | Service Worker bestätigt Push-ID | **keine Sitzung**, nur Push-ID | N, `bg` |
 

@@ -47,8 +47,9 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     await page.getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill(secret);
     await expect(page.getByText('Pergament kennt keine Smileys.')).toBeVisible();
-    await page.getByRole('button', { name: 'Eule und Ankunft anzeigen' }).click();
+    await page.getByRole('button', { name: 'Eule wählen' }).click();
     await expect(page.getByText(/Ankunft bei/)).toBeVisible();
+    await expect(page.getByRole('radio', { name: /Postkauz Paul/ })).toBeChecked();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Eule unterwegs|zugestellt/).first()).toBeVisible();
@@ -101,7 +102,7 @@ test.describe('Schlüsselwarnung (SPEC 5.7)', () => {
     });
     await page.getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Das darf nicht ankommen');
-    await page.getByRole('button', { name: 'Eule und Ankunft anzeigen' }).click();
+    await page.getByRole('button', { name: 'Eule wählen' }).click();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByRole('alert').first()).toContainText('Schlüssel', { timeout: 30_000 });
     await page.unroute('**/api/letters/prepare');

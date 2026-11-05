@@ -12,6 +12,12 @@
   import Chat from './Chat.svelte';
   import SystemChat from './SystemChat.svelte';
   import AddressBook from './AddressBook.svelte';
+  import Owls from './Owls.svelte';
+  import Menagerie from './Menagerie.svelte';
+  import Finance from './Finance.svelte';
+  import MapPage from './MapPage.svelte';
+  import OwlOverlay from '../components/OwlOverlay.svelte';
+  import { showSystemArrivals } from '../lib/live.svelte.ts';
 
   onMount(() => startLive());
   onDestroy(() => stopLive());
@@ -51,6 +57,9 @@
     if (current === undefined && live.news.length > 0) {
       const ids = live.news.map((item) => item.id);
       void api('POST', '/api/news/seen', { ids });
+      // Deliveries without a letter show their arrival image with the news (SPEC 9.2.6).
+      if (live.news.some((item) => item.type === 'gold_arrived' || item.type === 'owl_gift'))
+        void showSystemArrivals().catch(() => undefined);
     }
   });
 </script>
@@ -85,6 +94,14 @@
         <Letters />
       {:else if current.href === '/app/adressbuch'}
         <AddressBook />
+      {:else if current.href === '/app/eulen'}
+        <Owls />
+      {:else if current.href === '/app/menagerie'}
+        <Menagerie />
+      {:else if current.href === '/app/finanzen'}
+        <Finance />
+      {:else if current.href === '/app/karte'}
+        <MapPage />
       {:else}
         <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.app.comingSoon}</span></p>
       {/if}
@@ -115,6 +132,8 @@
       </ul>
     {/if}
   </div>
+
+  <OwlOverlay />
 
   <nav class="bottom" aria-label={de.nav.main}>
     {#each bottomNav as item (item.href)}

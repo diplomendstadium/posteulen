@@ -150,7 +150,8 @@ describe('gold (SPEC 9.1, 17.2)', () => {
     expect(parseGold('1,5')).toBe(15);
     expect(parseGold(' 2 ')).toBe(20);
     expect(parseGold('0.1')).toBe(1);
-    for (const bad of ['', '1,55', '-1', 'abc', '1e3', '12345']) expect(parseGold(bad)).toBe(undefined);
+    for (const bad of ['', '1,55', '-1', 'abc', '1e3', '12345'])
+      expect(parseGold(bad)).toBe(undefined);
     expect(priceTenths(6)).toBe(60);
     // 0.1 + 0.2 in tenths is exact.
     expect(1 + 2).toBe(3);
@@ -183,7 +184,15 @@ describe('owl states (SPEC 9.2.5)', () => {
   const own = { kind: 'own', isChick: false } as const;
   it('allows actions per state', () => {
     expect(canTransport({ ...own, state: 'home' })).toBe(true);
-    for (const state of ['flying', 'gift_flight', 'sick', 'self_care', 'vet', 'brooding', 'papeterie'] as const) {
+    for (const state of [
+      'flying',
+      'gift_flight',
+      'sick',
+      'self_care',
+      'vet',
+      'brooding',
+      'papeterie',
+    ] as const) {
       expect(canTransport({ ...own, state }), state).toBe(false);
     }
     expect(canTransport({ state: 'home', kind: 'own', isChick: true })).toBe(false);

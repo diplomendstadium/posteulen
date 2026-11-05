@@ -3,20 +3,16 @@
   import { de, fill } from '@posteulen/shared/texts/de.ts';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
-  import { live } from '../lib/live.svelte.ts';
+  import { formatGold } from '@posteulen/shared/game/gold.ts';
+  import { live, showSystemArrivals, type SystemMessage as Message } from '../lib/live.svelte.ts';
 
-  interface Message {
-    id: string;
-    type: string;
-    params: Record<string, string | number>;
-    createdAt: number;
-    seen: boolean;
-  }
   let messages = $state<Message[]>([]);
 
   async function load(): Promise<void> {
     try {
       messages = (await api<{ messages: Message[] }>('GET', '/api/system-messages')).messages;
+      // Arrival image of a delivery without a letter, when its message is first shown (9.2.6).
+      await showSystemArrivals(messages);
       if (messages.some((m) => !m.seen)) await api('POST', '/api/system-messages/seen', {});
     } catch {
       // Loaded again with the next update.
@@ -32,8 +28,18 @@
     if (live.systemUnread > 0) void load();
   });
 
-  const textOf = (message: Message): string =>
-    fill((de.system as Record<string, string>)[message.type] ?? message.type, message.params);
+  const texts = de.system as Record<string, string>;
+
+  function textOf(message: Message): string {
+    const params = { ...message.params };
+    if (typeof params['amount'] === 'number')
+      params['amount'] = `${formatGold(params['amount'])} Gold`;
+    // Returned gold or gift has its own wording (SPEC 9.5, Anhang C).
+    const variant = params['cargo']
+      ? texts[`${message.type}_${String(params['cargo'])}`]
+      : undefined;
+    return fill(variant ?? texts[message.type] ?? message.type, params);
+  }
 </script>
 
 <ul class="messages" aria-live="polite">

@@ -2,7 +2,7 @@
 
 > Stand: Schritt P (2026-11-05). Geplante Versionen; das Lockfile pinnt sie in Stufe 0 exakt. Regel für die Versionswahl (D-10): die neueste Version, die mindestens 14 Tage alt ist (Stichtag 2026-10-22). Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-05 (Stufe 0, Lockfile): Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 1 niedriger Fund (`deepmerge`, siehe unten; Regel: D-26).
-> In Stufe 0 installiert: alle Pakete aus „Laufzeit – Backend“ außer `@fastify/cookie`, `@hpke/*`, `libsodium-wrappers-sumo`, `altcha-lib`, `suncalc` (folgen mit Stufe 1–3). Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Stand Stufe 0: 309 Pakete; Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
+> In Stufe 0 installiert: alle Pakete aus „Laufzeit – Backend“ außer `@fastify/cookie`, `@hpke/*`, `libsodium-wrappers-sumo`, `altcha-lib` (folgen mit Stufe 1–2), `suncalc` (seit Stufe 3). Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Stand Stufe 0: 309 Pakete; Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
 

@@ -157,7 +157,8 @@ export function simulate(
     const from = position;
     const to = stop.point;
     const total = distanceKm(from, to);
-    const pointAt = (km: number): Point => (total < EPS_KM ? to : interpolate(from, to, km / total));
+    const pointAt = (km: number): Point =>
+      total < EPS_KM ? to : interpolate(from, to, km / total);
     let km = 0;
     let open: { t0: number; km0: number; e0: number; phase: string } | undefined;
 

@@ -259,7 +259,9 @@ export async function buyOwl(
   species = 'waldkauz',
   name = 'Waldi',
 ): Promise<string> {
-  const bought = await who.agent.json<{ owl: { id: string } }>('POST', '/api/owls/buy', { species });
+  const bought = await who.agent.json<{ owl: { id: string } }>('POST', '/api/owls/buy', {
+    species,
+  });
   if (bought.status !== 200) throw new Error(`buy failed: ${JSON.stringify(bought.body)}`);
   await who.agent.json('POST', `/api/owls/${bought.body.owl.id}/name`, { name });
   return bought.body.owl.id;

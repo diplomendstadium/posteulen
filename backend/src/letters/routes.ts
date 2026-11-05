@@ -34,7 +34,10 @@ export function registerLetterHandlers(ctx: Context): void {
       sender_id: string;
       recipient_id: string;
       status: string;
-    }>('SELECT id, sender_id, recipient_id, status FROM letters WHERE id = ? AND flight_id IS NULL', event.ref);
+    }>(
+      'SELECT id, sender_id, recipient_id, status FROM letters WHERE id = ? AND flight_id IS NULL',
+      event.ref,
+    );
     // Idempotent: a letter is delivered only once (SPEC 4.5).
     if (!letter || letter.status !== 'in_flight') return;
     ctx.db.run("UPDATE letters SET status = 'delivered' WHERE id = ?", letter.id);
@@ -186,11 +189,12 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       arrival_seen: number;
       owl_name: string;
       owl_species: string;
+      cover_gold: number | null;
     }>(
-      `SELECT * FROM letters
-        WHERE (sender_id = ? AND recipient_id = ? AND sender_has = 1)
-           OR (sender_id = ? AND recipient_id = ? AND recipient_has = 1 AND status = 'delivered')
-        ORDER BY sent_at, id`,
+      `SELECT l.*, f.gold AS cover_gold FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
+        WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
+           OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
+        ORDER BY l.sent_at, l.id`,
       me,
       peer,
       peer,
@@ -211,6 +215,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           read: row.read === 1,
           arrivalSeen: row.arrival_seen === 1,
           owl: { name: row.owl_name, species: row.owl_species },
+          // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl.
+          ...(row.kind === 'cover_gold' ? { coverGold: row.cover_gold ?? 0 } : {}),
           role: mine ? 'sender' : 'recipient',
           ciphertext: row.ciphertext ? toBase64Url(row.ciphertext) : null,
           wrap: mine
@@ -321,7 +327,11 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(IdList, request.body);
     const me = userOf(request).id;
     for (const id of body.ids) {
-      ctx.db.run('UPDATE system_messages SET arrival_shown = 1 WHERE id = ? AND user_id = ?', id, me);
+      ctx.db.run(
+        'UPDATE system_messages SET arrival_shown = 1 WHERE id = ? AND user_id = ?',
+        id,
+        me,
+      );
     }
     return { ok: true };
   });

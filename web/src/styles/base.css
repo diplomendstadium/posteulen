@@ -151,6 +151,35 @@ a:hover {
   background: var(--parchment-deep);
 }
 
+.button.danger {
+  background: transparent;
+  border-color: var(--seal);
+  color: var(--seal);
+}
+
+.button.danger:hover {
+  background: var(--parchment-deep);
+  color: var(--seal);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+select,
+textarea,
+input[type='number'],
+input:not([type]) {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
 .button[aria-disabled='true'] {
   cursor: not-allowed;
 }

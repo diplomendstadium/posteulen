@@ -282,7 +282,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     const prepared = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
-          owlId: 'stand_in',
+      owlId: 'stand_in',
     });
     const letter = prepared.body.letters[0]!;
     const shortCipher = toBase64Url(new Uint8Array(4135));
@@ -305,7 +305,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     const prepared2 = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
-          owlId: 'stand_in',
+      owlId: 'stand_in',
     });
     expect(
       (
@@ -424,6 +424,49 @@ describe('letters (SPEC 5.8, 8.4)', () => {
       (await ben.agent.json<{ chats: { unread: number }[] }>('GET', '/api/chats')).body.chats[0]
         ?.unread,
     ).toBe(2);
+  });
+});
+
+describe('letters of the stage-2 placeholder owl (update from stage 2)', () => {
+  it('are still delivered by the old event after the update', async () => {
+    await couple(anna, ben);
+    app.db.run(
+      `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, ciphertext,
+                            wrap_recipient, wrap_sender, status, owl_name, owl_species)
+       VALUES ('legacyLetterAAAAAAAAAA', ?, ?, 'letter', 'small', ?, ?, x'00', x'00', x'00', 'in_flight',
+               'Postkauz Paul', 'waldkauz')`,
+      anna.id,
+      ben.id,
+      app.clock.now,
+      app.clock.now + 2 * TIME.MINUTE,
+    );
+    app.ctx.queue.schedule('deliver', 'legacyLetterAAAAAAAAAA', app.clock.now + 2 * TIME.MINUTE);
+    advanceTo(app, app.clock.now + 2 * TIME.MINUTE);
+    expect(
+      app.db.get<{ status: string }>(
+        "SELECT status FROM letters WHERE id = 'legacyLetterAAAAAAAAAA'",
+      )?.status,
+    ).toBe('delivered');
+  });
+
+  it('turn back when the contact is removed', async () => {
+    await couple(anna, ben);
+    app.db.run(
+      `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, ciphertext,
+                            wrap_recipient, wrap_sender, status, owl_name, owl_species)
+       VALUES ('legacyLetterBBBBBBBBBB', ?, ?, 'letter', 'small', ?, ?, x'00', x'00', x'00', 'in_flight',
+               'Postkauz Paul', 'waldkauz')`,
+      anna.id,
+      ben.id,
+      app.clock.now,
+      app.clock.now + 2 * TIME.MINUTE,
+    );
+    await ben.agent.json('DELETE', `/api/contacts/${anna.id}`);
+    expect(
+      app.db.get<{ status: string }>(
+        "SELECT status FROM letters WHERE id = 'legacyLetterBBBBBBBBBB'",
+      )?.status,
+    ).toBe('returned');
   });
 });
 

@@ -163,7 +163,8 @@ function scheduleStops(ctx: Context, flightId: string, route: readonly RouteStop
     `${flightId}:`,
   );
   route.forEach((stop, index) => {
-    if (stop.status === 'pending') ctx.queue.schedule('flight_stop', eventRef(flightId, index), stop.arrivesAt);
+    if (stop.status === 'pending')
+      ctx.queue.schedule('flight_stop', eventRef(flightId, index), stop.arrivesAt);
   });
 }
 
@@ -218,7 +219,12 @@ export function flightPosition(flight: FlightRow, now: number): ReturnType<typeo
   return positionAt(planOf(flight), now);
 }
 
-function saveRoute(ctx: Context, flight: FlightRow, route: RouteStop[], simulation?: Simulation): void {
+function saveRoute(
+  ctx: Context,
+  flight: FlightRow,
+  route: RouteStop[],
+  simulation?: Simulation,
+): void {
   if (simulation) {
     ctx.db.run(
       'UPDATE flights SET route = ?, plan = ?, ends_at = ? WHERE id = ?',
@@ -269,7 +275,13 @@ function finish(ctx: Context, flightId: string): void {
 type After = (work: () => void) => void;
 
 /** Owl at home again: energy from the plan, gold of a returned transfer, system message. */
-function arriveHome(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, after: After): void {
+function arriveHome(
+  ctx: Context,
+  flight: FlightRow,
+  stop: RouteStop,
+  at: number,
+  after: After,
+): void {
   if (flight.owl_id) {
     ctx.db.run(
       "UPDATE owls SET state = 'home', energy = ?, energy_at = ?, owner_id = ? WHERE id = ?",
@@ -296,7 +308,11 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
     recipient,
   );
   for (const letter of letters) {
-    ctx.db.run("UPDATE letters SET status = 'delivered', arrives_at = ? WHERE id = ?", at, letter.id);
+    ctx.db.run(
+      "UPDATE letters SET status = 'delivered', arrives_at = ? WHERE id = ?",
+      at,
+      letter.id,
+    );
   }
   if (letters.length > 0) {
     ctx.db.run(
@@ -324,7 +340,15 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
   if (flight.purpose === 'gold' && flight.gold_state === 'carried') {
     credit(ctx.db, recipient, 'transfer_in', flight.gold, at, flight.holder_id);
     ctx.db.run("UPDATE flights SET gold_state = 'delivered' WHERE id = ?", flight.id);
-    addSystemMessage(ctx, recipient, 'gold_arrived', { name: senderName, amount: flight.gold }, at, after, image);
+    addSystemMessage(
+      ctx,
+      recipient,
+      'gold_arrived',
+      { name: senderName, amount: flight.gold, owl: flight.owl_name },
+      at,
+      after,
+      image,
+    );
     push = 'gold_arrived';
     after(() => ctx.hub.notify(recipient, 'profile', 'finance'));
   }
@@ -436,7 +460,10 @@ export function turnBack(
     now,
     after,
   );
-  const fresh = { ...flight, gold_state: loadFlight(ctx, flight.id)?.gold_state ?? flight.gold_state };
+  const fresh = {
+    ...flight,
+    gold_state: loadFlight(ctx, flight.id)?.gold_state ?? flight.gold_state,
+  };
   if (!hasHome) {
     // Loan and stand-in owls have no home: they vanish at once (9.5).
     saveRoute(ctx, fresh, route);
@@ -455,7 +482,13 @@ export function turnBack(
 }
 
 /** All flights between two people turn back, in both directions (contact removed, 9.5). */
-export function turnBackBetween(ctx: Context, a: string, b: string, now: number, after: After): void {
+export function turnBackBetween(
+  ctx: Context,
+  a: string,
+  b: string,
+  now: number,
+  after: After,
+): void {
   const flights = ctx.db.all<FlightRow>(
     "SELECT * FROM flights WHERE state = 'active' AND holder_id IN (?, ?)",
     a,

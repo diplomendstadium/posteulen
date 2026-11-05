@@ -113,7 +113,7 @@ fi
 if has_letter_support; then
   check "Zweites Konto, Koppeln und Brief (Ende-zu-Ende)" letters letters-setup
   check "Absender liest den eigenen Brief" letters letters-check
-  # Die vorläufige Eule braucht 2 Minuten; die Warteschlange stellt dann zu (SPEC 4.5).
+  # Beide Konten wohnen am selben Ort: Die Aushilfseule landet sofort, die Warteschlange stellt zu (SPEC 4.5).
   check "Warteschlange stellt den Brief zu (höchstens 3 Minuten)" wait_delivered
   check "Empfänger liest den Brief" letters letters-check --delivered
 fi

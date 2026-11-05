@@ -16,6 +16,8 @@ export interface ApiLetter {
   readonly read: boolean;
   readonly arrivalSeen: boolean;
   readonly owl: { readonly name: string; readonly species: string };
+  /** Cover letter to gold: the amount in tenths. */
+  readonly coverGold?: number;
   readonly role: 'sender' | 'recipient';
   readonly ciphertext: string | null;
   readonly wrap: string | null;
@@ -25,29 +27,43 @@ export interface ShownLetter extends ApiLetter {
   readonly text: string | null;
 }
 
-export interface Prepared {
+export interface PreparedLetters {
   readonly token: string;
   readonly letters: readonly { recipientId: string; letterId: string; sentAt: number }[];
   readonly keys: readonly { userId: string; ed25519: string; x25519: string }[];
+}
+
+export interface Prepared extends PreparedLetters {
   readonly cost: number;
-  readonly preview: {
-    owl: { name: string; species: string };
-    arrivals: { recipientId: string; at: number }[];
-  };
+}
+
+export interface SealedItem {
+  readonly letterId: string;
+  readonly ciphertext: string;
+  readonly wrapRecipient: string;
+  readonly wrapSender: string;
 }
 
 export class KeyMismatchError extends Error {}
 
-export function prepare(recipients: readonly string[], parchment: Parchment): Promise<Prepared> {
-  return api<Prepared>('POST', '/api/letters/prepare', { recipients, parchment });
+export function prepare(
+  recipients: readonly string[],
+  parchment: Parchment,
+  owlId: string,
+): Promise<Prepared> {
+  return api<Prepared>('POST', '/api/letters/prepare', { recipients, parchment, owlId });
 }
 
-/** Seals one letter per recipient and sends them in one request. */
-export async function sendPrepared(
-  prepared: Prepared,
+/**
+ * Seals one letter per prepared recipient (SPEC 5.8). The server's public keys must match
+ * the contact vault, otherwise nothing is sent (SPEC 5.7).
+ */
+export async function sealFor(
+  prepared: PreparedLetters,
+  kind: ApiLetter['kind'],
   parchment: Parchment,
   text: string,
-): Promise<void> {
+): Promise<SealedItem[]> {
   const own = account.keys;
   const me = account.profile?.id;
   if (!own || !me) throw new ApiError(401, { code: 'unauthorized' });
@@ -58,7 +74,7 @@ export async function sendPrepared(
     import('@posteulen/shared/crypto/letter.ts'),
     import('@posteulen/shared/crypto/encoding.ts'),
   ]);
-  const items = [];
+  const items: SealedItem[] = [];
   for (const letter of prepared.letters) {
     const recipientKey = prepared.keys.find((key) => key.userId === letter.recipientId);
     if (!recipientKey) throw new Error('missing key');
@@ -68,7 +84,7 @@ export async function sendPrepared(
         senderId: me,
         recipientId: letter.recipientId,
         sentAt: letter.sentAt,
-        kind: 'letter',
+        kind,
         parchment,
       },
       text,
@@ -85,7 +101,23 @@ export async function sendPrepared(
       wrapSender: toBase64Url(sealed.wrapSender),
     });
   }
-  await api('POST', '/api/letters/send', { token: prepared.token, items });
+  return items;
+}
+
+export interface SendResult {
+  readonly owl: { readonly name: string; readonly species: string };
+  readonly letters: readonly { id: string; recipientId: string; arrivesAt: number }[];
+  readonly returnsAt: number | null;
+}
+
+/** Seals one letter per recipient and sends them in one request. */
+export async function sendPrepared(
+  prepared: Prepared,
+  parchment: Parchment,
+  text: string,
+): Promise<SendResult> {
+  const items = await sealFor(prepared, 'letter', parchment, text);
+  return api<SendResult>('POST', '/api/letters/send', { token: prepared.token, items });
 }
 
 /** Loads and verifies a conversation; invalid letters show no content (SPEC 5.8). */

@@ -109,7 +109,8 @@ async function registerAs(userName: string, userPassword: string): Promise<strin
     ed25519Public: toBase64Url(account.identity.ed25519Public),
     x25519Public: toBase64Url(account.identity.x25519Public),
     keyPackage,
-    home: { lat: 48.14, lon: 11.58 },
+    // Same home as the first account: the owl arrives at once (no hours of flight in the VM).
+    home: { lat: 52.52, lon: 13.4 },
   });
   return first.userId;
 }
@@ -136,7 +137,11 @@ if (command === 'letters-setup') {
     token: string;
     letters: { letterId: string; sentAt: number }[];
     keys: { x25519: string }[];
-  }>('POST', '/api/letters/prepare', { recipients: [secondId], parchment: 'small' });
+  }>('POST', '/api/letters/prepare', {
+    recipients: [secondId],
+    parchment: 'small',
+    owlId: 'stand_in',
+  });
   const letter = prepared.letters[0];
   const key = prepared.keys[0];
   if (!letter || !key) throw new Error('prepare');

@@ -13,7 +13,8 @@ export function distanceKm(a: Point, b: Point): number {
   const dLat = (b.lat - a.lat) * RAD;
   const dLon = (b.lon - a.lon) * RAD;
   const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * RAD) * Math.cos(b.lat * RAD) * Math.sin(dLon / 2) ** 2;
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * RAD) * Math.cos(b.lat * RAD) * Math.sin(dLon / 2) ** 2;
   return 2 * FLIGHT.EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 

@@ -32,7 +32,12 @@ export const CoverLetter = v.strictObject({
 
 export const GoldPrepare = v.strictObject({
   recipient: Id,
-  amount: v.pipe(v.number(), v.integer(), v.minValue(GOLD.TRANSFER_MIN), v.maxValue(GOLD.TRANSFER_MAX)),
+  amount: v.pipe(
+    v.number(),
+    v.integer(),
+    v.minValue(GOLD.TRANSFER_MIN),
+    v.maxValue(GOLD.TRANSFER_MAX),
+  ),
   owlId: OwlRef,
   withCover: v.boolean(),
 });

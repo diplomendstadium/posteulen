@@ -3,14 +3,7 @@ import { OWL } from '../constants.ts';
 import { SPECIES, type Species } from '../species.ts';
 
 export type OwlState =
-  | 'home'
-  | 'flying'
-  | 'gift_flight'
-  | 'sick'
-  | 'self_care'
-  | 'vet'
-  | 'brooding'
-  | 'papeterie';
+  'home' | 'flying' | 'gift_flight' | 'sick' | 'self_care' | 'vet' | 'brooding' | 'papeterie';
 
 export type OwlKind = 'own' | 'loan' | 'bot';
 

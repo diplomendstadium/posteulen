@@ -69,7 +69,12 @@ export function currentEnergy(ctx: Context, owl: OwlRow, now: number): number {
     const position = flight ? flightPosition(flight, now) : undefined;
     return position?.energy ?? owl.energy;
   }
-  return energyNow({ energy: owl.energy, energyAt: owl.energy_at }, species, now, regenerates(owl.state));
+  return energyNow(
+    { energy: owl.energy, energyAt: owl.energy_at },
+    species,
+    now,
+    regenerates(owl.state),
+  );
 }
 
 /** Ready for a letter, gold or a gift: adult, at home, healthy and named (9.2.5). */
@@ -148,8 +153,7 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
       care: canCare(ownFacts),
       gift: canGift(ownFacts) && owl.name !== null,
       release: canRelease(ownFacts),
-      rename:
-        owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
+      rename: owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
     },
     absence,
   };

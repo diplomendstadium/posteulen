@@ -8,6 +8,8 @@ import { OPERATIONS } from '@posteulen/shared/constants.ts';
 import { api } from './api.ts';
 import { account } from './auth.svelte.ts';
 import { syncVault } from './vault.svelte.ts';
+import { showOwlImage } from './overlay.svelte.ts';
+import { de, fill } from '@posteulen/shared/texts/de.ts';
 
 export interface ChatSummary {
   readonly peerId: string;
@@ -42,6 +44,9 @@ export const live = $state<{
   pushState: string;
   /** Increments on every chat change so open conversations reload. */
   chatVersion: number;
+  owlsVersion: number;
+  financeVersion: number;
+  mapVersion: number;
 }>({
   chats: [],
   systemUnread: 0,
@@ -50,9 +55,41 @@ export const live = $state<{
   news: [],
   pushState: 'none',
   chatVersion: 0,
+  owlsVersion: 0,
+  financeVersion: 0,
+  mapVersion: 0,
 });
 
-type Topic = 'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push';
+type Topic =
+  'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push' | 'owls' | 'finance' | 'map';
+
+export interface SystemMessage {
+  readonly id: string;
+  readonly type: string;
+  readonly params: Record<string, string | number>;
+  readonly createdAt: number;
+  readonly seen: boolean;
+  readonly arrivalImage: string | null;
+  readonly arrivalShown: boolean;
+}
+
+/**
+ * Arrival image for deliveries without a letter (gold, gifted owl, SPEC 9.2.6): shown once,
+ * for the most recent landing only.
+ */
+export async function showSystemArrivals(messages?: readonly SystemMessage[]): Promise<void> {
+  const list =
+    messages ?? (await api<{ messages: SystemMessage[] }>('GET', '/api/system-messages')).messages;
+  const pending = list.filter((message) => message.arrivalImage && !message.arrivalShown);
+  const latest = pending.at(-1);
+  if (!latest?.arrivalImage) return;
+  showOwlImage(
+    latest.arrivalImage,
+    'arrival',
+    fill(de.owls.arrives, { name: String(latest.params['owl'] ?? '') }),
+  );
+  await api('POST', '/api/system-messages/arrival-shown', { ids: pending.map((m) => m.id) });
+}
 
 async function refresh(topics: readonly Topic[]): Promise<void> {
   if (!account.profile) return;
@@ -94,6 +131,9 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
       }),
     );
   }
+  if (topics.includes('owls')) live.owlsVersion++;
+  if (topics.includes('finance')) live.financeVersion++;
+  if (topics.includes('map')) live.mapVersion++;
   if (topics.includes('push')) {
     tasks.push(
       api<{ state: string }>('GET', '/api/push/status').then((result) => {
@@ -109,7 +149,7 @@ export function refreshTopics(...topics: Topic[]): Promise<void> {
 }
 
 export function refreshAll(): Promise<void> {
-  return refresh(['chats', 'contacts', 'news', 'profile', 'push']);
+  return refresh(['chats', 'contacts', 'news', 'profile', 'push', 'owls', 'finance', 'map']);
 }
 
 let source: EventSource | null = null;
@@ -124,6 +164,10 @@ function open(): void {
     failures = 0;
     const { topics } = JSON.parse((event as MessageEvent<string>).data) as { topics: Topic[] };
     void refresh(topics);
+    // A delivery landed while the app is visible: show its arrival image at once.
+    if (topics.includes('system') && document.visibilityState === 'visible') {
+      void showSystemArrivals().catch(() => undefined);
+    }
   });
   source.onerror = () => {
     failures++;

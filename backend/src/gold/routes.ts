@@ -33,7 +33,9 @@ export function registerGoldJobs(ctx: Context): void {
     catchUpEveryDay: true,
     run: (_day, logicalAt) => {
       // Active at the time of the (catch-up) run (ARCHITECTURE 6).
-      const activeSince = utcDay(Math.max(ctx.now(), logicalAt) - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY);
+      const activeSince = utcDay(
+        Math.max(ctx.now(), logicalAt) - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY,
+      );
       ctx.db.run(
         `INSERT INTO transactions (user_id, at, type, amount)
            SELECT id, ?, 'daily', ? FROM users WHERE state != 'deleting' AND last_active_date >= ?`,

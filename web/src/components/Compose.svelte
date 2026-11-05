@@ -5,12 +5,13 @@
   import { LETTER } from '@posteulen/shared/constants.ts';
   import { maxChars, sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
   import ErrorText from './ErrorText.svelte';
-  import { KeyMismatchError, prepare, sendPrepared, type Prepared } from '../lib/letters.ts';
-  import { live } from '../lib/live.svelte.ts';
+  import OwlChoice from './OwlChoice.svelte';
+  import { KeyMismatchError, prepare, sendPrepared } from '../lib/letters.ts';
+  import { previewFlights, type OwlChoice as Choice } from '../lib/owls.ts';
+  import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
-  import { time } from '../lib/format.ts';
+  import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
-  import { SPECIES } from '@posteulen/shared/species.ts';
 
   let { peerId, onsent }: { peerId: string; onsent: () => void } = $props();
 
@@ -20,7 +21,9 @@
   // svelte-ignore state_referenced_locally
   let recipients = $state<string[]>([peerId]);
   let extra = $state('');
-  let prepared = $state<Prepared | null>(null);
+  /** Owls ready for this letter with the server's preview (SPEC 8.4 step 4). */
+  let prepared = $state<Choice[] | null>(null);
+  let owlId = $state<string | null>(null);
   let busy = $state(false);
   let error = $state<string | null>(null);
   let sentNotice = $state(false);
@@ -29,7 +32,6 @@
   const max = $derived(maxChars(parchment));
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
-  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
   const candidates = $derived(
     live.contacts.filter((c) => c.active && !c.keyWarning && !recipients.includes(c.userId)),
   );
@@ -58,7 +60,8 @@
     if (count > max) return void (error = de.letters.tooLong);
     busy = true;
     try {
-      prepared = await prepare(recipients, parchment);
+      prepared = await previewFlights(recipients);
+      owlId = prepared[0]?.id ?? null;
     } catch (caught) {
       error = errorMessage(caught);
     } finally {
@@ -67,11 +70,21 @@
   }
 
   async function send(): Promise<void> {
-    if (!prepared || busy || !status.online) return;
+    if (!prepared || !owlId || busy || !status.online) return;
     busy = true;
     error = null;
     try {
-      await sendPrepared(prepared, parchment, text);
+      const result = await sendPrepared(
+        await prepare(recipients, parchment, owlId),
+        parchment,
+        text,
+      );
+      showOwlImage(
+        result.owl.species,
+        'departure',
+        fill(de.owls.departs, { name: result.owl.name }),
+      );
+      void refreshTopics('profile');
       text = '';
       prepared = null;
       recipients = [peerId];
@@ -182,28 +195,11 @@
 
   <ErrorText message={error} />
   {#if prepared}
-    <div class="preview" role="status">
-      <p>
-        {fill(de.letters.owl, {
-          owl: prepared.preview.owl.name,
-          species: speciesName(prepared.preview.owl.species),
-        })}
-      </p>
-      <ul>
-        {#each prepared.preview.arrivals as arrival (arrival.recipientId)}
-          <li>
-            {fill(de.letters.arrival, {
-              name: nameOf(arrival.recipientId),
-              time: time(arrival.at),
-            })}
-          </li>
-        {/each}
-      </ul>
-    </div>
+    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" />
     <button
       class="button"
       type="button"
-      disabled={busy || !status.online}
+      disabled={busy || !status.online || !owlId}
       onclick={() => void send()}>{de.letters.send}</button
     >
   {:else}
@@ -293,12 +289,5 @@
     min-height: 2.75rem;
     font: inherit;
     width: 100%;
-  }
-
-  .preview {
-    padding: 0.75rem 1rem;
-    border: 2px dashed var(--wood);
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
   }
 </style>

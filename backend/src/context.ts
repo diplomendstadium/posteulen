@@ -2,7 +2,7 @@
  * Everything request handlers need, created once per process: database, secrets, derived
  * server keys, clock, rate limits and short-lived in-memory state (D-17).
  */
-import { randomInt } from 'node:crypto';
+import { getRandomValues } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
@@ -96,6 +96,12 @@ export interface TransportToken {
   readonly gold: number;
 }
 
+/** Uniform in [0, 1) with 53 random bits from the CSPRNG. */
+export function secureRandom(): number {
+  const [high = 0, low = 0] = getRandomValues(new Uint32Array(2));
+  return (high * 2 ** 21 + (low >>> 11)) / 2 ** 53;
+}
+
 export const LAND_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/landmask.bin');
 
 export interface ContextOptions {
@@ -162,6 +168,6 @@ export async function createContext(
     queue: new EventQueue(db, now),
     push: undefined as unknown as PushService,
     flightTimeScale: options.flightTimeScale ?? 1,
-    random: options.random ?? (() => randomInt(0, 2 ** 48) / 2 ** 48),
+    random: options.random ?? secureRandom,
   };
 }
