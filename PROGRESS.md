@@ -40,7 +40,7 @@
 - Leiheulen (Tagesangebot, HMAC-Namen, Verfall), Papeterie, Krankheit (Schutzfrist, Pflegebonus, Behandlung, grummeliges Bild), Eier/Brüten/Küken (Benennen, Verschenkpflicht, Los, Kükenflug, Erwachsenwerden).
 - Konten: Namens- und Wohnortwechsel (mit Kursänderung), Löschung mit 24-Stunden-Frist und endgültiger Löschung, Inaktivitätswarnung und automatische Löschung, tägliches Aufräumen.
 - Adminpanel: Statistik, Löschfrist, Rundnachrichten.
-- Tests: 327 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 110 E2E-Tests in 4 Browserprofilen, VM-Test siehe Stufenbericht.
+- Tests: 327 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 110 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.3`.
 
 ## Offen
 - Tag `v0.1.0-stufe.4` signieren und pushen (Auftraggeber, D-28).
