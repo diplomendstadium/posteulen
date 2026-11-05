@@ -27,11 +27,11 @@ mkdir -p "$CACHE"
 cd "$CACHE"
 
 say "Debian-13-Cloud-Image prüfen"
-curl --silent --show-error --fail --proto '=https' -o SHA512SUMS.new "$IMAGE_URL/SHA512SUMS"
+curl --silent --show-error --fail --location --proto '=https' --proto-redir '=https' -o SHA512SUMS.new "$IMAGE_URL/SHA512SUMS"
 expected=$(awk -v f="$IMAGE" '$2 == f {print $1}' SHA512SUMS.new)
 [[ -n $expected ]] || fail "$IMAGE nicht in SHA512SUMS."
 if [[ ! -f $IMAGE ]] || [[ $(sha512sum "$IMAGE" | cut -d' ' -f1) != "$expected" ]]; then
-  curl --silent --show-error --fail --proto '=https' -o "$IMAGE.part" "$IMAGE_URL/$IMAGE"
+  curl --silent --show-error --fail --location --proto '=https' --proto-redir '=https' -o "$IMAGE.part" "$IMAGE_URL/$IMAGE"
   [[ $(sha512sum "$IMAGE.part" | cut -d' ' -f1) == "$expected" ]] || fail "Prüfsumme des Images stimmt nicht."
   mv "$IMAGE.part" "$IMAGE"
 fi
