@@ -50,7 +50,13 @@ sw.addEventListener('fetch', (event) => {
       (async () => {
         const cached = await caches.match(event.request);
         if (cached) return cached;
-        const response = await fetch(event.request);
+        let response: Response;
+        try {
+          response = await fetch(event.request);
+        } catch {
+          // Offline or the page went away: a plain network error, no exception.
+          return Response.error();
+        }
         if (response.ok) {
           const cache = await caches.open(RUNTIME);
           await cache.put(event.request, response.clone());

@@ -1,13 +1,41 @@
 <script lang="ts">
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { de, fill } from '@posteulen/shared/texts/de.ts';
   import Link from '../components/Link.svelte';
   import OwlPicture from '../components/OwlPicture.svelte';
+  import ErrorText from '../components/ErrorText.svelte';
+  import PasswordInput from '../components/PasswordInput.svelte';
+  import { login } from '../lib/auth.svelte.ts';
+  import { navigate } from '../lib/router.svelte.ts';
+  import { status } from '../lib/status.svelte.ts';
+  import { errorMessage } from '../lib/messages.ts';
 
-  let notice = $state(false);
+  let name = $state('');
+  let password = $state('');
+  let busy = $state<string | null>(null);
+  let error = $state<string | null>(null);
 
-  function submit(event: SubmitEvent): void {
+  async function submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    notice = true;
+    if (busy || !status.online) return;
+    error = null;
+    busy = de.start.loggingIn;
+    try {
+      const outcome = await login(name, password, (step) => {
+        busy = step === 'captcha' ? de.start.stepCaptcha : de.start.stepPassword;
+      });
+      if (outcome === 'ok') {
+        password = '';
+        navigate('/app', true);
+      } else if (outcome === 'wrong') {
+        error = de.start.wrong;
+      } else {
+        error = fill(de.start.wait, { seconds: outcome.wait });
+      }
+    } catch (caught) {
+      error = errorMessage(caught);
+    } finally {
+      busy = null;
+    }
   }
 </script>
 
@@ -24,26 +52,31 @@
       <form onsubmit={submit} novalidate>
         <div class="field">
           <label for="login-name">{de.start.userName}</label>
-          <input id="login-name" name="username" type="text" autocomplete="username" />
-        </div>
-        <div class="field">
-          <label for="login-password">{de.start.password}</label>
           <input
-            id="login-password"
-            name="password"
-            type="password"
-            autocomplete="current-password"
+            id="login-name"
+            name="username"
+            type="text"
+            autocomplete="username"
+            maxlength="100"
+            bind:value={name}
           />
         </div>
+        <PasswordInput
+          id="login-password"
+          label={de.start.password}
+          autocomplete="current-password"
+          bind:value={password}
+        />
+        <ErrorText message={error} />
         <div class="actions">
-          <button class="button" type="submit">{de.start.login}</button>
+          <button class="button" type="submit" disabled={busy !== null || !status.online}
+            >{de.start.login}</button
+          >
           <Link href="/konto-erstellen" class="button secondary">{de.start.createAccount}</Link>
         </div>
-        {#if notice}
-          <p class="notice" role="status">
-            <span aria-hidden="true">ℹ</span><span>{de.start.notYet}</span>
-          </p>
-        {/if}
+        {#if busy}<p class="notice" role="status">
+            <span aria-hidden="true">⏳</span><span>{busy}</span>
+          </p>{/if}
       </form>
     </section>
 

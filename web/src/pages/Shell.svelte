@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { de } from '@posteulen/shared/texts/de.ts';
   import Link from '../components/Link.svelte';
   import { route } from '../lib/router.svelte.ts';
+  import { account } from '../lib/auth.svelte.ts';
+  import Settings from './Settings.svelte';
 
   /** Sections of the logged-in start page (SPEC 8.3). Icons are decorative; text is always shown. */
   const sections = [
@@ -31,14 +33,23 @@
     <Link href="/app" class="brand">{de.app.name}</Link>
     <p class="gold">
       <span aria-hidden="true">⛀</span>
-      <span>{fill(de.header.goldAmount, { amount: '3,0' })}</span>
+      <span>{de.units.gold(account.profile?.gold ?? 0)}</span>
     </p>
   </header>
 
   <div class="content">
+    {#if account.notice === 'deletionCancelled'}
+      <p class="notice" role="status">
+        <span aria-hidden="true">ℹ</span><span>{de.start.deletionCancelled}</span>
+      </p>
+    {/if}
     {#if current}
       <h1>{current.label}</h1>
-      <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.app.comingSoon}</span></p>
+      {#if current.href === '/app/einstellungen'}
+        <Settings />
+      {:else}
+        <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.app.comingSoon}</span></p>
+      {/if}
     {:else}
       <h1 class="visually-hidden">{de.nav.home}</h1>
       <ul class="tiles">

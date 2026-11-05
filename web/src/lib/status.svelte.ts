@@ -38,9 +38,12 @@ export async function registerServiceWorker(): Promise<void> {
   registration.addEventListener('updatefound', () => {
     registration.installing?.addEventListener('statechange', markWaiting);
   });
+  // Reload only when a new version takes over, never on the very first installation
+  // (that would wipe forms the user is filling in).
+  const hadController = navigator.serviceWorker.controller !== null;
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return;
+    if (reloading || !hadController) return;
     reloading = true;
     location.reload();
   });

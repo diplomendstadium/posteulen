@@ -8,6 +8,12 @@ describe('texts', () => {
     expect(fill('{a} {b}', { a: 1 })).toBe('1 {b}');
   });
 
+  it('formats gold with one decimal and a comma (SPEC 0)', () => {
+    expect(de.units.gold(30)).toBe('3,0 Gold');
+    expect(de.units.gold(105)).toBe('10,5 Gold');
+    expect(de.units.gold(-1)).toBe('-0,1 Gold');
+  });
+
   it('has a German text for every API error code', () => {
     for (const code of [
       'internal',
