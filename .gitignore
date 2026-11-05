@@ -14,3 +14,4 @@ playwright-report/
 secrets.json
 web/src/generated/
 web/public/icons/
+tools/map/.cache/
