@@ -110,7 +110,7 @@ signature  = Ed25519.sign(enc("PostEulen/letter-sig/v1", content), sender_ed2551
 plaintext  = pad(content ‖ signature, 4096 | 16384)            ISO 7816-4
 ad         = enc("PostEulen/letter-ad/v1", letterId, senderId, recipientId, kind, parchment)
 ciphertext = nonce24 ‖ XChaCha20-Poly1305(plaintext, letterKey, ad)
-             → genau 4 136 Byte (klein) bzw. 16 436 Byte (groß); der Server prüft das exakt
+             → genau 4 136 Byte (klein) bzw. 16 424 Byte (groß); der Server prüft das exakt
 wrap_r     = HPKE.seal(pk = recipient_x25519, info = enc("PostEulen/letter-key/v1", letterId, "recipient"), letterKey)
 wrap_s     = HPKE.seal(pk = sender_x25519,    info = enc("PostEulen/letter-key/v1", letterId, "sender"),    letterKey)
              → je enc (32 Byte) ‖ ct (48 Byte)

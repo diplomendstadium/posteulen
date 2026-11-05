@@ -140,3 +140,21 @@
 | D-50 | 2026-11-05 | Folgende Teile von SPEC 5.2–5.6 folgen in späteren Stufen, weil ihre Grundlage noch fehlt: Systemnachricht „Passwort geändert“ (Systemchat, Stufe 2); Push-Abos beim Login löschen (Push, Stufe 2); drei Bots und Tag-0-Brief bei der Registrierung (Stufe 5); Kontolöschung mit 24-Stunden-Frist (Stufe 4; der Login hebt einen Löschantrag bereits auf) | Stufenplan SPEC 18 | Platzhalter-Implementierungen |
 | D-51 | 2026-11-05 | Messung Argon2id (64 MiB, t = 3, p = 4) im Browser: Chromium auf dem Entwicklungsrechner 259 ms; Messung auf einem Mittelklasse-Handy steht aus (F-06, Seite `/messung`) | SPEC 5.3 | – |
 | D-52 | 2026-11-05 | VM-Test: installiert zuerst das Tag der vorigen Stufe, aktualisiert dann; ein Testkonto (registriert über HTTPS mit dem Krypto-Code des Releases) muss sich nach jedem Update, Rückfall und jeder Wiederherstellung anmelden und dieselben Schlüssel entpacken | SPEC 17.6 | nur Datenbankinhalte prüfen |
+
+---
+
+## Teil F – Entscheidungen in Stufe 2
+
+| Nr. | Datum | Entscheidung | Begründung | Verworfen |
+|---|---|---|---|---|
+| D-53 | 2026-11-05 | Platzhalter-Eule „Postkauz Paul“ (Waldkauz) mit fester Flugzeit 2 min je Empfänger, nacheinander; Zustellung über die Ereignis-Warteschlange | SPEC 18 Stufe 2; echte Flüge folgen in Stufe 3 und ersetzen nur die Ankunftszeit | sofortige Zustellung (würde die Warteschlange nicht prüfen) |
+| D-54 | 2026-11-05 | Die eigene offene Kontaktanfrage speichert den angefragten Namen nur verschlüsselt mit dem Tresor-Schlüssel des Anfragenden („label“); der Server sieht nur HMAC und Chiffrat | SPEC 8.8 verlangt die Anzeige „unbestätigt“ mit Name und Restzeit, D-15 keine lesbaren Namen nicht existierender Konten | Name lesbar speichern; Liste nur lokal führen (geht bei Gerätewechsel verloren) |
+| D-55 | 2026-11-05 | SSRF-Prüfung der Push-Adressen mit eigenem Präfixvergleich (IPv4/IPv6 inkl. IPv4-mapped) statt `node:net.BlockList` | `BlockList` meldete in Kombination der Regeln auch öffentliche IPv4-Adressen (8.8.8.8) als gesperrt (im Test gefunden) | BlockList |
+| D-56 | 2026-11-05 | Push-Nutzlast enthält nur `{id, type}`; die sichtbaren Texte stehen im Service Worker (beim Build aus `texts/de.ts` eingesetzt, ein klassischer Service Worker kann nicht importieren) | SPEC 11.2: keine Namen und Inhalte im Push | Text im Push mitschicken |
+| D-57 | 2026-11-05 | Push-Versand in einer eigenen Warteschlange im Speicher (4 parallel); nicht gesendete Pushes werden nach einem Neustart erneut versucht (bis 24 h) | Netzwerkzugriffe gehören nicht in Datenbank-Transaktionen | Push als Ereignis der Warteschlange |
+| D-58 | 2026-11-05 | „Neuigkeiten“ = Benachrichtigungen ohne bestätigten Push; sie verschwinden mit der Bestätigung des Service Workers oder beim Anzeigen auf der Übersicht | SPEC 11.5 | getrennte Tabelle |
+| D-59 | 2026-11-05 | Tresor-Einträge haben eine Versionsnummer, die nur wachsen darf (der Server lehnt kleinere ab); der Browser vergleicht vor jedem Senden die vom Server gelieferten Schlüssel mit dem Tresor und meldet Abweichungen | SPEC 5.7; Schutz gegen Zurückspielen alter Einträge | – |
+| D-60 | 2026-11-05 | Gold-Abbuchung für großes Pergament ohne Eintrag in der Transaktionsliste – die Liste kommt mit der Finanzübersicht in Stufe 3 | SPEC 18 | vorgezogene Finanzübersicht |
+| D-61 | 2026-11-05 | Web-Push-Ende-zu-Ende ist in den automatischen Tests nur mit nachgebildetem Push-Dienst geprüft (Unit-Tests); echte Zustellung über Mozilla/Google/UnifiedPush muss auf einem Gerät erfolgen | Playwright-Browser können keine echten Push-Abos anlegen | – |
+| D-62 | 2026-11-05 | E2E-Tests ignorieren in WebKit nur die Meldung „… /api/… due to access control checks“ (abgebrochene gleiche-Origin-Anfragen beim Seitenwechsel) | WebKit-Eigenheit; gleiche Origin kann CORS nicht verletzen | Fehlerprüfung in WebKit abschalten |
+| D-63 | 2026-11-05 | Lage Web Push auf Google-freiem Android vor Stufe 2 erneut geprüft: unverändert (IronFox 159.0.1, UnifiedPush-AC 1.0.8); Test im Emulator steht aus (kein Android-Emulator auf dem Entwicklungsrechner) | SPEC 11.7 | – |

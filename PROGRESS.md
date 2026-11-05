@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** 1 – Konten und Krypto (abgeschlossen, wartet auf Feedback und Tag-Signatur)
+**Aktuelle Stufe:** 2 – Kontakte und Briefe (abgeschlossen, wartet auf Feedback und Tag-Signatur)
 **Stand:** 2026-11-05
 
 ## Erledigt
@@ -22,11 +22,17 @@
 - 17 Eulenarten (D-37); Messseite `/messung` für Argon2id.
 - Tests: 166 Unit-Tests (u. a. Fuzzing aller Auth-Endpunkte), 54 E2E-Tests in 4 Browserprofilen, VM-Test 43/43 inkl. Update von `v0.1.0-stufe.0`.
 
+### Stufe 2
+- Koppeln, Kontakt-Tresor, Sicherheitsnummer, Schlüsselwarnung; Briefe (Signatur, Padding, XChaCha20, HPKE), Mehrfachempfänger, Lesebestätigungen, Chat löschen; Systemchat, Neuigkeiten, Web Push mit SSRF-Schutz und Verifikation, SSE; Ereignis-Warteschlange; Platzhalter-Eule.
+- Nachgeholt aus D-50: Systemnachricht „Passwort geändert“, Push-Abo beim Login/Logout löschen.
+- Tests: 209 Unit-Tests, 63 E2E-Tests (u. a. zwei Nutzer, simulierter Schlüsseltausch durch den Server), VM-Test mit Konto aus Stufe 1 und Brief über Updates.
+
 ## Offen
-- Tag `v0.1.0-stufe.1` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.1.0-stufe.2` signieren und pushen (Auftraggeber, D-28).
 - Argon2id-Messung auf einem Mittelklasse-Handy (Seite `/messung`, F-06).
-- Freigabe für Stufe 2.
+- Web Push auf echten Geräten (Android mit/ohne Google, iOS) prüfen (D-61).
+- Freigabe für Stufe 3.
 - Eulenbilder vollständig: 17 Arten × 7 Bilder = 119 Dateien (D-37).
 
-## Nächste Stufe: 2 – Kontakte und Briefe
-Vorher: Stand von Web Push auf Google-freiem Android erneut prüfen (SPEC 11.7). Dann Koppeln, Kontakt-Tresor, Sicherheitsnummer, Schlüsselwarnung, Briefe inkl. Pergament und Padding, Mehrfachempfänger, Lesebestätigungen, Chat löschen, Systemchat, PWA, Push mit Verifikation, SSE; Ereignis-Warteschlange; nachgeholte Teile aus D-50 (Systemnachricht „Passwort geändert“, Push-Abos beim Login löschen).
+## Nächste Stufe: 3 – Eulen, Flug, Karte, Gold
+Eulenkauf und -bilder mit Einblendungen, Energie, Füttern/Streicheln, Flugplanung (Simulation, Tag/Nacht, Wasser, Schlafpausen), Umkehren, Umzug, Karte mit Tag/Nacht und Eulenpositionen, Finanzübersicht, Überweisungen und Eulengeschenke mit Begleitbrief; Kartendaten aus dem Haupt-Bundle auslagern.

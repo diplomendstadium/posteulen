@@ -1,7 +1,7 @@
 PostEulen.de – Installationsanleitung
 =====================================
 
-ENTWURF (Stand: Stufe 1). Diese Anleitung wächst mit jeder Stufe und wird in Stufe 6
+ENTWURF (Stand: Stufe 2). Diese Anleitung wächst mit jeder Stufe und wird in Stufe 6
 fertiggestellt. Abschnitte, die erst später gelten, sind markiert.
 
 PostEulen ist ein Ende-zu-Ende-verschlüsselter Messenger, bei dem Eulen die Briefe bringen.
@@ -106,7 +106,8 @@ Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
 
 Im Browser https://posteulen.de öffnen, ein Konto anlegen (vorher im Adminpanel die
 Registrierung öffnen oder einen Einladungscode erzeugen), abmelden und wieder anmelden.
-Ab Stufe 2: Brief schicken.
+Mit einem zweiten Konto koppeln (beide fügen sich im Adressbuch hinzu) und einen Brief schicken;
+er kommt nach wenigen Minuten an.
 Auf dem Server zeigt „sudo posteulen-cli check“, ob Datenbank und Geheimnis-Datei
 zusammenpassen.
 
@@ -205,7 +206,12 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte.
       @nicht_erlaubt not remote_ip 203.0.113.7/32
       respond @nicht_erlaubt 403
   danach: sudo systemctl reload caddy
-* Eigener ntfy-Server als UnifiedPush-Server (ab Stufe 2 beschrieben).
+* Eigener ntfy-Server als UnifiedPush-Server: Wer Android ohne Google-Dienste nutzt und keinen
+  fremden Push-Server möchte, kann ntfy selbst betreiben (https://docs.ntfy.sh/install/) und in
+  der ntfy-App auf dem Handy als Server eintragen. PostEulen braucht dafür keine Einstellung: Es
+  sendet an jede Push-Adresse, die der Browser meldet (nur HTTPS, keine privaten Adressen).
+* Ausgehende Verbindungen: Der Server muss Push-Dienste per HTTPS (Port 443) erreichen können
+  (Mozilla, Google, Apple, UnifiedPush-Server).
 
 
 Anhang: Lokale Entwicklung
