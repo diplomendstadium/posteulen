@@ -36,21 +36,25 @@
     });
   });
 
+  // All night runs as one path: overlapping edges are not darkened twice (no stripes).
   const night = $derived.by(() => {
-    if (nightAt === null) return [];
-    return nightRuns(nightAt).map((run) => {
-      const points: string[] = [];
-      const edge = (lat: number, from: number, to: number): void => {
-        const steps = Math.max(1, Math.ceil(Math.abs(to - from)));
-        for (let i = 0; i <= steps; i++) {
-          const p = project(lat, from + ((to - from) * i) / steps);
-          points.push(`${p.x.toFixed(1)},${(-p.y).toFixed(1)}`);
-        }
-      };
-      edge(run.lat0, run.lon0, run.lon1);
-      edge(run.lat1, run.lon1, run.lon0);
-      return points.join(' ');
-    });
+    if (nightAt === null) return '';
+    return nightRuns(nightAt)
+      .map((run) => {
+        const points: string[] = [];
+        const edge = (lat: number, from: number, to: number): void => {
+          const steps = Math.max(1, Math.ceil(Math.abs(to - from)));
+          for (let i = 0; i <= steps; i++) {
+            const p = project(lat, from + ((to - from) * i) / steps);
+            points.push(`${p.x.toFixed(1)},${(-p.y).toFixed(1)}`);
+          }
+        };
+        // A small overlap closes hairline gaps between neighbouring rows.
+        edge(run.lat0 - 0.02, run.lon0, run.lon1);
+        edge(run.lat1 + 0.02, run.lon1, run.lon0);
+        return `M${points.join('L')}Z`;
+      })
+      .join('');
   });
   let svg: SVGSVGElement | undefined = $state();
   const scale = $derived(view.w / full[2]);
@@ -196,10 +200,8 @@
       <path class="country" d={country.d} stroke-width={1.2 * scale} />
     {/each}
     {#if data}<path class="lake" d={data.lakes} />{/if}
-    {#if night.length > 0}
-      <g class="night" data-testid="night-layer">
-        {#each night as points, index (index)}<polygon {points} />{/each}
-      </g>
+    {#if night !== ''}
+      <path class="night" data-testid="night-layer" d={night} />
     {/if}
     {#each data?.countries ?? [] as country (country.id)}
       {#if country.label && country.area >= labelMinArea}
@@ -261,10 +263,9 @@
     stroke-linejoin: round;
   }
 
-  .night polygon {
+  .night {
     fill: rgb(25 30 70 / 28%);
-    stroke: rgb(25 30 70 / 28%);
-    stroke-width: 0.5;
+    fill-rule: nonzero;
     pointer-events: none;
   }
 

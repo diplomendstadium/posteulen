@@ -12,7 +12,7 @@ export interface NightRun {
 }
 
 /** Slightly larger than the map section so the frame is covered. */
-const AREA = { south: 33, north: 64, west: -16, east: 30 } as const;
+const AREA = { south: 30, north: 68, west: -32, east: 46 } as const;
 
 export function nightRuns(at: number, step = 0.5): NightRun[] {
   const runs: NightRun[] = [];

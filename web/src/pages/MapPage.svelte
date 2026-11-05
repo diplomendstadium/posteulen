@@ -69,8 +69,8 @@
       {#each info.contacts as contact (contact.id)}
         {@const p = toSvg(contact.lat, contact.lon)}
         <g class="contact">
-          <circle cx={p.x} cy={p.y} r={9 * scale} stroke-width={3 * scale} />
-          <text x={p.x} y={p.y - 16 * scale} font-size={26 * scale}
+          <circle cx={p.x} cy={p.y} r={16 * scale} stroke-width={4 * scale} />
+          <text x={p.x} y={p.y - 26 * scale} font-size={46 * scale}
             >{contact.name ?? de.letters.unknown}</text
           >
         </g>
@@ -78,21 +78,21 @@
       {@const home = toSvg(info.home.lat, info.home.lon)}
       <g class="home">
         <rect
-          x={home.x - 11 * scale}
-          y={home.y - 11 * scale}
-          width={22 * scale}
-          height={22 * scale}
+          x={home.x - 18 * scale}
+          y={home.y - 18 * scale}
+          width={36 * scale}
+          height={36 * scale}
           stroke-width={3 * scale}
         />
-        <text x={home.x} y={home.y - 18 * scale} font-size={26 * scale}>{de.map.legendHome}</text>
+        <text x={home.x} y={home.y - 28 * scale} font-size={46 * scale}>{de.map.legendHome}</text>
       </g>
       {#each owls as { flight, at } (flight.id)}
         {#if at}
           {@const p = toSvg(at.position.lat, at.position.lon)}
           <g class="owl" data-testid="map-owl">
-            <circle cx={p.x} cy={p.y} r={13 * scale} stroke-width={3 * scale} />
-            <text class="owl-glyph" x={p.x} y={p.y + 7 * scale} font-size={20 * scale}>🦉</text>
-            <text x={p.x} y={p.y + 36 * scale} font-size={24 * scale}>{flight.owl.name}</text>
+            <circle cx={p.x} cy={p.y} r={24 * scale} stroke-width={4 * scale} />
+            <text class="owl-glyph" x={p.x} y={p.y + 13 * scale} font-size={36 * scale}>🦉</text>
+            <text x={p.x} y={p.y + 64 * scale} font-size={42 * scale}>{flight.owl.name}</text>
           </g>
         {/if}
       {/each}
