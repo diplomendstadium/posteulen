@@ -36,8 +36,20 @@ export const test = base.extend<{ guard: Guard }>({
       const abortedInWebkit = (text: string): boolean =>
         browserName === 'webkit' &&
         /localhost:180\d\d\/api\/\S* due to access control checks/.test(text);
+      // Firefox reports a same-origin asset request that a navigation aborts while the service
+      // worker answers it as "intercepted … unexpected error" (D-75). Only for /assets/.
+      const abortedInFirefox = (text: string): boolean =>
+        browserName === 'firefox' &&
+        /localhost:180\d\d\/assets\/\S+’\. A ServiceWorker intercepted the request and encountered an unexpected error/.test(
+          text,
+        );
       page.on('console', (message) => {
-        if (message.type() !== 'error' || abortedInWebkit(message.text())) return;
+        if (
+          message.type() !== 'error' ||
+          abortedInWebkit(message.text()) ||
+          abortedInFirefox(message.text())
+        )
+          return;
         guard.consoleErrors.push(message.text());
       });
       page.on('pageerror', (error) => {

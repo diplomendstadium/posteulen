@@ -257,7 +257,7 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `POST /contacts/:id/key-warning` | Schlüsselabweichung melden → Versandsperre und Systemnachricht | eigener Kontakt | N |
 | `GET /owls` · `POST /owls/buy` · `POST /owls/:id/name` · `/feed` · `/pet` · `/treat` · `/papeterie` · `/release` | Eulenverwaltung | Besitzer, Zustand 9.2.5 | N |
 | `GET /menagerie` · `POST /menagerie/loan` | Angebot und Leihen | Sitzung | N |
-| `POST /clutches/:id/names` · `/clutches/:id/gift/prepare` · `/gift/send` | Küken benennen und verschenken | Halter der Mutter | N/T |
+| `POST /clutches/:id/gift/prepare` · `/gift/send` | ein Küken verschenken (benannt wird über `/owls/:id/name`) | Halter der Mutter | T/N |
 | `GET /finance` | Goldstand und letzte 20 Buchungen | Sitzung | N |
 | `GET /map` | Wohnorte der Kontakte und Bots, eigene Flugpläne | Sitzung | N |
 | `GET /news` · `POST /news/seen` | „Neuigkeiten“ (11.5) | Sitzung | N |
@@ -270,6 +270,8 @@ Land/Wasser-Maske, Kartengeometrie, Bilder und Schriften sind statische Dateien 
 ### 4.2 Admin-API (`admin.posteulen.de/api`)
 
 `POST /login/start|finish` · `POST /logout` · `POST /password/start|finish` (Pflicht beim ersten Login; vorher sind alle anderen Endpunkte gesperrt) · `GET /stats` · `GET|PUT /settings/registration` · `GET|POST /invites` · `DELETE /invites/:id` · `GET|PUT /settings/inactivity` · `PUT|DELETE /openai/key` · `GET /openai/models` · `POST /openai/test` · `PUT /openai/settings` · `GET|POST /broadcasts` · `GET /errors` · `PATCH|DELETE /errors/:id`. Alle Endpunkte haben Rate-Limit-Klasse **A** und das Cookie `__Host-pe_admin` (8 Stunden gleitend).
+
+Stufe 4: `GET /stats` · `GET`/`PUT /settings/inactivity` · `GET`/`POST /broadcasts` (Statistik aus Zählern, Löschfrist, Rundnachrichten).
 
 Kommandozeile (nur root, auf dem Server): `posteulen-cli setup` (Geheimnis-Datei und Admin-Erstpasswort, beides nur wenn noch nicht vorhanden), `posteulen-cli admin-reset`, `posteulen-cli backup`, `posteulen-cli migrate`, `posteulen-cli check`.
 

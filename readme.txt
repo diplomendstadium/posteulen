@@ -94,6 +94,10 @@ Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
   alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen
   angezeigt.
 * Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage lang.
+* Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
+* Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher
+  gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
+* Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
 * OpenAI-Key: ab Stufe 5.
 * Adminpasswort vergessen? Auf dem Server:
       sudo posteulen-cli admin-reset
@@ -106,8 +110,9 @@ Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
 
 Im Browser https://posteulen.de öffnen, ein Konto anlegen (vorher im Adminpanel die
 Registrierung öffnen oder einen Einladungscode erzeugen), abmelden und wieder anmelden.
-Mit einem zweiten Konto koppeln (beide fügen sich im Adressbuch hinzu) und einen Brief schicken;
-er kommt nach wenigen Minuten an.
+Mit einem zweiten Konto koppeln (beide fügen sich im Adressbuch hinzu), in der Menagerie eine
+Leiheule leihen (0,1 Gold) und einen Brief schicken. Die Eule fliegt in Echtzeit (25 km/h mal
+Artfaktor): Wohnen beide nah beieinander, ist sie nach Minuten da, sonst nach Stunden.
 Auf dem Server zeigt „sudo posteulen-cli check“, ob Datenbank und Geheimnis-Datei
 zusammenpassen.
 

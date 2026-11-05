@@ -1,7 +1,7 @@
 import { ADMIN_URL, test } from './fixtures.ts';
 import { shoot } from './screenshot-helpers.ts';
-import { registerViaUi } from './account-helpers.ts';
-import { setGold } from './db-helpers.ts';
+import { borrowViaUi, registerViaUi } from './account-helpers.ts';
+import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
 test.describe('Screenshots', () => {
   test.beforeEach(({ browserName }) => {
@@ -49,6 +49,9 @@ test.describe('Screenshots Briefwechsel', () => {
     await page.getByRole('button', { name: 'Sicherheitsnummer anzeigen' }).click();
     await page.getByTestId('safety-number').waitFor();
     await shoot(page, info, 'adressbuch', true);
+    await borrowViaUi(page);
+    await shoot(page, info, 'menagerie-leihen');
+    await page.goto('/app/adressbuch');
     await page.getByRole('link', { name: 'Brief schreiben' }).click();
     await page
       .getByLabel('Text')
@@ -132,5 +135,33 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.getByText(/Waldi bringt 2,5 Gold/).waitFor();
     await page.keyboard.press('Escape');
     await shoot(page, info, 'finanzen', true);
+  });
+});
+
+test.describe('Screenshots Stufe 4', () => {
+  test.beforeEach(({ browserName }) => {
+    test.skip(browserName !== 'chromium', 'Screenshots für den Bericht nur aus Chromium');
+  });
+
+  test('kranke Eule, Küken, Einstellungen', async ({ page }, info) => {
+    const me = await registerViaUi(page);
+    setGold(me.name, 300);
+    await page.goto('/app/menagerie');
+    await page.getByRole('button', { name: 'Bartkauz kaufen' }).click();
+    await page.getByLabel('Name (2–20 Zeichen)').fill('Grummel');
+    await page.getByRole('button', { name: 'Speichern' }).click();
+    makeSick(me.name);
+    hatchChicks(me.name, 'schleiereule', 2);
+    await page.reload();
+    await page.getByRole('heading', { name: 'Wie soll dein Küken heißen?' }).waitFor();
+    await shoot(page, info, 'kueken-benennen');
+    for (const name of ['Flaum', 'Daune']) {
+      await page.getByLabel('Name (2–20 Zeichen)').fill(name);
+      await page.getByRole('button', { name: 'Speichern' }).click();
+      await page.getByRole('heading', { name, exact: true }).waitFor();
+    }
+    await shoot(page, info, 'eulen-krank-kueken', true);
+    await page.goto('/app/einstellungen');
+    await shoot(page, info, 'einstellungen-konto', true);
   });
 });

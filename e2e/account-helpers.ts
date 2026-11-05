@@ -100,3 +100,13 @@ export async function localSecrets(page: Page): Promise<string[]> {
     ]);
   });
 }
+
+/** Borrows the first loan owl of today's offer in the menagerie (0,1 Gold, SPEC 9.6). */
+export async function borrowViaUi(page: Page): Promise<string> {
+  await page.goto('/app/menagerie');
+  const offer = page.getByTestId('loan-offer').first();
+  const name = (await offer.getByRole('heading').textContent()) ?? '';
+  await offer.getByRole('button').click();
+  await expect(page.getByText(/wartet jetzt bei deinen Eulen/)).toBeVisible();
+  return name.trim();
+}

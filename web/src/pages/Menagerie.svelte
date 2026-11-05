@@ -6,7 +6,8 @@
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import { account } from '../lib/auth.svelte.ts';
-  import { buyOwl, listOwls } from '../lib/owls.ts';
+  import { borrow, buyOwl, listOwls, menagerie, type Offer } from '../lib/owls.ts';
+  import { GOLD } from '@posteulen/shared/constants.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { refreshTopics } from '../lib/live.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -15,12 +16,36 @@
   let error = $state<string | null>(null);
   let busy = $state(false);
   let canBuy = $state(true);
+  let offer = $state<Offer | null>(null);
+  let loanDone = $state<string | null>(null);
 
   $effect(() => {
     void listOwls()
       .then((result) => (canBuy = result.canBuy))
       .catch(() => undefined);
+    void menagerie()
+      .then((result) => (offer = result))
+      .catch(() => undefined);
   });
+
+  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
+
+  async function loan(item: Offer['offer'][number]): Promise<void> {
+    if (busy) return;
+    busy = true;
+    error = null;
+    loanDone = null;
+    try {
+      await borrow(item.species);
+      offer = await menagerie();
+      loanDone = fill(de.menagerie.loanDone, { name: item.name });
+      await refreshTopics('profile');
+    } catch (caught) {
+      error = errorMessage(caught);
+    } finally {
+      busy = false;
+    }
+  }
 
   const gold = $derived(account.profile?.gold ?? 0);
   const number = (value: number): string => value.toLocaleString('de-DE');
@@ -82,7 +107,39 @@
 
 <section aria-labelledby="loan-title">
   <h2 id="loan-title">{de.menagerie.loanTitle}</h2>
-  <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.menagerie.loanLater}</span></p>
+  <p>{de.menagerie.loanIntro}</p>
+  {#if offer}
+    <p>{fill(de.menagerie.loanCount, { count: offer.loans, max: offer.maxLoans })}</p>
+    <ul class="species">
+      {#each offer.offer as item (item.species)}
+        <li class="card" data-testid="loan-offer">
+          <OwlPicture speciesId={item.species} alt={`${item.name}, ${speciesName(item.species)}`} />
+          <h3>{item.name}</h3>
+          <p class="stats">{speciesName(item.species)}</p>
+          <button
+            class="button"
+            type="button"
+            disabled={busy ||
+              item.loaned ||
+              offer.loans >= offer.maxLoans ||
+              !status.online ||
+              !canAfford(gold, GOLD.LOAN_PRICE)}
+            onclick={() => void loan(item)}
+            >{item.loaned
+              ? de.menagerie.loaned
+              : fill(de.menagerie.loan, {
+                  name: item.name,
+                  species: speciesName(item.species),
+                  sex: item.sex === 'f' ? de.owls.female : de.owls.male,
+                })}</button
+          >
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  {#if loanDone}<p class="notice" role="status">
+      <span aria-hidden="true">🦉</span><span>{loanDone}</span>
+    </p>{/if}
 </section>
 
 <style>

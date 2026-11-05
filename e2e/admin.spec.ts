@@ -66,6 +66,25 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     await page.reload();
     await expect(page.getByText('Keine offenen Codes.')).toBeVisible();
     await shoot(page, test.info(), 'verwaltung-uebersicht', true);
+
+    // Statistics, deletion period and a broadcast (Stufe 4, SPEC 13 items 1, 4, 6).
+    await expect(page.getByTestId('admin-stats')).toContainText('Konten insgesamt erstellt: 1');
+    // Less than 60 days is not accepted (the server checks it as well).
+    await page.getByLabel('Tage').fill('59');
+    expect(
+      await page
+        .getByLabel('Tage')
+        .evaluate((input) => (input as HTMLInputElement).checkValidity()),
+    ).toBe(false);
+    await page.getByLabel('Tage').fill('90');
+    await page.getByRole('button', { name: 'Speichern' }).first().click();
+    await expect(page.getByText('Gespeichert.').first()).toBeVisible();
+    page.once('dialog', (dialog) => void dialog.accept());
+    await page.getByLabel('Text').fill('Heute Abend fliegen die Eulen später.');
+    await page.getByRole('button', { name: 'An alle senden' }).click();
+    await expect(page.getByText('Gesendet an 1 Konten.')).toBeVisible();
+    await user.goto(`${ISOLATED_WEB_URL}/app/briefe/system`);
+    await expect(user.getByText('Heute Abend fliegen die Eulen später.')).toBeVisible();
     await page.getByRole('button', { name: 'Abmelden' }).click();
     await expect(page.getByRole('heading', { name: 'Anmeldung für die Verwaltung' })).toBeVisible();
   });

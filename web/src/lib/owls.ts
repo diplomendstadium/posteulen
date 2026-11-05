@@ -16,11 +16,17 @@ export interface Owl {
   readonly fedToday: boolean;
   readonly pettedToday: boolean;
   readonly ready: boolean;
+  readonly stateUntil: number | null;
+  readonly loanExpiresAt: number | null;
+  readonly adultAt: number | null;
+  readonly clutchId: string | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
     readonly release: boolean;
     readonly rename: boolean;
+    readonly treat: boolean;
+    readonly papeterie: boolean;
   };
   readonly absence: {
     readonly purpose: 'letter' | 'gold' | 'gift';
@@ -31,7 +37,7 @@ export interface Owl {
 
 export interface OwlChoice {
   readonly id: string;
-  readonly kind: 'own' | 'loan' | 'stand_in' | 'bot';
+  readonly kind: 'own' | 'loan' | 'bot';
   readonly name: string;
   readonly species: string;
   readonly energy: number;
@@ -40,8 +46,36 @@ export interface OwlChoice {
   readonly returnsAt: number | null;
 }
 
-export function listOwls(): Promise<{ owls: Owl[]; canBuy: boolean }> {
+export interface Clutch {
+  readonly id: string;
+  readonly giftDeadline: number;
+}
+
+export function listOwls(): Promise<{ owls: Owl[]; canBuy: boolean; clutches: Clutch[] }> {
   return api('GET', '/api/owls');
+}
+
+export function treatOwl(id: string, kind: 'self' | 'vet'): Promise<{ owl: Owl }> {
+  return api('POST', `/api/owls/${id}/treat`, { kind });
+}
+
+export function lendToPapeterie(id: string): Promise<{ owl: Owl }> {
+  return api('POST', `/api/owls/${id}/papeterie`, {});
+}
+
+export interface Offer {
+  readonly day: string;
+  readonly maxLoans: number;
+  readonly loans: number;
+  readonly offer: readonly { species: string; name: string; sex: 'f' | 'm'; loaned: boolean }[];
+}
+
+export function menagerie(): Promise<Offer> {
+  return api('GET', '/api/menagerie');
+}
+
+export function borrow(species: string): Promise<{ owl: Owl }> {
+  return api('POST', '/api/menagerie/loan', { species });
 }
 
 export function buyOwl(species: string): Promise<{ owl: Owl }> {
@@ -75,7 +109,7 @@ interface PreparedCover extends PreparedLetters {
 
 async function coverFor(
   prepared: PreparedCover,
-  kind: 'cover_gold' | 'cover_owl',
+  kind: 'cover_gold' | 'cover_owl' | 'cover_chick',
   text: string | null,
 ): Promise<Record<string, unknown>> {
   if (text === null) return {};
@@ -160,4 +194,22 @@ export interface MapInfo {
 
 export function mapInfo(): Promise<MapInfo> {
   return api('GET', '/api/map');
+}
+
+/** The holder gives one chick of a clutch away (SPEC 9.9). */
+export async function giftChick(
+  clutchId: string,
+  chickId: string,
+  recipient: string,
+  cover: string | null,
+): Promise<{ owl: { name: string; species: string }; arrivesAt: number }> {
+  const prepared = await api<PreparedCover>('POST', `/api/clutches/${clutchId}/gift/prepare`, {
+    chickId,
+    recipient,
+    withCover: cover !== null,
+  });
+  return api('POST', `/api/clutches/${clutchId}/gift/send`, {
+    token: prepared.token,
+    ...(await coverFor(prepared, 'cover_chick', cover)),
+  });
 }

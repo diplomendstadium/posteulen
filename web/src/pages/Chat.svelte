@@ -41,7 +41,7 @@
         const latest = unseen.reduce((a, b) => (b.arrivesAt > a.arrivesAt ? b : a));
         showOwlImage(
           latest.owl.species,
-          'arrival',
+          latest.kind === 'cover_chick' ? 'chick' : 'arrival',
           fill(de.owls.arrives, { name: latest.owl.name }),
         );
         await api('POST', '/api/letters/arrival-seen', { ids: unseen.map((l) => l.id) });

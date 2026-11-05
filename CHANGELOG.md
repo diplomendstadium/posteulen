@@ -3,6 +3,22 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.1.0-stufe.4 – Restliche Spielmechanik
+
+- Menagerie: Tagesangebot mit drei Leiheulen (0,1 Gold, persönliche Namen, Verfall nach 24 Stunden);
+  die Aushilfseule aus Stufe 3 entfällt.
+- Papeterie: Eulen für 7 Tage verleihen, Lohn 10 % des Preises.
+- Krankheiten mit täglichem Wurf, Schutzfrist (28 Tage), Pflegebonus, grummeligem Bild, Selbstpflege und Eulenarzt.
+- Eier, Brüten, Schlupf von 1–3 Küken; Benennen, Verschenkpflicht mit Losentscheid, Kükenflug, Erwachsenwerden.
+- Namens- und Wohnortwechsel (Eulen ändern unterwegs ihren Kurs); Konto löschen mit 24-Stunden-Frist;
+  Warnung und automatische Löschung bei Inaktivität; tägliches Aufräumen.
+- Adminpanel: Statistik, Löschfrist, Rundnachrichten.
+
+### Hinweise für Betreiber
+
+- Die Datenbank wird beim Update migriert (Schema 5). Keine weitere Handlung nötig.
+- Die Löschfrist bei Inaktivität steht auf 180 Tagen und lässt sich im Adminpanel ändern (mindestens 60).
+
 ## v0.1.0-stufe.3 – Eulen, Flug, Karte, Gold
 
 - Menagerie: alle 17 Eulenarten kaufen (Pflicht-Benennung), Eulenübersicht mit Energie, Zustand und

@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** 3 – Eulen, Flug, Karte, Gold (abgeschlossen, wartet auf Feedback und Tag-Signatur)
+**Aktuelle Stufe:** 4 – Restliche Spielmechanik (abgeschlossen, wartet auf Feedback und Tag-Signatur)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -36,10 +36,16 @@
 - Web: Eulen, Menagerie (Kauf), Finanzen, Karte (Tag/Nacht, Eulen, Kontakte), Eulenwahl beim Versand, Bildeinblendungen, Ankunftsbilder in Chat und Systemchat; Kartendaten als eigener Chunk.
 - Tests: 286 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 88 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.2`.
 
-## Offen
-- Tag `v0.1.0-stufe.3` signieren und pushen (Auftraggeber, D-28).
-- Web Push auf echten Geräten erneut prüfen (nach dem Fix D-64; D-61).
-- Freigabe für Stufe 4.
+### Stufe 4
+- Leiheulen (Tagesangebot, HMAC-Namen, Verfall), Papeterie, Krankheit (Schutzfrist, Pflegebonus, Behandlung, grummeliges Bild), Eier/Brüten/Küken (Benennen, Verschenkpflicht, Los, Kükenflug, Erwachsenwerden).
+- Konten: Namens- und Wohnortwechsel (mit Kursänderung), Löschung mit 24-Stunden-Frist und endgültiger Löschung, Inaktivitätswarnung und automatische Löschung, tägliches Aufräumen.
+- Adminpanel: Statistik, Löschfrist, Rundnachrichten.
+- Tests: 327 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 110 E2E-Tests in 4 Browserprofilen, VM-Test siehe Stufenbericht.
 
-## Nächste Stufe: 4 – Restliche Spielmechanik
-Leiheulen (ersetzen die Aushilfseule), Papeterie, Krankheiten inkl. Schutzfrist und grummeligem Bild, Küken inkl. Begleitbrief, Inaktivität, automatische und manuelle Kontolöschung vollständig (inkl. Umkehren bei Löschzustand), Namens- und Wohnortwechsel (inkl. Kursänderung, 9.4.6); Adminpanel: Statistik, Löschfrist, Rundnachricht.
+## Offen
+- Tag `v0.1.0-stufe.4` signieren und pushen (Auftraggeber, D-28).
+- Web Push auf echten Geräten prüfen (D-61).
+- Freigabe für Stufe 5.
+
+## Nächste Stufe: 5 – Bots
+Erklärbär, Tante, Onkel mit festen Briefen, Goldsendungen von Tante und Onkel, KI-Anbindung (OpenAI), Zusammenfassungen, Kostenlimit; Adminpanel: OpenAI-Einstellungen.

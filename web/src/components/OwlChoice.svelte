@@ -41,7 +41,7 @@
             speed: Math.round(owlSpeedKmh(species(choice.species)?.speedFactor ?? 1)),
           })}
         </strong>
-        {#if choice.kind === 'stand_in'}<span class="hint">{de.letters.standIn}</span>{/if}
+        {#if choice.kind === 'loan'}<span class="hint">{de.letters.loanHint}</span>{/if}
         {#each choice.arrivals as arrival (arrival.recipientId)}
           <span
             >{fill(de.letters.arrival, {

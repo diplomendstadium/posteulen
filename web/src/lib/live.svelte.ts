@@ -83,9 +83,11 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
   const pending = list.filter((message) => message.arrivalImage && !message.arrivalShown);
   const latest = pending.at(-1);
   if (!latest?.arrivalImage) return;
+  // `species:chick` marks a chick: its arrival shows the chick picture (9.2.6).
+  const [species = '', variant] = latest.arrivalImage.split(':');
   showOwlImage(
-    latest.arrivalImage,
-    'arrival',
+    species,
+    variant === 'chick' ? 'chick' : 'arrival',
     fill(de.owls.arrives, { name: String(latest.params['owl'] ?? '') }),
   );
   await api('POST', '/api/system-messages/arrival-shown', { ids: pending.map((m) => m.id) });

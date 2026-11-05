@@ -1,6 +1,6 @@
 import type { Browser, Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
-import { registerViaUi } from './account-helpers.ts';
+import { borrowViaUi, registerViaUi } from './account-helpers.ts';
 import { setGold } from './db-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
@@ -95,16 +95,17 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     const { anna, other, otherContext } = await pair(browser, page);
     // Ben is not in the app while the owl lands (help page: no live connection).
     await other.goto('/hilfe');
+    const owl = await borrowViaUi(page);
     await page.goto('/app/finanzen');
-    await expect(page.getByText('Dein Gold: 30,0 Gold')).toBeVisible();
+    await expect(page.getByText('Dein Gold: 29,9 Gold')).toBeVisible();
     await page.getByLabel('An').selectOption({ index: 1 });
     await page.getByLabel('Betrag in Gold (z. B. 1,5)').fill('1,5');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await expect(page.getByRole('radio', { name: /Postkauz Paul/ })).toBeChecked();
+    await expect(page.getByRole('radio', { name: new RegExp(owl) })).toBeChecked();
     await page.getByRole('button', { name: 'Gold losschicken' }).click();
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'departure');
-    await expect(page.getByText(/Postkauz Paul bringt 1,5 Gold/)).toBeVisible();
-    await expect(page.getByText('Dein Gold: 28,5 Gold')).toBeVisible();
+    await expect(page.getByText(new RegExp(`${owl} bringt 1,5 Gold`))).toBeVisible();
+    await expect(page.getByText('Dein Gold: 28,4 Gold')).toBeVisible();
 
     // Ben opens the system chat: the arrival image is shown once (SPEC 9.2.6).
     await other.goto('/app/briefe/system');
@@ -115,7 +116,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     });
     const overlay = other.getByTestId('owl-overlay');
     await expect(overlay).toHaveAttribute('data-kind', 'arrival');
-    await expect(overlay).toContainText('Postkauz Paul ist gelandet');
+    await expect(overlay).toContainText(`${owl} ist gelandet`);
     await other.keyboard.press('Escape');
     await other.reload();
     await expect(other.getByText(/hat dir 1,5 Gold geschickt/)).toBeVisible();

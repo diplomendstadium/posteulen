@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
-import { PASSWORD, registerViaUi } from './account-helpers.ts';
+import { borrowViaUi, PASSWORD, registerViaUi } from './account-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
   await page.goto('/app/adressbuch');
@@ -44,12 +44,14 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     await expect(page.getByText('Sicherheitsnummer verglichen')).toBeVisible();
 
     const secret = 'Geheime Nachricht 🦉 an Ben: https://example.org/eule';
+    const owl = await borrowViaUi(page);
+    await page.goto('/app/adressbuch');
     await page.getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill(secret);
     await expect(page.getByText('Pergament kennt keine Smileys.')).toBeVisible();
     await page.getByRole('button', { name: 'Eule wählen' }).click();
     await expect(page.getByText(/Ankunft bei/)).toBeVisible();
-    await expect(page.getByRole('radio', { name: /Postkauz Paul/ })).toBeChecked();
+    await expect(page.getByRole('radio', { name: new RegExp(owl) })).toBeChecked();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Eule unterwegs|zugestellt/).first()).toBeVisible();
@@ -63,7 +65,7 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     await expect(other.getByText(/Geheime Nachricht\s+an Ben/)).toBeVisible({ timeout: 30_000 });
     const link = other.getByRole('link', { name: 'https://example.org/eule' });
     await expect(link).toHaveAttribute('rel', 'noopener noreferrer nofollow');
-    await expect(other.getByText(/Gebracht von Postkauz Paul/)).toBeVisible();
+    await expect(other.getByText(new RegExp(`Gebracht von ${owl}`))).toBeVisible();
 
     await expect(page.locator('p.status', { hasText: 'gelesen' })).toBeVisible({ timeout: 30_000 });
 
@@ -100,6 +102,8 @@ test.describe('Schlüsselwarnung (SPEC 5.7)', () => {
       json.keys[0]!.x25519 = 'A'.repeat(43);
       await route.fulfill({ response, json });
     });
+    await borrowViaUi(page);
+    await page.goto('/app/adressbuch');
     await page.getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Das darf nicht ankommen');
     await page.getByRole('button', { name: 'Eule wählen' }).click();

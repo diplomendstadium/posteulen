@@ -4,6 +4,7 @@
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
   import PasswordForm from './PasswordForm.svelte';
+  import Operations from './Operations.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -87,6 +88,8 @@
 </script>
 
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
+
+<Operations />
 
 <section class="card" aria-labelledby="reg-title">
   <h2 id="reg-title">{de.admin.registrationTitle}</h2>

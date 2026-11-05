@@ -133,6 +133,11 @@ if (command === 'letters-setup') {
   await call('POST', '/api/contacts/requests', { name, label: 'x'.repeat(60) });
   const first = await loginAs(name, password);
   await call('POST', '/api/contacts/requests', { name: SECOND.name, label: 'x'.repeat(60) });
+  // A loan owl of today's offer carries the letter (SPEC 9.6).
+  const menagerie = await call<{ offer: { species: string }[] }>('GET', '/api/menagerie');
+  const loan = await call<{ owl: { id: string } }>('POST', '/api/menagerie/loan', {
+    species: menagerie.offer[0]?.species,
+  });
   const prepared = await call<{
     token: string;
     letters: { letterId: string; sentAt: number }[];
@@ -140,7 +145,7 @@ if (command === 'letters-setup') {
   }>('POST', '/api/letters/prepare', {
     recipients: [secondId],
     parchment: 'small',
-    owlId: 'stand_in',
+    owlId: loan.owl.id,
   });
   const letter = prepared.letters[0];
   const key = prepared.keys[0];

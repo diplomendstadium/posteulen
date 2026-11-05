@@ -12,6 +12,10 @@ export interface Profile {
   readonly gold: number;
   readonly home: { readonly lat: number; readonly lon: number };
   readonly createdOn: string;
+  /** Year of the last name change (once per calendar year, SPEC 7.4). */
+  readonly nameChangedYear: number | null;
+  /** First day (UTC) on which the home may change again (SPEC 7.3). */
+  readonly homeChangeFrom: string;
 }
 
 export const account = $state<{
@@ -188,6 +192,65 @@ export async function logout(): Promise<void> {
   await forget();
 }
 
+type Reauth = {
+  reauth: {
+    token: string;
+    keyPackage: import('@posteulen/shared/crypto/keypackage.ts').KeyPackage;
+  };
+  result: { exportKey: Uint8Array };
+};
+
+/** Fresh OPAQUE login before a critical action (SPEC 5.6, 7.5). */
+async function reauthenticate(
+  password: string,
+  purpose: 'password' | 'delete',
+  onChecking: () => void = () => undefined,
+): Promise<Reauth | 'wrong' | { wait: number }> {
+  const { client } = await cryptoModules();
+  const start = client.startLogin(password);
+  let first = await api<LoginStart>('POST', '/api/reauth/start', {
+    purpose,
+    startLoginRequest: start.request,
+  });
+  if (first.status === 'captcha_required') {
+    first = await api<LoginStart>('POST', '/api/reauth/start', {
+      purpose,
+      startLoginRequest: start.request,
+      altcha: await solveCaptcha(),
+    });
+  }
+  if (first.status === 'wait') return { wait: first.retryAfterSeconds ?? 60 };
+  if (first.status !== 'ok' || !first.loginResponse) return 'wrong';
+  onChecking();
+  await paint();
+  const result = client.finishLogin(password, start.state, first.loginResponse);
+  if (!result) return 'wrong';
+  const reauth = await api<Reauth['reauth']>('POST', '/api/reauth/finish', {
+    attemptId: first.attemptId,
+    finishLoginRequest: result.finishRequest,
+  });
+  return { reauth, result };
+}
+
+/** Deletes the account after a fresh password check; logged out at once (SPEC 7.5). */
+export async function deleteAccount(password: string): Promise<'ok' | 'wrong' | { wait: number }> {
+  const checked = await reauthenticate(password, 'delete');
+  if (checked === 'wrong' || 'wait' in checked) return checked;
+  await api('POST', '/api/account/delete', { token: checked.reauth.token });
+  await forget();
+  return 'ok';
+}
+
+export async function changeName(name: string): Promise<void> {
+  const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/name', { name });
+  account.profile = profile;
+}
+
+export async function changeHome(home: { lat: number; lon: number }): Promise<void> {
+  const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/home', { home });
+  account.profile = profile;
+}
+
 /**
  * Password change (SPEC 5.6): fresh OPAQUE login with the old password, new registration,
  * the unchanged master key re-wrapped; record and package replaced in one request.
@@ -198,31 +261,9 @@ export async function changePassword(
   onStep: (step: string) => void = () => undefined,
 ): Promise<'ok' | 'wrong' | { wait: number }> {
   const { client, keys } = await cryptoModules();
-  const start = client.startLogin(oldPassword);
-  let first = await api<LoginStart>('POST', '/api/reauth/start', {
-    purpose: 'password',
-    startLoginRequest: start.request,
-  });
-  if (first.status === 'captcha_required') {
-    first = await api<LoginStart>('POST', '/api/reauth/start', {
-      purpose: 'password',
-      startLoginRequest: start.request,
-      altcha: await solveCaptcha(),
-    });
-  }
-  if (first.status === 'wait') return { wait: first.retryAfterSeconds ?? 60 };
-  if (first.status !== 'ok' || !first.loginResponse) return 'wrong';
-  onStep('old');
-  await paint();
-  const result = client.finishLogin(oldPassword, start.state, first.loginResponse);
-  if (!result) return 'wrong';
-  const reauth = await api<{
-    token: string;
-    keyPackage: import('@posteulen/shared/crypto/keypackage.ts').KeyPackage;
-  }>('POST', '/api/reauth/finish', {
-    attemptId: first.attemptId,
-    finishLoginRequest: result.finishRequest,
-  });
+  const checked = await reauthenticate(oldPassword, 'password', () => onStep('old'));
+  if (checked === 'wrong' || 'wait' in checked) return checked;
+  const { reauth, result } = checked;
   onStep('new');
   await paint();
   const registration = client.startRegistration(newPassword);

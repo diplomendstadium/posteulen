@@ -11,6 +11,11 @@ declare const __POSTEULEN_PUSH_TEXTS__: {
   letterBody: string;
   goldBody: string;
   giftBody: string;
+  chickBody: string;
+  eggsBody: string;
+  hatchedBody: string;
+  deletionBody: string;
+  broadcastBody: string;
   newsBody: string;
 };
 const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__;
@@ -58,8 +63,12 @@ sw.addEventListener('fetch', (event) => {
     // only once they were actually needed (SPEC 9.2.6).
     event.respondWith(
       (async () => {
-        const cached = await caches.match(event.request);
-        if (cached) return cached;
+        try {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+        } catch {
+          // Cache unavailable: go to the network.
+        }
         let response: Response;
         try {
           response = await fetch(event.request);
@@ -68,15 +77,22 @@ sw.addEventListener('fetch', (event) => {
           return Response.error();
         }
         if (response.ok) {
-          // Storing must not fail the response: if the page goes away mid-download, the
-          // copy is aborted (Firefox reported that as an error of the service worker).
-          const copy = response.clone();
-          event.waitUntil(
-            caches
+          // Storing must never fail the response (a page that goes away mid-download aborts the
+          // copy; Firefox reported rejected promises here as errors of the service worker).
+          try {
+            const copy = response.clone();
+            const store = caches
               .open(RUNTIME)
               .then((cache) => cache.put(event.request, copy))
-              .catch(() => undefined),
-          );
+              .catch(() => undefined);
+            try {
+              event.waitUntil(store);
+            } catch {
+              // The event is already finished; the copy is stored anyway or not at all.
+            }
+          } catch {
+            // Body already in use: just do not cache it.
+          }
         }
         return response;
       })(),
@@ -95,16 +111,21 @@ sw.addEventListener('push', (event) => {
   } catch {
     data = {};
   }
+  const bodies: Record<string, string> = {
+    push_test: PUSH_TEXTS.testBody,
+    letter_arrived: PUSH_TEXTS.letterBody,
+    gold_arrived: PUSH_TEXTS.goldBody,
+    owl_gift: PUSH_TEXTS.giftBody,
+    chick_gift: PUSH_TEXTS.chickBody,
+    eggs_laid: PUSH_TEXTS.eggsBody,
+    chicks_hatched: PUSH_TEXTS.hatchedBody,
+    deletion_warning: PUSH_TEXTS.deletionBody,
+    broadcast: PUSH_TEXTS.broadcastBody,
+  };
   const body =
-    data.type === 'push_test'
-      ? PUSH_TEXTS.testBody
-      : data.type === 'letter_arrived'
-        ? PUSH_TEXTS.letterBody
-        : data.type === 'gold_arrived'
-          ? PUSH_TEXTS.goldBody
-          : data.type === 'owl_gift'
-            ? PUSH_TEXTS.giftBody
-            : PUSH_TEXTS.newsBody;
+    typeof data.type === 'string' && Object.hasOwn(bodies, data.type)
+      ? (bodies[data.type] ?? PUSH_TEXTS.newsBody)
+      : PUSH_TEXTS.newsBody;
   const id = typeof data.id === 'string' && /^[A-Za-z0-9_-]{22}$/.test(data.id) ? data.id : null;
   // Show the notification and confirm receipt independently: a display problem must not
   // hide that the push arrived (SPEC 11.4).

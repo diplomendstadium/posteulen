@@ -7,13 +7,28 @@
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import OwlGift from '../components/OwlGift.svelte';
-  import { feedOwl, listOwls, nameOwl, petOwl, releaseOwl, type Owl } from '../lib/owls.ts';
+  import ChickGift from '../components/ChickGift.svelte';
+  import {
+    feedOwl,
+    lendToPapeterie,
+    listOwls,
+    nameOwl,
+    petOwl,
+    releaseOwl,
+    treatOwl,
+    type Clutch,
+    type Owl,
+  } from '../lib/owls.ts';
+  import { dateTime } from '../lib/format.ts';
+  import { formatGold } from '@posteulen/shared/game/gold.ts';
+  import { papeterieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
 
   let owls = $state<Owl[]>([]);
+  let clutches = $state<Clutch[]>([]);
   let loaded = $state(false);
   let error = $state<string | null>(null);
   let busy = $state(false);
@@ -26,7 +41,9 @@
 
   async function load(): Promise<void> {
     try {
-      owls = (await listOwls()).owls;
+      const result = await listOwls();
+      owls = result.owls;
+      clutches = result.clutches;
       loaded = true;
     } catch {
       // Loaded again with the next update.
@@ -75,6 +92,19 @@
       newName = '';
     });
 
+  const treat = (owl: Owl, kind: 'self' | 'vet') =>
+    act(async () => {
+      replace((await treatOwl(owl.id, kind)).owl);
+      void refreshTopics('profile');
+    });
+
+  const papeterie = (owl: Owl) =>
+    act(async () => {
+      const wage = `${formatGold(papeterieWage(speciesPrice(owl.species)))} Gold`;
+      if (!confirm(fill(de.owls.papeterieConfirm, { name: owl.name ?? '', amount: wage }))) return;
+      replace((await lendToPapeterie(owl.id)).owl);
+    });
+
   const release = (owl: Owl) =>
     act(async () => {
       if (!confirm(fill(de.owls.releaseConfirm, { name: owl.name ?? '' }))) return;
@@ -87,14 +117,44 @@
     return ['sick', 'self_care', 'vet'].includes(owl.state) ? 'grumpy' : 'normal';
   }
 
+  function stateText(owl: Owl): string {
+    const until = owl.stateUntil === null ? '' : dateTime(owl.stateUntil);
+    switch (owl.state) {
+      case 'sick':
+        return de.owls.stateSick;
+      case 'self_care':
+        return fill(de.owls.stateSelfCare, { until });
+      case 'vet':
+        return fill(de.owls.stateVet, { until });
+      case 'brooding':
+        return fill(de.owls.stateBrooding, { until });
+      case 'papeterie':
+        return fill(de.owls.statePapeterie, { until });
+      case 'flying':
+        return absenceText(owl);
+    }
+    if (owl.kind === 'loan' && owl.loanExpiresAt !== null)
+      return fill(de.owls.loanUntil, { until: dateTime(owl.loanExpiresAt) });
+    if (owl.isChick && owl.adultAt !== null)
+      return fill(de.owls.chick, { until: dateTime(owl.adultAt) });
+    return de.owls.stateHome;
+  }
+
   function absenceText(owl: Owl): string {
     const absence = owl.absence;
-    if (!absence) return owl.state === 'home' ? de.owls.stateHome : de.owls.stateFlying;
+    if (!absence) return de.owls.stateFlying;
     const names = absence.recipients.map((name) => name ?? de.letters.unknown).join(de.owls.and);
     const what =
       absence.recipients.length === 0
         ? de.owls.flyingHome
-        : fill(absence.purpose === 'gold' ? de.owls.flyingGold : de.owls.flyingLetter, { names });
+        : fill(
+            absence.purpose === 'gold'
+              ? de.owls.flyingGold
+              : absence.purpose === 'gift'
+                ? de.owls.flyingGift
+                : de.owls.flyingLetter,
+            { names },
+          );
     if (absence.returnsAt === null) return what;
     const hours = Math.max(1, Math.ceil((absence.returnsAt - Date.now()) / TIME.HOUR));
     return `${what} ${fill(de.owls.backIn, { hours })}`;
@@ -105,9 +165,17 @@
 
 {#if unnamed}
   <section class="card naming" aria-labelledby="naming-title">
-    <h2 id="naming-title">{fill(de.owls.nameTitle, { species: speciesName(unnamed.species) })}</h2>
+    <h2 id="naming-title">
+      {unnamed.isChick
+        ? de.owls.chickNameTitle
+        : fill(de.owls.nameTitle, { species: speciesName(unnamed.species) })}
+    </h2>
     <div class="naming-body">
-      <OwlPicture speciesId={unnamed.species} alt={speciesName(unnamed.species)} />
+      <OwlPicture
+        speciesId={unnamed.species}
+        kind={unnamed.isChick ? 'chick' : 'normal'}
+        alt={speciesName(unnamed.species)}
+      />
       <form
         onsubmit={(event) => {
           event.preventDefault();
@@ -124,6 +192,14 @@
     </div>
   </section>
 {/if}
+
+{#each clutches as clutch (clutch.id)}
+  <ChickGift
+    {clutch}
+    chicks={owls.filter((owl) => owl.clutchId === clutch.id && owl.isChick && owl.state === 'home')}
+    ondone={() => void load()}
+  />
+{/each}
 
 {#if loaded && owls.length === 0}
   <p class="notice">
@@ -152,8 +228,10 @@
           <meter min="0" max={owl.maxEnergy} value={owl.energy} aria-hidden="true"></meter>
         </p>
         <p class="state" class:away={owl.state !== 'home'}>
-          <span aria-hidden="true">{owl.state === 'home' ? '⌂' : '🦉'}</span>
-          {absenceText(owl)}
+          <span aria-hidden="true"
+            >{owl.state === 'home' ? '⌂' : owl.state === 'flying' ? '🦉' : 'ℹ'}</span
+          >
+          {stateText(owl)}
         </p>
         <div class="actions">
           {#if owl.actions.care}
@@ -169,6 +247,28 @@
               disabled={busy || owl.fedToday || !status.online}
               onclick={() => void feed(owl)}
               >{owl.fedToday ? de.owls.fedToday : de.owls.feed}</button
+            >
+          {/if}
+          {#if owl.actions.treat}
+            <button
+              class="button secondary"
+              type="button"
+              disabled={busy || !status.online}
+              onclick={() => void treat(owl, 'self')}>{de.owls.treatSelf}</button
+            >
+            <button
+              class="button secondary"
+              type="button"
+              disabled={busy || !status.online}
+              onclick={() => void treat(owl, 'vet')}>{de.owls.treatVet}</button
+            >
+          {/if}
+          {#if owl.actions.papeterie}
+            <button
+              class="button secondary"
+              type="button"
+              disabled={busy || !status.online}
+              onclick={() => void papeterie(owl)}>{de.owls.papeterie}</button
             >
           {/if}
           {#if owl.actions.rename}
