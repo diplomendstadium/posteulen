@@ -1,0 +1,304 @@
+<script lang="ts">
+  /** Writing a letter (SPEC 8.4): parchment, text with counter, recipients, preview, send. */
+  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { countCodePoints } from '@posteulen/shared/names.ts';
+  import { LETTER } from '@posteulen/shared/constants.ts';
+  import { maxChars, sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
+  import ErrorText from './ErrorText.svelte';
+  import { KeyMismatchError, prepare, sendPrepared, type Prepared } from '../lib/letters.ts';
+  import { live } from '../lib/live.svelte.ts';
+  import { errorMessage } from '../lib/messages.ts';
+  import { time } from '../lib/format.ts';
+  import { status } from '../lib/status.svelte.ts';
+  import { SPECIES } from '@posteulen/shared/species.ts';
+
+  let { peerId, onsent }: { peerId: string; onsent: () => void } = $props();
+
+  let parchment = $state<Parchment>('small');
+  let text = $state('');
+  let smileyHint = $state(false);
+  // svelte-ignore state_referenced_locally
+  let recipients = $state<string[]>([peerId]);
+  let extra = $state('');
+  let prepared = $state<Prepared | null>(null);
+  let busy = $state(false);
+  let error = $state<string | null>(null);
+  let sentNotice = $state(false);
+
+  const count = $derived(countCodePoints(text));
+  const max = $derived(maxChars(parchment));
+  const nameOf = (id: string): string =>
+    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
+  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
+  const candidates = $derived(
+    live.contacts.filter((c) => c.active && !c.keyWarning && !recipients.includes(c.userId)),
+  );
+
+  function input(event: Event): void {
+    const target = event.currentTarget as HTMLTextAreaElement;
+    const clean = sanitizeLetterText(target.value);
+    if (clean.removedEmoji) smileyHint = true;
+    if (clean.text !== target.value) target.value = clean.text;
+    text = clean.text;
+    prepared = null;
+  }
+
+  function move(index: number, delta: number): void {
+    const next = [...recipients];
+    const [item] = next.splice(index, 1);
+    if (item === undefined) return;
+    next.splice(index + delta, 0, item);
+    recipients = next;
+    prepared = null;
+  }
+
+  async function showPreview(): Promise<void> {
+    error = null;
+    if (text.trim() === '') return void (error = de.letters.empty);
+    if (count > max) return void (error = de.letters.tooLong);
+    busy = true;
+    try {
+      prepared = await prepare(recipients, parchment);
+    } catch (caught) {
+      error = errorMessage(caught);
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function send(): Promise<void> {
+    if (!prepared || busy || !status.online) return;
+    busy = true;
+    error = null;
+    try {
+      await sendPrepared(prepared, parchment, text);
+      text = '';
+      prepared = null;
+      recipients = [peerId];
+      sentNotice = true;
+      onsent();
+    } catch (caught) {
+      error =
+        caught instanceof KeyMismatchError
+          ? fill(de.contacts.keyWarningLong, { name: nameOf(caught.message) })
+          : errorMessage(caught);
+      prepared = null;
+    } finally {
+      busy = false;
+    }
+  }
+</script>
+
+<section class="card compose" aria-labelledby="compose-title">
+  <h2 id="compose-title">{de.letters.compose}</h2>
+  <fieldset>
+    <legend>{de.letters.parchment}</legend>
+    <label class="option"
+      ><input
+        type="radio"
+        name="parchment"
+        value="small"
+        bind:group={parchment}
+        onchange={() => (prepared = null)}
+      />
+      {de.letters.smallOption}</label
+    >
+    <label class="option"
+      ><input
+        type="radio"
+        name="parchment"
+        value="large"
+        bind:group={parchment}
+        onchange={() => (prepared = null)}
+      />
+      {de.letters.largeOption}</label
+    >
+  </fieldset>
+
+  <label for="letter-text">{de.letters.text}</label>
+  <textarea id="letter-text" rows="6" value={text} oninput={input} aria-describedby="letter-count"
+  ></textarea>
+  <p id="letter-count" class:over={count > max} class="counter">
+    {fill(de.letters.counter, { count, max: max.toLocaleString('de-DE') })}
+  </p>
+  {#if smileyHint}<p class="notice" role="status">
+      <span aria-hidden="true">✒</span><span>{de.letters.noSmileys}</span>
+    </p>{/if}
+
+  <fieldset>
+    <legend>{de.letters.recipients}</legend>
+    <ol class="recipients">
+      {#each recipients as id, index (id)}
+        <li>
+          <span class="name">{nameOf(id)}</span>
+          {#if recipients.length > 1}
+            <button
+              type="button"
+              class="button secondary small"
+              aria-label={de.letters.up}
+              disabled={index === 0}
+              onclick={() => move(index, -1)}>↑</button
+            >
+            <button
+              type="button"
+              class="button secondary small"
+              aria-label={de.letters.down}
+              disabled={index === recipients.length - 1}
+              onclick={() => move(index, 1)}>↓</button
+            >
+            <button
+              type="button"
+              class="button secondary small"
+              aria-label={de.letters.removeRecipient}
+              onclick={() => {
+                recipients = recipients.filter((r) => r !== id);
+                prepared = null;
+              }}>✕</button
+            >
+          {/if}
+        </li>
+      {/each}
+    </ol>
+    {#if recipients.length < LETTER.MAX_RECIPIENTS && candidates.length > 0}
+      <label for="extra">{de.letters.addRecipient}</label>
+      <select
+        id="extra"
+        bind:value={extra}
+        onchange={() => {
+          if (extra) {
+            recipients = [...recipients, extra];
+            extra = '';
+            prepared = null;
+          }
+        }}
+      >
+        <option value="">{de.letters.choose}</option>
+        {#each candidates as contact (contact.userId)}<option value={contact.userId}
+            >{contact.name}</option
+          >{/each}
+      </select>
+    {/if}
+  </fieldset>
+
+  <ErrorText message={error} />
+  {#if prepared}
+    <div class="preview" role="status">
+      <p>
+        {fill(de.letters.owl, {
+          owl: prepared.preview.owl.name,
+          species: speciesName(prepared.preview.owl.species),
+        })}
+      </p>
+      <ul>
+        {#each prepared.preview.arrivals as arrival (arrival.recipientId)}
+          <li>
+            {fill(de.letters.arrival, {
+              name: nameOf(arrival.recipientId),
+              time: time(arrival.at),
+            })}
+          </li>
+        {/each}
+      </ul>
+    </div>
+    <button
+      class="button"
+      type="button"
+      disabled={busy || !status.online}
+      onclick={() => void send()}>{de.letters.send}</button
+    >
+  {:else}
+    <button
+      class="button"
+      type="button"
+      disabled={busy || !status.online}
+      onclick={() => void showPreview()}>{de.letters.preview}</button
+    >
+  {/if}
+  {#if sentNotice}<p class="notice" role="status">
+      <span aria-hidden="true">🦉</span><span>{de.letters.sent}</span>
+    </p>{/if}
+</section>
+
+<style>
+  .compose {
+    margin-top: 1.5rem;
+  }
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 1rem;
+  }
+
+  legend {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 400;
+    min-height: 2.75rem;
+  }
+
+  .option input {
+    width: 1.5rem;
+    height: 1.5rem;
+    accent-color: var(--wood);
+  }
+
+  textarea {
+    width: 100%;
+    font: inherit;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .counter {
+    margin: 0.25rem 0 1rem;
+    color: var(--ink-soft);
+  }
+
+  .counter.over {
+    color: var(--seal);
+    font-weight: 700;
+  }
+
+  .recipients {
+    padding-left: 1.5rem;
+  }
+
+  .recipients li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .recipients .name {
+    flex: 1;
+  }
+
+  .small {
+    padding: 0;
+    width: 2.75rem;
+  }
+
+  select {
+    min-height: 2.75rem;
+    font: inherit;
+    width: 100%;
+  }
+
+  .preview {
+    padding: 0.75rem 1rem;
+    border: 2px dashed var(--wood);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+</style>

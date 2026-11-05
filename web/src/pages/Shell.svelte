@@ -2,8 +2,19 @@
   import { de } from '@posteulen/shared/texts/de.ts';
   import Link from '../components/Link.svelte';
   import { route } from '../lib/router.svelte.ts';
+  import { onDestroy, onMount } from 'svelte';
   import { account } from '../lib/auth.svelte.ts';
+  import { live, startLive, stopLive } from '../lib/live.svelte.ts';
+  import { api } from '../lib/api.ts';
+  import { dateTime } from '../lib/format.ts';
   import Settings from './Settings.svelte';
+  import Letters from './Letters.svelte';
+  import Chat from './Chat.svelte';
+  import SystemChat from './SystemChat.svelte';
+  import AddressBook from './AddressBook.svelte';
+
+  onMount(() => startLive());
+  onDestroy(() => stopLive());
 
   /** Sections of the logged-in start page (SPEC 8.3). Icons are decorative; text is always shown. */
   const sections = [
@@ -25,7 +36,23 @@
     sections[5],
   ] as const;
 
-  const current = $derived(sections.find((section) => section.href === route.path));
+  const current = $derived(
+    sections.find(
+      (section) => section.href === route.path || route.path.startsWith(`${section.href}/`),
+    ),
+  );
+  const chatPeer = $derived(
+    route.path.startsWith('/app/briefe/') ? route.path.slice('/app/briefe/'.length) : null,
+  );
+  const newsTexts = de.news as Record<string, string>;
+
+  // News are shown once on the overview and then removed (SPEC 8.3, 11.5).
+  $effect(() => {
+    if (current === undefined && live.news.length > 0) {
+      const ids = live.news.map((item) => item.id);
+      void api('POST', '/api/news/seen', { ids });
+    }
+  });
 </script>
 
 <div class="shell">
@@ -36,6 +63,9 @@
       <span>{de.units.gold(account.profile?.gold ?? 0)}</span>
     </p>
   </header>
+  {#if live.pushState !== 'confirmed'}
+    <p class="push-hint"><Link href="/app/einstellungen">{de.push.headerHint}</Link></p>
+  {/if}
 
   <div class="content">
     {#if account.notice === 'deletionCancelled'}
@@ -44,14 +74,35 @@
       </p>
     {/if}
     {#if current}
-      <h1>{current.label}</h1>
+      <h1>{chatPeer === 'system' ? de.letters.system : current.label}</h1>
       {#if current.href === '/app/einstellungen'}
         <Settings />
+      {:else if chatPeer === 'system'}
+        <SystemChat />
+      {:else if chatPeer}
+        {#key chatPeer}<Chat peerId={chatPeer} />{/key}
+      {:else if current.href === '/app/briefe'}
+        <Letters />
+      {:else if current.href === '/app/adressbuch'}
+        <AddressBook />
       {:else}
         <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.app.comingSoon}</span></p>
       {/if}
     {:else}
       <h1 class="visually-hidden">{de.nav.home}</h1>
+      {#if live.news.length > 0}
+        <section class="news card" aria-labelledby="news-title">
+          <h2 id="news-title">{de.news.title}</h2>
+          <ul>
+            {#each live.news as item (item.id)}
+              <li>
+                <span class="when">{dateTime(item.createdAt)}</span>
+                {newsTexts[item.type] ?? item.type}
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
       <ul class="tiles">
         {#each sections as section (section.href)}
           <li>
@@ -110,6 +161,33 @@
     display: flex;
     gap: 0.35rem;
     font-weight: 700;
+  }
+
+  .push-hint {
+    margin: 0;
+    padding: 0.25rem 1rem;
+    background: var(--parchment-deep);
+    text-align: center;
+  }
+
+  .push-hint :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .news {
+    margin-bottom: 1.5rem;
+  }
+
+  .news ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .when {
+    color: var(--ink-soft);
+    margin-right: 0.5rem;
   }
 
   .content {

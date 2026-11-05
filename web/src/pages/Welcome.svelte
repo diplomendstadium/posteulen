@@ -1,6 +1,7 @@
 <script lang="ts">
   import { de } from '@posteulen/shared/texts/de.ts';
   import Link from '../components/Link.svelte';
+  import PushSettings from '../components/PushSettings.svelte';
 </script>
 
 <div class="page">
@@ -14,7 +15,7 @@
     <h2>{de.welcome.degoogled}</h2>
     <p>{de.welcome.degoogledSteps}</p>
   </section>
-  <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.welcome.pushLater}</span></p>
+  <PushSettings />
   <p><Link href="/app" class="button">{de.welcome.continue}</Link></p>
 </div>
 

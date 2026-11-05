@@ -5,6 +5,10 @@
 /** Replaced at build time by the posteulen-sw-manifest plugin. */
 declare const __POSTEULEN_SHELL__: string;
 
+/** Push texts from texts/de.ts, inlined at build time (a classic service worker cannot import). */
+declare const __POSTEULEN_PUSH_TEXTS__: { testBody: string; letterBody: string; newsBody: string };
+const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__;
+
 const sw = self as unknown as ServiceWorkerGlobalScope;
 const BUILD = '__POSTEULEN_BUILD__';
 const SHELL: readonly string[] = [__POSTEULEN_SHELL__];
@@ -65,4 +69,58 @@ sw.addEventListener('fetch', (event) => {
       })(),
     );
   }
+});
+
+/**
+ * Web Push (SPEC 11.2–11.4): every push shows a visible notification without names or content,
+ * then confirms its ID to the server (background request, no session needed).
+ */
+sw.addEventListener('push', (event) => {
+  let data: { id?: unknown; type?: unknown };
+  try {
+    data = (event.data?.json() ?? {}) as { id?: unknown; type?: unknown };
+  } catch {
+    data = {};
+  }
+  const body =
+    data.type === 'push_test'
+      ? PUSH_TEXTS.testBody
+      : data.type === 'letter_arrived'
+        ? PUSH_TEXTS.letterBody
+        : PUSH_TEXTS.newsBody;
+  const id = typeof data.id === 'string' && /^[A-Za-z0-9_-]{22}$/.test(data.id) ? data.id : null;
+  event.waitUntil(
+    (async () => {
+      await sw.registration.showNotification('PostEulen', {
+        body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        lang: 'de',
+        ...(id ? { tag: id } : {}),
+      });
+      if (id) {
+        await fetch('/api/push/ack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-posteulen': '1' },
+          body: JSON.stringify({ id }),
+          credentials: 'omit',
+        }).catch(() => undefined);
+      }
+    })(),
+  );
+});
+
+sw.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    (async () => {
+      const windows = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const existing = windows[0];
+      if (existing) {
+        await existing.focus();
+        return;
+      }
+      await sw.clients.openWindow('/app');
+    })(),
+  );
 });

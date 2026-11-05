@@ -3,6 +3,7 @@ import path from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VERSION } from '@posteulen/shared/version.ts';
+import { de } from '@posteulen/shared/texts/de.ts';
 
 /**
  * Injects the list of app-shell files and a build id into the service worker (D-08).
@@ -30,6 +31,8 @@ function serviceWorkerManifest(): Plugin {
       if (!sw.code.includes('__POSTEULEN_SHELL__') || !sw.code.includes('__POSTEULEN_BUILD__')) {
         throw new Error('service worker placeholders missing');
       }
+      if (/^\s*import[\s{]/m.test(sw.code))
+        throw new Error('service worker must not import chunks');
       sw.code = sw.code
         .replace('__POSTEULEN_SHELL__', JSON.stringify(files).slice(1, -1))
         .replace('__POSTEULEN_BUILD__', buildId);
@@ -61,6 +64,11 @@ export default defineConfig({
   plugins: [svelte(), serviceWorkerManifest()],
   define: {
     __POSTEULEN_VERSION__: JSON.stringify(VERSION),
+    __POSTEULEN_PUSH_TEXTS__: JSON.stringify({
+      testBody: de.push.testBody,
+      letterBody: de.push.letterBody,
+      newsBody: de.push.newsBody,
+    }),
   },
   build: {
     target: 'es2022',

@@ -30,7 +30,14 @@ function serviceWorkerUrl(): string {
 
 export async function registerServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;
-  const registration = await navigator.serviceWorker.register(serviceWorkerUrl(), { scope: '/' });
+  let registration: ServiceWorkerRegistration | undefined;
+  try {
+    registration = await navigator.serviceWorker.register(serviceWorkerUrl(), { scope: '/' });
+  } catch {
+    // Without a service worker the app still works, just without offline start and push.
+    return;
+  }
+  if (!registration) return;
   const markWaiting = (): void => {
     if (registration.waiting && navigator.serviceWorker.controller) status.updateReady = true;
   };

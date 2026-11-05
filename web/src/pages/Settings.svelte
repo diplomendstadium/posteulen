@@ -3,6 +3,7 @@
   import { checkPassword } from '@posteulen/shared/names.ts';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
+  import PushSettings from '../components/PushSettings.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -51,6 +52,8 @@
     navigate('/', true);
   }
 </script>
+
+<PushSettings />
 
 <section class="card" aria-labelledby="pw-title">
   <h2 id="pw-title">{de.settings.passwordTitle}</h2>
