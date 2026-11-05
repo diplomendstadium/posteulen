@@ -4,7 +4,16 @@
  */
 import type { ServerResponse } from 'node:http';
 
-export type Topic = 'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push';
+export type Topic =
+  | 'chats'
+  | 'contacts'
+  | 'news'
+  | 'system'
+  | 'profile'
+  | 'push'
+  | 'owls'
+  | 'finance'
+  | 'map';
 
 const MAX_PER_USER = 3;
 const HEARTBEAT_MS = 25_000;

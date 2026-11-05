@@ -2,6 +2,7 @@
  * Everything request handlers need, created once per process: database, secrets, derived
  * server keys, clock, rate limits and short-lived in-memory state (D-17).
  */
+import { randomInt } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
@@ -66,24 +67,33 @@ export interface Context {
   readonly attempts: Ephemeral<LoginAttempt>;
   readonly reservations: Ephemeral<Reservation>;
   readonly reauthTokens: Ephemeral<ReauthToken>;
-  readonly letterTokens: Ephemeral<LetterToken>;
+  readonly letterTokens: Ephemeral<TransportToken>;
   readonly hub: EventHub;
   readonly queue: EventQueue;
   /** Set right after creation (needs the context itself). */
   push: PushService;
-  /** Stage 2: placeholder owl with a fixed flight time (SPEC 18). */
-  readonly flightMinutes: number;
+  /** Only for automated local tests: flights run this many times faster (1 on servers). */
+  readonly flightTimeScale: number;
+  /** Uniform random number in [0, 1) – tests inject a fixed sequence (SPEC 17.2). */
+  random(): number;
 }
 
-export interface LetterToken {
+/** A prepared transport (letter, gold, gift), valid for 5 minutes (ARCHITECTURE 5.9, 5.10). */
+export interface TransportToken {
   readonly senderId: string;
-  readonly kind: 'letter';
+  readonly purpose: 'letter' | 'gold' | 'gift';
+  /** Own owl ID or `stand_in` (D-65). */
+  readonly owlId: string;
+  readonly kind: 'letter' | 'cover_gold' | 'cover_owl';
   readonly parchment: 'small' | 'large';
+  readonly recipients: readonly string[];
+  /** Letters to be sent (none for gold or a gift without a cover letter). */
   readonly letters: readonly {
     readonly recipientId: string;
     readonly letterId: string;
     readonly sentAt: number;
   }[];
+  readonly gold: number;
 }
 
 export const LAND_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/landmask.bin');
@@ -94,8 +104,9 @@ export interface ContextOptions {
   readonly altchaMaxCounter?: number;
   /** Only for automated local tests: many accounts from one IP (never on servers). */
   readonly relaxedLimits?: boolean;
-  /** Placeholder flight time in minutes (stage 2); tests may shorten it. */
-  readonly flightMinutes?: number;
+  /** Flight time scale for automated local tests (default 1). */
+  readonly flightTimeScale?: number;
+  readonly random?: () => number;
   /** Replaces the network transport of Web Push (tests). */
   readonly pushSender?: import('./push/service.ts').PushSender;
 }
@@ -150,6 +161,7 @@ export async function createContext(
     hub: new EventHub(),
     queue: new EventQueue(db, now),
     push: undefined as unknown as PushService,
-    flightMinutes: options.flightMinutes ?? 2,
+    flightTimeScale: options.flightTimeScale ?? 1,
+    random: options.random ?? (() => randomInt(0, 2 ** 48) / 2 ** 48),
   };
 }

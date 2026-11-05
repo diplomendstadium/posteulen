@@ -101,10 +101,11 @@ const config = loadConfig({
 });
 const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
 if (relaxed && config.env !== 'development') throw new Error('relaxed limits only in development');
-const flight = Number(process.env['POSTEULEN_PREVIEW_FLIGHT_MINUTES'] ?? 2);
+// Automated local tests only: flights run this many times faster (energy rules unchanged).
+const timeScale = Number(process.env['POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE'] ?? 1);
 const app = await createApp(config, {
   relaxedLimits: relaxed,
-  flightMinutes: Number.isFinite(flight) && flight > 0 ? flight : 2,
+  flightTimeScale: Number.isFinite(timeScale) && timeScale >= 1 ? timeScale : 1,
 });
 // Local convenience only: an admin with a one-time password (written to the data folder)
 // and, if requested, an initial registration mode.

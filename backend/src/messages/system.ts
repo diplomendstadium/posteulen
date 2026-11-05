@@ -12,7 +12,10 @@ export type SystemMessageType =
   | 'contact_deleted'
   | 'key_warning'
   | 'letter_returned'
-  | 'password_changed';
+  | 'password_changed'
+  | 'owl_home'
+  | 'gold_arrived'
+  | 'owl_gift_received';
 
 export function addSystemMessage(
   ctx: Context,
@@ -21,14 +24,17 @@ export function addSystemMessage(
   params: Record<string, string | number>,
   now: number,
   after?: (work: () => void) => void,
+  /** Species whose arrival image belongs to this message (delivery without a letter, 9.2.6). */
+  arrivalImage: string | null = null,
 ): void {
   ctx.db.run(
-    'INSERT INTO system_messages (id, user_id, type, params, created_at) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO system_messages (id, user_id, type, params, created_at, arrival_image) VALUES (?, ?, ?, ?, ?, ?)',
     randomId(),
     userId,
     type,
     JSON.stringify(params),
     now,
+    arrivalImage,
   );
   ctx.db.run(
     'DELETE FROM system_messages WHERE user_id = ? AND id NOT IN (SELECT id FROM system_messages WHERE user_id = ? ORDER BY created_at DESC LIMIT 500)',

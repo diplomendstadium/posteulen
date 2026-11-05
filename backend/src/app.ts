@@ -12,6 +12,10 @@ import { registerContactRoutes } from './contacts/routes.ts';
 import { registerLetterHandlers, registerLetterRoutes } from './letters/routes.ts';
 import { registerPushRoutes } from './push/routes.ts';
 import { PushService } from './push/service.ts';
+import { registerFlightHandlers } from './flights/service.ts';
+import { registerFlightRoutes } from './flights/routes.ts';
+import { registerOwlRoutes } from './owls/routes.ts';
+import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
 
 export interface App {
   readonly config: Config;
@@ -71,10 +75,15 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
   ctx.push = new PushService(ctx, options.pushSender);
   registerLetterHandlers(ctx);
+  registerFlightHandlers(ctx);
+  registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);
   registerLetterRoutes(userApi, ctx);
   registerPushRoutes(userApi, ctx);
+  registerOwlRoutes(userApi, ctx);
+  registerGoldRoutes(userApi, ctx);
+  registerFlightRoutes(userApi, ctx);
   registerAdminRoutes(adminApi, ctx);
 
   return {

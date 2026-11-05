@@ -1,6 +1,14 @@
 import fc from 'fast-check';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ADMIN_ORIGIN, Agent, testApp, USER_ORIGIN, type TestApp } from './auth-helpers.ts';
+import {
+  ADMIN_ORIGIN,
+  Agent,
+  person,
+  setGold,
+  testApp,
+  USER_ORIGIN,
+  type TestApp,
+} from './auth-helpers.ts';
 
 let app: TestApp;
 beforeAll(async () => {
@@ -72,6 +80,51 @@ describe('schemas reject malformed input (property-based)', () => {
   });
 });
 
+describe('stage-3 endpoints reject malformed input of a logged-in user', () => {
+  it('owls, flights, gold', async () => {
+    const someone = await person(app, 'Fuzzi');
+    setGold(app, someone, 500);
+    const owl = await someone.agent.json<{ owl: { id: string } }>('POST', '/api/owls/buy', {
+      species: 'waldkauz',
+    });
+    const id = owl.body.owl.id;
+    const posts = [
+      '/api/owls/buy',
+      `/api/owls/${id}/name`,
+      `/api/owls/${id}/gift/prepare`,
+      `/api/owls/${id}/gift/send`,
+      '/api/flights/preview',
+      '/api/gold/prepare',
+      '/api/gold/send',
+      '/api/letters/prepare',
+      '/api/system-messages/arrival-shown',
+    ];
+    const payloads = fc.oneof(
+      bodies,
+      fc.record({
+        species: fc.oneof(fc.string(), fc.constant('waldkauz')),
+        name: fc.string(),
+        recipient: fc.string(),
+        recipients: fc.array(fc.string()),
+        amount: fc.oneof(fc.integer(), fc.double()),
+        owlId: fc.oneof(fc.string(), fc.constant('stand_in'), fc.constant(id)),
+        withCover: fc.anything(),
+        token: fc.string(),
+        cover: fc.anything(),
+        parchment: fc.string(),
+        ids: fc.array(fc.string()),
+      }),
+    );
+    await fc.assert(
+      fc.asyncProperty(fc.constantFrom(...posts), payloads, async (url, body) => {
+        const response = await someone.agent.request('POST', url, body === undefined ? null : body);
+        expect([200, 400, 404, 410, 413, 415, 429]).toContain(response.statusCode);
+      }),
+      { numRuns: 300 },
+    );
+  });
+});
+
 describe('every protected endpoint requires its session (SPEC 17.3)', () => {
   const userRoutes: [string, string][] = [
     ['GET', '/api/sync'],
@@ -80,6 +133,20 @@ describe('every protected endpoint requires its session (SPEC 17.3)', () => {
     ['POST', '/api/reauth/finish'],
     ['POST', '/api/password/start'],
     ['POST', '/api/password/finish'],
+    ['GET', '/api/owls'],
+    ['POST', '/api/owls/buy'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/name'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/feed'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/pet'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/release'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/gift/prepare'],
+    ['POST', '/api/owls/AAAAAAAAAAAAAAAAAAAAAA/gift/send'],
+    ['POST', '/api/flights/preview'],
+    ['GET', '/api/finance'],
+    ['POST', '/api/gold/prepare'],
+    ['POST', '/api/gold/send'],
+    ['GET', '/api/map'],
+    ['POST', '/api/system-messages/arrival-shown'],
   ];
   const adminRoutes: [string, string][] = [
     ['GET', '/api/me'],

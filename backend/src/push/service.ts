@@ -8,7 +8,7 @@ import { logError } from '../ops/error-log.ts';
 import { randomId } from '../security/ids.ts';
 import { sendPush, type SendResult, type Subscription, type Vapid } from './transport.ts';
 
-export type NotificationType = 'letter_arrived' | 'push_test';
+export type NotificationType = 'letter_arrived' | 'gold_arrived' | 'owl_gift' | 'push_test';
 
 export type PushSender = (
   subscription: Subscription,

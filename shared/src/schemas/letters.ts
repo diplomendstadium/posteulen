@@ -2,6 +2,7 @@
 import * as v from 'valibot';
 import { LETTER } from '../constants.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
+import { OwlRef, Recipients } from './owls.ts';
 
 export const ContactRequest = v.strictObject({
   name: ShortText(100),
@@ -15,13 +16,9 @@ export const VaultPut = v.strictObject({
 });
 
 export const LetterPrepare = v.strictObject({
-  recipients: v.pipe(
-    v.array(Id),
-    v.minLength(1),
-    v.maxLength(LETTER.MAX_RECIPIENTS),
-    v.check((ids) => new Set(ids).size === ids.length),
-  ),
+  recipients: Recipients,
   parchment: v.picklist(['small', 'large']),
+  owlId: OwlRef,
 });
 
 export const LetterSend = v.strictObject({

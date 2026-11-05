@@ -23,7 +23,7 @@ function preview(name: string, ports: [number, number, number, number], registra
       POSTEULEN_DATA_DIR: path.join(RUN_DIR, name),
       POSTEULEN_PREVIEW_REGISTRATION: registration,
       POSTEULEN_PREVIEW_RELAXED_LIMITS: '1',
-      POSTEULEN_PREVIEW_FLIGHT_MINUTES: '0.05',
+      POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE: '20000',
     },
   };
 }

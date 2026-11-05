@@ -18,6 +18,8 @@ import { tempDir } from './helpers.ts';
 export const USER_ORIGIN = 'https://posteulen.test';
 export const ADMIN_ORIGIN = 'https://admin.posteulen.test';
 export const BERLIN = { lat: 52.52, lon: 13.405 };
+export const HAMBURG = { lat: 53.55, lon: 9.99 };
+export const PARIS = { lat: 48.86, lon: 2.35 };
 
 export interface TestApp extends App {
   clock: { now: number };
@@ -28,8 +30,17 @@ export interface SentPush {
   readonly payload: string;
 }
 
+/** Deterministic random numbers in [0, 1) (SPEC 17.2: fixed randomness). */
+export function seededRandom(seed = 1): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 2 ** 32;
+  };
+}
+
 export async function testApp(
-  options: { pushStatus?: number } = {},
+  options: { pushStatus?: number; random?: () => number } = {},
 ): Promise<TestApp & { pushes: SentPush[] }> {
   const pushes: SentPush[] = [];
   const dir = tempDir();
@@ -46,7 +57,7 @@ export async function testApp(
     {
       now: () => clock.now,
       altchaMaxCounter: 20,
-      flightMinutes: 2,
+      random: options.random ?? seededRandom(),
       pushSender: async (subscription, payload) => {
         pushes.push({ endpoint: subscription.endpoint, payload });
         return { status: options.pushStatus ?? 201 };
@@ -218,10 +229,14 @@ export interface Person {
   readonly identity: import('@posteulen/shared/crypto/keypackage.ts').IdentityKeys;
 }
 
-export async function person(app: TestApp, name: string): Promise<Person> {
+export async function person(
+  app: TestApp,
+  name: string,
+  home: { lat: number; lon: number } = BERLIN,
+): Promise<Person> {
   const agent = new Agent(app.userApi, USER_ORIGIN);
   const password = 'ein sehr langes Passwort';
-  await register(agent, name, password);
+  await register(agent, name, password, { home });
   const result = await login(agent, name, password);
   const unlocked = await unlockFromLogin(result);
   return { agent, name, id: String(result.body['userId']), identity: unlocked.identity };
@@ -230,4 +245,28 @@ export async function person(app: TestApp, name: string): Promise<Person> {
 export async function couple(a: Person, b: Person): Promise<void> {
   await a.agent.json('POST', '/api/contacts/requests', { name: b.name, label: 'x'.repeat(60) });
   await b.agent.json('POST', '/api/contacts/requests', { name: a.name, label: 'x'.repeat(60) });
+}
+
+/** Gives a person gold directly in the database (test set-up only). */
+export function setGold(app: TestApp, who: Person, tenths: number): void {
+  app.db.run('UPDATE users SET gold = ? WHERE id = ?', tenths, who.id);
+}
+
+/** Buys and names an owl of the given species; returns its ID. */
+export async function buyOwl(
+  app: TestApp,
+  who: Person,
+  species = 'waldkauz',
+  name = 'Waldi',
+): Promise<string> {
+  const bought = await who.agent.json<{ owl: { id: string } }>('POST', '/api/owls/buy', { species });
+  if (bought.status !== 200) throw new Error(`buy failed: ${JSON.stringify(bought.body)}`);
+  await who.agent.json('POST', `/api/owls/${bought.body.owl.id}/name`, { name });
+  return bought.body.owl.id;
+}
+
+/** Advances the test clock to `at` (if later) and runs all due events. */
+export function advanceTo(app: TestApp, at: number): number {
+  app.clock.now = Math.max(app.clock.now, at);
+  return app.ctx.queue.runDue();
 }

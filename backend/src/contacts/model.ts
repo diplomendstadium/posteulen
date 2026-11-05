@@ -4,6 +4,7 @@ import type { Context } from '../context.ts';
 import type { Database } from '../db/database.ts';
 import { utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
+import { turnBackBetween } from '../flights/service.ts';
 
 export function pair(a: string, b: string): [string, string] {
   return a < b ? [a, b] : [b, a];
@@ -61,10 +62,7 @@ export function recipientProblem(
   return null;
 }
 
-/**
- * Ends a contact (SPEC 8.8): both must couple again; letters on the way between them turn
- * back (SPEC 9.5 – with the stage-2 placeholder owl they are simply not delivered).
- */
+/** Ends a contact (SPEC 8.8): both must couple again; owls on the way turn back (9.5). */
 export function removeContact(
   ctx: Context,
   actorId: string,
@@ -76,26 +74,30 @@ export function removeContact(
   ctx.db.run('DELETE FROM contacts WHERE user_lo = ? AND user_hi = ?', lo, hi);
   const actorName = displayName(ctx.db, actorId) ?? '';
   const otherName = displayName(ctx.db, otherId) ?? '';
-  const flying = ctx.db.all<{ id: string; sender_id: string; recipient_id: string }>(
-    `SELECT id, sender_id, recipient_id FROM letters
-      WHERE status = 'in_flight' AND ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))`,
+  // Letters still travelling with the stage-2 placeholder owl (no flight) are not delivered.
+  const legacy = ctx.db.all<{ id: string; sender_id: string }>(
+    `SELECT id, sender_id FROM letters
+      WHERE status = 'in_flight' AND flight_id IS NULL
+        AND ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))`,
     actorId,
     otherId,
     otherId,
     actorId,
   );
-  for (const letter of flying) {
+  for (const letter of legacy) {
     ctx.db.run("UPDATE letters SET status = 'returned', recipient_has = 0 WHERE id = ?", letter.id);
     ctx.queue.cancel('deliver', letter.id);
     addSystemMessage(
       ctx,
       letter.sender_id,
       'letter_returned',
-      { name: letter.sender_id === actorId ? otherName : actorName },
+      { name: letter.sender_id === actorId ? otherName : actorName, cargo: 'letter' },
       now,
       after,
     );
   }
+  // Owls on the way between both turn back, in both directions (9.5).
+  turnBackBetween(ctx, actorId, otherId, now, after);
   ctx.db.run('DELETE FROM letters WHERE sender_has = 0 AND recipient_has = 0');
   addSystemMessage(ctx, otherId, 'contact_removed', { name: actorName }, now, after);
   after(() => {

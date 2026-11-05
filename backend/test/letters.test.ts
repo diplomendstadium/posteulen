@@ -3,8 +3,12 @@ import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts
 import { openLetter, sealLetter, type LetterMeta } from '@posteulen/shared/crypto/letter.ts';
 import { TIME } from '@posteulen/shared/constants.ts';
 import {
+  advanceTo,
+  buyOwl,
   couple,
+  HAMBURG,
   person,
+  setGold,
   testApp,
   type Person,
   type TestApp,
@@ -18,7 +22,7 @@ let ben: Person;
 beforeEach(async () => {
   app = await testApp();
   anna = await person(app, 'Anna');
-  ben = await person(app, 'Ben');
+  ben = await person(app, 'Ben', HAMBURG);
 });
 afterEach(async () => {
   await app.close();
@@ -35,10 +39,12 @@ async function send(
   to: Person[],
   text: string,
   parchment: 'small' | 'large' = 'small',
+  owlId = 'stand_in',
 ) {
   const prepared = await from.agent.json<Prepared>('POST', '/api/letters/prepare', {
     recipients: to.map((p) => p.id),
     parchment,
+    owlId,
   });
   if (prepared.status !== 200) return prepared;
   const items = [];
@@ -64,11 +70,15 @@ async function send(
       wrapSender: toBase64Url(sealed.wrapSender),
     });
   }
-  return from.agent.json<{ letters: { id: string; arrivesAt: number }[] }>(
-    'POST',
-    '/api/letters/send',
-    { token: prepared.body.token, items },
-  );
+  return from.agent.json<{
+    letters: { id: string; recipientId: string; arrivesAt: number }[];
+    returnsAt: number | null;
+  }>('POST', '/api/letters/send', { token: prepared.body.token, items });
+}
+
+function arrival(sent: Awaited<ReturnType<typeof send>>, index = 0): number {
+  const body = sent.body as { letters: { arrivesAt: number }[] };
+  return body.letters[index]!.arrivesAt;
 }
 
 interface ApiLetter {
@@ -214,8 +224,11 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(own[0]?.opened).toMatchObject({ ok: true, text: 'Hallo Ben, wie geht es dir?' });
     expect(own[0]?.letter.status).toBe('in_flight');
 
-    app.clock.now += 2 * TIME.MINUTE;
-    expect(app.ctx.queue.runDue()).toBe(1);
+    // Berlin → Hamburg (about 255 km) with the stand-in Waldkauz: some hours.
+    expect(arrival(sent) - app.clock.now).toBeGreaterThan(8 * TIME.HOUR);
+    app.clock.now = arrival(sent) - 1;
+    expect(app.ctx.queue.runDue()).toBe(0);
+    expect(advanceTo(app, arrival(sent))).toBe(1);
     expect(app.ctx.queue.runDue()).toBe(0);
     const received = await readAll(ben, anna, anna);
     expect(received[0]?.opened).toMatchObject({ ok: true, text: 'Hallo Ben, wie geht es dir?' });
@@ -246,14 +259,20 @@ describe('letters (SPEC 5.8, 8.4)', () => {
   });
 
   it('sends one letter per recipient in order and charges large parchment once', async () => {
-    const clara = await person(app, 'Clara');
+    const clara = await person(app, 'Clara', { lat: 52.38, lon: 9.73 });
     await couple(anna, clara);
-    const sent = await send(anna, [clara, ben], 'Rundbrief', 'large');
+    setGold(app, anna, 100);
+    const owl = await buyOwl(app, anna);
+    // The stand-in owl carries only one letter (like a loan owl, 9.6).
+    expect((await send(anna, [clara, ben], 'Rundbrief', 'large')).body).toMatchObject({
+      code: 'owl_recipients',
+    });
+    const sent = await send(anna, [clara, ben], 'Rundbrief', 'large', owl);
     expect(sent.status).toBe(200);
-    const body = sent.body as { letters: { arrivesAt: number }[] };
-    expect(body.letters[1]!.arrivesAt - body.letters[0]!.arrivesAt).toBe(2 * TIME.MINUTE);
+    expect(arrival(sent, 1)).toBeGreaterThan(arrival(sent, 0));
+    expect(sent.body).toMatchObject({ returnsAt: expect.any(Number) });
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      29,
+      100 - 60 - 1,
     );
     const ids = app.db.all<{ id: string }>('SELECT id FROM letters');
     expect(new Set(ids.map((r) => r.id)).size).toBe(2);
@@ -263,6 +282,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     const prepared = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
+          owlId: 'stand_in',
     });
     const letter = prepared.body.letters[0]!;
     const shortCipher = toBase64Url(new Uint8Array(4135));
@@ -285,6 +305,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     const prepared2 = await anna.agent.json<Prepared>('POST', '/api/letters/prepare', {
       recipients: [ben.id],
       parchment: 'small',
+          owlId: 'stand_in',
     });
     expect(
       (
@@ -307,6 +328,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [stranger.id],
           parchment: 'small',
+          owlId: 'stand_in',
         })
       ).body,
     ).toMatchObject({ code: 'recipient_invalid' });
@@ -315,6 +337,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [anna.id],
           parchment: 'small',
+          owlId: 'stand_in',
         })
       ).body,
     ).toMatchObject({ code: 'recipient_invalid' });
@@ -330,6 +353,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await anna.agent.json('POST', '/api/letters/prepare', {
           recipients: [ben.id],
           parchment: 'small',
+          owlId: 'stand_in',
         })
       ).body,
     ).toMatchObject({ code: 'key_warning' });
@@ -338,6 +362,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         await ben.agent.json('POST', '/api/letters/prepare', {
           recipients: [anna.id],
           parchment: 'small',
+          owlId: 'stand_in',
         })
       ).body,
     ).toMatchObject({ code: 'key_warning' });
@@ -372,9 +397,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
   });
 
   it('deletes own copies; the letter disappears when nobody has it any more', async () => {
-    await send(anna, [ben], 'bald weg');
-    app.clock.now += 2 * TIME.MINUTE;
-    app.ctx.queue.runDue();
+    advanceTo(app, arrival(await send(anna, [ben], 'bald weg')));
     await anna.agent.json('DELETE', `/api/chats/${ben.id}`);
     expect(await readAll(anna, ben, anna)).toEqual([]);
     expect(await readAll(ben, anna, anna)).toHaveLength(1);
@@ -386,13 +409,15 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     await send(anna, [ben], 'eins');
     app.clock.now += 1000;
     await send(anna, [ben], 'zwei');
-    app.ctx.queue.schedule(
-      'deliver',
-      app.db.all<{ id: string }>('SELECT id FROM letters ORDER BY sent_at')[0]!.id,
-      app.clock.now,
-    );
-    app.clock.now += 3 * TIME.HOUR;
-    expect(app.ctx.queue.runDue()).toBe(3);
+    // A stray duplicate event for the first stop does nothing twice.
+    const first = app.db.get<{ ref: string }>(
+      "SELECT ref FROM scheduled_events WHERE type = 'flight_stop' ORDER BY due_at LIMIT 1",
+    )!.ref;
+    app.ctx.queue.schedule('flight_stop', first, app.clock.now + 2 * TIME.DAY);
+    app.clock.now += 3 * TIME.DAY;
+    // The finished flight drops its leftover events, so the duplicate never runs.
+    expect(app.ctx.queue.runDue()).toBe(2);
+    expect(app.db.all("SELECT 1 FROM scheduled_events WHERE type = 'flight_stop'")).toEqual([]);
     const received = await readAll(ben, anna, anna);
     expect(received.map((r) => r.opened.ok && r.opened.text)).toEqual(['eins', 'zwei']);
     expect(
@@ -435,9 +460,7 @@ describe('push (SPEC 11.3, 11.4)', () => {
       needsVerification: false,
     });
 
-    await send(anna, [ben], 'mit Push');
-    app.clock.now += 2 * TIME.MINUTE;
-    app.ctx.queue.runDue();
+    advanceTo(app, arrival(await send(anna, [ben], 'mit Push')));
     await app.ctx.push.idle();
     const payload = JSON.parse(app.pushes[1]!.payload) as { id: string; type: string };
     expect(payload.type).toBe('letter_arrived');
