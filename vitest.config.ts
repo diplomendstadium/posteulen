@@ -12,7 +12,8 @@ export default defineConfig({
       exclude: ['backend/src/dev/**', 'backend/src/main.ts', 'backend/src/cli.ts'],
       // SPEC 17.5: at least 90 % line coverage for crypto and game logic modules.
       thresholds: {
-        'shared/src/**/*.ts': { lines: 90 },
+        // Per file, so a single weakly tested crypto module cannot hide in the average.
+        'shared/src/**/*.ts': { lines: 90, perFile: true },
       },
     },
   },

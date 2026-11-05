@@ -8,7 +8,16 @@ import {
   type LetterMeta,
 } from '../src/crypto/letter.ts';
 import { toBase64Url } from '../src/crypto/encoding.ts';
-import { bindKeys, openVaultEntry, safetyNumber, sealVaultEntry } from '../src/crypto/vault.ts';
+import {
+  allSigningKeys,
+  bindKeys,
+  currentKeys,
+  openLabel,
+  openVaultEntry,
+  safetyNumber,
+  sealLabel,
+  sealVaultEntry,
+} from '../src/crypto/vault.ts';
 import { letterTextError, sanitizeLetterText } from '../src/text-rules.ts';
 
 let alice: IdentityKeys;
@@ -282,5 +291,34 @@ describe('contact vault and safety number (SPEC 5.7, 17.1)', () => {
       wrap: sealed.wrapRecipient,
     });
     expect(opened.ok).toBe(true);
+  });
+});
+
+describe('vault helpers', () => {
+  const keysOf = (k: IdentityKeys) => ({
+    ed25519: toBase64Url(k.ed25519Public),
+    x25519: toBase64Url(k.x25519Public),
+  });
+  const vaultKey = new Uint8Array(32).fill(4);
+
+  it('returns current and all signing keys after a change', () => {
+    const first = bindKeys(null, B, keysOf(bob), 1).entry;
+    const second = bindKeys(first, B, keysOf(carol), 2).entry;
+    expect(currentKeys(second)).toMatchObject(keysOf(carol));
+    expect(allSigningKeys(second)).toEqual([bob.ed25519Public, carol.ed25519Public]);
+  });
+
+  it('seals request labels for the owner only (D-54)', async () => {
+    const label = await sealLabel(vaultKey, A, 'Bernd Müller');
+    expect(label).not.toContain('Bernd');
+    expect(await openLabel(vaultKey, A, label)).toBe('Bernd Müller');
+    await expect(openLabel(vaultKey, B, label)).rejects.toThrow();
+    await expect(openLabel(new Uint8Array(32), A, label)).rejects.toThrow();
+  });
+
+  it('rejects an entry whose content names another contact', async () => {
+    const entry = bindKeys(null, C, keysOf(carol), 1).entry;
+    const blob = await sealVaultEntry(vaultKey, A, 1, entry);
+    await expect(openVaultEntry(vaultKey, A, B, 1, blob)).rejects.toThrow();
   });
 });
