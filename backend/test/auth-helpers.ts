@@ -23,7 +23,15 @@ export interface TestApp extends App {
   clock: { now: number };
 }
 
-export async function testApp(): Promise<TestApp> {
+export interface SentPush {
+  readonly endpoint: string;
+  readonly payload: string;
+}
+
+export async function testApp(
+  options: { pushStatus?: number } = {},
+): Promise<TestApp & { pushes: SentPush[] }> {
+  const pushes: SentPush[] = [];
   const dir = tempDir();
   const secretsFile = path.join(dir, 'secrets.json');
   await createSecretsFileIfMissing(secretsFile);
@@ -35,10 +43,18 @@ export async function testApp(): Promise<TestApp> {
       POSTEULEN_SECRETS_FILE: secretsFile,
       POSTEULEN_DOMAIN: 'posteulen.test',
     }),
-    { now: () => clock.now, altchaMaxCounter: 20 },
+    {
+      now: () => clock.now,
+      altchaMaxCounter: 20,
+      flightMinutes: 2,
+      pushSender: async (subscription, payload) => {
+        pushes.push({ endpoint: subscription.endpoint, payload });
+        return { status: options.pushStatus ?? 201 };
+      },
+    },
   );
   setRegistrationMode(app.db, 'open');
-  return Object.assign(app, { clock });
+  return Object.assign(app, { clock, pushes });
 }
 
 let nextIp = 1;
@@ -192,4 +208,26 @@ export async function unlockFromLogin(result: LoginResult) {
     ed25519: fromBase64Url(body.ed25519Public),
     x25519: fromBase64Url(body.x25519Public),
   });
+}
+
+/** A registered and logged-in user with its keys (for letter tests). */
+export interface Person {
+  readonly agent: Agent;
+  readonly name: string;
+  readonly id: string;
+  readonly identity: import('@posteulen/shared/crypto/keypackage.ts').IdentityKeys;
+}
+
+export async function person(app: TestApp, name: string): Promise<Person> {
+  const agent = new Agent(app.userApi, USER_ORIGIN);
+  const password = 'ein sehr langes Passwort';
+  await register(agent, name, password);
+  const result = await login(agent, name, password);
+  const unlocked = await unlockFromLogin(result);
+  return { agent, name, id: String(result.body['userId']), identity: unlocked.identity };
+}
+
+export async function couple(a: Person, b: Person): Promise<void> {
+  await a.agent.json('POST', '/api/contacts/requests', { name: b.name, label: 'x'.repeat(60) });
+  await b.agent.json('POST', '/api/contacts/requests', { name: a.name, label: 'x'.repeat(60) });
 }

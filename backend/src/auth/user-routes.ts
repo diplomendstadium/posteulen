@@ -21,6 +21,7 @@ import {
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
+import { addSystemMessage } from '../messages/system.ts';
 import { ipKey } from '../security/ip.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import {
@@ -245,8 +246,9 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     const result = ctx.db.transaction(() => {
       const user = ctx.db.get<{ state: string }>('SELECT state FROM users WHERE id = ?', userId);
       if (!user || user.state === 'deleting') throw new HttpError(401, 'login_failed');
-      // Only one session: a login ends all others (SPEC 5.3).
+      // Only one session: a login ends all others, including their push subscription (SPEC 5.3).
       ctx.db.run('DELETE FROM sessions WHERE user_id = ?', userId);
+      ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', userId);
       const deletionCancelled = user.state === 'deletion_pending';
       if (deletionCancelled) {
         ctx.db.run(
@@ -257,6 +259,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', utcDay(now), userId);
       return { token: createUserSession(ctx.db, userId, now), deletionCancelled };
     });
+    ctx.hub.close(userId);
     setSessionCookie(reply, spec, result.token);
     return {
       userId,
@@ -267,7 +270,11 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   app.post('/api/logout', { preHandler: authenticated }, async (request, reply) => {
-    ctx.db.run('DELETE FROM sessions WHERE token_hash = ?', userOf(request).tokenHash);
+    const user = userOf(request);
+    // Logout ends the session and the push subscription of this device (SPEC 11.3).
+    ctx.db.run('DELETE FROM sessions WHERE token_hash = ?', user.tokenHash);
+    ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', user.id);
+    ctx.hub.close(user.id);
     clearSessionCookie(reply, spec);
     return { ok: true };
   });
@@ -396,6 +403,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       // The private keys must stay unchanged (SPEC 5.6 step 5).
       if (updated.changes !== 1) throw new HttpError(400, 'bad_request');
       ctx.db.run('DELETE FROM sessions WHERE user_id = ?', userId);
+      addSystemMessage(ctx, userId, 'password_changed', {}, now);
       return createUserSession(ctx.db, userId, now);
     });
     setSessionCookie(reply, spec, session);

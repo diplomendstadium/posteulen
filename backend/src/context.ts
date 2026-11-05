@@ -11,6 +11,9 @@ import type { Database } from './db/database.ts';
 import { deriveServerKey, type Secrets } from './secrets.ts';
 import { Altcha } from './security/altcha.ts';
 import { Ephemeral, LoginGuard, RateLimiter } from './security/limits.ts';
+import { EventHub } from './events/hub.ts';
+import { EventQueue } from './queue/queue.ts';
+import type { PushService } from './push/service.ts';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -63,6 +66,24 @@ export interface Context {
   readonly attempts: Ephemeral<LoginAttempt>;
   readonly reservations: Ephemeral<Reservation>;
   readonly reauthTokens: Ephemeral<ReauthToken>;
+  readonly letterTokens: Ephemeral<LetterToken>;
+  readonly hub: EventHub;
+  readonly queue: EventQueue;
+  /** Set right after creation (needs the context itself). */
+  push: PushService;
+  /** Stage 2: placeholder owl with a fixed flight time (SPEC 18). */
+  readonly flightMinutes: number;
+}
+
+export interface LetterToken {
+  readonly senderId: string;
+  readonly kind: 'letter';
+  readonly parchment: 'small' | 'large';
+  readonly letters: readonly {
+    readonly recipientId: string;
+    readonly letterId: string;
+    readonly sentAt: number;
+  }[];
 }
 
 export const LAND_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/landmask.bin');
@@ -73,6 +94,10 @@ export interface ContextOptions {
   readonly altchaMaxCounter?: number;
   /** Only for automated local tests: many accounts from one IP (never on servers). */
   readonly relaxedLimits?: boolean;
+  /** Placeholder flight time in minutes (stage 2); tests may shorten it. */
+  readonly flightMinutes?: number;
+  /** Replaces the network transport of Web Push (tests). */
+  readonly pushSender?: import('./push/service.ts').PushSender;
 }
 
 export async function createContext(
@@ -84,6 +109,7 @@ export async function createContext(
   const landMask = new Uint8Array(fs.readFileSync(LAND_MASK_FILE));
   if (landMask.length !== MASK_BYTES) throw new Error('land mask has the wrong size');
   const altchaKey = await deriveServerKey(secrets, SERVER_CONTEXTS.ALTCHA);
+  const now = options.now ?? Date.now;
   return {
     config,
     db,
@@ -95,7 +121,7 @@ export async function createContext(
     },
     landMask,
     altcha: new Altcha(Buffer.from(altchaKey).toString('hex'), options.altchaMaxCounter ?? 50_000),
-    now: options.now ?? Date.now,
+    now,
     guards: {
       names: new LoginGuard(),
       // Per IP more generous: many people may share one address.
@@ -120,5 +146,10 @@ export async function createContext(
     attempts: new Ephemeral(),
     reservations: new Ephemeral(),
     reauthTokens: new Ephemeral(),
+    letterTokens: new Ephemeral(),
+    hub: new EventHub(),
+    queue: new EventQueue(db, now),
+    push: undefined as unknown as PushService,
+    flightMinutes: options.flightMinutes ?? 2,
   };
 }

@@ -1,4 +1,4 @@
-import { createApp, listen, StartupError } from './app.ts';
+import { createApp, listen, startWorkers, StartupError } from './app.ts';
 import { loadConfig } from './config.ts';
 import { SecretsError } from './secrets.ts';
 import { VERSION } from '@posteulen/shared/version.ts';
@@ -15,6 +15,7 @@ async function main(): Promise<void> {
   process.on('SIGTERM', shutdown);
   process.on('SIGINT', shutdown);
   await listen(app);
+  startWorkers(app);
   app.userApi.log.info({ version: VERSION }, 'PostEulen gestartet');
 }
 

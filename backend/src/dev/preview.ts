@@ -11,7 +11,7 @@ import {
   CACHE_IMMUTABLE,
   CACHE_REVALIDATE,
 } from '@posteulen/shared/security/headers.ts';
-import { createApp, listen } from '../app.ts';
+import { createApp, listen, startWorkers } from '../app.ts';
 import { loadConfig } from '../config.ts';
 import { createSecretsFileIfMissing } from '../secrets.ts';
 import { adminExists, setInitialAdminPassword } from '../admin/admin-auth.ts';
@@ -101,7 +101,11 @@ const config = loadConfig({
 });
 const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
 if (relaxed && config.env !== 'development') throw new Error('relaxed limits only in development');
-const app = await createApp(config, { relaxedLimits: relaxed });
+const flight = Number(process.env['POSTEULEN_PREVIEW_FLIGHT_MINUTES'] ?? 2);
+const app = await createApp(config, {
+  relaxedLimits: relaxed,
+  flightMinutes: Number.isFinite(flight) && flight > 0 ? flight : 2,
+});
 // Local convenience only: an admin with a one-time password (written to the data folder)
 // and, if requested, an initial registration mode.
 if (!adminExists(app.db)) {
@@ -114,6 +118,7 @@ if (mode === 'open' || mode === 'invite' || mode === 'closed') {
   setRegistrationMode(app.db, mode as RegistrationMode);
 }
 await listen(app);
+startWorkers(app);
 const web = staticServer(path.join(ROOT, 'web/dist'), config.userPort).listen(
   WEB_PORT,
   '127.0.0.1',

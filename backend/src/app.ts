@@ -8,6 +8,10 @@ import { loadSecrets, secretsFingerprint, type Secrets } from './secrets.ts';
 import { createContext, type Context, type ContextOptions } from './context.ts';
 import { registerUserRoutes } from './auth/user-routes.ts';
 import { registerAdminRoutes } from './admin/admin-routes.ts';
+import { registerContactRoutes } from './contacts/routes.ts';
+import { registerLetterHandlers, registerLetterRoutes } from './letters/routes.ts';
+import { registerPushRoutes } from './push/routes.ts';
+import { PushService } from './push/service.ts';
 
 export interface App {
   readonly config: Config;
@@ -65,7 +69,12 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   const ctx = await createContext(config, db, secrets, options);
   const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
+  ctx.push = new PushService(ctx, options.pushSender);
+  registerLetterHandlers(ctx);
   registerUserRoutes(userApi, ctx);
+  await registerContactRoutes(userApi, ctx);
+  registerLetterRoutes(userApi, ctx);
+  registerPushRoutes(userApi, ctx);
   registerAdminRoutes(adminApi, ctx);
 
   return {
@@ -76,10 +85,18 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
     adminApi,
     ctx,
     async close() {
+      ctx.queue.stop();
+      ctx.hub.shutdown();
       await Promise.allSettled([userApi.close(), adminApi.close()]);
       db.close();
     },
   };
+}
+
+/** Starts background work: event queue (with daily jobs) and pending pushes. */
+export function startWorkers(app: App): void {
+  app.ctx.queue.start();
+  app.ctx.push.resendPending(app.ctx.now());
 }
 
 export async function listen(app: App): Promise<void> {
