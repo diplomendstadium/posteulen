@@ -1,0 +1,13 @@
+# PostEulen – tägliche verschlüsselte Sicherung (SPEC 16.4 Punkt 5).
+[Unit]
+Description=PostEulen Datenbank-Sicherung
+After=posteulen.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/backup.sh --reason taeglich
+Nice=10
+IOSchedulingClass=idle
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes

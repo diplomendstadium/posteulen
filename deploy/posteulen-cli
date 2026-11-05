@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# posteulen-cli – Verwaltungsbefehle auf dem Server (nur root).
+# „setup“ läuft als root (schreibt /etc/posteulen), alles andere als Dienstbenutzer.
+set -euo pipefail
+# shellcheck source=deploy/lib.sh
+source /opt/posteulen/current/deploy/lib.sh
+require_root
+cli=$PE_CURRENT/backend/src/cli.ts
+if [[ ${1:-} == setup ]]; then
+  exec env POSTEULEN_SECRETS_FILE="$PE_SECRETS" node "$cli" "$@"
+fi
+as_service node "$cli" "$@"

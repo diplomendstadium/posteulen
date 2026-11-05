@@ -1,0 +1,49 @@
+# PostEulen – Backend-Dienst (SPEC 6: gehärtet). Erzeugt von deploy/configure.sh.
+[Unit]
+Description=PostEulen Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=posteulen
+Group=posteulen
+WorkingDirectory=/opt/posteulen/current
+Environment=POSTEULEN_ENV=production
+Environment=POSTEULEN_DATA_DIR=/var/lib/posteulen
+Environment=POSTEULEN_SECRETS_FILE=/etc/posteulen/secrets.json
+EnvironmentFile=/etc/posteulen/service.env
+ExecStart=/usr/bin/node /opt/posteulen/current/backend/src/main.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Härtung (SPEC 6). Kein MemoryDenyWriteExecute: bricht V8/WASM.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/posteulen
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RemoveIPC=yes
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
