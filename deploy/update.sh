@@ -7,7 +7,8 @@
 # Ablauf: Update-Schritte → Bauen (alter Stand läuft weiter) → Sicherung → Dienst stoppen →
 # Migrationen → Umschalten → Konfiguration → Start → Funktionsprüfung. Schlägt ein Schritt ab
 # der Sicherung fehl, geht es automatisch samt Datenbank zum bisherigen Release zurück.
-set -euo pipefail
+# -E: die Fehlerbehandlung (trap ERR) gilt auch in Funktionen.
+set -Eeuo pipefail
 SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=deploy/lib.sh
 source "$SELF_DIR/lib.sh"

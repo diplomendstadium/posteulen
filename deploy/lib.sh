@@ -57,10 +57,12 @@ require_root() {
 }
 
 # Frage mit Ja/Nein. $1 = Frage, $2 = Vorgabe (ja|nein), $3 = Antwort aus Parameter (leer = fragen).
+# Mit --yes (PE_ASSUME_YES=1) gilt „ja“; ohne Terminal und ohne --yes gilt die Vorgabe.
 ask_yes_no() {
   local question=$1 default=$2 preset=${3:-} answer
   if [[ -n $preset ]]; then [[ $preset == ja ]]; return; fi
-  if [[ ${PE_ASSUME_YES:-0} -eq 1 || ! -t 0 ]]; then [[ $default == ja ]]; return; fi
+  if [[ ${PE_ASSUME_YES:-0} -eq 1 ]]; then return 0; fi
+  if [[ ! -t 0 ]]; then [[ $default == ja ]]; return; fi
   read -r -p "$question [${default}] " answer
   answer=${answer:-$default}
   [[ ${answer,,} == j* || ${answer,,} == y* ]]

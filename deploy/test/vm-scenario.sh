@@ -19,14 +19,18 @@ sql() {
 fingerprint() { sha256sum /etc/posteulen/secrets.json /etc/posteulen/backup.pub | sha256sum | cut -d' ' -f1; }
 has_marker() { [[ $(sql "SELECT value FROM settings WHERE key = 'vmtest-marker'") == *bleibt* ]]; }
 no_broken_table() { [[ $(sql "SELECT name FROM sqlite_master WHERE name = 'vmtest_broken'") == '[]' ]]; }
-runs_as_service_user() { [[ $(ps -o user= -C node | head -1) == posteulen ]]; }
+runs_as_service_user() {
+  local pid
+  pid=$(systemctl show --property MainPID --value posteulen.service)
+  [[ $pid != 0 && $(stat -c %U "/proc/$pid") == posteulen ]]
+}
 secrets_permissions() { [[ $(stat -c '%a %U %G' /etc/posteulen/secrets.json) == '640 root posteulen' ]]; }
 listens_on_localhost_only() { ! ss -Hltn | grep -E ':300[12] ' | grep -vq '127.0.0.1'; }
 no_access_log() { ! grep -Eq '^\s*log\s*$' /etc/caddy/Caddyfile; }
 firewall_active() { ufw status | grep -q 'Status: active'; }
 hardening_score() {
   local score
-  score=$(systemd-analyze security posteulen.service 2>/dev/null | awk '/Overall exposure level/ {print $5}')
+  score=$(systemd-analyze security posteulen.service 2>/dev/null | sed -n 's/.*Overall exposure level for [^:]*: \([0-9.]*\).*/\1/p')
   echo "   Exposure: $score"
   awk -v s="$score" 'BEGIN {exit !(s <= 2.5)}'
 }
