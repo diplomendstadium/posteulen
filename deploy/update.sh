@@ -73,6 +73,7 @@ trap rollback_on_error ERR
 
 systemctl stop posteulen.service
 as_service node "$RELEASE/backend/src/cli.ts" migrate
+admin_output=$(as_service node "$RELEASE/backend/src/cli.ts" admin-init)
 switch_symlink "$RELEASE" "$PE_CURRENT"
 "$RELEASE/deploy/configure.sh"
 systemctl start posteulen.service
@@ -87,6 +88,11 @@ for dir in "${old[@]}"; do
   [[ $dir == "$RELEASE" || $dir == "$old_release" ]] || rm -rf "$dir"
 done
 ok "PostEulen läuft jetzt in Version $new_version."
+admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
+if [[ -n $admin_password ]]; then
+  banner "Neu: Adminpanel. Erstpasswort (wird nur jetzt angezeigt): $admin_password" \
+    "Anmelden unter https://admin.$domain – beim ersten Login muss es geändert werden."
+fi
 if [[ -f $RELEASE/CHANGELOG.md ]]; then
   info "Hinweise für Betreiber (CHANGELOG.md):"
   sed -n '1,40p' "$RELEASE/CHANGELOG.md"

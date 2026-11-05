@@ -276,6 +276,9 @@ fi
 printf 'POSTEULEN_DOMAIN=%s\n' "$domain" >"$PE_SERVICE_ENV"
 chmod 0644 "$PE_SERVICE_ENV"
 as_service node "$release/backend/src/cli.ts" migrate
+# Adminzugang mit Erstpasswort, nur wenn noch keiner existiert (SPEC 13).
+admin_output=$(as_service node "$release/backend/src/cli.ts" admin-init)
+admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
 
 switch_symlink "$release" "$PE_CURRENT"
 "$PE_CURRENT/deploy/configure.sh"
@@ -304,4 +307,12 @@ if [[ -n $backup_private_file ]]; then
   )
 fi
 [[ $secrets_created -eq 1 ]] || messages+=("" "(Die Geheimnis-Datei war schon vorhanden und ist unverändert.)")
+if [[ -n $admin_password ]]; then
+  messages+=(
+    ""
+    "Admin-Erstpasswort (wird nur jetzt angezeigt): $admin_password"
+    "Anmelden unter https://admin.$domain – beim ersten Login muss es geändert werden."
+    "Vergessen? „sudo posteulen-cli admin-reset“ erzeugt ein neues."
+  )
+fi
 banner "${messages[@]}"

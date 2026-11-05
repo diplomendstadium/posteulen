@@ -63,6 +63,9 @@ git -C "$work" add -A
 git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -m "VM-Test 3 (kaputt)"
 git -C "$work" tag "v$version-vmtest.3"
 git -C "$work" bundle create --quiet "$run_dir/posteulen.bundle" --all
+# Vorige Stufe: das neueste Release-Tag vor HEAD (SPEC 17.6: Update vom Tag der vorigen Stufe).
+previous=$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)
+echo "Vorige Stufe: ${previous:-keine}"
 
 say "VM starten"
 qemu-img create -q -f qcow2 -b "$CACHE/$IMAGE" -F qcow2 "$run_dir/disk.qcow2" 12G
@@ -97,7 +100,7 @@ say "Szenario in der VM"
 scp -q -i "$CACHE/vm_key" -P "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
   "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-scenario.sh" debian@127.0.0.1:/tmp/
 set +e
-ssh_vm "sudo bash /tmp/vm-scenario.sh '$version' $HTTPS_PORT" 2>&1 | tee "$run_dir/scenario.log"
+ssh_vm "sudo bash /tmp/vm-scenario.sh '$version' '$previous'" 2>&1 | tee "$run_dir/scenario.log"
 status=${PIPESTATUS[0]}
 set -e
 
