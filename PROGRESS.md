@@ -61,6 +61,7 @@
 ### Version 0.1.0
 - Stufe 6 freigegeben, Tag `v0.1.0-stufe.6` signiert (auf `10fe7c3`).
 - Impressum gekürzt, readme mit Einleitung; Versionswahl der Skripte nach Semantic Versioning (D-98).
+- Tests: 453 Unit-Tests, 142 E2E-Tests in 4 Browserprofilen, VM-Test 63/63 inkl. Update von `v0.1.0-stufe.6`.
 
 ## Offen
 - Tag `v0.1.0` signieren und pushen (Auftraggeber, D-28).
