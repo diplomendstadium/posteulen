@@ -56,6 +56,7 @@
 - Sicherheits-Review entlang SPEC 6 (`SECURITY-REVIEW.md`): 4 niedrige Funde behoben (u. a. leere Inhalte, Sitzungs-Cookie mit 30 Tagen, D-92, D-94).
 - readme.txt final (u. a. Wiederherstellung nach Totalausfall); VM-Test um Totalausfall auf neu installiertem Server erweitert.
 - Lage Google-freies Android erneut geprüft: unverändert (D-97).
+- Tests: 449 Unit-Tests (Abdeckung 95,1 %, shared/ je Datei ≥ 90 %), 142 E2E-Tests in 4 Browserprofilen (inkl. Barrierefreiheit), VM-Test 63/63: Installation `v0.1.0-stufe.5`, Update, zweiter Lauf, kaputtes Update, `--rollback`, Wiederherstellung auf demselben Server und nach Totalausfall.
 
 ## Offen
 - Tag `v0.1.0-stufe.6` signieren und pushen (Auftraggeber, D-28); danach Version `0.1.0` und Tag `v0.1.0`.
