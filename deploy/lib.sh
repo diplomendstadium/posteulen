@@ -134,6 +134,13 @@ health_check() {
   ok "Funktionsprüfung bestanden: Website, Verwaltung, Health-Endpunkt und Sicherheits-Header."
 }
 
+# Neueste Version (Tag) im Repository $1. Nach Semantic Versioning ist eine Vorabversion älter
+# als die fertige Version: v0.1.0-stufe.6 < v0.1.0 < v0.2.0-stufe.1. Gits Versionssortierung
+# braucht dafür „versionsort.suffix=-“, sonst stünde v0.1.0 vor v0.1.0-stufe.6.
+newest_tag() {
+  git -C "$1" -c versionsort.suffix=- tag --list 'v*' --sort=-v:refname | head -n1
+}
+
 # Versionsnummer eines Release-Verzeichnisses (aus shared/src/version.ts).
 release_version() {
   sed -n "s/^export const VERSION = '\(.*\)';$/\1/p" "$1/shared/src/version.ts"

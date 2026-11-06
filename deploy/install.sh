@@ -227,7 +227,7 @@ if [[ -L $PE_CURRENT ]]; then
   ok "Vorhandenes Release bleibt: $release"
 else
   if [[ -z $ref ]]; then
-    ref=$(git -C "$PE_REPO" tag --list 'v*' --sort=-v:refname | head -n1)
+    ref=$(newest_tag "$PE_REPO")
     [[ -n $ref ]] || die "Im Repository gibt es noch keine Version (Tag)." "Mit „--ref <Commit>“ eine Version angeben."
   fi
   commit=$(git -C "$PE_REPO" rev-parse --short=12 "$ref^{commit}" 2>/dev/null) || die "Version „$ref“ nicht gefunden."

@@ -42,7 +42,7 @@ fi
 
 info "Hole verfügbare Versionen …"
 git -C "$PE_REPO" fetch --quiet --force --tags origin '+refs/heads/*:refs/heads/*' || die "Repository nicht erreichbar." "Netzwerk und Zugang prüfen."
-[[ -n $target ]] || target=$(git -C "$PE_REPO" tag --list 'v*' --sort=-v:refname | head -n1)
+[[ -n $target ]] || target=$(newest_tag "$PE_REPO")
 [[ -n $target ]] || die "Keine Version gefunden."
 commit=$(git -C "$PE_REPO" rev-parse --short=12 "$target^{commit}" 2>/dev/null) || die "Version „$target“ gibt es nicht." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
 

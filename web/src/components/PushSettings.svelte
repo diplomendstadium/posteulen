@@ -19,11 +19,13 @@
   onMount(() => {
     if (!pushSupported()) pushState = 'unavailable';
     else
-      void serverStatus().then((result) => {
-        pushState = result.state;
-        // A test still running (e.g. after a reload) is awaited instead of shown forever.
-        if (result.state === 'testing') void run(waitForConfirmation);
-      });
+      void serverStatus()
+        .then((result) => {
+          pushState = result.state;
+          // A test still running (e.g. after a reload) is awaited instead of shown forever.
+          if (result.state === 'testing') void run(waitForConfirmation);
+        })
+        .catch(() => undefined); // offline or aborted by a page change: the status stays open
   });
 
   const label = $derived(

@@ -103,10 +103,10 @@ test.describe('Barrierefreiheit (SPEC 14)', () => {
 });
 
 /** Elements whose own text contains `needle` and that use the decorative heading font. */
-async function inDisplayFont(page: Page, needle: string): Promise<string[]> {
+async function inDisplayFont(page: Page, needle: string, scope = 'body'): Promise<string[]> {
   return page.evaluate(
-    (text) =>
-      [...document.querySelectorAll('body *')]
+    ({ text, root }) =>
+      [...document.querySelectorAll(`${root} *`)]
         .filter((element) =>
           [...element.childNodes].some(
             (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.includes(text),
@@ -114,7 +114,7 @@ async function inDisplayFont(page: Page, needle: string): Promise<string[]> {
         )
         .filter((element) => getComputedStyle(element).fontFamily.includes('Cinzel'))
         .map((element) => `${element.tagName}.${element.className}: ${element.textContent ?? ''}`),
-    needle,
+    { text: needle, root: scope },
   );
 }
 
@@ -135,7 +135,10 @@ test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async
   await page.getByTestId('loan-offer').first().waitFor();
   const loanName = (await page.getByTestId('loan-offer').first().locator('h3').textContent()) ?? '';
   expect(loanName).not.toBe('');
-  expect(await inDisplayFont(page, loanName), 'Leihangebot').toEqual([]);
+  // Only within the offer: a loan name may be part of a species name ("Brille" in "Brillenkauz").
+  expect(await inDisplayFont(page, loanName, '[data-testid="loan-offer"]'), 'Leihangebot').toEqual(
+    [],
+  );
   for (const path of ['/app/briefe', '/app/adressbuch']) {
     await page.goto(path);
     await page.getByText('Erklärbär').first().waitFor();

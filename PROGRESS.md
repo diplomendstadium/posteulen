@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** 6 – Abschluss (abgeschlossen, wartet auf Feedback und Tag-Signatur)
+**Aktueller Stand:** Version 0.1.0 (alle Stufen abgeschlossen; Tag `v0.1.0` signiert der Auftraggeber)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -58,12 +58,15 @@
 - Lage Google-freies Android erneut geprüft: unverändert (D-97).
 - Tests: 449 Unit-Tests (Abdeckung 95,1 %, shared/ je Datei ≥ 90 %), 142 E2E-Tests in 4 Browserprofilen (inkl. Barrierefreiheit), VM-Test 63/63: Installation `v0.1.0-stufe.5`, Update, zweiter Lauf, kaputtes Update, `--rollback`, Wiederherstellung auf demselben Server und nach Totalausfall.
 
+### Version 0.1.0
+- Stufe 6 freigegeben, Tag `v0.1.0-stufe.6` signiert (auf `10fe7c3`).
+- Impressum gekürzt, readme mit Einleitung; Versionswahl der Skripte nach Semantic Versioning (D-98).
+
 ## Offen
-- Tag `v0.1.0-stufe.6` signieren und pushen (Auftraggeber, D-28); danach Version `0.1.0` und Tag `v0.1.0`.
-- D-92 (Sitzungs-Cookie mit 30 Tagen Laufzeit) bestätigen.
+- Tag `v0.1.0` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
-- Datenschutzerklärung und Impressum ausfüllen und rechtlich prüfen lassen (D-96).
+- Datenschutzerklärung ausfüllen, beide Rechtstexte rechtlich prüfen lassen (D-96).
 
 ## Nächster Schritt
-Nach Freigabe: Version `0.1.0` (eine Zeile in `shared/src/version.ts`, CHANGELOG), Tag `v0.1.0` durch den Auftraggeber.
+v0.1 ist fertig. Weitere Arbeit nur nach neuem Auftrag.

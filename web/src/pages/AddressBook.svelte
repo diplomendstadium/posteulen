@@ -134,6 +134,7 @@
         onclick={() =>
           void api('DELETE', `/api/contacts/requests/${request.id}`).then(
             () => (live.requests = live.requests.filter((r) => r.id !== request.id)),
+            (caught: unknown) => (error = errorMessage(caught)),
           )}>{de.contacts.cancel}</button
       >
     </li>

@@ -29,11 +29,13 @@
   let view = $state({ x: -1860.3, y: -1120.4, w: 3127.8, h: 2915.8 });
 
   onMount(() => {
-    void loadMapData().then((loaded) => {
-      data = loaded;
-      full = loaded.viewBox;
-      view = { x: full[0], y: full[1], w: full[2], h: full[3] };
-    });
+    void loadMapData()
+      .then((loaded) => {
+        data = loaded;
+        full = loaded.viewBox;
+        view = { x: full[0], y: full[1], w: full[2], h: full[3] };
+      })
+      .catch(() => undefined); // offline: the map stays empty until the page is opened again
   });
 
   // All night runs as one path: overlapping edges are not darkened twice (no stripes).

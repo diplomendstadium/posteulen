@@ -3,6 +3,30 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.1.0 – Erste Version
+
+Die erste vollständige Version von PostEulen.de: Ende-zu-Ende-verschlüsselte Briefe per Eule,
+Eulen kaufen, leihen und pflegen, Flüge mit Tag und Nacht auf der Karte, Gold, Küken,
+Erklärbär, Tante und Onkel, Push-Benachrichtigungen, Adminpanel sowie Installation, Updates
+und Backups mit je einem Befehl (Stufen 0 bis 6, siehe unten).
+
+Seit v0.1.0-stufe.6:
+
+- Impressum ohne die Abschnitte „Angaben“ und „Hinweis“.
+- readme.txt beginnt mit einer kurzen Vorstellung des Projekts.
+- Behoben: Ohne Versionsangabe wählten `posteulen-update` und `install.sh` eine Vorabversion
+  (z. B. v0.1.0-stufe.6) statt der fertigen Version v0.1.0. Sie sortieren jetzt nach Semantic
+  Versioning.
+- Behoben: Ein durch Seitenwechsel abgebrochener Abruf (Benachrichtigungsstatus, Kartendaten,
+  Neuigkeiten, Anfrage zurückziehen) konnte einen unbehandelten Fehler auslösen.
+
+### Hinweise für Betreiber
+
+- Keine Datenbank-Migration.
+- **Von einer Stufe aus einmalig mit Versionsangabe aktualisieren:** `sudo posteulen-update v0.1.0`.
+  Das Update-Programm der Stufen hält v0.1.0 sonst für älter. Ab v0.1.0 genügt wieder
+  `sudo posteulen-update`.
+
 ## v0.1.0-stufe.6 – Abschluss
 
 - Hilfe zu allen Funktionen mit Inhaltsverzeichnis, häufigen Fragen, Anleitung für Android ohne

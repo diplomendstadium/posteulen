@@ -56,7 +56,7 @@
   $effect(() => {
     if (current === undefined && live.news.length > 0) {
       const ids = live.news.map((item) => item.id);
-      void api('POST', '/api/news/seen', { ids });
+      void api('POST', '/api/news/seen', { ids }).catch(() => undefined); // shown again next time
       // Deliveries without a letter show their arrival image with the news (SPEC 9.2.6).
       if (live.news.some((item) => item.type === 'gold_arrived' || item.type === 'owl_gift'))
         void showSystemArrivals().catch(() => undefined);
