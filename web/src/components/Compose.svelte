@@ -6,14 +6,18 @@
   import { maxChars, sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
   import ErrorText from './ErrorText.svelte';
   import OwlChoice from './OwlChoice.svelte';
-  import { KeyMismatchError, prepare, sendPrepared } from '../lib/letters.ts';
+  import { KeyMismatchError, prepare, sendPrepared, sendToBot } from '../lib/letters.ts';
   import { previewFlights, type OwlChoice as Choice } from '../lib/owls.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
 
-  let { peerId, onsent }: { peerId: string; onsent: () => void } = $props();
+  let {
+    peerId,
+    onsent,
+    bot = false,
+  }: { peerId: string; onsent: () => void; bot?: boolean } = $props();
 
   let parchment = $state<Parchment>('small');
   let text = $state('');
@@ -31,7 +35,9 @@
   const count = $derived(countCodePoints(text));
   const max = $derived(maxChars(parchment));
   const nameOf = (id: string): string =>
-    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
+    live.contacts.find((c) => c.userId === id)?.name ??
+    live.bots.find((b) => b.userId === id)?.name ??
+    de.letters.unknown;
   const candidates = $derived(
     live.contacts.filter((c) => c.active && !c.keyWarning && !recipients.includes(c.userId)),
   );
@@ -74,11 +80,10 @@
     busy = true;
     error = null;
     try {
-      const result = await sendPrepared(
-        await prepare(recipients, parchment, owlId),
-        parchment,
-        text,
-      );
+      // Bots: plain text, one recipient (SPEC 10.1); people: end-to-end encrypted (5.8).
+      const result = bot
+        ? await sendToBot(peerId, owlId, parchment, text)
+        : await sendPrepared(await prepare(recipients, parchment, owlId), parchment, text);
       showOwlImage(
         result.owl.species,
         'departure',
@@ -138,60 +143,62 @@
       <span aria-hidden="true">✒</span><span>{de.letters.noSmileys}</span>
     </p>{/if}
 
-  <fieldset>
-    <legend>{de.letters.recipients}</legend>
-    <ol class="recipients">
-      {#each recipients as id, index (id)}
-        <li>
-          <span class="name">{nameOf(id)}</span>
-          {#if recipients.length > 1}
-            <button
-              type="button"
-              class="button secondary small"
-              aria-label={de.letters.up}
-              disabled={index === 0}
-              onclick={() => move(index, -1)}>↑</button
-            >
-            <button
-              type="button"
-              class="button secondary small"
-              aria-label={de.letters.down}
-              disabled={index === recipients.length - 1}
-              onclick={() => move(index, 1)}>↓</button
-            >
-            <button
-              type="button"
-              class="button secondary small"
-              aria-label={de.letters.removeRecipient}
-              onclick={() => {
-                recipients = recipients.filter((r) => r !== id);
-                prepared = null;
-              }}>✕</button
-            >
-          {/if}
-        </li>
-      {/each}
-    </ol>
-    {#if recipients.length < LETTER.MAX_RECIPIENTS && candidates.length > 0}
-      <label for="extra">{de.letters.addRecipient}</label>
-      <select
-        id="extra"
-        bind:value={extra}
-        onchange={() => {
-          if (extra) {
-            recipients = [...recipients, extra];
-            extra = '';
-            prepared = null;
-          }
-        }}
-      >
-        <option value="">{de.letters.choose}</option>
-        {#each candidates as contact (contact.userId)}<option value={contact.userId}
-            >{contact.name}</option
-          >{/each}
-      </select>
-    {/if}
-  </fieldset>
+  {#if !bot}
+    <fieldset>
+      <legend>{de.letters.recipients}</legend>
+      <ol class="recipients">
+        {#each recipients as id, index (id)}
+          <li>
+            <span class="name">{nameOf(id)}</span>
+            {#if recipients.length > 1}
+              <button
+                type="button"
+                class="button secondary small"
+                aria-label={de.letters.up}
+                disabled={index === 0}
+                onclick={() => move(index, -1)}>↑</button
+              >
+              <button
+                type="button"
+                class="button secondary small"
+                aria-label={de.letters.down}
+                disabled={index === recipients.length - 1}
+                onclick={() => move(index, 1)}>↓</button
+              >
+              <button
+                type="button"
+                class="button secondary small"
+                aria-label={de.letters.removeRecipient}
+                onclick={() => {
+                  recipients = recipients.filter((r) => r !== id);
+                  prepared = null;
+                }}>✕</button
+              >
+            {/if}
+          </li>
+        {/each}
+      </ol>
+      {#if recipients.length < LETTER.MAX_RECIPIENTS && candidates.length > 0}
+        <label for="extra">{de.letters.addRecipient}</label>
+        <select
+          id="extra"
+          bind:value={extra}
+          onchange={() => {
+            if (extra) {
+              recipients = [...recipients, extra];
+              extra = '';
+              prepared = null;
+            }
+          }}
+        >
+          <option value="">{de.letters.choose}</option>
+          {#each candidates as contact (contact.userId)}<option value={contact.userId}
+              >{contact.name}</option
+            >{/each}
+        </select>
+      {/if}
+    </fieldset>
+  {/if}
 
   <ErrorText message={error} />
   {#if prepared}

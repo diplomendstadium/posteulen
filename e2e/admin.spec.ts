@@ -53,7 +53,7 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
       timeout: 30_000,
     });
 
-    await page.getByRole('combobox').selectOption('invite');
+    await page.getByRole('combobox', { name: 'Registrierung' }).selectOption('invite');
     await expect(page.getByText('Gespeichert.')).toBeVisible();
     await page.getByRole('button', { name: 'Neuen Code erzeugen' }).click();
     const text = await page.getByText(/^Neuer Code:/).textContent();
@@ -70,19 +70,24 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     // Statistics, deletion period and a broadcast (Stufe 4, SPEC 13 items 1, 4, 6).
     await expect(page.getByTestId('admin-stats')).toContainText('Konten insgesamt erstellt: 1');
     // Less than 60 days is not accepted (the server checks it as well).
-    await page.getByLabel('Tage').fill('59');
+    await page.getByLabel('Tage', { exact: true }).fill('59');
     expect(
       await page
-        .getByLabel('Tage')
+        .getByLabel('Tage', { exact: true })
         .evaluate((input) => (input as HTMLInputElement).checkValidity()),
     ).toBe(false);
-    await page.getByLabel('Tage').fill('90');
+    await page.getByLabel('Tage', { exact: true }).fill('90');
     await page.getByRole('button', { name: 'Speichern' }).first().click();
     await expect(page.getByText('Gespeichert.').first()).toBeVisible();
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByLabel('Text').fill('Heute Abend fliegen die Eulen später.');
     await page.getByRole('button', { name: 'An alle senden' }).click();
     await expect(page.getByText('Gesendet an 1 Konten.')).toBeVisible();
+    // OpenAI: the key is write-only; without network the connection test reports the failure.
+    await page.getByLabel('Neuer API-Key').fill('sk-test-0123456789abcdefghij');
+    await page.getByRole('button', { name: 'Key speichern' }).click();
+    await expect(page.getByText(/Key hinterlegt seit/)).toBeVisible();
+    await expect(page.getByLabel('Neuer API-Key')).toHaveValue('');
     await user.goto(`${ISOLATED_WEB_URL}/app/briefe/system`);
     await expect(user.getByText('Heute Abend fliegen die Eulen später.')).toBeVisible();
     await page.getByRole('button', { name: 'Abmelden' }).click();

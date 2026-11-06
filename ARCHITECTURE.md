@@ -192,7 +192,8 @@ Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient
 | `flights` | `id` · `holder_id` · `owl_id` · `cargo` (JSON: Brief-IDs, Goldbetrag, Geschenk-Eule/Küken, Begleitbrief-ID) · `route` (JSON: Wegpunkte mit Nutzer-IDs) · `plan` (BLOB, Segmentliste) · `started_at` · `state` · `next_stop` |
 | `transactions` | `id` · `user_id` · `at` · `type` · `amount` · `counterpart_id` · `counterpart_label` (nur bei Bots, z. B. „Tante Emma“) – höchstens 20 je Nutzer (4.6) |
 | `menagerie_offers` | `day` PK · `species` (3) |
-| `bots` | `id` · `owner_id` · `type` (`explainer`/`aunt`/`uncle`) · `first_name` · `home_lat`, `home_lon` · `in_addressbook` · `last_user_letter_at` · `fixed_letters_sent` |
+| `bots` | `id` · `owner_id` · `type` (`explainer`/`aunt`/`uncle`) · `first_name` · `home_lat`, `home_lon` · `in_addressbook` · `last_user_letter_at` · `fixed_sent` |
+| `bot_shipments` · `bot_jobs` · `ai_usage` | Bot-Lieferungen unterwegs (D-83) · fällige Antworten (D-85) · KI-Aufrufe je Tag |
 
 Alle Spielstände sind lesbar (3: „für den Server sichtbare Metadaten“).
 
@@ -270,6 +271,8 @@ Land/Wasser-Maske, Kartengeometrie, Bilder und Schriften sind statische Dateien 
 ### 4.2 Admin-API (`admin.posteulen.de/api`)
 
 `POST /login/start|finish` · `POST /logout` · `POST /password/start|finish` (Pflicht beim ersten Login; vorher sind alle anderen Endpunkte gesperrt) · `GET /stats` · `GET|PUT /settings/registration` · `GET|POST /invites` · `DELETE /invites/:id` · `GET|PUT /settings/inactivity` · `PUT|DELETE /openai/key` · `GET /openai/models` · `POST /openai/test` · `PUT /openai/settings` · `GET|POST /broadcasts` · `GET /errors` · `PATCH|DELETE /errors/:id`. Alle Endpunkte haben Rate-Limit-Klasse **A** und das Cookie `__Host-pe_admin` (8 Stunden gleitend).
+
+Stufe 5: `GET /openai` · `PUT`/`DELETE /openai/key` · `PUT /openai/settings` · `GET /openai/models` · `POST /openai/test` (D-86).
 
 Stufe 4: `GET /stats` · `GET`/`PUT /settings/inactivity` · `GET`/`POST /broadcasts` (Statistik aus Zählern, Löschfrist, Rundnachrichten).
 

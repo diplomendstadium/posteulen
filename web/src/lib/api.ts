@@ -46,7 +46,15 @@ export async function api<T>(
     status.online = navigator.onLine;
     throw new ApiError(0, { code: 'offline' });
   }
-  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  let data: Record<string, unknown>;
+  try {
+    data = (await response.json()) as Record<string, unknown>;
+  } catch {
+    // A body that could not be read (e.g. aborted by a navigation) is never a success:
+    // returning {} here once let a page set its list to undefined.
+    if (response.ok) throw new ApiError(0, { code: 'offline' });
+    data = {};
+  }
   if (!response.ok) {
     if (response.status === 409 && data['code'] === 'client_outdated') status.updateReady = true;
     if (response.status === 401 && data['code'] === 'unauthorized') {

@@ -68,10 +68,10 @@
     {#if info}
       {#each info.contacts as contact (contact.id)}
         {@const p = toSvg(contact.lat, contact.lon)}
-        <g class="contact">
+        <g class="contact" class:bot={contact.bot}>
           <circle cx={p.x} cy={p.y} r={16 * scale} stroke-width={4 * scale} />
           <text x={p.x} y={p.y - 26 * scale} font-size={46 * scale}
-            >{contact.name ?? de.letters.unknown}</text
+            >{contact.name ?? de.letters.unknown}{contact.bot ? ` (${de.bots.label})` : ''}</text
           >
         </g>
       {/each}
@@ -128,6 +128,11 @@
 </section>
 
 <style>
+  .contact.bot circle {
+    fill: var(--wood);
+    stroke-dasharray: 4 3;
+  }
+
   .contact circle {
     fill: var(--paper);
     stroke: var(--wood-dark);

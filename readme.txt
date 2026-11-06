@@ -98,7 +98,11 @@ Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
 * Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher
   gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 * Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
-* OpenAI-Key: ab Stufe 5.
+* OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt),
+  Modell wählen („Modelle von OpenAI laden“ oder von Hand), Tageslimit (Standard 200 Aufrufe),
+  „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts;
+  wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür
+  ausgehende Verbindungen zu api.openai.com (Port 443).
 * Adminpasswort vergessen? Auf dem Server:
       sudo posteulen-cli admin-reset
   erzeugt ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben

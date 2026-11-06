@@ -154,7 +154,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     const { other, otherContext } = await pair(browser, page, { benKeys: ['+', 'ArrowRight'] });
     await buyAndName(page, 'Waldkauz', 'Kartenkauz');
     await page.goto('/app/adressbuch');
-    await page.getByRole('link', { name: 'Brief schreiben' }).click();
+    await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Ein Brief mit echter Eule');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
     await page.getByRole('radio', { name: /Kartenkauz/ }).check();

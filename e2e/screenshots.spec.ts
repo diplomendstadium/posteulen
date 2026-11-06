@@ -52,7 +52,7 @@ test.describe('Screenshots Briefwechsel', () => {
     await borrowViaUi(page);
     await shoot(page, info, 'menagerie-leihen');
     await page.goto('/app/adressbuch');
-    await page.getByRole('link', { name: 'Brief schreiben' }).click();
+    await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page
       .getByLabel('Text')
       .fill('Liebe Grüße aus dem Eulenturm! Mehr unter https://example.org');
@@ -111,7 +111,7 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.keyboard.press('Escape');
 
     await page.goto('/app/adressbuch');
-    await page.getByRole('link', { name: 'Brief schreiben' }).click();
+    await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Hedwig bringt dir diesen Brief.');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
     await page.getByRole('radio', { name: /Hedwig/ }).check();
@@ -163,5 +163,23 @@ test.describe('Screenshots Stufe 4', () => {
     await shoot(page, info, 'eulen-krank-kueken', true);
     await page.goto('/app/einstellungen');
     await shoot(page, info, 'einstellungen-konto', true);
+  });
+});
+
+test.describe('Screenshots Stufe 5', () => {
+  test.beforeEach(({ browserName }) => {
+    test.skip(browserName !== 'chromium', 'Screenshots für den Bericht nur aus Chromium');
+  });
+
+  test('Bots im Briefwechsel und Adressbuch', async ({ page }, info) => {
+    await registerViaUi(page);
+    await page.goto('/app/briefe');
+    await shoot(page, info, 'briefwechsel-bots');
+    await page.getByRole('link', { name: /Erklärbär/ }).click();
+    await page.getByTestId('bot-notice').waitFor();
+    await shoot(page, info, 'chat-erklaerbaer', true);
+    await page.goto('/app/adressbuch');
+    await page.getByTestId('bot-contact').first().waitFor();
+    await shoot(page, info, 'adressbuch-bots');
   });
 });

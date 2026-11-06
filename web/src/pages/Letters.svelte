@@ -18,8 +18,9 @@
   {#each live.chats as chat (chat.peerId)}
     <li>
       <Link href={`/app/briefe/${chat.peerId}`} class="chat">
-        <span class="icon" aria-hidden="true">✉</span>
+        <span class="icon" aria-hidden="true">{chat.peerKind === 'bot' ? '🤖' : '✉'}</span>
         <span class="who name">{chat.name ?? de.letters.unknown}</span>
+        {#if chat.peerKind === 'bot'}<span class="bot-label">{de.bots.label}</span>{/if}
         <span class="when">{dateTime(chat.lastActivityAt)}</span>
         {#if chat.unread > 0}<span class="badge"
             >{fill(de.letters.unread, { count: chat.unread })}</span
@@ -33,6 +34,14 @@
   </p>{/if}
 
 <style>
+  .bot-label {
+    padding: 0 0.5rem;
+    border: 2px solid var(--wood);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
   .chats {
     list-style: none;
     margin: 0 0 1rem;

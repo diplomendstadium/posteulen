@@ -7,7 +7,7 @@
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
   import { loadConversation, type ShownLetter } from '../lib/letters.ts';
-  import { live } from '../lib/live.svelte.ts';
+  import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
@@ -20,7 +20,13 @@
 
   const chat = $derived(live.chats.find((c) => c.peerId === peerId));
   const contact = $derived(live.contacts.find((c) => c.userId === peerId));
-  const name = $derived(contact?.name ?? chat?.name ?? de.letters.unknown);
+  const bot = $derived(live.bots.find((b) => b.userId === peerId));
+  const name = $derived(contact?.name ?? bot?.name ?? chat?.name ?? de.letters.unknown);
+  const writableFrom = $derived(
+    bot?.writableFrom !== null && bot?.writableFrom !== undefined && bot.writableFrom > Date.now()
+      ? bot.writableFrom
+      : null,
+  );
   const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
 
   async function load(): Promise<void> {
@@ -83,13 +89,22 @@
   }
 </script>
 
-<p class="partner"><span class="name">{name}</span></p>
+<p class="partner">
+  <span class="name">{name}</span>
+  {#if bot}<span class="bot-label"><span aria-hidden="true">🤖</span> {de.bots.label}</span>{/if}
+</p>
+{#if bot}
+  <p class="notice bot-notice" data-testid="bot-notice">
+    <span aria-hidden="true">🔓</span><span>{de.bots.notice}</span>
+  </p>
+  <p class="hint crisis">{de.bots.crisis}</p>
+{/if}
 {#if contact?.keyWarning}
   <p class="warning" role="alert">
     <span aria-hidden="true">⚠</span><span>{fill(de.contacts.keyWarningLong, { name })}</span>
   </p>
 {/if}
-{#if !contact && !loading}<p class="notice">
+{#if !contact && !bot && !loading}<p class="notice">
     <span aria-hidden="true">ℹ</span><span>{de.letters.notContact}</span>
   </p>{/if}
 
@@ -135,6 +150,24 @@
 
 {#if contact && contact.active && !contact.keyWarning}
   <Compose {peerId} onsent={() => void load()} />
+{:else if bot}
+  {#if writableFrom !== null}
+    <p class="notice">
+      <span aria-hidden="true">⏳</span><span
+        >{fill(de.bots.writableFrom, { time: dateTime(writableFrom) })}</span
+      >
+    </p>
+  {:else}
+    <p class="hint">{de.bots.replyHint}</p>
+    <Compose
+      {peerId}
+      bot
+      onsent={() => {
+        void load();
+        void refreshTopics('contacts');
+      }}
+    />
+  {/if}
 {/if}
 
 <p class="danger">
@@ -144,6 +177,21 @@
 </p>
 
 <style>
+  .bot-label {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    padding: 0 0.5rem;
+    border: 2px solid var(--wood);
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .crisis {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
   .partner {
     font-size: 1.2rem;
   }

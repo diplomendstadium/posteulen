@@ -28,6 +28,14 @@ export interface Contact {
   readonly keyWarning: boolean;
 }
 
+export interface BotContact {
+  readonly userId: string;
+  readonly name: string;
+  readonly type: 'explainer' | 'aunt' | 'uncle';
+  /** Writing again possible from (24 hours after the last letter, SPEC 10.1). */
+  readonly writableFrom: number | null;
+}
+
 export interface NewsItem {
   readonly id: string;
   readonly type: string;
@@ -39,6 +47,7 @@ export const live = $state<{
   chats: ChatSummary[];
   systemUnread: number;
   contacts: Contact[];
+  bots: BotContact[];
   requests: { id: string; label: string; expiresAt: number }[];
   news: NewsItem[];
   pushState: string;
@@ -51,6 +60,7 @@ export const live = $state<{
   chats: [],
   systemUnread: 0,
   contacts: [],
+  bots: [],
   requests: [],
   news: [],
   pushState: 'none',
@@ -109,11 +119,13 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   }
   if (topics.includes('contacts')) {
     tasks.push(
-      api<{ contacts: Contact[]; requests: { id: string; label: string; expiresAt: number }[] }>(
-        'GET',
-        '/api/contacts',
-      ).then(async (result) => {
+      api<{
+        contacts: Contact[];
+        bots: BotContact[];
+        requests: { id: string; label: string; expiresAt: number }[];
+      }>('GET', '/api/contacts').then(async (result) => {
         live.contacts = result.contacts;
+        live.bots = result.bots;
         live.requests = result.requests;
         await syncVault(result.contacts);
       }),

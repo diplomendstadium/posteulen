@@ -183,7 +183,11 @@
           {#each transactions as entry (entry.id)}
             <tr>
               <td>{dateTime(entry.at)}</td>
-              <td>{typeTexts[`type_${entry.type}`] ?? entry.type}</td>
+              <td
+                >{fill(typeTexts[`type_${entry.type}`] ?? entry.type, {
+                  name: entry.counterpart ?? '',
+                })}</td
+              >
               <td class="amount" class:minus={entry.amount < 0}>
                 {entry.amount > 0 ? '+' : '−'}{formatGold(Math.abs(entry.amount))}
               </td>

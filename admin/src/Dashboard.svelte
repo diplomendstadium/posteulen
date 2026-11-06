@@ -5,6 +5,7 @@
   import { message } from './lib/messages.ts';
   import PasswordForm from './PasswordForm.svelte';
   import Operations from './Operations.svelte';
+  import OpenAi from './OpenAi.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -90,6 +91,8 @@
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
 
 <Operations />
+
+<OpenAi />
 
 <section class="card" aria-labelledby="reg-title">
   <h2 id="reg-title">{de.admin.registrationTitle}</h2>

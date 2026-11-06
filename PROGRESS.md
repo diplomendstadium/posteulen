@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** 4 – Restliche Spielmechanik (abgeschlossen, wartet auf Feedback und Tag-Signatur)
+**Aktuelle Stufe:** 5 – Bots (abgeschlossen, wartet auf Feedback und Tag-Signatur)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -42,10 +42,16 @@
 - Adminpanel: Statistik, Löschfrist, Rundnachrichten.
 - Tests: 327 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 110 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.3`.
 
-## Offen
-- Tag `v0.1.0-stufe.4` signieren und pushen (Auftraggeber, D-28).
-- Web Push auf echten Geräten prüfen (D-61).
-- Freigabe für Stufe 5.
+### Stufe 5
+- Bots je Konto (Erklärbär, Tante, Onkel) mit festen Briefen und Goldsendungen, Bot-Eulen, Briefe an Bots mit 24-Stunden-Sperre, KI-Antworten mit Zusammenfassung und Tageslimit, Bots entfernen; Altkonten erhalten ihre Bots beim Update (D-82).
+- Adminpanel: OpenAI-Key (verschlüsselt, nur schreibbar), Modell, Tageslimit, Verbindungstest.
+- Tests: 348 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 116 E2E-Tests in 4 Browserprofilen, VM-Test siehe Stufenbericht.
 
-## Nächste Stufe: 5 – Bots
-Erklärbär, Tante, Onkel mit festen Briefen, Goldsendungen von Tante und Onkel, KI-Anbindung (OpenAI), Zusammenfassungen, Kostenlimit; Adminpanel: OpenAI-Einstellungen.
+## Offen
+- Tag `v0.1.0-stufe.5` signieren und pushen (Auftraggeber, D-28).
+- OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen (ohne Key antworten Bots nicht).
+- Web Push auf echten Geräten prüfen (D-61); Lage für Google-freies Android vor Stufe 6 erneut prüfen (11.7).
+- Freigabe für Stufe 6.
+
+## Nächste Stufe: 6 – Abschluss
+Hilfe, Datenschutzerklärung, Impressum, Design-Feinschliff, Barrierefreiheit und Graustufen, readme.txt final; Installation, Update von Stufe 5, Rückfall und Wiederherstellung aus einem Backup auf frischem Debian 13; Sicherheits-Review entlang SPEC 6.

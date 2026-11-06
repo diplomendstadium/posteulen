@@ -46,7 +46,7 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     const secret = 'Geheime Nachricht 🦉 an Ben: https://example.org/eule';
     const owl = await borrowViaUi(page);
     await page.goto('/app/adressbuch');
-    await page.getByRole('link', { name: 'Brief schreiben' }).click();
+    await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill(secret);
     await expect(page.getByText('Pergament kennt keine Smileys.')).toBeVisible();
     await page.getByRole('button', { name: 'Eule wählen' }).click();
@@ -93,7 +93,9 @@ test.describe('Schlüsselwarnung (SPEC 5.7)', () => {
     await addContact(page, ben.name);
     await addContact(other, anna.name);
     await page.goto('/app/adressbuch');
-    await expect(page.getByRole('link', { name: 'Brief schreiben' })).toBeVisible();
+    await expect(
+      page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }),
+    ).toBeVisible();
 
     // Simulated attack: the server swaps Ben's key when preparing a letter.
     await page.route('**/api/letters/prepare', async (route) => {
@@ -104,7 +106,7 @@ test.describe('Schlüsselwarnung (SPEC 5.7)', () => {
     });
     await borrowViaUi(page);
     await page.goto('/app/adressbuch');
-    await page.getByRole('link', { name: 'Brief schreiben' }).click();
+    await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Das darf nicht ankommen');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
     await page.getByRole('button', { name: 'Absenden' }).click();

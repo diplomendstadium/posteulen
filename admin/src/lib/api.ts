@@ -31,7 +31,14 @@ export async function api<T>(
   } catch {
     throw new ApiError(0, { code: 'offline' });
   }
-  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  let data: Record<string, unknown>;
+  try {
+    data = (await response.json()) as Record<string, unknown>;
+  } catch {
+    // An unreadable body is never a success (aborted by a navigation, for example).
+    if (response.ok) throw new ApiError(0, { code: 'offline' });
+    data = {};
+  }
   if (!response.ok) throw new ApiError(response.status, data);
   return data as T;
 }

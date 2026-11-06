@@ -3,6 +3,23 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.1.0-stufe.5 – Bots
+
+- Jedes Konto hat einen Erklärbären, eine Tante und einen Onkel (deutlich als Bot gekennzeichnet, auch auf der Karte).
+- Feste Briefe: Erklärbär (Tag 0 sofort im Briefkasten, dann Tag 1, 2, 4, 7), Begrüßung der Tante,
+  erster Brief des Onkels nach 14 Tagen; Goldsendungen: Tante 4,0 nach 2 Tagen, Onkel 10,0 nach 21 Tagen.
+- Briefe an Bots (unverschlüsselt, mit dauerhaftem Hinweis und Hilfe-Nummern), höchstens einer in 24 Stunden;
+  Antworten per OpenAI zwei Stunden nach Ankunft, mit Gedächtnis (Zusammenfassung + letzte 6 Briefe).
+- Bots lassen sich endgültig entfernen.
+- Adminpanel: OpenAI-Key (nur schreibbar, verschlüsselt gespeichert), Modell, Tageslimit, Verbindungstest.
+- Behoben: Ein beim Seitenwechsel abgebrochener Abruf konnte eine Liste leeren und einen Fehler auslösen.
+
+### Hinweise für Betreiber
+
+- Die Datenbank wird beim Update migriert (Schema 6). Bestehende Konten bekommen einmalig ihre Bots.
+- Damit Bots antworten, im Adminpanel einen OpenAI-API-Key hinterlegen und „Verbindung testen“.
+  Ausgehende Verbindungen zu api.openai.com (Port 443) müssen erlaubt sein.
+
 ## v0.1.0-stufe.4 – Restliche Spielmechanik
 
 - Menagerie: Tagesangebot mit drei Leiheulen (0,1 Gold, persönliche Namen, Verfall nach 24 Stunden);

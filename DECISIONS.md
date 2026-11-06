@@ -198,3 +198,17 @@
 | D-80 | 2026-11-06 | Inaktivität: Jede Aktivität setzt die Warnung zurück. Gelöscht wird erst, wenn die Frist überschritten **und** die Warnung mindestens 30 Tage alt ist (eine verkürzte Frist löscht so niemanden ohne Vorwarnung). Unbestätigte Benachrichtigungen werden nach 60 Tagen aufgeräumt | SPEC 9.10, 13 Punkt 4 | – |
 | D-81 | 2026-11-06 | Rundnachrichten werden in `broadcasts` gespeichert (Liste im Adminpanel) und gehen als Systemnachricht mit Push an alle Konten außer solchen im Löschzustand | SPEC 13 Punkt 6 | – |
 
+---
+
+## Teil J – Stufe 5: Bots
+
+| Nr. | Datum | Entscheidung | Begründung | Verworfen |
+|---|---|---|---|---|
+| D-82 | 2026-11-06 | **Konten aus Stufe 1–4 bekommen beim Update einmalig ihre drei Bots**, mit dem Zeitplan ab dem Update (Erklärbär-Brief Tag 0 sofort, Tante-Gold nach 2 Tagen, Onkel nach 14/21 Tagen) | Sonst hätten bestehende Testkonten nie Bots; die SPEC kennt nur neue Konten | keine Bots für Altkonten |
+| D-83 | 2026-11-06 | Bot-Eulen erscheinen auf keiner Karte; ihr Flug wird nur zur Ankunftszeit simuliert (Flugregeln mit Bot-Werten) und als `bot_shipments` + Ereignis `bot_deliver` gespeichert. Art und Name jeder Bot-Eule sind zufällig (Anhang B/D) | SPEC 12.1 zeigt nur eigene Eulen; Bot-Eulen sind „unbegrenzt viele“ | volle Flüge in `flights` |
+| D-84 | 2026-11-06 | Feste Bot-Briefe enthalten keine Nutzernamen (Anrede neutral), weil der Bot-Verlauf als Kontext an OpenAI geht und Anfragen keine Namen enthalten dürfen | SPEC 10.5 Datensparsamkeit | Namen in Briefen, vor dem Versand herausfiltern (fehleranfällig) |
+| D-85 | 2026-11-06 | Antworten laufen außerhalb von Datenbank-Transaktionen: Das Ereignis `bot_reply` (2 h nach Ankunft) legt einen Eintrag in `bot_jobs` an; ein Hintergrund-Läufer ruft OpenAI auf und bucht die Antwort danach in einer Transaktion. Tageslimit erreicht ⇒ nächster Tag 00:01 UTC; Fehler oder fehlender Key ⇒ in 24 h erneut, Eintrag im Fehlerprotokoll ohne Inhalte. Nach dem Hinterlegen eines Keys werden wartende Antworten sofort versucht | SPEC 10.5; ein Netzaufruf in einer offenen Schreibtransaktion würde die Datenbank blockieren | – |
+| D-86 | 2026-11-06 | OpenAI: Chat-Completions-Endpunkt, `store: false`, `max_completion_tokens` 400 (Antwort) bzw. 600 (Zusammenfassung), Timeout 60 s, keine Weiterleitungen. Standardmodell `gpt-4o-mini`, im Adminpanel änderbar (Liste aus `/v1/models` oder Freitext). Der Key liegt mit XChaCha20-Poly1305 verschlüsselt in `settings` (Schlüssel aus `openai-key`) | SPEC 10.5, 13 Punkt 5, D-20 | Responses-API (für einfache Chats kein Vorteil) |
+| D-87 | 2026-11-06 | Briefe an Bots sind auch mit großem Pergament möglich (0,1 Gold); Antworten der Bots immer kleines Pergament. Vor einem Brief an einen Bot gilt die 24-Stunden-Sperre; Bots sind nie Teil von Mehrfachversand, Gold- oder Eulensendungen | SPEC 10.1 | nur kleines Pergament |
+| D-88 | 2026-11-06 | Die Wissensbasis des Erklärbärs ist bis Stufe 6 eine kompakte Regelübersicht in `backend/src/bots/prompts.ts`; mit dem Hilfetext in Stufe 6 wird sie ergänzt | SPEC 10.2: Wissensbasis = Hilfetext + Anhang A; der Hilfetext entsteht in Stufe 6 | – |
+| D-89 | 2026-11-06 | **Fehler (gefunden durch Firefox-E2E):** `api()` gab bei einer erfolgreichen Antwort, deren Inhalt nicht gelesen werden konnte (Seitenwechsel bricht den Download ab), `{}` als Erfolg zurück; die Eulenseite setzte dann ihre Liste auf `undefined`. **Behebung:** Ein unlesbarer Erfolgsinhalt gilt als Netzwerkfehler (Web und Admin) | Seiten fangen Netzwerkfehler bereits ab | – |

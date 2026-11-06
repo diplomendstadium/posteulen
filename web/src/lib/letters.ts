@@ -1,5 +1,5 @@
 /** Writing and reading letters in the browser (SPEC 5.8, 8.4). */
-import type { Parchment } from '@posteulen/shared/text-rules.ts';
+import { sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
 import { api, ApiError } from './api.ts';
 import { account } from './auth.svelte.ts';
 import { keysMatch, vault } from './vault.svelte.ts';
@@ -21,6 +21,8 @@ export interface ApiLetter {
   readonly role: 'sender' | 'recipient';
   readonly ciphertext: string | null;
   readonly wrap: string | null;
+  /** Letters to and from bots are plain text (SPEC 10.1). */
+  readonly plaintext: string | null;
 }
 
 export interface ShownLetter extends ApiLetter {
@@ -135,6 +137,10 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
   );
   return Promise.all(
     letters.map(async (letter): Promise<ShownLetter> => {
+      // Bot letters are plain text; the same text rules apply on display (SPEC 10.5).
+      if (letter.plaintext !== null) {
+        return { ...letter, text: sanitizeLetterText(letter.plaintext).text };
+      }
       if (!letter.ciphertext || !letter.wrap) return { ...letter, text: null };
       const signers = letter.role === 'sender' ? [own.ed25519Public] : peerKeys;
       const opened = await openLetter({
@@ -156,4 +162,14 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
       return { ...letter, text: opened.ok ? opened.text : null };
     }),
   );
+}
+
+/** A plain-text letter to one's own bot (SPEC 10.1). */
+export function sendToBot(
+  botId: string,
+  owlId: string,
+  parchment: Parchment,
+  text: string,
+): Promise<SendResult> {
+  return api<SendResult>('POST', '/api/bot-letters/send', { botId, owlId, parchment, text });
 }

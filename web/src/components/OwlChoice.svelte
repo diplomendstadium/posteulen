@@ -19,7 +19,9 @@
 
   const species = (id: string) => SPECIES.find((s) => s.id === id);
   const nameOf = (id: string): string =>
-    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
+    live.contacts.find((c) => c.userId === id)?.name ??
+    live.bots.find((b) => b.userId === id)?.name ??
+    de.letters.unknown;
 </script>
 
 <fieldset class="choices">

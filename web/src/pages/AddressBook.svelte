@@ -56,8 +56,9 @@
     shown = { ...shown, [userId]: (await safetyNumberWith(userId)) ?? '…' };
   }
 
-  async function remove(userId: string, contactName: string): Promise<void> {
-    if (!confirm(fill(de.contacts.removeConfirm, { name: contactName }))) return;
+  async function remove(userId: string, contactName: string, isBot = false): Promise<void> {
+    const question = isBot ? de.bots.removeConfirm : de.contacts.removeConfirm;
+    if (!confirm(fill(question, { name: contactName }))) return;
     await api('DELETE', `/api/contacts/${userId}`).catch(
       (caught: unknown) => (error = errorMessage(caught)),
     );
@@ -93,6 +94,32 @@
   </p>
 {/each}
 
+{#if live.bots.length > 0}
+  <section aria-labelledby="bots-title">
+    <h2 id="bots-title">{de.bots.title}</h2>
+    <ul class="contacts">
+      {#each live.bots as bot (bot.userId)}
+        <li class="contact" data-testid="bot-contact">
+          <span class="name"
+            ><span aria-hidden="true">🤖</span>
+            {bot.name}
+            <span class="bot-label">{de.bots.label}</span></span
+          >
+          <span class="state">{(de.bots as Record<string, string>)[`type_${bot.type}`]}</span>
+          <div class="buttons">
+            <Link href={`/app/briefe/${bot.userId}`} class="button">{de.contacts.write}</Link>
+            <button
+              class="button secondary"
+              type="button"
+              onclick={() => void remove(bot.userId, bot.name, true)}>{de.contacts.remove}</button
+            >
+          </div>
+        </li>
+      {/each}
+    </ul>
+  </section>
+{/if}
+
 <ul class="contacts">
   {#each live.requests as request (request.id)}
     <li class="contact">
@@ -113,7 +140,7 @@
   {/each}
   {#each live.contacts as contact (contact.userId)}
     {@const compared = vault.entries[contact.userId]?.entry.compared ?? false}
-    <li class="contact">
+    <li class="contact" data-testid="person-contact">
       <span class="name">{contact.name}</span>
       <span class="state">
         {#if contact.keyWarning}<span class="bad"
@@ -164,6 +191,15 @@
   </p>{/if}
 
 <style>
+  .bot-label {
+    margin-left: 0.25rem;
+    padding: 0 0.5rem;
+    border: 2px solid var(--wood);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
   section {
     margin-bottom: 1.5rem;
   }
