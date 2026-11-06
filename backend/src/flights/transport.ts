@@ -8,13 +8,21 @@ import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
 import { maxRecipients } from '@posteulen/shared/game/owls.ts';
+import { LOAN_REF_PREFIX } from '@posteulen/shared/schemas/owls.ts';
 import type { Context, TransportToken } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
-import { randomId } from '../security/ids.ts';
+import { randomId, utcDay } from '../security/ids.ts';
 import { recipientProblem } from '../contacts/model.ts';
 import { currentEnergy, isReady, type OwlRow } from '../owls/model.ts';
+import { leftHome } from '../owls/care.ts';
 import { startFlight, type FlightOwl, type Purpose, type RouteStop } from './service.ts';
-import { setChickGiftStarter } from '../owls/lifecycle.ts';
+import {
+  borrow,
+  loanIdentitiesFor,
+  loanProblem,
+  loanStartEnergy,
+  setChickGiftStarter,
+} from '../owls/lifecycle.ts';
 
 export const TOKEN_MS = 5 * TIME.MINUTE;
 
@@ -23,9 +31,37 @@ export interface ChosenOwl extends FlightOwl {
   readonly returnsHome: boolean;
 }
 
-/** The owl for a transport: an own or loan owl that is ready (9.2.5). */
-export function chooseOwl(ctx: Context, userId: string, owlId: string, now: number): ChosenOwl {
-  const owl = ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ? AND owner_id = ?', owlId, userId);
+/** The species of a `loan:<species>` reference, or null for an owl ID. */
+export function loanRefSpecies(owlRef: string): string | null {
+  return owlRef.startsWith(LOAN_REF_PREFIX) ? owlRef.slice(LOAN_REF_PREFIX.length) : null;
+}
+
+/**
+ * The owl for a transport: an own or loan owl that is ready (9.2.5). A `loan:<species>`
+ * reference plans with the loan owl of the day that would be borrowed on sending (9.6).
+ */
+export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: number): ChosenOwl {
+  const species = loanRefSpecies(owlRef);
+  if (species !== null) {
+    const problem = loanProblem(ctx, userId, species, now);
+    if (problem) throw new HttpError(400, problem);
+    const identity = loanIdentitiesFor(ctx, userId, utcDay(now)).get(species);
+    if (!identity) throw new HttpError(400, 'loan_not_offered');
+    return {
+      id: '',
+      kind: 'loan',
+      name: identity.name,
+      species,
+      energy: loanStartEnergy(identity, species),
+      maxRecipients: 1,
+      returnsHome: false,
+    };
+  }
+  const owl = ctx.db.get<OwlRow>(
+    'SELECT * FROM owls WHERE id = ? AND owner_id = ?',
+    owlRef,
+    userId,
+  );
   if (!owl || owl.state === 'gift_flight') throw new HttpError(404, 'not_found');
   if (!isReady(owl)) throw new HttpError(400, 'owl_not_ready');
   return {
@@ -160,9 +196,13 @@ export function depart(
   letters: readonly CheckedLetter[],
   now: number,
 ): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
+  // A loan owl of the day is borrowed only now, together with the departure (9.6).
+  const loanSpecies = token.chick ? null : loanRefSpecies(token.owlId);
+  const owlId =
+    loanSpecies === null ? token.owlId : borrow(ctx, token.senderId, loanSpecies, now).id;
   const owl = token.chick
-    ? chooseChick(ctx, token.senderId, token.owlId, now)
-    : chooseOwl(ctx, token.senderId, token.owlId, now);
+    ? chooseChick(ctx, token.senderId, owlId, now)
+    : chooseOwl(ctx, token.senderId, owlId, now);
   if (token.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
   if (owl.id) {
     const state = token.purpose === 'gift' ? 'gift_flight' : 'flying';
@@ -174,6 +214,7 @@ export function depart(
       owl.id,
     );
     if (left.changes !== 1) throw new HttpError(400, 'owl_not_ready');
+    leftHome(ctx, owl.id, now);
   }
   const { id, route } = startFlight(ctx, {
     holderId: token.senderId,

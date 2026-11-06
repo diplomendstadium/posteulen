@@ -57,20 +57,56 @@ export function pickOffer(random: () => number): string[] {
   return picked;
 }
 
+export interface LoanIdentity {
+  readonly name: string;
+  readonly sex: 'f' | 'm';
+  /** Share of the start energy range (60–100 %, 9.3), in [0, 1). */
+  readonly energyShare: number;
+}
+
 /**
- * Name and sex of a loan owl for one user, day and species, derived from HMAC bytes
- * (9.6: deterministic, nothing stored).
+ * Name, sex and start energy of a loan owl for one user, day and species, derived from HMAC
+ * bytes (9.6: deterministic, nothing stored). The energy is known in advance, so the letter
+ * preview can offer the loan owls of the day with an exact flight plan (8.4 step 4).
  */
-export function loanIdentity(hmac: Uint8Array): { name: string; sex: 'f' | 'm' } {
+export function loanIdentity(hmac: Uint8Array): LoanIdentity {
   const value = (((hmac[0] ?? 0) << 16) | ((hmac[1] ?? 0) << 8) | (hmac[2] ?? 0)) >>> 0;
   return {
     name: OWL_NAMES[value % OWL_NAMES.length] ?? 'Momo',
     sex: ((hmac[3] ?? 0) & 1) === 0 ? 'f' : 'm',
+    energyShare: (((hmac[4] ?? 0) << 8) | (hmac[5] ?? 0)) / 65536,
   };
 }
 
-/** Papeterie wage: 10 % of the species price, in tenths (9.7). */
-export function papeterieWage(price: number): number {
+/** Attempts per species before falling back to the next free name of the list. */
+const NAME_ATTEMPTS = 16;
+
+/**
+ * The identities of the day's offer for one user, with three different names (9.6). The first
+ * attempt keeps the derivation of v0.1; on a clash the next attempts derive new bytes.
+ */
+export function loanIdentities(
+  offer: readonly string[],
+  derive: (species: string, attempt: number) => Uint8Array,
+): LoanIdentity[] {
+  const taken = new Set<string>();
+  return offer.map((species) => {
+    let identity = loanIdentity(derive(species, 0));
+    for (let attempt = 1; taken.has(identity.name) && attempt < NAME_ATTEMPTS; attempt++) {
+      identity = loanIdentity(derive(species, attempt));
+    }
+    const start = OWL_NAMES.indexOf(identity.name);
+    for (let step = 1; taken.has(identity.name) && step < OWL_NAMES.length; step++) {
+      const name = OWL_NAMES[(start + step) % OWL_NAMES.length];
+      if (name !== undefined && !taken.has(name)) identity = { ...identity, name };
+    }
+    taken.add(identity.name);
+    return identity;
+  });
+}
+
+/** Menagerie wage: 10 % of the species price, in tenths (9.7). */
+export function menagerieWage(price: number): number {
   return Math.round(price * 10 * 0.1);
 }
 

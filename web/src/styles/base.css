@@ -18,6 +18,9 @@
   --shadow: 0 1px 3px rgb(43 29 14 / 0.18);
   --font-body: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
   --font-display: 'Cinzel Decorative', Georgia, serif;
+  /* Letters (v0.2): never for names or links, which stay in --font-body (SPEC 6, 7.1). */
+  --font-hand-own: 'Kalam', 'Comic Sans MS', cursive;
+  --font-hand-other: 'Caveat', 'Comic Sans MS', cursive;
   --nav-height: 4rem;
   color-scheme: light;
 }

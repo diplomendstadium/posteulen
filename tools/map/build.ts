@@ -2,7 +2,7 @@
  * Erzeugt die Kartendaten aus Natural Earth (SPEC 12.2, 12.3, D-09). Läuft nur auf dem
  * Entwicklungsrechner; die Ergebnisse liegen im Repository:
  *   shared/data/landmask.bin       Land/Wasser-Maske (0,02°)
- *   web/src/lib/map/europe.json    vereinfachte Ländergeometrie für die Anzeige (LAEA, km)
+ *   web/src/lib/map/europe.json    vereinfachte Ländergeometrie und Städte für die Anzeige (LAEA, km)
  * Aufruf: node tools/map/build.ts
  */
 import crypto from 'node:crypto';
@@ -237,9 +237,20 @@ const [w, s, e, n] = [
   MAP.NORTH_LAT + 6,
 ];
 const countries = await load('ne_50m_admin_0_countries');
+// Das Vereinigte Königreich erscheint als England, Schottland, Wales und Nordirland (v0.2):
+// deren Umrisse stammen aus den „Map Units“ im selben Maßstab.
+const mapUnits = await load('ne_50m_admin_0_map_units');
+const UK_PARTS = ['ENG', 'SCT', 'WLS', 'NIR'];
+const ukParts = mapUnits.filter((unit) => UK_PARTS.includes(String(unit.properties['GU_A3'])));
+if (ukParts.length !== UK_PARTS.length) throw new Error('Teile des Vereinigten Königreichs fehlen');
 const tolerance = 1.2;
 const outCountries = [];
-for (const feature of countries) {
+for (const [feature, id] of [
+  ...countries
+    .filter((country) => country.properties['ADM0_A3'] !== 'GBR')
+    .map((country): [Feature, string] => [country, String(country.properties['ADM0_A3'])]),
+  ...ukParts.map((unit): [Feature, string] => [unit, String(unit.properties['GU_A3'])]),
+]) {
   const rings = polygons(feature)
     .flat()
     .filter((ring) => intersects(ringBox(ring), margin))
@@ -268,13 +279,52 @@ for (const feature of countries) {
     }
   }
   outCountries.push({
-    id: String(props['ADM0_A3']),
+    id,
     area: Math.round(Math.abs(area) / 2),
     name: String(props['NAME_DE'] ?? props['NAME']),
     d: pathOf(rings, tolerance),
     label: label ? [Number(label.x.toFixed(1)), Number((-label.y).toFixed(1))] : null,
   });
 }
+
+// ── Städte (v0.2): über 200 000 Einwohner im Ausschnitt, größte zuerst ──
+// Einwohnerzahl ist POP_MAX (Ballungsraum); POP_MIN ist in Natural Earth für viele
+// Hauptstädte unbrauchbar (z. B. Paris 11 177).
+const places = await load('ne_10m_populated_places');
+const outCities = places
+  .flatMap((place) => {
+    const geometry = place.geometry as unknown as { coordinates: [number, number] } | null;
+    if (!geometry) return [];
+    const [lon, lat] = geometry.coordinates;
+    const population = Number(place.properties['POP_MAX']);
+    if (
+      !(population > MAP.CITY_MIN_POPULATION) ||
+      lat < MAP.SOUTH_LAT ||
+      lat > MAP.NORTH_LAT ||
+      lon < MAP.WEST_LON ||
+      lon > MAP.EAST_LON
+    )
+      return [];
+    const p = project(lat, lon);
+    return [
+      {
+        name: String(place.properties['NAME_DE'] || place.properties['NAME']),
+        population,
+        x: Number(p.x.toFixed(1)),
+        y: Number((-p.y).toFixed(1)),
+      },
+    ];
+  })
+  .sort((a, b) => b.population - a.population || a.name.localeCompare(b.name, 'de'))
+  .map((city) => ({
+    name: city.name,
+    big: city.population > MAP.CITY_BIG_POPULATION,
+    x: city.x,
+    y: city.y,
+  }));
+if (new Set(outCities.map((city) => city.name)).size !== outCities.length)
+  throw new Error('Städtenamen sind nicht eindeutig');
+
 const lakePaths = lakes
   .flatMap(polygons)
   .flat()
@@ -301,9 +351,10 @@ const output = {
   viewBox: [minX, minY, maxX - minX, maxY - minY].map((v) => Number(v.toFixed(1))),
   countries: outCountries.sort((a, b) => a.name.localeCompare(b.name, 'de')),
   lakes: pathOf(lakePaths, tolerance),
+  cities: outCities,
 };
 fs.mkdirSync(path.join(ROOT, 'web/src/lib/map'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'web/src/lib/map/europe.json'), JSON.stringify(output));
 console.warn(
-  `Karte: ${outCountries.length} Länder, ${(JSON.stringify(output).length / 1024).toFixed(0)} KiB`,
+  `Karte: ${outCountries.length} Länder, ${outCities.length} Städte, ${(JSON.stringify(output).length / 1024).toFixed(0)} KiB`,
 );

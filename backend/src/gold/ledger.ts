@@ -17,7 +17,7 @@ export type TransactionType =
   | 'transfer_refund'
   | 'loan'
   | 'treatment'
-  | 'papeterie_wage'
+  | 'menagerie_wage'
   | 'aunt_gift'
   | 'uncle_inheritance';
 

@@ -10,7 +10,7 @@
   import ChickGift from '../components/ChickGift.svelte';
   import {
     feedOwl,
-    lendToPapeterie,
+    lendToMenagerie,
     listOwls,
     nameOwl,
     petOwl,
@@ -21,7 +21,7 @@
   } from '../lib/owls.ts';
   import { dateTime } from '../lib/format.ts';
   import { formatGold } from '@posteulen/shared/game/gold.ts';
-  import { papeterieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
+  import { menagerieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
@@ -98,11 +98,11 @@
       void refreshTopics('profile');
     });
 
-  const papeterie = (owl: Owl) =>
+  const menagerie = (owl: Owl) =>
     act(async () => {
-      const wage = `${formatGold(papeterieWage(speciesPrice(owl.species)))} Gold`;
-      if (!confirm(fill(de.owls.papeterieConfirm, { name: owl.name ?? '', amount: wage }))) return;
-      replace((await lendToPapeterie(owl.id)).owl);
+      const wage = `${formatGold(menagerieWage(speciesPrice(owl.species)))} Gold`;
+      if (!confirm(fill(de.owls.menagerieConfirm, { name: owl.name ?? '', amount: wage }))) return;
+      replace((await lendToMenagerie(owl.id)).owl);
     });
 
   const release = (owl: Owl) =>
@@ -128,8 +128,8 @@
         return fill(de.owls.stateVet, { until });
       case 'brooding':
         return fill(de.owls.stateBrooding, { until });
-      case 'papeterie':
-        return fill(de.owls.statePapeterie, { until });
+      case 'menagerie':
+        return fill(de.owls.stateMenagerie, { until });
       case 'flying':
         return absenceText(owl);
     }
@@ -263,12 +263,12 @@
               onclick={() => void treat(owl, 'vet')}>{de.owls.treatVet}</button
             >
           {/if}
-          {#if owl.actions.papeterie}
+          {#if owl.actions.menagerie}
             <button
               class="button secondary"
               type="button"
               disabled={busy || !status.online}
-              onclick={() => void papeterie(owl)}>{de.owls.papeterie}</button
+              onclick={() => void menagerie(owl)}>{de.owls.menagerie}</button
             >
           {/if}
           {#if owl.actions.rename}

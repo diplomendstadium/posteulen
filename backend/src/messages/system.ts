@@ -27,7 +27,7 @@ export type SystemMessageType =
   | 'clutch_kept'
   | 'chick_adult'
   | 'loan_expired'
-  | 'papeterie_done'
+  | 'menagerie_done'
   | 'deletion_warning'
   | 'deletion_cancelled'
   | 'broadcast';

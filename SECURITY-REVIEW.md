@@ -65,3 +65,17 @@
 - **Aktiv manipulierter Server oder ausgelieferte Software:** Ein bösartiger Server könnte manipuliertes JavaScript ausliefern. Die Schlüsselbindung und die Sicherheitsnummer schützen nur gegen Schlüsseltausch, nicht gegen manipulierten Code.
 - **Vollständige Serverübernahme inklusive Geheimnis-Datei.**
 - **Kompromittierte Endgeräte:** Wer das entsperrte Gerät in der Hand hat, kann die Briefe lesen. Das steht so in Hilfe und Datenschutzerklärung.
+
+## 6. Nachtrag Version 0.2.0 (2026-11-06)
+
+Geprüft wurden die neuen und geänderten Stellen; kein neuer Befund.
+
+| Änderung | Prüfung | Nachweis |
+|---|---|---|
+| Neuer Endpunkt `PATCH /api/account/letters` (Löschfrist, Druckschrift) | Sitzung nötig, striktes Schema (nur 30/90/180/365, Boolean, keine weiteren Felder), löscht nur Kopien des eigenen Kontos | `routes.test.ts` (Inventar, jetzt 95 Endpunkte), `v02.test.ts` |
+| Eulen-Referenz `loan:<Art>` beim Versand | Schema erlaubt nur die festen Artnamen; Leihen prüft Angebot, Limit und Deckung serverseitig in derselben Transaktion wie den Abflug | `stage4.test.ts` (nicht angebotene, unbekannte und schon geliehene Arten) |
+| Löschung alter Briefe | Gelöschte Briefe werden tatsächlich gelöscht (`secure_delete`); Briefe unterwegs bleiben unberührt | `v02.test.ts` |
+| SQL mit eingesetztem Text | Neu: der Spaltenname `sender_has`/`recipient_has` in `letters/retention.ts`, ausschließlich aus einem festen Tupel im Code | Quelltext-Durchsicht |
+| Handschriften im Chat | Links, Namen und Metadaten bleiben in der Schrift, in der I/l/1 und O/0 unterscheidbar sind (SPEC 6, 7.1) | `v02.spec.ts`, CSS in `LetterText.svelte` |
+| Link auf das Repository | Fester Link aus `shared/src/version.ts`, `noopener noreferrer`, keine Anfrage an fremde Hosts beim Laden | `v02.spec.ts`, E2E-Wächter |
+| Migration 0007 (Neuaufbau `owls`) | Zuordnung Flug → Eule bleibt erhalten, `PRAGMA foreign_key_check` leer | `v02.test.ts` |

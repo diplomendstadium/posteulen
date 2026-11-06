@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { GOLD, OWL, TIME } from '../src/constants.ts';
 import {
-  careDaysBefore,
   daysBetween,
   displayEnergy,
   energyAfterFeeding,
   energyNow,
   hasCareBonus,
-  markCare,
+  homeTimeOn,
   regenPerHour,
   startEnergy,
 } from '../src/game/energy.ts';
@@ -24,7 +23,7 @@ import {
   canBuyMore,
   canCare,
   canGift,
-  canLendToPapeterie,
+  canLendToMenagerie,
   canRelease,
   canRename,
   canRenameInYear,
@@ -117,27 +116,46 @@ describe('energy (SPEC 9.3, 17.2)', () => {
     expect(startEnergy(fast, 0.5)).toBe(80);
   });
 
-  it('care mask counts care days in the 14 days before the roll (9.3)', () => {
-    let state: { mask: number; maskDay: string | null } = { mask: 0, maskDay: null };
-    // Ten consecutive days ending on 2026-03-10.
-    for (let day = 1; day <= 10; day++) {
-      state = markCare(state.mask, state.maskDay, `2026-03-${String(day).padStart(2, '0')}`);
-    }
-    expect(careDaysBefore(state.mask, state.maskDay, '2026-03-11')).toBe(10);
-    expect(hasCareBonus(state.mask, state.maskDay, '2026-03-11')).toBe(true);
-    // The roll day itself does not count; day 1 leaves the window on day 15.
-    expect(careDaysBefore(state.mask, state.maskDay, '2026-03-10')).toBe(9);
-    expect(careDaysBefore(state.mask, state.maskDay, '2026-03-16')).toBe(9);
-    expect(hasCareBonus(state.mask, state.maskDay, '2026-03-16')).toBe(false);
-    // Marking the same day twice counts once.
-    const again = markCare(state.mask, state.maskDay, '2026-03-10');
-    expect(again.mask).toBe(state.mask);
-    // A long break clears the mask.
-    expect(markCare(state.mask, state.maskDay, '2026-05-01')).toEqual({
-      mask: 1,
-      maskDay: '2026-05-01',
-    });
-    expect(careDaysBefore(0, null, '2026-05-01')).toBe(0);
+  it('care bonus: 10 of the last 14 days with at least one hour at home (v0.2, 9.3)', () => {
+    const at = (day: string, hour = 0) => Date.parse(`${day}T00:00:00Z`) + hour * TIME.HOUR;
+    const day = (n: number) => `2026-03-${String(n).padStart(2, '0')}`;
+    const now = at('2026-03-31', 3);
+    const care = (days: number[]) => new Set(days.map(day));
+    const bonus = (careDays: Set<string>, away: { since: number; until: number | null }[] = []) =>
+      hasCareBonus({ day: '2026-03-31', ownedSince: '2026-01-01', careDays, away, now });
+    const range = (from: number, to: number) =>
+      Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+    // Always at home: the 14 days before the roll are 17–30; ten of them cared for.
+    expect(bonus(care(range(21, 30)))).toBe(true);
+    expect(bonus(care(range(22, 30)))).toBe(false);
+    // Care on the roll day itself and before the window does not count.
+    expect(bonus(care([...range(22, 30), 31, 16]))).toBe(false);
+
+    // Away for five whole days (20–24): those days are skipped, the window reaches back to 12.
+    const trip = [{ since: at(day(20)), until: at(day(25)) }];
+    expect(bonus(care([...range(12, 16), ...range(25, 29)]), trip)).toBe(true);
+    expect(bonus(care([...range(12, 16), ...range(25, 29)]))).toBe(false);
+    // Less than an hour at home on a day: does not count either way.
+    const short = [{ since: at(day(30), 0.5), until: null }];
+    expect(homeTimeOn(day(30), short, now)).toBe(0.5 * TIME.HOUR);
+    expect(bonus(care([...range(17, 25)]), short)).toBe(false);
+    expect(bonus(care([...range(16, 25)]), short)).toBe(true);
+    // Exactly one hour counts.
+    const hour = [{ since: at(day(30), 1), until: at(day(31)) }];
+    expect(homeTimeOn(day(30), hour, now)).toBe(TIME.HOUR);
+    expect(bonus(care(range(21, 30)), hour)).toBe(true);
+
+    // Only days since the start of ownership.
+    expect(
+      hasCareBonus({
+        day: '2026-03-31',
+        ownedSince: day(25),
+        careDays: care(range(17, 30)),
+        away: [],
+        now,
+      }),
+    ).toBe(false);
     expect(daysBetween('2026-02-27', '2026-03-01')).toBe(2);
   });
 });
@@ -192,7 +210,7 @@ describe('owl states (SPEC 9.2.5)', () => {
       'self_care',
       'vet',
       'brooding',
-      'papeterie',
+      'menagerie',
     ] as const) {
       expect(canTransport({ ...own, state }), state).toBe(false);
     }
@@ -211,10 +229,10 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canRelease({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(canRelease({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
     expect(canRename({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
-    expect(canLendToPapeterie({ ...own, state: 'home' })).toBe(true);
-    expect(canLendToPapeterie({ ...own, state: 'sick' })).toBe(false);
-    expect(canLendToPapeterie({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
-    expect(canLendToPapeterie({ state: 'home', kind: 'own', isChick: true })).toBe(false);
+    expect(canLendToMenagerie({ ...own, state: 'home' })).toBe(true);
+    expect(canLendToMenagerie({ ...own, state: 'sick' })).toBe(false);
+    expect(canLendToMenagerie({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
+    expect(canLendToMenagerie({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(regenerates('brooding')).toBe(true);
     expect(regenerates('vet')).toBe(false);
     expect(regenerates('flying')).toBe(false);

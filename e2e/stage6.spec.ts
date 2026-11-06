@@ -29,9 +29,9 @@ test.describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hilfe');
   });
 
-  test('Datenschutz als Entwurf, Impressum mit Mastodon-Link', async ({ page }) => {
+  test('Datenschutz ohne Entwurfshinweis, Impressum mit Mastodon-Link', async ({ page }) => {
     await page.goto('/datenschutz');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Datenschutz (Entwurf)');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Datenschutz');
     await expect(page.getByText(/genau ein Cookie/)).toBeVisible();
     await expect(page.getByText(/OpenAI/).first()).toBeVisible();
     await page.goto('/impressum');

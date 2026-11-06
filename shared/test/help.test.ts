@@ -52,14 +52,16 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       'konto',
       'adressbuch',
       'verschluesselung',
+      'sicher',
       'briefe',
+      'aufbewahrung',
       'eulen',
       'energie',
       'flug',
       'karte',
       'gold',
       'menagerie',
-      'papeterie',
+      'verleih',
       'krankheit',
       'kueken',
       'bots',
@@ -99,9 +101,11 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
     expect(text).toContain(`- ${de.welcome.android}`);
   });
 
-  it('die Datenschutzerklärung ist vollständig und als Entwurf gekennzeichnet', () => {
+  it('die Datenschutzerklärung ist vollständig, ohne Entwurfshinweis und Platzhalter (v0.2)', () => {
     const text = `${PRIVACY_INTRO}\n${allText(PRIVACY_SECTIONS)}`;
-    expect(PRIVACY_INTRO).toContain('Entwurf');
+    expect(text).not.toMatch(/Entwurf|\[/);
+    expect(PRIVACY_SECTIONS.map((section) => section.id)).not.toContain('verantwortlich');
+    expect(PRIVACY_SECTIONS.map((section) => section.id)).not.toContain('rechte');
     for (const required of [
       'Ende-zu-Ende',
       'Metadaten',
@@ -116,8 +120,7 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       'IP-Adresse wird nicht gespeichert',
       `nach ${OPERATIONS.BACKUP_RETENTION_DAYS} Tagen`,
       'Automatische Löschung',
-      '[Name und Anschrift des Verantwortlichen]',
-      '[Name und Anschrift des Hosters]',
+      `spätestens ${LETTER.RETENTION_MAX_DAYS} Tage`,
     ])
       expect(text).toContain(required);
   });
@@ -137,5 +140,18 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       .toLowerCase();
     for (const term of ['hogwarts', 'harry potter', 'muggel', 'quidditch', 'hedwig'])
       expect(text).not.toContain(term);
+  });
+});
+
+describe('Hilfe zu Version 0.2', () => {
+  it('weist deutlich auf die Löschung alter Briefe hin und erklärt die neuen Regeln', () => {
+    const text = helpAsText();
+    expect(text).toContain('spätestens 365 Tage');
+    expect(text).toContain('30, 90 oder 180 Tagen');
+    expect(text).toContain('mindestens 1 Stunde zu Hause');
+    expect(text).toContain('3-mal pro Kalendermonat');
+    expect(text).toContain('Leiheulen des Tages');
+    expect(text).toContain('harte, seriöse Kryptografie');
+    expect(text).not.toMatch(/Papeterie/i);
   });
 });

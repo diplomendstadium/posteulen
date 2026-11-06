@@ -44,7 +44,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await expect(card.getByRole('button', { name: 'Verschenken' })).toHaveCount(0);
   });
 
-  test('kranke Eule zeigt das grummelige Bild; Eulenarzt und Papeterie', async ({ page }) => {
+  test('kranke Eule zeigt das grummelige Bild; Eulenarzt und Menagerie', async ({ page }) => {
     const me = await registerViaUi(page);
     setGold(me.name, 300);
     await buyAndName(page, 'Waldkauz', 'Kränkel');
@@ -113,7 +113,8 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await other.goto('/app/briefe/system');
     await expect(other.getByText(`${anna.name} heißt jetzt ${newName}.`)).toBeVisible();
 
-    await expect(page.getByText(/Wieder möglich ab/)).toBeVisible();
+    // v0.2: three moves per calendar month, the choice at registration does not count.
+    await expect(page.getByText('Diesen Monat noch 3-mal möglich.')).toBeVisible();
     allowHomeChange(newName);
     await page.reload();
     const map = page.getByRole('application', { name: 'Karte von Westeuropa' });
@@ -124,7 +125,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await expect(page.getByText(/^Gewählt:/)).toBeVisible();
     await page.getByRole('button', { name: 'Wohnort übernehmen' }).click();
     await expect(page.getByText('Dein neuer Wohnort ist gespeichert.')).toBeVisible();
-    await expect(page.getByText(/Wieder möglich ab/)).toBeVisible();
+    await expect(page.getByText('Diesen Monat noch 2-mal möglich.')).toBeVisible();
     await otherContext.close();
   });
 

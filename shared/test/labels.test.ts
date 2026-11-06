@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { placeLabels, type LabelRequest } from '../src/map/labels.ts';
+import {
+  occupiedBoxes,
+  placeCityLabels,
+  placeLabels,
+  type CityRequest,
+  type LabelRequest,
+} from '../src/map/labels.ts';
 
 const label = (key: string, x: number, y: number, text = 'Name'): LabelRequest => ({
   key,
@@ -48,6 +54,47 @@ describe('placeLabels (Karte)', () => {
     expect(placed).toEqual([
       { key: 'a', x: 0, y: -15 },
       { key: 'b', x: 1000, y: 985 },
+    ]);
+  });
+});
+
+describe('placeCityLabels (Karte, v0.2)', () => {
+  const city = (key: string, x: number, y: number, text = 'Stadt'): CityRequest => ({
+    key,
+    x,
+    y,
+    text,
+    fontSize: 10,
+    radius: 2,
+  });
+
+  it('puts the name right of the dot when there is room', () => {
+    const [placed] = placeCityLabels([city('a', 0, 0)], []);
+    expect(placed?.key).toBe('a');
+    expect(placed!.x).toBeGreaterThan(0);
+  });
+
+  it('leaves out names that would hit own places, owls or their names', () => {
+    const own: LabelRequest[] = [
+      { key: 'home', x: 0, y: 0, radius: 10, text: 'Zuhause', fontSize: 10 },
+    ];
+    const blocked = occupiedBoxes(own, placeLabels(own));
+    expect(blocked).toHaveLength(2);
+    // A city right under the home marker: every spot around its dot collides.
+    expect(placeCityLabels([city('a', 0, 0)], blocked)).toEqual([]);
+    expect(placeCityLabels([city('b', 500, 500)], blocked)).toHaveLength(1);
+  });
+
+  it('bigger cities win; crowded smaller ones wait for more zoom', () => {
+    // Three cities on top of each other: the first two take right and left, the third waits.
+    const crowd = [city('gross', 0, 0, 'Großstadt'), city('mittel', 1, 0), city('klein', 2, 0)];
+    expect(placeCityLabels(crowd, []).map((label) => label.key)).toEqual(['gross', 'mittel']);
+    // Zoomed in, the same cities are further apart on the screen: all names fit.
+    const zoomed = [city('gross', 0, 0, 'Großstadt'), city('mittel', 0, 60), city('klein', 0, 120)];
+    expect(placeCityLabels(zoomed, []).map((label) => label.key)).toEqual([
+      'gross',
+      'mittel',
+      'klein',
     ]);
   });
 });

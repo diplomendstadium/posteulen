@@ -16,6 +16,9 @@ export interface Profile {
   readonly nameChangedYear: number | null;
   /** First day (UTC) on which the home may change again (SPEC 7.3). */
   readonly homeChangeFrom: string;
+  readonly homeChangesLeft: number;
+  readonly letterRetentionDays: number;
+  readonly lettersPrint: boolean;
 }
 
 export const account = $state<{
@@ -248,6 +251,14 @@ export async function changeName(name: string): Promise<void> {
 
 export async function changeHome(home: { lat: number; lon: number }): Promise<void> {
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/home', { home });
+  account.profile = profile;
+}
+
+export async function changeLetterSettings(settings: {
+  retentionDays: number;
+  print: boolean;
+}): Promise<void> {
+  const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/letters', settings);
   account.profile = profile;
 }
 

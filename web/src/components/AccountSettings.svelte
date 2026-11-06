@@ -24,8 +24,7 @@
   const profile = $derived(account.profile);
   const year = new Date().getUTCFullYear();
   const nameBlocked = $derived((profile?.nameChangedYear ?? 0) >= year);
-  const today = new Date().toISOString().slice(0, 10);
-  const homeBlocked = $derived((profile?.homeChangeFrom ?? '') > today);
+  const homeBlocked = $derived((profile?.homeChangesLeft ?? 0) <= 0);
   const homeFrom = $derived(
     profile
       ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'long' }).format(
@@ -139,21 +138,22 @@
       >
     </p>
   {:else}
+    <p>{fill(de.settings.homeLeft, { count: profile?.homeChangesLeft ?? 0 })}</p>
     <MapView onpick={(position) => void pick(position)}>
       {#snippet markers(toSvg, scale)}
         {#if profile}
           {@const now = toSvg(profile.home.lat, profile.home.lon)}
           <rect
             class="current"
-            x={now.x - 14 * scale}
-            y={now.y - 14 * scale}
-            width={28 * scale}
-            height={28 * scale}
+            x={now.x - 9 * scale}
+            y={now.y - 9 * scale}
+            width={18 * scale}
+            height={18 * scale}
           />
         {/if}
         {#if home}
           {@const p = toSvg(home.lat, home.lon)}
-          <circle class="pin" cx={p.x} cy={p.y} r={16 * scale} stroke-width={5 * scale} />
+          <circle class="pin" cx={p.x} cy={p.y} r={10 * scale} stroke-width={3 * scale} />
         {/if}
       {/snippet}
     </MapView>

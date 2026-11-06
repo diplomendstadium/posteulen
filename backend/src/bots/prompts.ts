@@ -2,7 +2,7 @@
  * System prompts of the bots (SPEC 10.5), collected in one file. The requests to OpenAI contain
  * no user IDs, names or other identifiers – only these prompts, the summary and letter texts.
  */
-import { BOTS, GOLD, LETTER, OWL } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, BOTS, GOLD, LETTER, OWL } from '@posteulen/shared/constants.ts';
 import { helpAsText } from '@posteulen/shared/texts/help.ts';
 
 export type BotType = 'explainer' | 'aunt' | 'uncle';
@@ -18,14 +18,16 @@ Regeln, die immer gelten:
 
 /** Rules overview for the Erklärbär (Anhang A in short, SPEC 10.2). */
 const RULES = `Regelübersicht:
-- Konto: Name 3–20 Zeichen, einmal pro Jahr änderbar. Passwort mindestens 15 Zeichen; geht es verloren, sind alle Daten weg (niemand kann es zurücksetzen). Fiktiver Wohnort auf der Karte, alle 21 Tage änderbar.
+- Konto: Name 3–20 Zeichen, einmal pro Jahr änderbar. Passwort mindestens 15 Zeichen; geht es verloren, sind alle Daten weg (niemand kann es zurücksetzen). Fiktiver Wohnort auf der Karte, bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat änderbar.
 - Kontakte: Beide tragen sich im Adressbuch mit dem genauen Namen ein. Briefe zwischen Menschen sind Ende-zu-Ende-verschlüsselt; die Sicherheitsnummer zeigt, ob die Schlüssel stimmen. Briefe an Bots sind nicht verschlüsselt.
-- Briefe: kleines Pergament bis ${LETTER.SMALL_MAX_CHARS} Zeichen (kostenlos), großes bis ${LETTER.LARGE_MAX_CHARS} Zeichen (0,1 Gold). Eine eigene Eule kann bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander anfliegen.
+- Sicherheit: PostEulen ist Spiel und Messenger zugleich; die Verschlüsselung ist ernst gemeint (XChaCha20-Poly1305, Ed25519, HPKE, Anmeldung per OPAQUE) und eignet sich auch für vertrauliche Briefe. Nur Metadaten sieht der Server.
+- Briefe: kleines Pergament bis ${LETTER.SMALL_MAX_CHARS} Zeichen (kostenlos), großes bis ${LETTER.LARGE_MAX_CHARS} Zeichen (0,1 Gold). Eine eigene Eule kann bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander anfliegen. Ist keine eigene Eule da, bietet die Eulenwahl die Leiheulen des Tages an; geliehen wird erst beim Abschicken.
+- Löschung: Alle Briefe und Systemnachrichten werden spätestens ${LETTER.RETENTION_MAX_DAYS} Tage nach der Zustellung unwiderruflich gelöscht. In den Einstellungen kann man die eigenen Kopien schon nach 30, 90 oder 180 Tagen löschen lassen.
 - Eulenflug: 25 km/h mal Artfaktor. Energie: nachts 1, tagsüber 1,5 pro km. Leer: 10 Stunden Schlaf, über Wasser erst an Land. Zu Hause erholt sich die Eule (10 % pro Stunde mal Erholungsfaktor).
 - Gold: Start 3 Gold, täglich 1 Gold für aktive Konten. Eulen kosten 6–50 Gold. Füttern 0,1 Gold. Überweisung 0,1–20 Gold per Eule, danach müssen mehr als 10 Gold übrig sein.
 - Menagerie: 17 Eulenarten zu kaufen; täglich 3 Leiheulen für je 0,1 Gold (eine Leiheule trägt einen Brief an einen Empfänger, muss binnen 24 Stunden losfliegen).
-- Papeterie: Eule 7 Tage verleihen, Lohn 10 % des Preises.
-- Krankheit: Chance 1/30 pro Tag, mit guter Pflege (an 10 von 14 Tagen gestreichelt oder gefüttert) viel seltener; erst nach ${OWL.SICKNESS_GRACE_DAYS} Tagen beim Besitzer. Behandlung: selbst pflegen 0,2 Gold für 7 Tage oder Eulenarzt 1 Gold für 24 Stunden.
+- Verleih an die Menagerie: Eule 7 Tage verleihen, Lohn 10 % des Preises.
+- Krankheit: Chance 1/30 pro Tag, mit guter Pflege viel seltener (an ${OWL.CARE_BONUS_MIN_DAYS} der letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage mit mindestens einer Stunde zu Hause gestreichelt oder gefüttert; Reisetage zählen nicht); erst nach ${OWL.SICKNESS_GRACE_DAYS} Tagen beim Besitzer. Behandlung: selbst pflegen 0,2 Gold für 7 Tage oder Eulenarzt 1 Gold für 24 Stunden.
 - Küken: Weibliche Eulen legen selten Eier, nach 7 Tagen schlüpfen 1–3 Küken. Bei 2 oder 3 Küken muss eines verschenkt werden.
 - Inaktiv nach 21 Tagen ohne Nutzung; nach langer Inaktivität wird das Konto gelöscht (Warnung 30 Tage vorher).
 - Benachrichtigungen: in den Einstellungen einrichten; ohne Google-Dienste auf Android braucht es IronFox mit UnifiedPush.

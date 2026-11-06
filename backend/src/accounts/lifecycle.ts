@@ -4,6 +4,8 @@
  * daily clean-up.
  */
 import { ACCOUNT, OPERATIONS, TIME } from '@posteulen/shared/constants.ts';
+import { pruneCareHistory } from '../owls/care.ts';
+import { purgeOldLetters } from '../letters/retention.ts';
 import type { Context } from '../context.ts';
 import { hmac, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -168,6 +170,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   );
   // Unconfirmed notifications are kept for "Neuigkeiten", but not forever.
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
+  pruneCareHistory(ctx, at);
+  purgeOldLetters(ctx, at);
 }
 
 export function registerAccountHandlers(ctx: Context): void {

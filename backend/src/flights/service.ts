@@ -18,6 +18,7 @@ import type { Point } from '@posteulen/shared/game/geo.ts';
 import { speciesById } from '@posteulen/shared/game/owls.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
 import { isLand } from '@posteulen/shared/map/landmask.ts';
+import { backHome } from '../owls/care.ts';
 import type { Context } from '../context.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
@@ -304,6 +305,7 @@ function arriveHome(
       flight.holder_id,
       flight.owl_id,
     );
+    backHome(ctx, flight.owl_id, at);
   }
   if (flight.gold_state === 'returning') {
     credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
@@ -408,6 +410,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       utcDay(at),
       flight.owl_id,
     );
+    backHome(ctx, flight.owl_id, at);
     const chick = isChickFlight(flight);
     if (chick) {
       // At the recipient a chick grows up 7 days after its arrival (9.9).

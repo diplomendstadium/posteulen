@@ -36,7 +36,21 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'PostEulen ist ein Messenger, der so tut, als würdest du Briefe per Eule verschicken. Deine Briefe an andere Menschen sind Ende-zu-Ende-verschlüsselt: Nur du und dein Gegenüber können sie lesen – auch der Betreiber des Servers nicht.',
       'Statt sofort anzukommen, fliegt eine Eule los. Wie lange sie braucht, hängt von der Entfernung, ihrer Art, ihrer Energie und von Tag und Nacht ab. Du kaufst, leihst und pflegst Eulen, verdienst täglich Gold und kannst Freunden Gold oder sogar Eulen schicken.',
-      'PostEulen läuft im Browser und lässt sich wie eine App installieren. Es ist ein Spiel mit echter Verschlüsselung: Zeit und Geduld gehören dazu.',
+      'PostEulen läuft im Browser und lässt sich wie eine App installieren. Zeit und Geduld gehören dazu.',
+    ],
+  },
+  {
+    id: 'sicher',
+    title: 'Spiel und sicherer Briefkasten zugleich',
+    blocks: [
+      'PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Eulen, das Gold und die Flugzeiten sind Spiel – die Verschlüsselung ist es nicht. Unter der Pergamentoberfläche arbeitet harte, seriöse Kryptografie auf dem Stand der Zeit. Deshalb eignet sich PostEulen durchaus auch als sicherer Kommunikationsweg, wenn es nicht auf Minuten ankommt.',
+      [
+        'Briefe zwischen Menschen werden auf deinem Gerät mit XChaCha20-Poly1305 verschlüsselt und mit Ed25519 unterschrieben. Den Schlüssel für jeden Brief bekommen nur Absender und Empfänger, verpackt nach dem Standard HPKE (RFC 9180).',
+        'Dein Passwort verlässt nie dein Gerät. Die Anmeldung läuft über OPAQUE (RFC 9807): Der Server kann dein Passwort weder sehen noch aus seiner Datenbank erraten.',
+        'Mit der Sicherheitsnummer prüft ihr, dass wirklich niemand dazwischensitzt.',
+        'Verwendet werden nur bewährte, offen geprüfte Bibliotheken (libsodium, hpke-js, OPAQUE von Serenity) – keine selbst gebastelte Kryptografie. Der Quelltext ist offen.',
+      ],
+      'Was PostEulen nicht verbergen kann: wer wem wann schreibt (Metadaten). Und wer dein entsperrtes Gerät in der Hand hat, kann deine Briefe lesen. Briefe an Bots und Systemnachrichten sind nicht verschlüsselt.',
     ],
   },
   {
@@ -55,7 +69,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Die App im Überblick',
     blocks: [
       'Nach der Anmeldung siehst du die Übersicht mit Kacheln für alle Bereiche: Briefwechsel, Eulen, Finanzen, Menagerie, Adressbuch, Karte, Einstellungen und Hilfe. Auf dem Handy erreichst du die wichtigsten Bereiche auch über die Leiste am unteren Rand.',
-      'Oben siehst du deinen Goldstand. Sind Benachrichtigungen nicht bestätigt, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt.',
+      'Oben in der braunen Leiste siehst du deinen Goldstand. Ist neue Post da, hüpft dort „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht bestätigt, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
     ],
   },
@@ -96,6 +110,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         `Großes Pergament: bis ${LETTER.LARGE_MAX_CHARS} Zeichen, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} Aufpreis pro Versand.`,
       ],
       `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}, die Reihenfolge legst du fest), Eule wählen und absenden. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
+      `Keine Eule zu Hause? Dann bietet dir die Eulenwahl direkt die Leiheulen des Tages an. Geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
       'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Leiheulen tragen nur einen Brief an einen Empfänger; Bots sind nie bei mehreren Empfängern dabei.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst.',
       [
@@ -105,7 +120,17 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„nicht zugestellt – die Eule ist umgekehrt“: zum Beispiel, weil die Verbindung gekappt wurde.',
       ],
       'Kommt eine Eule bei dir an, siehst du beim ersten Anzeigen ihr Ankunftsbild. Es schließt sich nach ein paar Sekunden von selbst, per Tippen oder mit der Escape-Taste.',
+      'Im Chat erscheinen Briefe als Schriftrollen, deine eigenen und die deines Gegenübers in zwei verschiedenen Handschriften. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
       'Chat löschen entfernt deine Kopien aller Briefe dieses Chats endgültig. Dein Gegenüber behält seine.',
+    ],
+  },
+  {
+    id: 'aufbewahrung',
+    title: 'Alte Briefe werden gelöscht',
+    blocks: [
+      `Wichtig: Alle Briefe und Systemnachrichten werden spätestens ${LETTER.RETENTION_MAX_DAYS} Tage – also ein Jahr – nach ihrer Zustellung automatisch und unwiderruflich gelöscht. Das gilt für alle Konten und auch für die Briefe der Bots. Wiederherstellen kann sie niemand.`,
+      'In den Einstellungen unter „Briefe“ kannst du deine eigenen Kopien schon nach 30, 90 oder 180 Tagen löschen lassen – geschriebene und erhaltene. Wählst du eine kürzere Frist, wird alles, was älter ist, sofort gelöscht. Dein Gegenüber behält seine Kopie, bis seine eigene Frist abläuft.',
+      'Briefe, die noch unterwegs sind, werden nie gelöscht. Möchtest du etwas aufheben, schreib es dir außerhalb von PostEulen auf.',
     ],
   },
   {
@@ -119,7 +144,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Deine Eulen',
     blocks: [
-      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie und Zustand. Ist eine Eule nicht da, steht dabei, warum und bis wann – etwa „Fliegt gerade einen Brief zu Peter“ oder „In der Papeterie bis Fr., 14:00“.',
+      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie und Zustand. Ist eine Eule nicht da, steht dabei, warum und bis wann – etwa „Fliegt gerade einen Brief zu Peter“ oder „In der Menagerie bis Fr., 14:00“.',
       'Jede Art hat einen Preis, eine maximale Energie, einen Geschwindigkeitsfaktor und einen Erholungsfaktor. Eulen werden nicht alt und sterben nicht.',
       [
         `Umbenennen: einmal pro Kalenderjahr je Eule (${OWL.NAME_MIN_CHARS}–${OWL.NAME_MAX_CHARS} Zeichen). Die erste Benennung nach Kauf oder Schlupf zählt nicht.`,
@@ -127,7 +152,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'In die Freiheit entlassen: die Eule ist endgültig weg.',
         `Höchstens ${OWL.MAX_OWN_OWLS} eigene Eulen (Küken zählen mit, Leiheulen nicht). Geschenke und Küken dürfen darüber hinausgehen, dann kannst du nur nichts mehr kaufen.`,
       ],
-      'Eine Eule kann nur losfliegen, wenn sie zu Hause, gesund und erwachsen ist und weder brütet noch in der Papeterie ist.',
+      'Eine Eule kann nur losfliegen, wenn sie zu Hause, gesund und erwachsen ist und weder brütet noch in der Menagerie ist.',
     ],
   },
   {
@@ -137,7 +162,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Zu Hause erholt sich eine Eule: pro Stunde ${percent(OWL.REGEN_SHARE_PER_HOUR)} ihrer maximalen Energie mal Erholungsfaktor. Mit Faktor 2 ist sie also in 5 Stunden wieder voll.`,
       `Füttern kostet ${gold(GOLD.FEED_PRICE)}, geht einmal pro Tag je Eule und gibt sofort ${percent(OWL.FEED_SHARE)} Energie mal Erholungsfaktor.`,
       'Streicheln ist kostenlos und so oft möglich, wie du magst. Es zählt aber nur einmal pro Tag für die Pflege.',
-      `Pflegebonus: Wurde eine Eule in den letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tagen an mindestens ${OWL.CARE_BONUS_MIN_DAYS} Tagen gestreichelt oder gefüttert, wird sie viel seltener krank.`,
+      `Pflegebonus: Gezählt werden die letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage, an denen die Eule mindestens ${OWL.CARE_BONUS_MIN_HOME_HOURS} Stunde zu Hause war. Wurde sie an mindestens ${OWL.CARE_BONUS_MIN_DAYS} davon gestreichelt oder gefüttert, wird sie viel seltener krank. Ganze Reisetage zählen also nicht – eine fleißige Brief-Eule verliert ihren Bonus nicht, nur weil sie unterwegs war.`,
     ],
   },
   {
@@ -156,6 +181,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Die Karte',
     blocks: [
       'Die Karte zeigt Westeuropa mit deinem Wohnort, den Wohnorten deiner Kontakte und Bots und deinen Eulen, die gerade für dich unterwegs sind. Eulen anderer Leute siehst du nie – auch nicht, wenn sie zu dir fliegen.',
+      'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch alle deine Orte und Eulen zu sehen sind. Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       'Die dunkle Fläche ist die Nacht. Positionen und Nachtgrenze rechnet dein Gerät alle 10 Minuten neu aus, ohne den Server zu fragen.',
       'Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus).',
     ],
@@ -175,7 +201,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Menagerie: Eulen kaufen und leihen',
     blocks: [
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen. Ihr Geschlecht ist zufällig, ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule. Du kannst höchstens ${MENAGERIE.MAX_CONCURRENT_LOANS} Leiheulen gleichzeitig haben, eine je Art.`,
+      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Du kannst höchstens ${MENAGERIE.MAX_CONCURRENT_LOANS} Leiheulen gleichzeitig haben, eine je Art. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist.`,
       `Eine Leiheule trägt genau einen Brief oder Gold an einen Empfänger und ist danach weg. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich füttern und streicheln, aber nicht umbenennen oder verschenken.`,
       `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (Waldkauz, 6 Gold) reicht es nach ein paar Tagen – oder sobald das Geschenk der Tante da ist.`,
     ],
@@ -192,17 +218,17 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     ],
   },
   {
-    id: 'papeterie',
-    title: 'Die Papeterie',
+    id: 'verleih',
+    title: 'Eulen an die Menagerie verleihen',
     blocks: [
-      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.PAPETERIE_DAYS} Tage an die „Lokale Papeterie und Menagerie“ verleihen. Danach bekommst du ${percent(GOLD.PAPETERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
+      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen. Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
     ],
   },
   {
     id: 'krankheit',
     title: 'Krankheiten',
     blocks: [
-      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken und Bot-Eulen werden nie krank, Eulen inaktiver Konten auch nicht.`,
+      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus (siehe Energie, Füttern und Streicheln) deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken und Bot-Eulen werden nie krank, Eulen inaktiver Konten auch nicht.`,
       'Eine kranke Eule schaut grummelig und kann nicht fliegen, bis sie geheilt ist. Streicheln und füttern geht weiter.',
       [
         `Selbst gesund pflegen: ${gold(GOLD.SELF_CARE_PRICE)} für spezielles Futter, nach ${OWL.SELF_CARE_DAYS} Tagen ist sie gesund.`,
@@ -267,8 +293,9 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       [
         `Nutzername ändern: einmal pro Kalenderjahr. Deine Kontakte erfahren es per Systemnachricht; der alte Name ist ${ACCOUNT.NAME_LOCK_DAYS} Tage gesperrt.`,
-        `Wohnort ändern: frühestens ${ACCOUNT.HOME_CHANGE_MIN_DAYS} Tage nach der Registrierung oder dem letzten Umzug. Eulen unterwegs passen ihren Kurs an.`,
+        `Wohnort ändern: bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat, egal wie kurz hintereinander. Eulen unterwegs passen ihren Kurs an.`,
         'Passwort ändern: altes Passwort einmal, neues zweimal. Alle Briefe bleiben lesbar.',
+        'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
         'Abmelden: entfernt alle Schlüssel von diesem Gerät.',
@@ -335,6 +362,15 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
     question: 'Kann der Betreiber meine Briefe lesen?',
     answer:
       'Briefe zwischen Menschen nicht – sie sind Ende-zu-Ende-verschlüsselt. Briefe an Bots und Systemnachrichten schon. Der Server sieht außerdem, wer wem wann schreibt.',
+  },
+  {
+    question: 'Wo sind meine alten Briefe hin?',
+    answer: `Briefe und Systemnachrichten werden spätestens ein Jahr nach der Zustellung automatisch gelöscht – oder früher, wenn du das in den Einstellungen so eingestellt hast. Wiederherstellen lassen sie sich nicht.`,
+  },
+  {
+    question: 'Ist PostEulen nur ein Spiel, oder kann ich damit wirklich vertraulich schreiben?',
+    answer:
+      'Beides. Die Eulen sind Spiel, die Verschlüsselung ist ernst gemeint und auf dem Stand der Technik. Briefe zwischen Menschen kann außer euch niemand lesen, auch der Betreiber nicht. Vergleicht die Sicherheitsnummer, dann seid ihr auf der sicheren Seite.',
   },
   {
     question: 'Kann ich einen Brief zurückholen oder bearbeiten?',

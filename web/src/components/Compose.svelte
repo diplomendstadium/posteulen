@@ -67,7 +67,7 @@
     busy = true;
     try {
       prepared = await previewFlights(recipients);
-      owlId = prepared[0]?.id ?? null;
+      owlId = prepared.find((choice) => !choice.offer)?.id ?? null;
     } catch (caught) {
       error = errorMessage(caught);
     } finally {

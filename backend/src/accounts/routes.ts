@@ -2,15 +2,21 @@
 import type { FastifyInstance } from 'fastify';
 import { isLand, roundHome } from '@posteulen/shared/map/landmask.ts';
 import { checkUserName } from '@posteulen/shared/names.ts';
-import { AccountDelete, HomeChange, NameChange } from '@posteulen/shared/schemas/auth.ts';
+import {
+  AccountDelete,
+  HomeChange,
+  NameChange,
+  LetterSettings,
+} from '@posteulen/shared/schemas/auth.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
 import { clearSessionCookie, cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
-import { nameLocked, profileOf } from '../auth/user-routes.ts';
+import { nameLocked, profileOf, utcMonth } from '../auth/user-routes.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { rerouteForMove } from '../flights/service.ts';
 import { contactIdsOf, lockName, requestDeletion } from './lifecycle.ts';
+import { purgeOldLetters } from '../letters/retention.ts';
 
 export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void {
   const spec = cookieSpec(ctx.config.userOrigin, 'pe_session');
@@ -64,7 +70,7 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     return { profile: profileOf(ctx, me) };
   });
 
-  /** Every 21 days, on land, rounded to 0.01°; flights adjust their course (7.3, 9.4.6). */
+  /** Three times per calendar month, on land, rounded to 0.01°; flights adjust (7.3, 9.4.6). */
   app.patch('/api/account/home', { preHandler: authenticated }, async (request) => {
     const body = parse(HomeChange, request.body);
     const me = userOf(request).id;
@@ -73,13 +79,18 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     if (!isLand(ctx.landMask, latE2 / 100, lonE2 / 100)) throw new HttpError(400, 'home_invalid');
     const after: (() => void)[] = [];
     ctx.db.transaction(() => {
-      if (profileOf(ctx, me).homeChangeFrom > utcDay(now))
-        throw new HttpError(400, 'home_change_blocked');
+      if (profileOf(ctx, me).homeChangesLeft <= 0) throw new HttpError(400, 'home_change_blocked');
+      const month = utcMonth(now);
       ctx.db.run(
-        'UPDATE users SET home_lat = ?, home_lon = ?, home_changed_on = ? WHERE id = ?',
+        `UPDATE users SET home_lat = ?, home_lon = ?, home_changed_on = ?,
+                          home_moves_count = CASE WHEN home_moves_month = ? THEN home_moves_count + 1 ELSE 1 END,
+                          home_moves_month = ?
+          WHERE id = ?`,
         latE2,
         lonE2,
         utcDay(now),
+        month,
+        month,
         me,
       );
       rerouteForMove(ctx, me, now, (work) => after.push(work));
@@ -87,6 +98,28 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     for (const work of after) work();
     for (const other of contactIdsOf(ctx, me)) ctx.hub.notify(other, 'map');
     ctx.hub.notify(me, 'profile', 'map');
+    return { profile: profileOf(ctx, me) };
+  });
+
+  /**
+   * Letter settings (v0.2): how long one's own letters and system messages are kept (30, 90,
+   * 180 or 365 days; a shorter period deletes at once what is already older) and whether
+   * letters are shown in handwriting.
+   */
+  app.patch('/api/account/letters', { preHandler: authenticated }, async (request) => {
+    const body = parse(LetterSettings, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    ctx.db.transaction(() => {
+      ctx.db.run(
+        'UPDATE users SET letter_retention_days = ?, letters_print = ? WHERE id = ?',
+        body.retentionDays,
+        body.print ? 1 : 0,
+        me,
+      );
+      purgeOldLetters(ctx, now, me);
+    });
+    ctx.hub.notify(me, 'profile', 'chats');
     return { profile: profileOf(ctx, me) };
   });
 

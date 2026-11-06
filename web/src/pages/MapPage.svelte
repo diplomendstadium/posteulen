@@ -7,7 +7,7 @@
   import { de, fill } from '@posteulen/shared/texts/de.ts';
   import { MAP, TIME } from '@posteulen/shared/constants.ts';
   import { positionAt } from '@posteulen/shared/game/flight.ts';
-  import { placeLabels, type LabelRequest } from '@posteulen/shared/map/labels.ts';
+  import { occupiedBoxes, placeLabels, type LabelRequest } from '@posteulen/shared/map/labels.ts';
   import MapView from '../components/MapView.svelte';
   import { mapInfo, type MapFlight, type MapInfo } from '../lib/owls.ts';
   import { dateTime, time } from '../lib/format.ts';
@@ -41,6 +41,20 @@
 
   type ToSvg = (lat: number, lon: number) => { x: number; y: number };
 
+  /** Sizes in screen pixels (v0.2: readable on phones); `scale` converts to SVG units. */
+  const SIZE = { home: 10, contact: 9, bot: 11, owl: 14, font: 16, owlFont: 15, glyph: 19 };
+
+  /** Everything the user knows: the map opens just wide enough to show it all (v0.2). */
+  const fit = $derived(
+    info
+      ? [
+          info.home,
+          ...info.contacts.map((contact) => ({ lat: contact.lat, lon: contact.lon })),
+          ...owls.flatMap(({ at }) => (at ? [at.position] : [])),
+        ]
+      : null,
+  );
+
   /** Marker positions and non-overlapping label positions for the current zoom. */
   function layout(map: MapInfo, toSvg: ToSvg, scale: number) {
     const home = toSvg(map.home.lat, map.home.lon);
@@ -57,30 +71,38 @@
         key: 'home',
         x: home.x,
         y: home.y,
-        radius: 18 * scale,
+        radius: SIZE.home * scale,
         text: de.map.legendHome,
-        fontSize: 46 * scale,
+        fontSize: SIZE.font * scale,
       },
       ...flying.map(({ flight, p }) => ({
         key: `owl-${flight.id}`,
         x: p.x,
         y: p.y,
-        radius: 24 * scale,
+        radius: SIZE.owl * scale,
         text: flight.owl.name,
-        fontSize: 42 * scale,
+        fontSize: SIZE.owlFont * scale,
       })),
       ...contacts.map(({ contact, p, text }) => ({
         key: `contact-${contact.id}`,
         x: p.x,
         y: p.y,
-        radius: 18 * scale,
+        radius: SIZE.bot * scale,
         text,
-        fontSize: 46 * scale,
+        fontSize: SIZE.font * scale,
       })),
     ];
-    const labels = new Map(placeLabels(requests).map((label) => [label.key, label]));
+    const placed = placeLabels(requests);
+    const labels = new Map(placed.map((label) => [label.key, label]));
     const at = (key: string) => labels.get(key) ?? { x: 0, y: 0 };
-    return { home, homeLabel: at('home'), flying, contacts, at };
+    return {
+      home,
+      homeLabel: at('home'),
+      flying,
+      contacts,
+      at,
+      occupied: occupiedBoxes(requests, placed),
+    };
   }
 
   const purposeText = (flight: MapFlight): string =>
@@ -108,7 +130,11 @@
   }
 </script>
 
-<MapView nightAt={now}>
+<MapView
+  nightAt={now}
+  {fit}
+  occupied={(toSvg, scale) => (info ? layout(info, toSvg, scale).occupied : [])}
+>
   {#snippet markers(toSvg, scale)}
     {#if info}
       {@const view = layout(info, toSvg, scale)}
@@ -118,33 +144,38 @@
           {#if contact.bot}
             <!-- Bots: a diamond, distinguishable from people without colour (SPEC 14). -->
             <polygon
-              points={`${p.x},${p.y - 20 * scale} ${p.x + 20 * scale},${p.y} ${p.x},${p.y + 20 * scale} ${p.x - 20 * scale},${p.y}`}
-              stroke-width={4 * scale}
+              points={`${p.x},${p.y - SIZE.bot * scale} ${p.x + SIZE.bot * scale},${p.y} ${p.x},${p.y + SIZE.bot * scale} ${p.x - SIZE.bot * scale},${p.y}`}
+              stroke-width={2.5 * scale}
             />
           {:else}
-            <circle cx={p.x} cy={p.y} r={16 * scale} stroke-width={4 * scale} />
+            <circle cx={p.x} cy={p.y} r={SIZE.contact * scale} stroke-width={2.5 * scale} />
           {/if}
-          <text x={label.x} y={label.y} font-size={46 * scale}>{text}</text>
+          <text x={label.x} y={label.y} font-size={SIZE.font * scale}>{text}</text>
         </g>
       {/each}
       <g class="home">
         <rect
-          x={view.home.x - 18 * scale}
-          y={view.home.y - 18 * scale}
-          width={36 * scale}
-          height={36 * scale}
-          stroke-width={3 * scale}
+          x={view.home.x - SIZE.home * scale}
+          y={view.home.y - SIZE.home * scale}
+          width={2 * SIZE.home * scale}
+          height={2 * SIZE.home * scale}
+          stroke-width={2 * scale}
         />
-        <text x={view.homeLabel.x} y={view.homeLabel.y} font-size={46 * scale}
+        <text x={view.homeLabel.x} y={view.homeLabel.y} font-size={SIZE.font * scale}
           >{de.map.legendHome}</text
         >
       </g>
       {#each view.flying as { flight, p } (flight.id)}
         {@const label = view.at(`owl-${flight.id}`)}
         <g class="owl" data-testid="map-owl">
-          <circle cx={p.x} cy={p.y} r={24 * scale} stroke-width={4 * scale} />
-          <text class="owl-glyph" x={p.x} y={p.y + 13 * scale} font-size={36 * scale}>🦉</text>
-          <text x={label.x} y={label.y} font-size={42 * scale}>{flight.owl.name}</text>
+          <circle cx={p.x} cy={p.y} r={SIZE.owl * scale} stroke-width={2.5 * scale} />
+          <text
+            class="owl-glyph"
+            x={p.x}
+            y={p.y + 0.36 * SIZE.glyph * scale}
+            font-size={SIZE.glyph * scale}>🦉</text
+          >
+          <text x={label.x} y={label.y} font-size={SIZE.owlFont * scale}>{flight.owl.name}</text>
         </g>
       {/each}
     {/if}

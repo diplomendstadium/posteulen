@@ -15,13 +15,11 @@
     intro,
     sections,
     faq = [],
-    draft = false,
   }: {
     title: string;
     intro: string;
     sections: readonly HelpSection[];
     faq?: readonly HelpQuestion[];
-    draft?: boolean;
   } = $props();
 
   const showContents = $derived(sections.length > 4);
@@ -33,7 +31,7 @@
 <div class="page">
   <p><Link href="/" class="back">← {de.app.back}</Link></p>
   <h1 id="top" tabindex="-1">
-    {title}{#if draft}&nbsp;<span class="draft">({de.pages.privacyDraft})</span>{/if}
+    {title}
   </h1>
   <p class="intro">{intro}</p>
 
@@ -103,12 +101,6 @@
   h1:focus,
   h2:focus {
     outline: none;
-  }
-
-  .draft {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    color: var(--ink-soft);
   }
 
   .intro {

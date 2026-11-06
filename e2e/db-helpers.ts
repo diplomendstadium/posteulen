@@ -37,10 +37,10 @@ export function makeSick(name: string): void {
   });
 }
 
-/** Lets the home be changed today (normally every 21 days, SPEC 7.3). */
+/** Lets the home be changed again this month (normally three times, SPEC 7.3). */
 export function allowHomeChange(name: string): void {
   withDb((db) => {
-    db.prepare("UPDATE users SET home_changed_on = '2000-01-01' WHERE name_display = ?").run(name);
+    db.prepare('UPDATE users SET home_moves_count = 0 WHERE name_display = ?').run(name);
   });
 }
 

@@ -24,7 +24,7 @@ restore() {
   local release=$1 snapshot=$2
   systemctl stop posteulen.service || true
   if [[ -n $snapshot ]]; then
-    [[ -f $snapshot ]] || die "Momentaufnahme $snapshot fehlt – automatischer Rückfall unmöglich." "Ein Backup nach readme.txt (Abschnitt Wiederherstellung) einspielen."
+    [[ -f $snapshot ]] || die "Momentaufnahme $snapshot fehlt – automatischer Rückfall unmöglich." "Ein Backup nach README.md (Abschnitt Wiederherstellung) einspielen."
     rm -f "$PE_DATA/posteulen.sqlite-wal" "$PE_DATA/posteulen.sqlite-shm"
     install -m 0600 -o "$PE_USER" -g "$PE_USER" "$snapshot" "$PE_DATA/posteulen.sqlite"
   fi
@@ -38,7 +38,7 @@ if [[ ${1:-} == --rollback ]]; then
   previous=$(cat "$PE_STATE/previous-release" 2>/dev/null || true)
   snapshot=$(cat "$PE_STATE/previous-snapshot" 2>/dev/null || true)
   [[ -n $previous && -d $previous ]] || die "Kein vorheriges Release vorhanden." "Rückfall ist nur nach einem Update möglich."
-  [[ -n $snapshot && -f $snapshot ]] || die "Die Datenbank-Momentaufnahme vor dem letzten Update fehlt (älter als 7 Tage?)." "Ein Backup nach readme.txt einspielen."
+  [[ -n $snapshot && -f $snapshot ]] || die "Die Datenbank-Momentaufnahme vor dem letzten Update fehlt (älter als 7 Tage?)." "Ein Backup nach README.md einspielen."
   warn "Zurück zu $(release_version "$previous"). Alles, was seit dem letzten Update entstanden ist (Briefe, Konten, Gold …), geht verloren."
   ask_yes_no "Wirklich zurückkehren?" nein "" || die "Abgebrochen." "Nichts wurde verändert."
   current=$(readlink -f "$PE_CURRENT")
@@ -67,7 +67,7 @@ rollback_on_error() {
   if restore "$old_release" "$snapshot"; then
     die "Das Update auf $new_version ist fehlgeschlagen. Version $old_version läuft wieder mit dem Datenstand von vor dem Update." "„journalctl -u posteulen -n 100“ ansehen und den Fehler melden."
   fi
-  die "Update UND automatischer Rückfall sind fehlgeschlagen." "readme.txt, Abschnitt „Wenn ein Update schiefgeht“."
+  die "Update UND automatischer Rückfall sind fehlgeschlagen." "README.md, Abschnitt „Wenn ein Update schiefgeht“."
 }
 trap rollback_on_error ERR
 

@@ -138,7 +138,7 @@
           {#snippet markers(toSvg, scale)}
             {#if home}
               {@const p = toSvg(home.lat, home.lon)}
-              <circle class="pin" cx={p.x} cy={p.y} r={14 * scale} stroke-width={5 * scale} />
+              <circle class="pin" cx={p.x} cy={p.y} r={10 * scale} stroke-width={3 * scale} />
             {/if}
           {/snippet}
         </MapView>

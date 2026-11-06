@@ -3,6 +3,7 @@
  * before anything reaches OPAQUE (DEPENDENCIES: opaque 1.1.0 leaks memory on malformed input).
  */
 import * as v from 'valibot';
+import { LETTER } from '../constants.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
 
 // Sizes for ristretto255 OPAQUE as produced by @serenity-kit/opaque (base64url, unpadded).
@@ -125,6 +126,15 @@ export const AccountDelete = v.strictObject({ token: Id });
 export const NameChange = v.strictObject({ name: v.pipe(v.string(), v.maxLength(100)) });
 
 export const HomeChange = v.strictObject({ home: Home });
+
+/**
+ * Letter settings (v0.2): own letters and system messages are deleted after `retentionDays`;
+ * `print` shows letters in the plain font instead of handwriting.
+ */
+export const LetterSettings = v.strictObject({
+  retentionDays: v.picklist(LETTER.RETENTION_CHOICES),
+  print: v.boolean(),
+});
 
 export const InactivityUpdate = v.strictObject({
   days: v.pipe(v.number(), v.integer(), v.minValue(60), v.maxValue(3650)),

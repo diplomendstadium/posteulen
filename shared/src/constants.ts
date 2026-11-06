@@ -26,8 +26,8 @@ export const GOLD = {
   TRANSFER_MAX: 200,
   /** Balance after a transfer must be strictly greater than this. */
   TRANSFER_MIN_REMAINING_EXCLUSIVE: 100,
-  /** Papeterie wage as a share of the species price. */
-  PAPETERIE_WAGE_SHARE: 0.1,
+  /** Menagerie wage as a share of the species price. */
+  MENAGERIE_WAGE_SHARE: 0.1,
   TRANSACTIONS_KEPT: 20,
 } as const;
 
@@ -38,6 +38,10 @@ export const LETTER = {
   LARGE_PADDED_BYTES: 16384,
   MAX_RECIPIENTS: 5,
   MAX_RECIPIENTS_LOAN_OWL: 1,
+  /** Every letter and system message is deleted at the latest this many days after delivery. */
+  RETENTION_MAX_DAYS: 365,
+  /** Shorter periods a user can choose for their own copies (settings, v0.2). */
+  RETENTION_CHOICES: [30, 90, 180, 365],
 } as const;
 
 export const FLIGHT = {
@@ -64,15 +68,19 @@ export const OWL = {
   MAX_OWN_OWLS: 50,
   NAME_MIN_CHARS: 2,
   NAME_MAX_CHARS: 20,
+  /** Care bonus (9.3): the last 14 days with at least one hour at home, 10 of them cared for. */
   CARE_BONUS_WINDOW_DAYS: 14,
   CARE_BONUS_MIN_DAYS: 10,
+  CARE_BONUS_MIN_HOME_HOURS: 1,
+  /** How far back the care bonus looks for such days; care days and absences are kept as long. */
+  CARE_BONUS_LOOKBACK_DAYS: 60,
   CARE_BONUS_FACTOR: 0.3,
   SICKNESS_PROBABILITY: 1 / 30,
   SICKNESS_HOUR_UTC: 3,
   SICKNESS_GRACE_DAYS: 28,
   SELF_CARE_DAYS: 7,
   VET_HOURS: 24,
-  PAPETERIE_DAYS: 7,
+  MENAGERIE_DAYS: 7,
   EGG_PROBABILITY: 1 / 100,
   BROODING_DAYS: 7,
   CHICKS_MIN: 1,
@@ -98,7 +106,8 @@ export const ACCOUNT = {
   PASSWORD_MIN_CHARS: 15,
   PASSWORD_MAX_CHARS: 256,
   NAME_LOCK_DAYS: 90,
-  HOME_CHANGE_MIN_DAYS: 21,
+  /** Moves per calendar month (UTC), however close together (7.3). */
+  HOME_CHANGES_PER_MONTH: 3,
   /** Coordinates are rounded to this many decimal places (0.01°). */
   HOME_DECIMALS: 2,
   CONTACT_REQUESTS_PER_DAY: 20,
@@ -153,6 +162,12 @@ export const MAP = {
   NORTH_LAT: 60.6,
   LAND_MASK_RESOLUTION_DEG: 0.02,
   CLIENT_REFRESH_MINUTES: 10,
+  /** Cities on the map (v0.2): from this population when zoomed in, … */
+  CITY_MIN_POPULATION: 200_000,
+  /** … only from this population when zoomed out. */
+  CITY_BIG_POPULATION: 1_000_000,
+  /** Zoom factor (full width / visible width) from which the smaller cities appear. */
+  CITY_SMALL_FROM_ZOOM: 2.5,
 } as const;
 
 export const OPERATIONS = {

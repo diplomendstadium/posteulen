@@ -1,5 +1,6 @@
 <script lang="ts">
   import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { REPOSITORY_URL, VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
@@ -89,6 +90,9 @@
     <Link href="/hilfe">{de.nav.help}</Link>
     <Link href="/datenschutz">{de.nav.privacy}</Link>
     <Link href="/impressum">{de.nav.imprint}</Link>
+    <a class="version" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
+      >v{VERSION}<span class="visually-hidden">{de.app.versionLink}</span></a
+    >
   </nav>
 </div>
 
@@ -150,6 +154,10 @@
     justify-content: center;
     gap: 1.5rem;
     margin-top: 2rem;
+  }
+
+  .version {
+    color: var(--ink-soft);
   }
 
   .footer-links :global(a) {

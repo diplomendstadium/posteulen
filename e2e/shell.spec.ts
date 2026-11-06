@@ -52,7 +52,13 @@ test.describe('App-Hülle', () => {
             'main a, main button, main input, main select, nav a',
           ),
         ]
-          .filter((el) => el.offsetParent !== null && el.getAttribute('type') !== 'checkbox')
+          // Checkboxes and radio buttons sit in labels: the whole label is the touch target.
+          .filter(
+            (el) =>
+              el.offsetParent !== null &&
+              el.getAttribute('type') !== 'checkbox' &&
+              el.getAttribute('type') !== 'radio',
+          )
           .map((el) => ({
             text: el.textContent?.trim() || el.id,
             rect: el.getBoundingClientRect(),

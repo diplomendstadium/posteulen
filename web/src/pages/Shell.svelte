@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
@@ -51,6 +52,11 @@
     route.path.startsWith('/app/briefe/') ? route.path.slice('/app/briefe/'.length) : null,
   );
   const newsTexts = de.news as Record<string, string>;
+  /** Unread letters and system messages: "Neue Post!" in the top bar (v0.2). */
+  const unread = $derived(
+    live.chats.reduce((sum, chat) => sum + chat.unread, 0) + live.systemUnread,
+  );
+  const newPostLetters = Array.from(de.app.newPost);
 
   // News are shown once on the overview and then removed (SPEC 8.3, 11.5).
   $effect(() => {
@@ -66,7 +72,25 @@
 
 <div class="shell">
   <header class="topbar">
-    <Link href="/app" class="brand">{de.app.name}</Link>
+    <p class="brand-line">
+      <Link href="/app" class="brand">{de.app.name}</Link>
+      {#if route.path === '/app'}<span class="version"
+          >{fill(de.app.version, { version: VERSION })}</span
+        >{/if}
+    </p>
+    {#if unread > 0}
+      <!-- Restarts with every new letter; runs about five seconds, then rests (WCAG 2.2.2). -->
+      {#key unread}
+        <Link href="/app/briefe" class="new-post">
+          <span class="new-post-text" aria-hidden="true"
+            >{#each newPostLetters as letter, index (index)}<span>{letter}</span>{/each}</span
+          >
+          <span class="visually-hidden"
+            >{de.app.newPost} {fill(de.app.newPostCount, { count: unread })}</span
+          >
+        </Link>
+      {/key}
+    {/if}
     <p class="gold">
       <span aria-hidden="true">⛀</span>
       <span>{de.units.gold(account.profile?.gold ?? 0)}</span>
@@ -158,7 +182,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
     padding: 0.5rem 1rem;
     background: var(--wood);
     color: var(--on-wood);
@@ -175,8 +199,84 @@
     align-items: center;
   }
 
+  .brand-line {
+    margin: 0;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  /* Small, top right of the word mark; not a link (v0.2). */
+  .version {
+    margin: 0.3rem 0 0 0.25rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    opacity: 0.85;
+  }
+
+  .topbar :global(.new-post) {
+    color: #ffe9a8;
+    font-weight: 700;
+    text-decoration: none;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .new-post-text span {
+    display: inline-block;
+    white-space: pre;
+    animation: hop 1.6s ease-in-out 3;
+  }
+
+  .new-post-text span:nth-child(2) {
+    animation-delay: 0.07s;
+  }
+  .new-post-text span:nth-child(3) {
+    animation-delay: 0.14s;
+  }
+  .new-post-text span:nth-child(4) {
+    animation-delay: 0.21s;
+  }
+  .new-post-text span:nth-child(5) {
+    animation-delay: 0.28s;
+  }
+  .new-post-text span:nth-child(6) {
+    animation-delay: 0.35s;
+  }
+  .new-post-text span:nth-child(7) {
+    animation-delay: 0.42s;
+  }
+  .new-post-text span:nth-child(8) {
+    animation-delay: 0.49s;
+  }
+  .new-post-text span:nth-child(9) {
+    animation-delay: 0.56s;
+  }
+  .new-post-text span:nth-child(10) {
+    animation-delay: 0.63s;
+  }
+
+  @keyframes hop {
+    0%,
+    45%,
+    100% {
+      transform: translateY(0) rotate(0);
+    }
+    20% {
+      transform: translateY(-0.3em) rotate(-4deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .new-post-text span {
+      animation: none;
+    }
+  }
+
   .gold {
     margin: 0;
+    white-space: nowrap;
     display: flex;
     gap: 0.35rem;
     font-weight: 700;

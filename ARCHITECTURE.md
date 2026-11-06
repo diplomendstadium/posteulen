@@ -161,7 +161,7 @@ Legende Schutz: **E2E** = nur der Browser des Nutzers kann entschlüsseln · **S
 
 | Tabelle | Felder | Schutz |
 |---|---|---|
-| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
+| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `home_moves_month` + `home_moves_count` (v0.2: 3 Umzüge je Monat) · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` · `letter_retention_days` (30/90/180/365) · `letters_print` | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
 | `sessions` | `token_hash` PK (SHA-256) · `user_id` · `last_used_at` | **H** |
 | `push_subscriptions` | `user_id` PK · `endpoint` · `p256dh` · `auth` · `created_at` · `last_confirmed_at` | lesbar (nötig zum Senden) |
 | `notifications` | `id` PK (= Push-ID, 128 Bit) · `user_id` · `type` · `params` (JSON, z. B. Betrag, Eulen-ID) · `created_at` · `push_state` | lesbar |
@@ -187,7 +187,8 @@ Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient
 
 | Tabelle | Felder |
 |---|---|
-| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`papeterie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `care_mask` (14 Bit) + `care_mask_day` · `pending_sickness` · `loan_expires_at` |
+| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`menagerie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `pending_sickness` · `loan_expires_at` |
+| `owl_care_days` · `owl_away` | v0.2 (D-103): Pflegetage (`owl_id`, `day`) und Zeiten fort von zu Hause (`owl_id`, `since_at`, `until_at`), je höchstens 60 Tage |
 | `clutches` | `id` · `mother_id` · `owner_id` · `hatch_at` · `chick_ids` · `name_deadline` · `gift_deadline` · `gift_required` |
 | `flights` | `id` · `holder_id` · `owl_id` · `cargo` (JSON: Brief-IDs, Goldbetrag, Geschenk-Eule/Küken, Begleitbrief-ID) · `route` (JSON: Wegpunkte mit Nutzer-IDs) · `plan` (BLOB, Segmentliste) · `started_at` · `state` · `next_stop` |
 | `transactions` | `id` · `user_id` · `at` · `type` · `amount` · `counterpart_id` · `counterpart_label` (nur bei Bots, z. B. „Tante Emma“) – höchstens 20 je Nutzer (4.6) |
@@ -238,13 +239,14 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `POST /password/start`, `/password/finish` | neue Registrierung, dann Datensatz und Schlüsselpaket in einer Transaktion ersetzen | Sitzung + Token | T |
 | `POST /account/delete` | Löschung mit 24-Stunden-Frist starten | Sitzung + Token | N |
 | `PATCH /account/name`, `/account/home` | Namens- bzw. Wohnortwechsel | Sitzung | N |
+| `PATCH /account/letters` | Löschfrist und Druckschrift (v0.2, sofortige Löschung bei kürzerer Frist) | Sitzung | N |
 | `GET /sync` | vollständiger Abgleich (Profil, Chatliste, Eulen, Neuigkeiten, Versionen) | Sitzung | N |
 | `GET /events` | SSE-Hinweise („Chat X geändert“), keine Inhalte | Sitzung | N |
 | `GET /chats/:peer/letters` | Verlauf (Chiffrate und Metadaten; nur zugestellte bzw. eigene) | Sitzung, eigener Chat | N |
 | `POST /letters/read` | Lesebestätigung (Liste von Brief-IDs) | Empfänger | N |
 | `POST /letters/arrival-seen` | Ankunftsbild gezeigt | Empfänger | N |
 | `DELETE /chats/:peer` | Chat löschen | Sitzung, eigener Chat | N |
-| `POST /flights/preview` | Empfänger → einsatzbereite Eulen (eigene, bis Stufe 4 die Aushilfseule, D-65) mit berechneter Ankunft je Empfänger und Rückkehr, ohne Speichern | bestätigte aktive Kontakte | T |
+| `POST /flights/preview` | Empfänger → einsatzbereite Eulen (eigene und Leiheulen; ohne solche bei einem Empfänger die Leiheulen des Tages als `loan:<Art>`, D-100) mit berechneter Ankunft je Empfänger und Rückkehr, ohne Speichern | bestätigte aktive Kontakte | T |
 | `POST /letters/prepare` | Empfänger, Eule, Pergament → Brief-IDs, `sentAt`, öffentliche Schlüssel, Token | bestätigte aktive Kontakte, Eule einsatzbereit | T |
 | `POST /letters/send` | Chiffrate und Wraps je Empfänger → Abflug | Token | N |
 | `POST /bot-letters/send` | Klartextbrief an einen Bot | eigener Bot, 24-Stunden-Sperre | N |
@@ -256,7 +258,7 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `GET /contacts/:id/keys` | öffentliche Schlüssel des Kontakts | bestätigter oder getrennter Kontakt mit Chat | N |
 | `GET /vault`, `PUT /vault/:contactId` | Tresor lesen bzw. Eintrag schreiben (Version muss steigen) | eigener Tresor | N |
 | `POST /contacts/:id/key-warning` | Schlüsselabweichung melden → Versandsperre und Systemnachricht | eigener Kontakt | N |
-| `GET /owls` · `POST /owls/buy` · `POST /owls/:id/name` · `/feed` · `/pet` · `/treat` · `/papeterie` · `/release` | Eulenverwaltung | Besitzer, Zustand 9.2.5 | N |
+| `GET /owls` · `POST /owls/buy` · `POST /owls/:id/name` · `/feed` · `/pet` · `/treat` · `/menagerie` · `/release` | Eulenverwaltung | Besitzer, Zustand 9.2.5 | N |
 | `GET /menagerie` · `POST /menagerie/loan` | Angebot und Leihen | Sitzung | N |
 | `POST /clutches/:id/gift/prepare` · `/gift/send` | ein Küken verschenken (benannt wird über `/owls/:id/name`) | Halter der Mutter | T/N |
 | `GET /finance` | Goldstand und letzte 20 Buchungen | Sitzung | N |
@@ -581,7 +583,7 @@ flowchart TD
 - **Push-Versand** läuft als eigener Ereignistyp, gedrosselt (z. B. höchstens 20 pro Sekunde bei Rundnachrichten).
 - **Kontinuierliche Werte** (Energie, Position) werden beim Lesen aus Zeitstempeln berechnet (`shared/energy.ts`, `shared/flight/position.ts`). Dafür gibt es keine Ereignisse.
 
-Ereignistypen: `deliver`, `arrive_home`, `treatment_end`, `brooding_end` (Schlupf), `chick_adult`, `clutch_gift_deadline`, `clutch_name_deadline`, `papeterie_end`, `loan_expire`, `bot_reply`, `bot_letter`, `bot_gold`, `contact_request_expire`, `account_purge_start`, `account_purge_final`, `push_send`, `daily:offer` (00:00), `daily:sickness` (03:00), `daily:inactivity` (04:00), `daily:gold` (15:00).
+Ereignistypen: `deliver`, `arrive_home`, `treatment_end`, `brooding_end` (Schlupf), `chick_adult`, `clutch_gift_deadline`, `clutch_name_deadline`, `menagerie_end`, `loan_expire`, `bot_reply`, `bot_letter`, `bot_gold`, `contact_request_expire`, `account_purge_start`, `account_purge_final`, `push_send`, `daily:offer` (00:00), `daily:sickness` (03:00), `daily:inactivity` (04:00), `daily:gold` (15:00).
 
 ---
 
@@ -699,7 +701,7 @@ flowchart TD
 
 ### 10.4 Backups
 
-Täglicher systemd-Timer: `VACUUM INTO` in ein privates temporäres Verzeichnis (`PrivateTmp`), dann `age -R /etc/posteulen/backup.pub`, danach wird der Klartext sofort gelöscht. Das Timer-Skript löscht Sicherungen, die älter als 7 Tage sind. Die readme beschreibt das Abholen per SSH von einem anderen Rechner (dort ebenfalls 7 Tage) und die Wiederherstellung Schritt für Schritt (KANN: `posteulen-restore`).
+Täglicher systemd-Timer: `VACUUM INTO` in ein privates temporäres Verzeichnis (`PrivateTmp`), dann `age -R /etc/posteulen/backup.pub`, danach wird der Klartext sofort gelöscht. Das Timer-Skript löscht Sicherungen, die älter als 7 Tage sind. Das README beschreibt das Abholen per SSH von einem anderen Rechner (dort ebenfalls 7 Tage) und die Wiederherstellung Schritt für Schritt (KANN: `posteulen-restore`).
 
 ### 10.5 Tests von Installation und Update (17.6)
 
@@ -708,7 +710,7 @@ Auf dem Entwicklungsrechner (Debian 13, KVM ohne Root nutzbar) startet `deploy/t
 2. ein zweiter Lauf, der nichts überschreibt (Prüfsummen von Geheimnis-Datei und DB vorher/nachher);
 3. ab Stufe 1: Installation des vorigen Tags, Testdaten anlegen (Konten, Briefe per Playwright-Skript), Update auf den neuen Stand, Login und alte Briefe prüfen;
 4. ein absichtlich kaputtes Update (Test-Tag mit fehlerhafter Migration) → automatischer Rückfall, danach `--rollback`;
-5. Wiederherstellung nach readme: auf demselben Server und nach einem Totalausfall (alle Serverdaten gelöscht, Neuinstallation mit geretteter Geheimnis-Datei und bisherigem Backup-Schlüssel); `shellcheck` über `deploy/`.
+5. Wiederherstellung nach README: auf demselben Server und nach einem Totalausfall (alle Serverdaten gelöscht, Neuinstallation mit geretteter Geheimnis-Datei und bisherigem Backup-Schlüssel); `shellcheck` über `deploy/`.
 
 ---
 

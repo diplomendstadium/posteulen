@@ -4,13 +4,13 @@
  */
 import type { FastifyInstance } from 'fastify';
 import { GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
-import { energyAfterFeeding, markCare, startEnergy } from '@posteulen/shared/game/energy.ts';
-import { priceTenths } from '@posteulen/shared/game/gold.ts';
+import { energyAfterFeeding, startEnergy } from '@posteulen/shared/game/energy.ts';
+import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
 import {
   canBuyMore,
   canCare,
   canGift,
-  canLendToPapeterie,
+  canLendToMenagerie,
   canRelease,
   canRenameInYear,
   randomSex,
@@ -24,17 +24,19 @@ import {
   FlightPreview,
   GiftPrepare,
   Loan,
+  LOAN_REF_PREFIX,
   OwlBuy,
   OwlName,
   OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
-import { loanOwl, loanIdentityFor, offerOf } from './lifecycle.ts';
+import { leftHome, markCareDay } from './care.ts';
+import { borrow, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
-import { debit } from '../gold/ledger.ts';
+import { balance, debit } from '../gold/ledger.ts';
 import { planFlight } from '../flights/service.ts';
 import {
   checkLetters,
@@ -150,16 +152,14 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       if (!species || !canCare(facts(owl))) throw new HttpError(400, 'owl_not_home');
       if (owl.fed_on === today) throw new HttpError(400, 'owl_fed_today');
       debit(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
-      const care = markCare(owl.care_mask, owl.care_mask_day, today);
       ctx.db.run(
-        'UPDATE owls SET energy = ?, energy_at = ?, fed_on = ?, care_mask = ?, care_mask_day = ? WHERE id = ?',
+        'UPDATE owls SET energy = ?, energy_at = ?, fed_on = ? WHERE id = ?',
         energyAfterFeeding(currentEnergy(ctx, owl, now), species),
         now,
         today,
-        care.mask,
-        care.maskDay,
         id,
       );
+      markCareDay(ctx, id, today);
     });
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
@@ -173,14 +173,10 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const today = utcDay(now);
     const owl = ownOwl(ctx, me, id);
     if (!canCare(facts(owl))) throw new HttpError(400, 'owl_not_home');
-    const care = markCare(owl.care_mask, owl.care_mask_day, today);
-    ctx.db.run(
-      'UPDATE owls SET petted_on = ?, care_mask = ?, care_mask_day = ? WHERE id = ?',
-      today,
-      care.mask,
-      care.maskDay,
-      id,
-    );
+    ctx.db.transaction(() => {
+      ctx.db.run('UPDATE owls SET petted_on = ? WHERE id = ?', today, id);
+      markCareDay(ctx, id, today);
+    });
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
@@ -210,8 +206,17 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       )
       .filter(isReady)
       .map((owl) => owl.id);
+    // No owl ready: the loan owls of the day, borrowed only on sending (8.4 step 4, 9.6).
+    const offers =
+      own.length === 0 &&
+      body.recipients.length === 1 &&
+      canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
+        ? offerOf(ctx, utcDay(now))
+            .filter((species) => loanProblem(ctx, me, species, now) === null)
+            .map((species) => `${LOAN_REF_PREFIX}${species}`)
+        : [];
     const owls = [];
-    for (const owlId of own) {
+    for (const owlId of [...own, ...offers]) {
       const owl = chooseOwl(ctx, me, owlId, now);
       if (body.recipients.length > owl.maxRecipients) continue;
       const planned = planFlight(ctx, {
@@ -224,6 +229,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       owls.push({
         id: owlId,
         kind: owl.kind,
+        offer: owlId.startsWith(LOAN_REF_PREFIX),
         name: owl.name,
         species: owl.species,
         energy: Math.round(owl.energy),
@@ -323,33 +329,35 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         now,
         id,
       );
+      if (vet) leftHome(ctx, id, now);
       ctx.queue.schedule('treatment_end', id, until);
     });
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
-  /** Lend an owl to the papeterie for 7 days (9.7). */
+  /** Lend an owl to the menagerie for 7 days (9.7). */
   app.post(
-    '/api/owls/:id/papeterie',
+    '/api/owls/:id/menagerie',
     { preHandler: [authenticated, emptyBody] },
     async (request) => {
       const id = owlIdParam(request.params);
       const me = userOf(request).id;
       const now = ctx.now();
       const owl = ownOwl(ctx, me, id);
-      if (!canLendToPapeterie(facts(owl)) || owl.name === null)
+      if (!canLendToMenagerie(facts(owl)) || owl.name === null)
         throw new HttpError(400, 'owl_not_home');
-      const until = now + OWL.PAPETERIE_DAYS * TIME.DAY;
+      const until = now + OWL.MENAGERIE_DAYS * TIME.DAY;
       ctx.db.transaction(() => {
         ctx.db.run(
-          "UPDATE owls SET state = 'papeterie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
+          "UPDATE owls SET state = 'menagerie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
           until,
           currentEnergy(ctx, owl, now),
           now,
           id,
         );
-        ctx.queue.schedule('papeterie_end', id, until);
+        leftHome(ctx, id, now);
+        ctx.queue.schedule('menagerie_end', id, until);
       });
       ctx.hub.notify(me, 'owls');
       return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
@@ -365,13 +373,15 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
       me,
     );
+    const identities = loanIdentitiesFor(ctx, me, day);
     return {
       day,
       maxLoans: MENAGERIE.MAX_CONCURRENT_LOANS,
       loans: loans.length,
       offer: offerOf(ctx, day).map((species) => ({
         species,
-        ...loanIdentityFor(ctx, me, day, species),
+        name: identities.get(species)?.name ?? '',
+        sex: identities.get(species)?.sex ?? 'f',
         loaned: loans.some((loan) => loan.species === species),
       })),
     };
@@ -381,19 +391,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(Loan, request.body);
     const me = userOf(request).id;
     const now = ctx.now();
-    const owl = ctx.db.transaction(() => {
-      if (!offerOf(ctx, utcDay(now)).includes(body.species))
-        throw new HttpError(400, 'loan_not_offered');
-      const loans = ctx.db.all<{ species: string }>(
-        "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
-        me,
-      );
-      if (loans.length >= MENAGERIE.MAX_CONCURRENT_LOANS) throw new HttpError(400, 'loan_limit');
-      if (loans.some((loan) => loan.species === body.species))
-        throw new HttpError(400, 'loan_species');
-      debit(ctx.db, me, 'loan', GOLD.LOAN_PRICE, now);
-      return loanOwl(ctx, me, body.species, now);
-    });
+    const owl = ctx.db.transaction(() => borrow(ctx, me, body.species, now));
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
     return { owl: owlView(ctx, owl, now) };
   });

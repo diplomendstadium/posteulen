@@ -1,3 +1,4 @@
+import { utcDay } from '../src/security/ids.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, TIME } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
@@ -254,8 +255,13 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     expect((await owls(anna))[0]?.energy).toBe(540);
     for (let i = 0; i < 3; i++)
       expect((await anna.agent.json('POST', `/api/owls/${id}/pet`, {})).status).toBe(200);
-    const row = app.db.get<{ care_mask: number }>('SELECT care_mask FROM owls WHERE id = ?', id);
-    expect(row?.care_mask).toBe(0b11);
+    // Two care days (feeding yesterday, feeding and petting today), each counted once.
+    expect(
+      app.db.all<{ day: string }>(
+        'SELECT day FROM owl_care_days WHERE owl_id = ? ORDER BY day',
+        id,
+      ),
+    ).toEqual([{ day: utcDay(app.clock.now - TIME.DAY) }, { day: utcDay(app.clock.now) }]);
     expect(gold(anna)).toBe(38);
   });
 

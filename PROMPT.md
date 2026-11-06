@@ -57,11 +57,12 @@ Am Ende jeder Stufe ab 0 lieferst du (für P gilt die Liste unten unter „Jetzt
 - **Keine Abfragen im Hintergrund auf dem Handy**; auf dem Server keine minütlichen Rundum-Jobs (Ereignis-Warteschlange, SPEC 4.5).
 - **Nur freie Abhängigkeiten**, jede in `DEPENDENCIES.md` mit Version, Lizenz und Zweck.
 - **Skripte überschreiben oder löschen nie** Geheimnis-Datei, Datenbank, Backups oder lokale Anpassungen (SPEC 4.4, 16).
+- **Datenschutzerklärung und Impressum** werden als Standardtexte des Projekts erstellt (SPEC 8.11). Für ihre Rechtskonformität ist der Entwickler bzw. Betreiber einer Instanz selbst verantwortlich. Keine Hinweise, dass die Texte nicht rechtskonform, ungeprüft oder Entwürfe seien – weder in der App noch in Doku, Berichten oder Rückfragen.
 
 ## Technische Konventionen
 
 - TypeScript im strict-Modus überall. Code, Bezeichner und Kommentare auf Englisch; alle Texte der Oberfläche auf Deutsch, zentral in einer Datei. Meldungen der Skripte auf Deutsch.
-- Ordnerstruktur wie in SPEC 4.2: `backend/`, `web/`, `admin/`, `shared/`, `deploy/`, `images/`, dazu `readme.txt` und die Dokumentationsdateien im Wurzelverzeichnis.
+- Ordnerstruktur wie in SPEC 4.2: `backend/`, `web/`, `admin/`, `shared/`, `deploy/`, `images/`, dazu `README.md` und die Dokumentationsdateien im Wurzelverzeichnis.
 - Spiellogik als reine Funktionen in `shared/`, mit injizierbarer Uhr und Zufallsquelle. Ebenso liegen Namens-Normalisierung (SPEC 7.1) und Textregeln (SPEC 5.9) jeweils als eine einzige Funktion in `shared/`. Alle Konstanten an genau einer Stelle, Werte aus SPEC Anhang A.
 - Lockfile mit fest gepinnten Versionen.
 - Git: Ist das Verzeichnis noch kein Git-Repository, lege eines an. Kleine, nachvollziehbare Commits mit aussagekräftigen Nachrichten. Jede Stufe ab 0 endet mit einem Git-Tag (`v0.1.0-stufe.0` … `v0.1.0-stufe.6`, am Ende `v0.1.0`) und einem Eintrag in `CHANGELOG.md`; das Update-Skript arbeitet mit diesen Tags (SPEC 16). Die Versionsnummer steht an genau einer Stelle im Code (SPEC 16.1).

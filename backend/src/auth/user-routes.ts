@@ -445,6 +445,20 @@ function keyMaterial(ctx: Context, userId: string) {
   };
 }
 
+/** Calendar month (UTC) of a point in time, e.g. `2026-11`. */
+export function utcMonth(at: number): string {
+  return new Date(at).toISOString().slice(0, 7);
+}
+
+/** Moves left this month and the first day a move is possible again (7.3). */
+export function homeChanges(month: string | null, count: number, now: number) {
+  const used = month === utcMonth(now) ? count : 0;
+  const left = Math.max(0, ACCOUNT.HOME_CHANGES_PER_MONTH - used);
+  const date = new Date(now);
+  const nextMonth = utcDay(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+  return { homeChangesLeft: left, homeChangeFrom: left > 0 ? utcDay(now) : nextMonth };
+}
+
 export function profileOf(ctx: Context, userId: string) {
   const row = ctx.db.get<{
     name_display: string;
@@ -452,10 +466,14 @@ export function profileOf(ctx: Context, userId: string) {
     home_lat: number;
     home_lon: number;
     created_on: string;
-    home_changed_on: string;
+    home_moves_month: string | null;
+    home_moves_count: number;
     name_changed_year: number | null;
+    letter_retention_days: number;
+    letters_print: number;
   }>(
-    'SELECT name_display, gold, home_lat, home_lon, created_on, home_changed_on, name_changed_year FROM users WHERE id = ?',
+    `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
+            name_changed_year, letter_retention_days, letters_print FROM users WHERE id = ?`,
     userId,
   );
   if (!row) throw new HttpError(401, 'unauthorized', { reason: 'no_session' });
@@ -465,10 +483,10 @@ export function profileOf(ctx: Context, userId: string) {
     gold: row.gold,
     home: { lat: row.home_lat / 100, lon: row.home_lon / 100 },
     createdOn: row.created_on,
-    // Name: once per calendar year (7.4); home: every 21 days (7.3).
+    // Name: once per calendar year (7.4); home: three times per calendar month (7.3).
     nameChangedYear: row.name_changed_year,
-    homeChangeFrom: utcDay(
-      Date.parse(`${row.home_changed_on}T00:00:00Z`) + ACCOUNT.HOME_CHANGE_MIN_DAYS * TIME.DAY,
-    ),
+    ...homeChanges(row.home_moves_month, row.home_moves_count, ctx.now()),
+    letterRetentionDays: row.letter_retention_days,
+    lettersPrint: row.letters_print === 1,
   };
 }

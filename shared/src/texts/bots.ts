@@ -15,7 +15,9 @@ export const EXPLAINER_LETTERS = {
 
 Ich bin der Erklärbär und schreibe dir in den nächsten Tagen ein paar kurze Briefe.
 
-Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber jeden Tag gibt es 1 Gold dazu. Bis dahin leihst du dir in der Menagerie für 0,1 Gold eine Leiheule.
+Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber jeden Tag gibt es 1 Gold dazu. Bis dahin leihst du dir für 0,1 Gold eine Leiheule – in der Menagerie oder direkt beim Briefschreiben.
+
+Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
 
 Fragen zu PostEulen? Schreib mir einfach!`,
   day1: `Hallo, heute geht es um Eulen!
@@ -29,21 +31,21 @@ Bis bald, dein Erklärbär`,
 
 In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Gold kannst du per Eule an Kontakte schicken.
 
-In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Papeterie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
 Viel Spaß beim Sparen, dein Erklärbär`,
   day4: `Hallo, heute geht es um Kontakte!
 
 Füge Freunde im Adressbuch hinzu, indem ihr euch gegenseitig mit dem genauen Namen eintragt. Erst dann könnt ihr euch schreiben.
 
-Deine Briefe an Menschen sind Ende-zu-Ende-verschlüsselt: Nur ihr beide könnt sie lesen. Vergleicht am besten einmal die Sicherheitsnummer, zum Beispiel beim nächsten Treffen.
+Deine Briefe an Menschen sind Ende-zu-Ende-verschlüsselt: Nur ihr beide könnt sie lesen. Das ist kein Spiel, sondern echte, moderne Kryptografie – PostEulen taugt also auch für Vertrauliches. Vergleicht am besten einmal die Sicherheitsnummer, zum Beispiel beim nächsten Treffen.
 
-Briefe an Bots wie mich sind übrigens nicht verschlüsselt.
+Briefe an Bots wie mich sind übrigens nicht verschlüsselt. Und denk daran: Nach spätestens einem Jahr verschwinden alle Briefe von selbst.
 
 Dein Erklärbär`,
   day7: `Hallo, heute geht es um Pflege!
 
-Streichle und füttere deine Eulen ab und zu. Gut gepflegte Eulen werden seltener krank. Ist eine Eule krank, pflegst du sie selbst gesund oder bringst sie zum Eulenarzt.
+Streichle und füttere deine Eulen ab und zu. Wurde eine Eule an 10 der letzten 14 Tage, an denen sie zu Hause war, umsorgt, wird sie viel seltener krank. Reisetage zählen dabei nicht. Ist eine Eule krank, pflegst du sie selbst gesund oder bringst sie zum Eulenarzt.
 
 Manchmal legt eine Eule Eier. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt.
 

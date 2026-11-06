@@ -1,23 +1,15 @@
 /**
- * Privacy policy (draft) and imprint (SPEC 8.11). Placeholders in square brackets are filled in
- * by the operator after legal advice; the texts are drafts and say so.
+ * Privacy policy and imprint (SPEC 8.11): standard texts of the project. Whoever runs an
+ * instance is responsible for adapting them on their own (SPEC 8.11, PROMPT).
  */
-import { ACCOUNT, OPERATIONS } from '../constants.ts';
+import { ACCOUNT, LETTER, OPERATIONS } from '../constants.ts';
 import { de } from './de.ts';
 import type { HelpSection } from './help.ts';
 
 export const PRIVACY_INTRO =
-  'Entwurf – noch nicht rechtlich geprüft. Kurz gesagt: PostEulen speichert so wenig wie möglich. Briefe zwischen Menschen kann nur ihr lesen, IP-Adressen werden nicht gespeichert, und es gibt weder Werbung noch Analyse-Werkzeuge.';
+  'Kurz gesagt: PostEulen speichert so wenig wie möglich. Briefe zwischen Menschen kann nur ihr lesen, IP-Adressen werden nicht gespeichert, und es gibt weder Werbung noch Analyse-Werkzeuge.';
 
 export const PRIVACY_SECTIONS: readonly HelpSection[] = [
-  {
-    id: 'verantwortlich',
-    title: 'Wer ist verantwortlich?',
-    blocks: [
-      'Verantwortlich für die Datenverarbeitung: [Name und Anschrift des Verantwortlichen]. Kontakt: [Kontaktmöglichkeit].',
-      'Der Server steht bei: [Name und Anschrift des Hosters]. Mit ihm besteht ein Vertrag zur Auftragsverarbeitung: [ja/nein].',
-    ],
-  },
   {
     id: 'gespeichert',
     title: 'Was gespeichert wird',
@@ -92,15 +84,8 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Du kannst dein Konto jederzeit in den Einstellungen löschen. Nach ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden (falls du dich nicht wieder anmeldest) und nachdem deine letzten Eulen zugestellt haben, werden alle Daten deines Kontos gelöscht: Profil, Anmeldedaten, Schlüssel, Tresor, Sitzungen, Push-Abo, Benachrichtigungen, deine Briefkopien, Bots samt Chats, Eulen, Buchungen und Kontakte. Was andere von dir empfangen haben, bleibt bei ihnen.`,
       `Automatische Löschung: Konten ohne Aktivität werden nach einer vom Betreiber festgelegten Frist gelöscht (mindestens ${ACCOUNT.AUTO_DELETE_MIN_DAYS}, üblich ${ACCOUNT.AUTO_DELETE_DEFAULT_DAYS} Tage). ${ACCOUNT.AUTO_DELETE_WARNING_DAYS} Tage vorher bekommst du eine Warnung.`,
+      `Briefe und Systemnachrichten werden spätestens ${LETTER.RETENTION_MAX_DAYS} Tage nach ihrer Zustellung automatisch und unwiderruflich gelöscht, bei allen Beteiligten. In den Einstellungen kannst du deine eigenen Kopien schon nach 30, 90 oder 180 Tagen löschen lassen.`,
       'Chats löschst du selbst; ein Brief verschwindet aus der Datenbank, sobald ihn weder Absender noch Empfänger mehr haben.',
-    ],
-  },
-  {
-    id: 'rechte',
-    title: 'Deine Rechte',
-    blocks: [
-      'Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch sowie das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Weil PostEulen keine Kontaktdaten kennt, musst du bei einer Anfrage deinen Nutzernamen nennen. Briefinhalte kann der Betreiber nicht herausgeben – er kann sie nicht lesen.',
-      'Rechtsgrundlagen: die Bereitstellung der App, die du nutzen möchtest (Art. 6 Abs. 1 lit. b DSGVO), und der Schutz vor Missbrauch (Art. 6 Abs. 1 lit. f DSGVO). [Nach rechtlicher Beratung ergänzen.]',
     ],
   },
 ];

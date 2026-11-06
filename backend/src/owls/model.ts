@@ -5,7 +5,7 @@ import {
   canGift,
   canRelease,
   canRenameInYear,
-  canLendToPapeterie,
+  canLendToMenagerie,
   canTransport,
   regenerates,
   speciesById,
@@ -34,8 +34,6 @@ export interface OwlRow {
   readonly renamed_year: number | null;
   readonly fed_on: string | null;
   readonly petted_on: string | null;
-  readonly care_mask: number;
-  readonly care_mask_day: string | null;
   readonly pending_sickness: number;
   readonly loan_expires_at: number | null;
   readonly adult_at: number | null;
@@ -110,7 +108,7 @@ export interface OwlView {
   readonly fedToday: boolean;
   readonly pettedToday: boolean;
   readonly ready: boolean;
-  /** End of brooding, treatment or papeterie. */
+  /** End of brooding, treatment or menagerie. */
   readonly stateUntil: number | null;
   readonly loanExpiresAt: number | null;
   readonly adultAt: number | null;
@@ -121,7 +119,7 @@ export interface OwlView {
     readonly release: boolean;
     readonly rename: boolean;
     readonly treat: boolean;
-    readonly papeterie: boolean;
+    readonly menagerie: boolean;
   };
   readonly absence: {
     readonly purpose: string;
@@ -172,7 +170,7 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
       release: canRelease(ownFacts),
       rename: owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
       treat: owl.state === 'sick',
-      papeterie: canLendToPapeterie(ownFacts),
+      menagerie: canLendToMenagerie(ownFacts),
     },
     absence,
   };

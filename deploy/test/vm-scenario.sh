@@ -162,7 +162,7 @@ check "Daten von vor dem Update" has_marker
 has_account_support && check "Konto nach --rollback" account login
 has_letter_support && check "Brief nach --rollback für beide lesbar" letters letters-check --delivered
 
-echo "── 6. Sicherung und Wiederherstellung nach readme.txt"
+echo "── 6. Sicherung und Wiederherstellung nach README.md"
 check "Sicherung manuell" systemctl start posteulen-backup.service
 latest=$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)
 check "Sicherung ist verschlüsselt (kein SQLite-Klartext)" bash -c "! head -c 16 \"\$1\" | grep -q 'SQLite format'" _ "$latest"
@@ -179,7 +179,7 @@ check "Wiederhergestellte Daten da" has_marker
 has_account_support && check "Konto nach Wiederherstellung" account login
 has_letter_support && check "Brief nach Wiederherstellung für beide lesbar" letters letters-check --delivered
 
-echo "── 7. Totalausfall: neuer Server, Wiederherstellung nach readme.txt"
+echo "── 7. Totalausfall: neuer Server, Wiederherstellung nach README.md"
 # Gerettet ist nur, was die readme außerhalb des Servers zu sichern verlangt.
 rescue=/root/rettung
 rm -rf "$rescue" && install -d -m 0700 "$rescue"

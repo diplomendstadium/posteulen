@@ -56,36 +56,48 @@ export function daysBetween(from: string, to: string): number {
   return dayNumber(to) - dayNumber(from);
 }
 
-const MASK_BITS = OWL.CARE_BONUS_WINDOW_DAYS;
-const MASK_ALL = (1 << MASK_BITS) - 1;
+export interface AwayPeriod {
+  readonly since: number;
+  /** null while the owl is away. */
+  readonly until: number | null;
+}
+
+/** Milliseconds of `day` (UTC) that the owl spent at home, given its absences. */
+export function homeTimeOn(day: string, away: readonly AwayPeriod[], now: number): number {
+  const start = Date.parse(`${day}T00:00:00Z`);
+  const end = Math.min(start + TIME.DAY, now);
+  let home = Math.max(0, end - start);
+  for (const period of away) {
+    const from = Math.max(start, period.since);
+    const to = Math.min(end, period.until ?? now);
+    if (to > from) home -= to - from;
+  }
+  return Math.max(0, home);
+}
 
 /**
- * Care mask: bit 0 is `maskDay`, bit n the day n days earlier; 14 bits (9.3). Marking a day
- * shifts the mask forward to `today` first.
+ * Care bonus for the sickness roll on `day` (9.3): of the last 14 days before it on which the
+ * owl was at home for at least one hour, it was petted or fed on at least 10. Days on the road
+ * do not count. Only days since the start of ownership are considered, at most 60 days back.
  */
-export function markCare(
-  mask: number,
-  maskDay: string | null,
-  today: string,
-): { mask: number; maskDay: string } {
-  const shift = maskDay === null ? MASK_BITS : Math.max(0, daysBetween(maskDay, today));
-  const shifted = shift >= MASK_BITS ? 0 : (mask << shift) & MASK_ALL;
-  return { mask: shifted | 1, maskDay: today };
-}
-
-/** Number of care days in the 14 days before `day` (the day of the sickness roll, 9.3). */
-export function careDaysBefore(mask: number, maskDay: string | null, day: string): number {
-  if (maskDay === null) return 0;
-  let count = 0;
-  for (let back = 1; back <= MASK_BITS; back++) {
-    // Bit n is the day n days before maskDay.
-    const offset = back - daysBetween(maskDay, day);
-    if (offset < 0 || offset >= MASK_BITS) continue;
-    if (mask & (1 << offset)) count++;
+export function hasCareBonus(input: {
+  readonly day: string;
+  readonly ownedSince: string;
+  readonly careDays: ReadonlySet<string>;
+  readonly away: readonly AwayPeriod[];
+  readonly now: number;
+}): boolean {
+  const first = Date.parse(`${input.day}T00:00:00Z`);
+  let homeDays = 0;
+  let careDays = 0;
+  for (let back = 1; back <= OWL.CARE_BONUS_LOOKBACK_DAYS; back++) {
+    const day = new Date(first - back * TIME.DAY).toISOString().slice(0, 10);
+    if (day < input.ownedSince) break;
+    if (homeTimeOn(day, input.away, input.now) < OWL.CARE_BONUS_MIN_HOME_HOURS * TIME.HOUR)
+      continue;
+    homeDays++;
+    if (input.careDays.has(day)) careDays++;
+    if (homeDays === OWL.CARE_BONUS_WINDOW_DAYS) break;
   }
-  return count;
-}
-
-export function hasCareBonus(mask: number, maskDay: string | null, day: string): boolean {
-  return careDaysBefore(mask, maskDay, day) >= OWL.CARE_BONUS_MIN_DAYS;
+  return careDays >= OWL.CARE_BONUS_MIN_DAYS;
 }

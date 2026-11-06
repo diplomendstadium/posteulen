@@ -2,11 +2,15 @@
   /**
    * Political map of Western Europe (SPEC 12) in parchment style. Zoom and pan with mouse,
    * touch and buttons; tapping reports the geographic position. No tile server, no foreign
-   * hosts (SPEC 12.2).
+   * hosts (SPEC 12.2). Markers, labels and cities are sized in screen pixels, so they stay
+   * readable on small screens (v0.2). Cities: from 1 million inhabitants, from 200 000 when
+   * zoomed in; their names give way to the user's own places and owls.
    */
   import { onMount, type Snippet } from 'svelte';
   import { de } from '@posteulen/shared/texts/de.ts';
+  import { MAP } from '@posteulen/shared/constants.ts';
   import { project, unproject } from '@posteulen/shared/map/projection.ts';
+  import { placeCityLabels, type Box } from '@posteulen/shared/map/labels.ts';
   import { loadMapData, type MapData } from '../lib/map/map-data.ts';
   import { nightRuns } from '../lib/map/night.ts';
 
@@ -15,12 +19,22 @@
     markers,
     label = de.map.label,
     nightAt = null,
+    occupied,
+    fit = null,
   }: {
     onpick?: (position: { lat: number; lon: number }) => void;
+    /** Own markers; `scale` is SVG units per screen pixel. */
     markers?: Snippet<[(lat: number, lon: number) => { x: number; y: number }, number]>;
     label?: string;
     /** Draw night areas for this time (SPEC 12.1); null: no day/night layer. */
     nightAt?: number | null;
+    /** Space of the own markers and their names; city names keep clear of it. */
+    occupied?: (
+      toSvg: (lat: number, lon: number) => { x: number; y: number },
+      scale: number,
+    ) => Box[];
+    /** Zoom once, as soon as possible, so that all these places are just visible (v0.2). */
+    fit?: readonly { lat: number; lon: number }[] | null;
   } = $props();
 
   // Fallback frame until the map data is loaded (same as the generated view box).
@@ -59,8 +73,105 @@
       .join('');
   });
   let svg: SVGSVGElement | undefined = $state();
-  const scale = $derived(view.w / full[2]);
-  const labelMinArea = $derived(25_000 * scale * scale);
+  let pixelWidth = $state(0);
+  let pixelHeight = $state(0);
+  /** SVG units per screen pixel ("meet": the tighter of both directions). */
+  const scale = $derived(
+    pixelWidth > 0 && pixelHeight > 0
+      ? Math.max(view.w / pixelWidth, view.h / pixelHeight)
+      : view.w / 900,
+  );
+  /** Country names only where the country is large enough on the screen. */
+  const labelMinArea = $derived(1800 * scale * scale);
+  const countryFont = $derived(15 * scale);
+  const countryLabels = $derived(
+    (data?.countries ?? []).flatMap((country) =>
+      country.label && country.area >= labelMinArea
+        ? [{ id: country.id, name: country.name, x: country.label[0], y: country.label[1] }]
+        : [],
+    ),
+  );
+  const zoomFactor = $derived(full[2] / view.w);
+
+  /** Country names and the zoom buttons (top right): city names keep clear of them, too. */
+  function fixedBoxes(): Box[] {
+    const countries = countryLabels.map((label) => {
+      const half = (Array.from(label.name).length * countryFont * 0.66) / 2;
+      return {
+        left: label.x - half,
+        right: label.x + half,
+        top: label.y - countryFont,
+        bottom: label.y + countryFont * 0.3,
+      };
+    });
+    const controls = {
+      left: view.x + view.w - 64 * scale,
+      right: view.x + view.w,
+      top: view.y,
+      bottom: view.y + 170 * scale,
+    };
+    return [...countries, controls];
+  }
+
+  const cities = $derived.by(() => {
+    if (!data) return { dots: [], labels: [] };
+    const margin = 20 * scale;
+    const dots = data.cities.filter(
+      (city) =>
+        (city.big || zoomFactor >= MAP.CITY_SMALL_FROM_ZOOM) &&
+        city.x >= view.x - margin &&
+        city.x <= view.x + view.w + margin &&
+        city.y >= view.y - margin &&
+        city.y <= view.y + view.h + margin,
+    );
+    const labels = placeCityLabels(
+      dots.map((city) => ({
+        key: city.name,
+        x: city.x,
+        y: city.y,
+        text: city.name,
+        fontSize: 13 * scale,
+        radius: 3.5 * scale,
+      })),
+      [...fixedBoxes(), ...(occupied?.(toSvg, scale) ?? [])],
+    );
+    const names = new Map(labels.map((placed) => [placed.key, placed]));
+    return {
+      dots,
+      labels: dots.flatMap((city) => {
+        const placed = names.get(city.name);
+        return placed ? [{ name: city.name, x: placed.x, y: placed.y }] : [];
+      }),
+    };
+  });
+
+  // Fit the known places into view once (v0.2), as soon as map and screen size are known.
+  let fitted = false;
+  $effect(() => {
+    if (fitted || !data || !fit || pixelWidth === 0 || pixelHeight === 0) return;
+    fitted = true;
+    if (fit.length === 0) return;
+    const points = fit.map((place) => toSvg(place.lat, place.lon));
+    const xs = points.map((p) => p.x);
+    const ys = points.map((p) => p.y);
+    const [minX, maxX, minY, maxY] = [
+      Math.min(...xs),
+      Math.max(...xs),
+      Math.min(...ys),
+      Math.max(...ys),
+    ];
+    // Room for markers and their names at the edges (in screen pixels).
+    const edge = 90;
+    const widthFor = (span: number, pixels: number) =>
+      span / Math.max(0.2, 1 - (2 * edge) / Math.max(pixels, 1));
+    const w = Math.max(
+      full[2] / 12,
+      widthFor(maxX - minX, pixelWidth),
+      (widthFor(maxY - minY, pixelHeight) * full[2]) / full[3],
+    );
+    const h = (w / full[2]) * full[3];
+    clamp({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - h / 2, w, h });
+  });
 
   const toSvg = (lat: number, lon: number) => {
     const p = project(lat, lon);
@@ -181,6 +292,8 @@
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
   <svg
     bind:this={svg}
+    bind:clientWidth={pixelWidth}
+    bind:clientHeight={pixelHeight}
     viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
     role="application"
     aria-label={label}
@@ -205,13 +318,17 @@
     {#if night !== ''}
       <path class="night" data-testid="night-layer" d={night} />
     {/if}
-    {#each data?.countries ?? [] as country (country.id)}
-      {#if country.label && country.area >= labelMinArea}
-        <text class="label" x={country.label[0]} y={country.label[1]} font-size={34 * scale}
-          >{country.name}</text
-        >
-      {/if}
+    {#each countryLabels as country (country.id)}
+      <text class="label" x={country.x} y={country.y} font-size={countryFont}>{country.name}</text>
     {/each}
+    <g class="cities" data-testid="map-cities">
+      {#each cities.dots as city (city.name)}
+        <circle class="city" cx={city.x} cy={city.y} r={3.5 * scale} stroke-width={1.2 * scale} />
+      {/each}
+      {#each cities.labels as city (city.name)}
+        <text class="city-name" x={city.x} y={city.y} font-size={13 * scale}>{city.name}</text>
+      {/each}
+    </g>
     {@render markers?.(toSvg, scale)}
   </svg>
   <div class="controls">
@@ -275,6 +392,24 @@
     fill: var(--ink-soft);
     font-family: var(--font-body);
     text-anchor: middle;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+  }
+
+  .city {
+    fill: var(--ink-soft);
+    stroke: var(--paper);
+    pointer-events: none;
+  }
+
+  .city-name {
+    fill: var(--ink-soft);
+    font-family: var(--font-body);
+    font-style: italic;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: #f2e6c9;
+    stroke-width: 0.2em;
     pointer-events: none;
   }
 

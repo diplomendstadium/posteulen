@@ -1,29 +1,32 @@
 /**
  * Everything that happens to owls over time (SPEC 9.6–9.9): loan owls and their expiry, the
- * papeterie, sickness and treatment, eggs, hatching, naming and gift deadlines of chicks,
+ * menagerie, sickness and treatment, eggs, hatching, naming and gift deadlines of chicks,
  * growing up. All handlers run in the event queue and are idempotent (SPEC 4.5).
  */
-import { ACCOUNT, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   chickCount,
   giftRequired,
   laysEggs,
-  loanIdentity,
-  papeterieWage,
+  loanIdentities,
+  type LoanIdentity,
+  menagerieWage,
   pastGracePeriod,
   pickOffer,
   randomOwlName,
   rollsSick,
   speciesPrice,
 } from '@posteulen/shared/game/chance.ts';
-import { hasCareBonus, startEnergy } from '@posteulen/shared/game/energy.ts';
+import { startEnergy } from '@posteulen/shared/game/energy.ts';
 import { randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import type { Context } from '../context.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
-import { credit } from '../gold/ledger.ts';
+import { credit, debit } from '../gold/ledger.ts';
+import { HttpError } from '../http/errors.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { isActiveDate } from '../contacts/model.ts';
 import { currentEnergy, type OwlRow } from './model.ts';
+import { backHome, careBonusOf } from './care.ts';
 
 type After = (work: () => void) => void;
 
@@ -57,16 +60,53 @@ export function offerOf(ctx: Context, day: string): string[] {
   return offerOf(ctx, day);
 }
 
-/** Name and sex of a loan owl for this user, day and species – derived, never stored (9.6). */
-export function loanIdentityFor(ctx: Context, userId: string, day: string, species: string) {
-  return loanIdentity(hmac(ctx.keys.loanName, `${userId}|${day}|${species}`));
+/**
+ * Name, sex and start energy of the loan owls of a day for this user – derived, never stored;
+ * the three names differ (9.6).
+ */
+export function loanIdentitiesFor(
+  ctx: Context,
+  userId: string,
+  day: string,
+): Map<string, LoanIdentity> {
+  const offer = offerOf(ctx, day);
+  const identities = loanIdentities(offer, (species, attempt) =>
+    hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
+  );
+  return new Map(offer.map((species, index) => [species, identities[index] as LoanIdentity]));
+}
+
+/** Why this user cannot borrow this species now, or null (9.6). */
+export function loanProblem(ctx: Context, userId: string, species: string, now: number) {
+  if (!offerOf(ctx, utcDay(now)).includes(species)) return 'loan_not_offered';
+  const loans = ctx.db.all<{ species: string }>(
+    "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
+    userId,
+  );
+  if (loans.length >= MENAGERIE.MAX_CONCURRENT_LOANS) return 'loan_limit';
+  if (loans.some((loan) => loan.species === species)) return 'loan_species';
+  return null;
+}
+
+/** Start energy of a loan owl, known in advance (9.6). */
+export function loanStartEnergy(identity: LoanIdentity, species: string): number {
+  const kind = speciesById(species);
+  if (!kind) throw new Error('unknown species');
+  return startEnergy(kind, identity.energyShare);
+}
+
+/** Borrow (inside a transaction): checks, 0.1 gold, the new loan owl (9.6). */
+export function borrow(ctx: Context, userId: string, species: string, now: number): OwlRow {
+  const problem = loanProblem(ctx, userId, species, now);
+  if (problem) throw new HttpError(400, problem);
+  debit(ctx.db, userId, 'loan', GOLD.LOAN_PRICE, now);
+  return loanOwl(ctx, userId, species, now);
 }
 
 export function loanOwl(ctx: Context, userId: string, species: string, now: number): OwlRow {
   const day = utcDay(now);
-  const identity = loanIdentityFor(ctx, userId, day, species);
-  const kind = speciesById(species);
-  if (!kind) throw new Error('unknown species');
+  const identity = loanIdentitiesFor(ctx, userId, day).get(species);
+  if (!identity) throw new Error('species not offered');
   const id = randomId();
   ctx.db.run(
     `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at,
@@ -77,7 +117,7 @@ export function loanOwl(ctx: Context, userId: string, species: string, now: numb
     species,
     identity.sex,
     identity.name,
-    startEnergy(kind, ctx.random()),
+    loanStartEnergy(identity, species),
     now,
     day,
     now,
@@ -294,7 +334,7 @@ function sicknessRoll(ctx: Context, day: string, at: number, after: After): void
   );
   for (const owl of owls) {
     if (!pastGracePeriod(owl.owned_since, day)) continue;
-    if (!rollsSick(ctx.random(), hasCareBonus(owl.care_mask, owl.care_mask_day, day))) continue;
+    if (!rollsSick(ctx.random(), careBonusOf(ctx, owl, day, at))) continue;
     if (owl.state === 'flying') {
       // Takes effect at the next arrival home (9.8).
       ctx.db.run('UPDATE owls SET pending_sickness = 1 WHERE id = ?', owl.id);
@@ -316,27 +356,29 @@ function treatmentEnd(ctx: Context, owlId: string, at: number, after: After): vo
     owl.state === 'vet' ? at : owl.energy_at,
     owlId,
   );
+  backHome(ctx, owlId, at);
   addSystemMessage(ctx, owl.owner_id, 'owl_healthy', { owl: owl.name ?? '' }, at, after);
   after(() => ctx.hub.notify(owl.owner_id, 'owls'));
 }
 
-// ── Papeterie (9.7) ──────────────────────────────────────────────────────────────────────
+// ── Menagerie (9.7) ──────────────────────────────────────────────────────────────────────
 
-function papeterieEnd(ctx: Context, owlId: string, at: number, after: After): void {
+function menagerieEnd(ctx: Context, owlId: string, at: number, after: After): void {
   const owl = loadOwl(ctx, owlId);
-  if (!owl || owl.state !== 'papeterie') return;
+  if (!owl || owl.state !== 'menagerie') return;
   ctx.db.run(
     "UPDATE owls SET state = 'home', state_until = NULL, energy = ?, energy_at = ? WHERE id = ?",
     maxEnergyOf(owl.species),
     at,
     owlId,
   );
-  const wage = papeterieWage(speciesPrice(owl.species));
-  if (wage > 0) credit(ctx.db, owl.owner_id, 'papeterie_wage', wage, at);
+  backHome(ctx, owlId, at);
+  const wage = menagerieWage(speciesPrice(owl.species));
+  if (wage > 0) credit(ctx.db, owl.owner_id, 'menagerie_wage', wage, at);
   addSystemMessage(
     ctx,
     owl.owner_id,
-    'papeterie_done',
+    'menagerie_done',
     { owl: owl.name ?? '', amount: wage },
     at,
     after,
@@ -358,8 +400,8 @@ export function registerLifecycleHandlers(ctx: Context): void {
   ctx.queue.on('loan_expire', (event, tools) =>
     loanExpire(ctx, event.ref, event.logicalAt, tools.after),
   );
-  ctx.queue.on('papeterie_end', (event, tools) =>
-    papeterieEnd(ctx, event.ref, event.logicalAt, tools.after),
+  ctx.queue.on('menagerie_end', (event, tools) =>
+    menagerieEnd(ctx, event.ref, event.logicalAt, tools.after),
   );
   ctx.queue.on('treatment_end', (event, tools) =>
     treatmentEnd(ctx, event.ref, event.logicalAt, tools.after),

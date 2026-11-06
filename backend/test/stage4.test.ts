@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, OWL, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { utcDay } from '../src/security/ids.ts';
+import { loanIdentitiesFor } from '../src/owls/lifecycle.ts';
 import { sendBroadcast } from '../src/admin/operations.ts';
 import { setInactivityDays } from '../src/admin/settings.ts';
 import {
@@ -141,7 +142,7 @@ describe('loan owls (SPEC 9.6)', () => {
       id: first,
       kind: 'loan',
       name: menagerie.body.offer[0]!.name,
-      actions: { gift: false, rename: false, papeterie: false, release: false, care: true },
+      actions: { gift: false, rename: false, menagerie: false, release: false, care: true },
     });
     expect(
       (
@@ -165,7 +166,7 @@ describe('loan owls (SPEC 9.6)', () => {
     ).toMatchObject({
       code: 'owl_rename_blocked',
     });
-    expect((await anna.agent.json('POST', `/api/owls/${first}/papeterie`, {})).status).toBe(400);
+    expect((await anna.agent.json('POST', `/api/owls/${first}/menagerie`, {})).status).toBe(400);
   });
 
   it('expires after 24 hours without refund', async () => {
@@ -195,14 +196,113 @@ describe('loan owls (SPEC 9.6)', () => {
   });
 });
 
-describe('papeterie (SPEC 9.7)', () => {
+describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
+  interface Choice {
+    id: string;
+    kind: string;
+    offer: boolean;
+    name: string;
+    energy: number;
+    arrivals: { at: number }[];
+  }
+  const preview = async (who: Person, recipients: string[]) =>
+    (await who.agent.json<{ owls: Choice[] }>('POST', '/api/flights/preview', { recipients })).body
+      .owls;
+
+  it('offers the loan owls of the day only when no owl is ready, borrowed on sending', async () => {
+    setGold(app, anna, 200);
+    const offers = await preview(anna, [ben.id]);
+    const menagerie = await anna.agent.json<{ offer: { species: string; name: string }[] }>(
+      'GET',
+      '/api/menagerie',
+    );
+    expect(offers.map((o) => o.id)).toEqual(menagerie.body.offer.map((o) => `loan:${o.species}`));
+    expect(offers.map((o) => o.name)).toEqual(menagerie.body.offer.map((o) => o.name));
+    expect(offers.every((o) => o.offer && o.kind === 'loan')).toBe(true);
+    // Only planned, nothing borrowed or paid yet; the preview is stable.
+    expect((await owls(anna)).owls).toHaveLength(0);
+    expect(gold(anna)).toBe(200);
+    expect(await preview(anna, [ben.id])).toEqual(offers);
+
+    const chosen = offers[1]!;
+    const prepared = await anna.agent.json<{ token: string; arrivesAt: number }>(
+      'POST',
+      '/api/gold/prepare',
+      { recipient: ben.id, amount: 5, owlId: chosen.id, withCover: false },
+    );
+    expect(prepared.body.arrivesAt).toBe(chosen.arrivals[0]!.at);
+    const sent = await anna.agent.json<{ owl: { name: string }; arrivesAt: number }>(
+      'POST',
+      '/api/gold/send',
+      { token: prepared.body.token },
+    );
+    expect(sent.body.owl.name).toBe(chosen.name);
+    expect(sent.body.arrivesAt).toBe(chosen.arrivals[0]!.at);
+    expect(gold(anna)).toBe(200 - 5 - GOLD.LOAN_PRICE);
+    const loan = app.db.get<{ energy: number; kind: string }>(
+      "SELECT energy, kind FROM owls WHERE owner_id = ? AND kind = 'loan'",
+      anna.id,
+    );
+    expect(Math.round(loan?.energy ?? 0)).toBe(chosen.energy);
+    // The borrowed species is no longer offered; the limit of the menagerie still applies.
+    expect((await preview(anna, [ben.id])).map((o) => o.id)).not.toContain(chosen.id);
+  });
+
+  it('no offers with a ready owl, for several recipients or without enough gold', async () => {
+    const carla = await person(app, 'Carla');
+    await couple(anna, carla);
+    setGold(app, anna, 200);
+    expect(await preview(anna, [ben.id, carla.id])).toEqual([]);
+    setGold(app, anna, 0);
+    expect(await preview(anna, [ben.id])).toEqual([]);
+    setGold(app, anna, 200);
+    await buyOwl(app, anna);
+    const choices = await preview(anna, [ben.id]);
+    expect(choices).toHaveLength(1);
+    expect(choices[0]?.offer).toBe(false);
+  });
+
+  it('rejects a loan reference of a species that is not offered or already borrowed', async () => {
+    setGold(app, anna, 200);
+    const menagerie = await anna.agent.json<{ offer: { species: string }[] }>(
+      'GET',
+      '/api/menagerie',
+    );
+    const notOffered = ['waldkauz', 'bartkauz', 'elfenkauz', 'schleiereule'].find(
+      (id) => !menagerie.body.offer.some((o) => o.species === id),
+    )!;
+    const prepare = (owlId: string) =>
+      anna.agent.json('POST', '/api/gold/prepare', {
+        recipient: ben.id,
+        amount: 5,
+        owlId,
+        withCover: false,
+      });
+    expect((await prepare(`loan:${notOffered}`)).body).toMatchObject({ code: 'loan_not_offered' });
+    expect((await prepare('loan:drache')).status).toBe(400);
+    await borrowOwl(anna);
+    expect((await prepare(`loan:${menagerie.body.offer[0]!.species}`)).body).toMatchObject({
+      code: 'loan_species',
+    });
+  });
+
+  it('the three loan owls of a day never share a name', () => {
+    const day = utcDay(app.clock.now);
+    for (let i = 0; i < 2000; i++) {
+      const names = [...loanIdentitiesFor(app.ctx, `nutzer-${i}`, day).values()].map((o) => o.name);
+      expect(new Set(names).size).toBe(3);
+    }
+  });
+});
+
+describe('menagerie (SPEC 9.7)', () => {
   it('7 days away, then 10 % of the price and full energy', async () => {
     setGold(app, anna, 500);
     const id = await buyOwl(app, anna, 'maehnenkauz', 'Mähne');
     app.db.run("UPDATE owls SET energy = 10, sex = 'm' WHERE id = ?", id);
-    const lent = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/papeterie`, {});
+    const lent = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/menagerie`, {});
     expect(lent.body.owl).toMatchObject({
-      state: 'papeterie',
+      state: 'menagerie',
       actions: { care: false, gift: false },
     });
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).body).toMatchObject({
@@ -215,7 +315,7 @@ describe('papeterie (SPEC 9.7)', () => {
     const back = (await owls(anna)).owls[0]!;
     expect(back).toMatchObject({ state: 'home', energy: 330 });
     expect(gold(anna)).toBe(500 - 490 + 49);
-    expect(await systemTypes(anna)).toContain('papeterie_done');
+    expect(await systemTypes(anna)).toContain('menagerie_done');
   });
 });
 
@@ -253,17 +353,66 @@ describe('sickness (SPEC 9.8, 17.2)', () => {
     expect(owlRow(id)?.state).toBe('home');
     app.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', '2026-11-05', anna.id);
     // 0.02 < 1/30 but not < 1/30 × 0.3: with care bonus the owl stays healthy.
-    app.db.run(
-      "UPDATE owls SET care_mask = ?, care_mask_day = '2026-11-05' WHERE id = ?",
-      (1 << 14) - 1,
-      id,
-    );
+    // Roll on 2026-11-07: cared for on 10 of the 14 days before (2026-10-27 … 11-05).
+    for (let day = 0; day < 10; day++) {
+      app.db.run(
+        'INSERT INTO owl_care_days (owl_id, day) VALUES (?, ?)',
+        id,
+        utcDay(Date.UTC(2026, 9, 27) + day * TIME.DAY),
+      );
+    }
     setRandom(0.02);
     runDaily('sickness', nextRoll() + TIME.DAY);
     expect(owlRow(id)?.state).toBe('home');
-    app.db.run('UPDATE owls SET care_mask = 0 WHERE id = ?', id);
-    runDaily('sickness', nextRoll() + 2 * TIME.DAY);
+    // Roll on 2026-11-12 after six whole days on the road (11-06 … 11-11): those days are
+    // skipped, so the last 14 days at home are still 10-23 … 11-05 (v0.2). Counted by calendar
+    // days, only 8 care days would be left (10-29 … 11-05).
+    app.db.run(
+      'INSERT INTO owl_away (owl_id, since_at, until_at) VALUES (?, ?, ?)',
+      id,
+      Date.UTC(2026, 10, 6),
+      Date.UTC(2026, 10, 12),
+    );
+    runDaily('sickness', nextRoll() + 6 * TIME.DAY);
+    expect(owlRow(id)?.state).toBe('home');
+    app.db.run('DELETE FROM owl_care_days WHERE owl_id = ? AND day < ?', id, '2026-10-30');
+    runDaily('sickness', nextRoll() + 7 * TIME.DAY);
     expect(owlRow(id)?.state).toBe('sick');
+  });
+
+  it('records care days and the times away from home (v0.2, 9.3)', async () => {
+    const id = await owlAged(60);
+    await anna.agent.json('POST', `/api/owls/${id}/pet`, {});
+    await anna.agent.json('POST', `/api/owls/${id}/pet`, {});
+    expect(
+      app.db.all<{ day: string }>('SELECT day FROM owl_care_days WHERE owl_id = ?', id),
+    ).toEqual([{ day: utcDay(app.clock.now) }]);
+    setGold(app, anna, 500);
+    const prepared = await anna.agent.json<{ token: string }>('POST', '/api/gold/prepare', {
+      recipient: ben.id,
+      amount: 1,
+      owlId: id,
+      withCover: false,
+    });
+    const left = app.clock.now;
+    await anna.agent.json('POST', '/api/gold/send', { token: prepared.body.token });
+    const away = () =>
+      app.db.all<{ since_at: number; until_at: number | null }>(
+        'SELECT since_at, until_at FROM owl_away WHERE owl_id = ?',
+        id,
+      );
+    expect(away()).toEqual([{ since_at: left, until_at: null }]);
+    advanceTo(app, app.clock.now + 5 * TIME.DAY);
+    expect(owlRow(id)?.state).toBe('home');
+    const [period] = away();
+    expect(period?.until_at).toBeGreaterThan(left);
+    // The menagerie and the vet count as away, too; old entries are pruned at 04:00.
+    await anna.agent.json('POST', `/api/owls/${id}/menagerie`, {});
+    expect(away()).toHaveLength(2);
+    advanceTo(app, app.clock.now + 70 * TIME.DAY);
+    runDaily('inactivity', app.clock.now + TIME.HOUR);
+    expect(away()).toHaveLength(0);
+    expect(app.db.all('SELECT day FROM owl_care_days WHERE owl_id = ?', id)).toEqual([]);
   });
 
   it('a flying owl falls sick on its return; eggs take precedence', async () => {
@@ -323,8 +472,8 @@ describe('eggs and chicks (SPEC 9.9, 17.2)', () => {
     setGold(app, anna, 500);
     const mother = await buyOwl(app, anna, 'waldkauz', 'Mama');
     app.db.run("UPDATE owls SET sex = 'f' WHERE id = ?", mother);
-    // Papeterie, then eggs on the return (random 0).
-    await anna.agent.json('POST', `/api/owls/${mother}/papeterie`, {});
+    // Menagerie, then eggs on the return (random 0).
+    await anna.agent.json('POST', `/api/owls/${mother}/menagerie`, {});
     setRandom(0);
     advanceTo(app, app.clock.now + 7 * TIME.DAY);
     expect(owlRow(mother)?.state).toBe('brooding');
@@ -463,13 +612,26 @@ describe('name and home (SPEC 7.3, 7.4)', () => {
     });
   });
 
-  it('home: every 21 days, on land; a flying owl changes its course', async () => {
-    expect(
-      (await anna.agent.json('PATCH', '/api/account/home', { home: { lat: 50, lon: 9 } })).body,
-    ).toMatchObject({
-      code: 'home_change_blocked',
+  it('home: three times per calendar month, on land; a flying owl changes its course', async () => {
+    // v0.2: three moves per calendar month (UTC), however close together; registering is free.
+    const move = (lat: number, lon: number) =>
+      anna.agent.json<{ profile: { homeChangesLeft: number; homeChangeFrom: string } }>(
+        'PATCH',
+        '/api/account/home',
+        { home: { lat, lon } },
+      );
+    expect((await move(50, 9)).body.profile.homeChangesLeft).toBe(2);
+    expect((await move(51, 10)).body.profile.homeChangesLeft).toBe(1);
+    const third = await move(50.5, 9.5);
+    const date = new Date(app.clock.now);
+    const nextMonth = Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1);
+    expect(third.body.profile).toMatchObject({
+      homeChangesLeft: 0,
+      homeChangeFrom: utcDay(nextMonth),
     });
-    app.clock.now += 21 * TIME.DAY;
+    expect((await move(51, 9)).body).toMatchObject({ code: 'home_change_blocked' });
+    app.clock.now = nextMonth + TIME.HOUR;
+    expect((await move(51, 9)).body.profile.homeChangesLeft).toBe(2);
     await ben.agent.json('GET', '/api/owls');
     await anna.agent.json('GET', '/api/owls');
     const owl = await borrowOwl(anna);

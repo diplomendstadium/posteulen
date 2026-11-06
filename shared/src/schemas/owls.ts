@@ -4,8 +4,14 @@ import { GOLD, LETTER } from '../constants.ts';
 import { SPECIES } from '../species.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
 
-/** An own or loan owl. */
-export const OwlRef = Id;
+/** Prefix of an owl reference that borrows a loan owl of the day on sending (9.6). */
+export const LOAN_REF_PREFIX = 'loan:';
+
+/** An own or loan owl, or `loan:<species>` for a loan owl that is borrowed on sending. */
+export const OwlRef = v.union([
+  Id,
+  v.picklist(SPECIES.map((species) => `${LOAN_REF_PREFIX}${species.id}`)),
+]);
 
 export const Recipients = v.pipe(
   v.array(Id),

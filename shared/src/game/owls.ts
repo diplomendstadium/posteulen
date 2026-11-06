@@ -3,7 +3,7 @@ import { OWL } from '../constants.ts';
 import { SPECIES, type Species } from '../species.ts';
 
 export type OwlState =
-  'home' | 'flying' | 'gift_flight' | 'sick' | 'self_care' | 'vet' | 'brooding' | 'papeterie';
+  'home' | 'flying' | 'gift_flight' | 'sick' | 'self_care' | 'vet' | 'brooding' | 'menagerie';
 
 export type OwlKind = 'own' | 'loan' | 'bot';
 
@@ -17,7 +17,7 @@ export function speciesById(id: string): Species | undefined {
   return SPECIES.find((species) => species.id === id);
 }
 
-/** Letter, gold, gift and papeterie: only adult owls at home and healthy (or a loan owl). */
+/** Letter, gold, gift and menagerie: only adult owls at home and healthy (or a loan owl). */
 export function canTransport(owl: OwlFacts): boolean {
   return owl.state === 'home' && !owl.isChick && owl.kind !== 'bot';
 }
@@ -36,8 +36,8 @@ export function canCare(owl: OwlFacts): boolean {
   return ['home', 'sick', 'self_care', 'brooding'].includes(owl.state);
 }
 
-/** Papeterie: own adult healthy owls at home, not brooding (9.7). */
-export function canLendToPapeterie(owl: OwlFacts): boolean {
+/** Menagerie: own adult healthy owls at home, not brooding (9.7). */
+export function canLendToMenagerie(owl: OwlFacts): boolean {
   return owl.kind === 'own' && !owl.isChick && owl.state === 'home';
 }
 

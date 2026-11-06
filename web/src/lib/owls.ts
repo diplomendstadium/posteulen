@@ -26,7 +26,7 @@ export interface Owl {
     readonly release: boolean;
     readonly rename: boolean;
     readonly treat: boolean;
-    readonly papeterie: boolean;
+    readonly menagerie: boolean;
   };
   readonly absence: {
     readonly purpose: 'letter' | 'gold' | 'gift';
@@ -38,6 +38,8 @@ export interface Owl {
 export interface OwlChoice {
   readonly id: string;
   readonly kind: 'own' | 'loan' | 'bot';
+  /** A loan owl of the day that is borrowed only on sending (`id` = `loan:<species>`). */
+  readonly offer?: boolean;
   readonly name: string;
   readonly species: string;
   readonly energy: number;
@@ -59,8 +61,8 @@ export function treatOwl(id: string, kind: 'self' | 'vet'): Promise<{ owl: Owl }
   return api('POST', `/api/owls/${id}/treat`, { kind });
 }
 
-export function lendToPapeterie(id: string): Promise<{ owl: Owl }> {
-  return api('POST', `/api/owls/${id}/papeterie`, {});
+export function lendToMenagerie(id: string): Promise<{ owl: Owl }> {
+  return api('POST', `/api/owls/${id}/menagerie`, {});
 }
 
 export interface Offer {

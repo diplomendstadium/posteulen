@@ -28,6 +28,8 @@
   <legend>{de.letters.chooseOwl}</legend>
   {#if choices.length === 0}
     <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.letters.noOwl}</span></p>
+  {:else if choices.every((choice) => choice.offer)}
+    <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.letters.loanOffers}</span></p>
   {/if}
   {#each choices as choice (choice.id)}
     <label class="choice" class:chosen={selected === choice.id}>
@@ -43,6 +45,7 @@
             speed: Math.round(owlSpeedKmh(species(choice.species)?.speedFactor ?? 1)),
           })}
         </strong>
+        {#if choice.offer}<span class="hint offer">{de.letters.loanOfferHint}</span>{/if}
         {#if choice.kind === 'loan'}<span class="hint">{de.letters.loanHint}</span>{/if}
         {#each choice.arrivals as arrival (arrival.recipientId)}
           <span
@@ -107,5 +110,10 @@
 
   .hint {
     color: var(--ink-soft);
+  }
+
+  .offer {
+    font-weight: 700;
+    color: var(--ink);
   }
 </style>

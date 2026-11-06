@@ -8,6 +8,7 @@
   import { dateTime } from '../lib/format.ts';
   import { loadConversation, type ShownLetter } from '../lib/letters.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
+  import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
@@ -28,6 +29,16 @@
       : null,
   );
   const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
+  /** Letters in handwriting unless the user prefers the plain font (settings, v0.2). */
+  const print = $derived(account.profile?.lettersPrint ?? false);
+  const retention = $derived(
+    fill(de.letters.retentionHint, {
+      period:
+        (account.profile?.letterRetentionDays ?? 365) >= 365
+          ? de.letters.retentionYear
+          : fill(de.letters.retentionDays, { days: account.profile?.letterRetentionDays ?? 365 }),
+    }),
+  );
 
   async function load(): Promise<void> {
     try {
@@ -108,9 +119,11 @@
     <span aria-hidden="true">ℹ</span><span>{de.letters.notContact}</span>
   </p>{/if}
 
-<ol class="letters" aria-live="polite">
+<p class="hint retention">{retention}</p>
+
+<ol class="letters" class:print aria-live="polite">
   {#each letters as letter (letter.id)}
-    <li class:mine={letter.role === 'sender'}>
+    <li class="scroll" class:mine={letter.role === 'sender'}>
       {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
       <p class="meta">
         {dateTime(letter.sentAt)} · {letter.parchment === 'large'
@@ -196,25 +209,85 @@
     font-size: 1.2rem;
   }
 
+  .retention {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  /* Letters as scrolls (v0.2): a sheet of paper between two rolled ends. The text itself
+     stands on a plain colour (SPEC 14: never on textures). */
   .letters {
     list-style: none;
-    padding: 0;
+    padding: 0.75rem 0.75rem 0;
     display: grid;
-    gap: 0.75rem;
+    gap: 2.25rem;
   }
 
-  .letters li {
-    max-width: 85%;
-    padding: 0.75rem 1rem;
+  .scroll {
+    position: relative;
+    width: min(100%, 34rem);
+    padding: 1.1rem 1.4rem 1rem;
     background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-inline: 1px solid #d8c39a;
+    box-shadow:
+      inset 0.6rem 0 0.6rem -0.6rem rgb(138 106 63 / 0.35),
+      inset -0.6rem 0 0.6rem -0.6rem rgb(138 106 63 / 0.35),
+      var(--shadow);
+    font-family: var(--font-hand-other);
+    font-size: 1.4rem;
+    line-height: 1.35;
+    transform: rotate(-0.4deg);
   }
 
-  .letters li.mine {
+  .scroll.mine {
     margin-left: auto;
-    background: #f7eedb;
-    border-color: var(--wood);
+    background: #fbf3e2;
+    font-family: var(--font-hand-own);
+    font-size: 1.15rem;
+    line-height: 1.5;
+    transform: rotate(0.4deg);
+  }
+
+  /* The rolled ends, slightly wider than the sheet. */
+  .scroll::before,
+  .scroll::after {
+    content: '';
+    position: absolute;
+    left: -0.7rem;
+    right: -0.7rem;
+    height: 1.1rem;
+    border-radius: 0.55rem;
+    background: linear-gradient(to bottom, #c9a46a, #f1dfb6 40%, #e2c690 65%, #a9834d);
+    box-shadow: 0 1px 2px rgb(43 29 14 / 0.3);
+  }
+
+  .scroll::before {
+    top: -0.6rem;
+  }
+
+  .scroll::after {
+    bottom: -0.6rem;
+  }
+
+  .print .scroll,
+  .print .scroll.mine {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .meta,
+  .status,
+  .cover,
+  .invalid {
+    font-family: var(--font-body);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll,
+    .scroll.mine {
+      transform: none;
+    }
   }
 
   .cover {

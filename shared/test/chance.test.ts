@@ -3,8 +3,9 @@ import {
   chickCount,
   giftRequired,
   laysEggs,
+  loanIdentities,
   loanIdentity,
-  papeterieWage,
+  menagerieWage,
   pastGracePeriod,
   pickOffer,
   randomOwlName,
@@ -89,9 +90,30 @@ describe('menagerie (SPEC 9.6, 9.7)', () => {
   });
 
   it('pays 10 % of the species price', () => {
-    expect(papeterieWage(6)).toBe(6);
-    expect(papeterieWage(49)).toBe(49);
+    expect(menagerieWage(6)).toBe(6);
+    expect(menagerieWage(49)).toBe(49);
     expect(speciesPrice('waldkauz')).toBe(6);
     expect(speciesPrice('nope')).toBe(0);
+  });
+});
+
+describe('loan identities of a day (v0.2)', () => {
+  it('three different names, even if every derivation gives the same bytes', () => {
+    const same = loanIdentities(['a', 'b', 'c'], () => new Uint8Array([1, 2, 3, 4, 5, 6]));
+    expect(new Set(same.map((identity) => identity.name)).size).toBe(3);
+    expect(same.every((identity) => OWL_NAMES.includes(identity.name))).toBe(true);
+  });
+
+  it('keeps the first derivation and uses further attempts only on a clash', () => {
+    const bytes = (species: string, attempt: number) =>
+      new Uint8Array([species === 'b' && attempt === 0 ? 1 : attempt, 0, species.charCodeAt(0)]);
+    const result = loanIdentities(['a', 'b'], bytes);
+    expect(result[0]).toEqual(loanIdentity(bytes('a', 0)));
+    expect(result[1]?.name).not.toBe(result[0]?.name);
+  });
+
+  it('energy share in [0, 1)', () => {
+    expect(loanIdentity(new Uint8Array([0, 0, 0, 0, 255, 255])).energyShare).toBeLessThan(1);
+    expect(loanIdentity(new Uint8Array([])).energyShare).toBe(0);
   });
 });

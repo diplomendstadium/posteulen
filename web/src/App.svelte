@@ -72,12 +72,7 @@
       faq={HELP_FAQ}
     />
   {:else if route.path === '/datenschutz'}
-    <TextPage
-      title={de.pages.privacyTitle}
-      intro={PRIVACY_INTRO}
-      sections={PRIVACY_SECTIONS}
-      draft
-    />
+    <TextPage title={de.pages.privacyTitle} intro={PRIVACY_INTRO} sections={PRIVACY_SECTIONS} />
   {:else if route.path === '/impressum'}
     <TextPage title={de.pages.imprintTitle} intro={IMPRINT_INTRO} sections={IMPRINT_SECTIONS} />
   {:else if route.path === '/konto-erstellen'}

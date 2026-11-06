@@ -3,6 +3,45 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.2.0 – Briefe wie Briefe
+
+- **Leiheule direkt beim Briefschreiben:** Ist keine eigene Eule da, bietet die Eulenwahl die
+  Leiheulen des Tages an. Geliehen und bezahlt wird erst beim Abschicken – kein Umweg über die
+  Menagerie, kein Neutippen. Gilt auch für Goldsendungen und Briefe an Bots.
+- Die drei Leiheulen eines Tages haben immer verschiedene Namen.
+- **Alte Briefe werden gelöscht:** Alle Briefe und Systemnachrichten verschwinden spätestens ein
+  Jahr nach der Zustellung unwiderruflich. In den Einstellungen lässt sich die eigene Frist auf
+  30, 90 oder 180 Tage verkürzen.
+- **Briefe sehen aus wie Briefe:** Schriftrollen statt Sprechblasen, eigene Briefe und die des
+  Gegenübers in zwei Handschriften. Links und Namen bleiben in Druckschrift; wer mag, stellt
+  ganz auf Druckschrift um.
+- **„Neue Post!“** hüpft in der Statusleiste, sobald ungelesene Post da ist.
+- **Karte:** größere Schrift und Symbole (vor allem auf dem Handy), Städte zur Orientierung
+  (über 1 Mio. Einwohner, beim Hineinzoomen über 200 000), England, Schottland, Wales und
+  Nordirland getrennt, und beim Öffnen zoomt die Karte auf alle bekannten Orte und Eulen.
+- **Umzüge:** bis zu 3-mal pro Kalendermonat statt alle 21 Tage.
+- **Krankheit:** Für den Pflegebonus zählen nur Tage, an denen die Eule mindestens eine Stunde
+  zu Hause war – Reisetage kosten den Bonus nicht mehr.
+- Einheitlich „Menagerie“ statt „Papeterie“.
+- Versionsnummer auf der Startseite (Link zum Quelltext) und auf der Übersicht.
+- Datenschutzerklärung ohne Entwurfshinweis und ohne die Kapitel „Verantwortlich“ und
+  „Deine Rechte“.
+- `README.md` mit einem Teil für Neugierige und einem für Selbst-Hoster ersetzt `readme.txt`;
+  Hilfe und Erklärbär betonen, dass hinter dem Spiel ernsthafte Kryptografie steckt.
+- SPEC auf den Stand v0.2 gebracht (alle Entscheidungen eingearbeitet).
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0007** (läuft beim Update automatisch): neue Spalten für Umzüge,
+  Löschfrist und Druckschrift, neue Tabellen für den Pflegeverlauf, Umbenennung „papeterie“ →
+  „menagerie“ (die Eulentabelle wird dabei neu aufgebaut).
+- **Beim ersten Aufräumlauf um 04:00 UTC nach dem Update** werden Briefe und Systemnachrichten
+  gelöscht, die älter als ein Jahr sind.
+- Neue Abhängigkeiten: Schriften Kalam und Caveat (OFL). Die Kartendaten enthalten jetzt Städte.
+- Update von v0.1.0: `sudo posteulen-update`.
+- Datenschutzerklärung und Impressum sind Standardtexte; wer eine eigene Instanz betreibt, passt
+  sie selbst an (`shared/src/texts/legal.ts`, README Abschnitt 9).
+
 ## v0.1.0 – Erste Version
 
 Die erste vollständige Version von PostEulen.de: Ende-zu-Ende-verschlüsselte Briefe per Eule,
