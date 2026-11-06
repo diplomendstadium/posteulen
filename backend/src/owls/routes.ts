@@ -30,7 +30,7 @@ import {
 } from '@posteulen/shared/schemas/owls.ts';
 import { loanOwl, loanIdentityFor, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
@@ -139,7 +139,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
-  app.post('/api/owls/:id/feed', { preHandler: authenticated }, async (request) => {
+  app.post('/api/owls/:id/feed', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = owlIdParam(request.params);
     const me = userOf(request).id;
     const now = ctx.now();
@@ -166,7 +166,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   /** Petting is free and unlimited, but counts for the care bonus once per day (9.3). */
-  app.post('/api/owls/:id/pet', { preHandler: authenticated }, async (request) => {
+  app.post('/api/owls/:id/pet', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = owlIdParam(request.params);
     const me = userOf(request).id;
     const now = ctx.now();
@@ -184,7 +184,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
-  app.post('/api/owls/:id/release', { preHandler: authenticated }, async (request) => {
+  app.post('/api/owls/:id/release', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = owlIdParam(request.params);
     const me = userOf(request).id;
     const owl = ownOwl(ctx, me, id);
@@ -330,27 +330,31 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   /** Lend an owl to the papeterie for 7 days (9.7). */
-  app.post('/api/owls/:id/papeterie', { preHandler: authenticated }, async (request) => {
-    const id = owlIdParam(request.params);
-    const me = userOf(request).id;
-    const now = ctx.now();
-    const owl = ownOwl(ctx, me, id);
-    if (!canLendToPapeterie(facts(owl)) || owl.name === null)
-      throw new HttpError(400, 'owl_not_home');
-    const until = now + OWL.PAPETERIE_DAYS * TIME.DAY;
-    ctx.db.transaction(() => {
-      ctx.db.run(
-        "UPDATE owls SET state = 'papeterie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
-        until,
-        currentEnergy(ctx, owl, now),
-        now,
-        id,
-      );
-      ctx.queue.schedule('papeterie_end', id, until);
-    });
-    ctx.hub.notify(me, 'owls');
-    return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
-  });
+  app.post(
+    '/api/owls/:id/papeterie',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      const id = owlIdParam(request.params);
+      const me = userOf(request).id;
+      const now = ctx.now();
+      const owl = ownOwl(ctx, me, id);
+      if (!canLendToPapeterie(facts(owl)) || owl.name === null)
+        throw new HttpError(400, 'owl_not_home');
+      const until = now + OWL.PAPETERIE_DAYS * TIME.DAY;
+      ctx.db.transaction(() => {
+        ctx.db.run(
+          "UPDATE owls SET state = 'papeterie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
+          until,
+          currentEnergy(ctx, owl, now),
+          now,
+          id,
+        );
+        ctx.queue.schedule('papeterie_end', id, until);
+      });
+      ctx.hub.notify(me, 'owls');
+      return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
+    },
+  );
 
   /** Today's offer with the names rolled for this user (9.6). */
   app.get('/api/menagerie', { preHandler: authenticated }, async (request) => {

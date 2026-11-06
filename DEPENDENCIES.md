@@ -51,6 +51,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `@vitest/coverage-v8` | 5.0.5 | MIT | Abdeckung |
 | `fast-check` | 4.10.2 | MIT | Property-based Tests |
 | `@playwright/test` | 1.64.1 | Apache-2.0 | Ende-zu-Ende-Tests, Screenshots (Browser werden nur auf dem Entwicklungsrechner geladen, nie auf dem Server) |
+| `@axe-core/playwright` (mit `axe-core` 4.14.0) | 4.14.0 | MPL-2.0 | Automatische Prüfung der Barrierefreiheit (WCAG 2.2 AA) in den E2E-Tests (D-93) |
 | `@types/node` | 26.6.5 | MIT | Typen für Node.js |
 | `@types/web-push` | 3.6.4 | MIT | Typen für web-push |
 | `@eslint/js` | 10.0.1 | MIT | Grundregeln für ESLint |

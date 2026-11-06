@@ -3,6 +3,28 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.1.0-stufe.6 – Abschluss
+
+- Hilfe zu allen Funktionen mit Inhaltsverzeichnis, häufigen Fragen, Anleitung für Android ohne
+  Google-Dienste und Krisenhilfe; erreichbar vor und nach dem Login. Sie ist zugleich das Wissen
+  des Erklärbärs.
+- Datenschutzerklärung (Entwurf) und Impressum.
+- Barrierefreiheit: automatische Prüfung nach WCAG 2.2 AA auf allen Seiten. Behoben: Eulen- und
+  Kontaktnamen erschienen an einigen Stellen in der Zierschrift.
+- Karte: Beschriftungen überlappen nicht mehr; Bots haben eine eigene Markerform (auch in Graustufen erkennbar).
+- Angemeldet bleiben hält jetzt auch über einen Neustart des Browsers (Sitzungs-Cookie mit 30 Tagen
+  gleitender Laufzeit).
+- Sicherheits-Review entlang SPEC 6 (SECURITY-REVIEW.md); Endpunkte ohne Nutzdaten lehnen
+  unerwartete Inhalte ab.
+- Bots: Standardmodell gpt-6-luna; das Token-Budget reicht jetzt auch für Reasoning-Modelle.
+- readme.txt fertiggestellt, u. a. Wiederherstellung nach einem Totalausfall auf einem neuen Server.
+
+### Hinweise für Betreiber
+
+- Keine Datenbank-Migration. Das Update ist von jeder früheren Stufe aus möglich.
+- Wer im Adminpanel nie ein Modell gespeichert hat, nutzt ab jetzt gpt-6-luna. Ein gespeichertes Modell bleibt.
+- Vor dem öffentlichen Betrieb Datenschutzerklärung und Impressum ausfüllen (readme.txt, Abschnitt 9).
+
 ## v0.1.0-stufe.5 – Bots
 
 - Jedes Konto hat einen Erklärbären, eine Tante und einen Onkel (deutlich als Bot gekennzeichnet, auch auf der Karte).

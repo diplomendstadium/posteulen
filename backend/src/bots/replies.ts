@@ -15,9 +15,13 @@ import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from 
 import { SUMMARY_PROMPT, SYSTEM_PROMPTS } from './prompts.ts';
 import { botById, dispatchBotLetter, type BotRow } from './service.ts';
 
-/** Token budget for at most 500 characters of German text, with some room. */
-const REPLY_TOKENS = 400;
-const SUMMARY_TOKENS = 600;
+/**
+ * Token budgets. 500 characters of German text need about 200 tokens, but reasoning models
+ * (such as the default model) count their hidden reasoning against the same budget – too
+ * small a budget gives an empty answer. The length is held by the prompt and `finishReply`.
+ */
+const REPLY_TOKENS = 4000;
+const SUMMARY_TOKENS = 4000;
 
 /** Cleans the AI text with the letter rules and cuts it to 500 characters at a sentence end. */
 export function finishReply(raw: string): string {

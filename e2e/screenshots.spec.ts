@@ -98,7 +98,7 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.getByRole('button', { name: 'Schneeeule kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').waitFor();
     await shoot(page, info, 'eule-benennen');
-    await page.getByLabel('Name (2–20 Zeichen)').fill('Hedwig');
+    await page.getByLabel('Name (2–20 Zeichen)').fill('Wilma');
     await page.getByRole('button', { name: 'Speichern' }).click();
     await page.goto('/app/menagerie');
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
@@ -112,9 +112,9 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
 
     await page.goto('/app/adressbuch');
     await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
-    await page.getByLabel('Text').fill('Hedwig bringt dir diesen Brief.');
+    await page.getByLabel('Text').fill('Wilma bringt dir diesen Brief.');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await page.getByRole('radio', { name: /Hedwig/ }).check();
+    await page.getByRole('radio', { name: /Wilma/ }).check();
     await shoot(page, info, 'eule-waehlen');
     await page.getByRole('button', { name: 'Absenden' }).click();
     await page.getByTestId('owl-overlay').waitFor();
@@ -181,5 +181,20 @@ test.describe('Screenshots Stufe 5', () => {
     await page.goto('/app/adressbuch');
     await page.getByTestId('bot-contact').first().waitFor();
     await shoot(page, info, 'adressbuch-bots');
+  });
+});
+
+test.describe('Screenshots Stufe 6', () => {
+  test.beforeEach(({ browserName }) => {
+    test.skip(browserName !== 'chromium', 'Screenshots für den Bericht nur aus Chromium');
+  });
+
+  test('Hilfe, Datenschutz, Impressum', async ({ page }, info) => {
+    await page.goto('/hilfe');
+    await shoot(page, info, 'hilfe', true);
+    await page.goto('/datenschutz');
+    await shoot(page, info, 'datenschutz');
+    await page.goto('/impressum');
+    await shoot(page, info, 'impressum', true);
   });
 });

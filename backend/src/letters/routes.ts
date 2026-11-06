@@ -11,7 +11,7 @@ import { canAfford } from '@posteulen/shared/game/gold.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import { IdList, LetterPrepare, LetterSend } from '@posteulen/shared/schemas/letters.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
@@ -279,7 +279,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   /** Deletes the own copies of all letters of a chat for real (SPEC 8.4). */
-  app.delete('/api/chats/:peer', { preHandler: authenticated }, async (request) => {
+  app.delete('/api/chats/:peer', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const peer = parse(Id, (request.params as { peer?: unknown }).peer);
     const me = userOf(request).id;
     ctx.db.transaction(() => {
@@ -358,8 +358,12 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     return { ok: true };
   });
 
-  app.post('/api/system-messages/seen', { preHandler: authenticated }, async (request) => {
-    ctx.db.run('UPDATE system_messages SET seen = 1 WHERE user_id = ?', userOf(request).id);
-    return { ok: true };
-  });
+  app.post(
+    '/api/system-messages/seen',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      ctx.db.run('UPDATE system_messages SET seen = 1 WHERE user_id = ?', userOf(request).id);
+      return { ok: true };
+    },
+  );
 }

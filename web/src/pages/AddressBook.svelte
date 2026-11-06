@@ -172,7 +172,7 @@
       </div>
       {#if shown[contact.userId]}
         <div class="safety">
-          <h3>{fill(de.contacts.safetyTitle, { name: contact.name })}</h3>
+          <h3 class="name">{fill(de.contacts.safetyTitle, { name: contact.name })}</h3>
           <p>{de.contacts.safetyIntro}</p>
           <p class="number" data-testid="safety-number">{shown[contact.userId]}</p>
           {#if !compared}

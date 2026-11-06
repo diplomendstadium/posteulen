@@ -114,7 +114,7 @@
       {#each offer.offer as item (item.species)}
         <li class="card" data-testid="loan-offer">
           <OwlPicture speciesId={item.species} alt={`${item.name}, ${speciesName(item.species)}`} />
-          <h3>{item.name}</h3>
+          <h3 class="name">{item.name}</h3>
           <p class="stats">{speciesName(item.species)}</p>
           <button
             class="button"

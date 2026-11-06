@@ -10,7 +10,7 @@ import {
   OpenAiKey,
   OpenAiSettings,
 } from '@posteulen/shared/schemas/auth.ts';
-import { HttpError } from '../http/errors.ts';
+import { HttpError, emptyBody } from '../http/errors.ts';
 import {
   aiDailyLimit,
   aiModel,
@@ -117,7 +117,7 @@ export function registerAdminOperations(
     return { keySince: keySince(ctx.db) };
   });
 
-  app.delete('/api/openai/key', { preHandler: authenticated }, async () => {
+  app.delete('/api/openai/key', { preHandler: [authenticated, emptyBody] }, async () => {
     deleteApiKey(ctx.db);
     return { ok: true };
   });
@@ -141,7 +141,7 @@ export function registerAdminOperations(
   });
 
   /** "Verbindung testen": the key is valid and the model exists. */
-  app.post('/api/openai/test', { preHandler: authenticated }, async () => {
+  app.post('/api/openai/test', { preHandler: [authenticated, emptyBody] }, async () => {
     const key = await loadApiKey(ctx);
     if (!key) return { ok: false, code: 'openai_no_key' };
     try {

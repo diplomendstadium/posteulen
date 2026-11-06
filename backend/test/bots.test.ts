@@ -1,3 +1,4 @@
+import { helpAsText } from '@posteulen/shared/texts/help.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BOTS, GOLD, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
@@ -33,7 +34,7 @@ import {
 class FakeAi implements AiClient {
   calls: { model: string; messages: readonly AiMessage[]; maxTokens: number }[] = [];
   answers: (string | Error)[] = [];
-  models = ['gpt-4o-mini', 'gpt-test'];
+  models = ['gpt-6-luna', 'gpt-test'];
   async complete(_key: string, model: string, messages: readonly AiMessage[], maxTokens: number) {
     this.calls.push({ model, messages, maxTokens });
     const next = this.answers.shift() ?? 'Danke für deinen Brief! Wie geht es dir heute?';
@@ -340,12 +341,22 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
     const request = ai.calls[0]!;
     expect(request.messages[0]).toMatchObject({ role: 'system' });
     expect(request.messages[0]!.content).toContain('Erklärbär');
+    // Knowledge base = help text (SPEC 10.2, D-88).
+    expect(request.messages[0]!.content).toContain(helpAsText());
     expect(request.messages.at(-1)).toEqual({
       role: 'user',
       content: 'Wie füttere ich eine Eule?',
     });
     expect(request.messages).toContainEqual({ role: 'assistant', content: EXPLAINER_LETTERS.day0 });
-    expect(JSON.stringify(request)).not.toMatch(/Anna|[A-Za-z0-9_-]{22}/);
+    // No names and no identifiers (user, bot, letter IDs) go to OpenAI (SPEC 10.5).
+    const payload = JSON.stringify(request);
+    const ids = app.db
+      .all<{ id: string }>(
+        'SELECT id FROM users UNION SELECT id FROM bots UNION SELECT id FROM letters',
+      )
+      .map((row) => row.id);
+    for (const value of ['Anna', anna.id, explainer.id, ...ids])
+      expect(payload).not.toContain(value);
     const letters = await botLetters(anna, explainer.id);
     expect(letters.find((l) => l.role === 'sender')?.read).toBe(true);
     advanceTo(app, app.clock.now + TIME.DAY);
@@ -537,7 +548,7 @@ describe('admin: OpenAI settings (SPEC 13 item 5)', () => {
     expect(JSON.stringify(info.body)).not.toContain('geheim');
     expect(JSON.stringify(app.db.all('SELECT * FROM settings'))).not.toContain('geheim');
     expect((await admin.json('GET', '/api/openai/models')).body).toEqual({
-      models: ['gpt-4o-mini', 'gpt-test'],
+      models: ['gpt-6-luna', 'gpt-test'],
     });
     expect((await admin.json('POST', '/api/openai/test', {})).body).toEqual({ ok: true });
     expect(

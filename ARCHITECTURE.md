@@ -218,7 +218,7 @@ Alle Spielstände sind lesbar (3: „für den Server sichtbare Metadaten“).
 
 ## 4. API-Übersicht
 
-Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der deutsche Text kommt aus `texts/de.ts`. Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
+Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Endpunkte ohne Nutzdaten akzeptieren nur einen leeren Inhalt oder `{}` (`emptyBody`, D-94). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der deutsche Text kommt aus `texts/de.ts`. Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
 
 Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Registrierung, Vorbereitung/Flugvorschau, Kontaktanfragen) · **A** Admin streng. `bg` = Hintergrundanfrage, zählt nicht als Aktivität (9.10).
 
@@ -618,7 +618,7 @@ Uhr und Zufall werden immer als Parameter übergeben (`{ now, rng }`). Das Backe
 | **Neugieriger Admin** | Adminpanel ohne Nutzerliste, Briefe oder Änderungsfunktionen (13); kein Login in Nutzerkonten möglich (OPAQUE, kein Passwort-Reset); Statistik nur aggregiert |
 | **Passwort-Raten** | OPAQUE + Argon2id auf dem Client; steigende Wartezeiten je Name und IP/64 (RAM), ALTCHA ab 3 Fehlversuchen; gleiches Verhalten für unbekannte Namen |
 | **Konto-Aufzählung** | deterministische Fake-Credential-ID, identische Antwortlänge, gleiche Zähler; Kontaktanfragen mit immer gleicher Antwort; „Name vergeben“ nur bei der Registrierung, durch Rate-Limit gebremst |
-| **Sitzungsdiebstahl** | `__Host-`-Cookie (HttpOnly, Secure, SameSite=Strict); Einzel-Sitzung; gleitender Ablauf; Logout löscht serverseitig |
+| **Sitzungsdiebstahl** | `__Host-`-Cookie (HttpOnly, Secure, SameSite=Strict; Nutzer-Cookie 30 Tage gleitend, Admin-Cookie nur Browsersitzung, D-92); Einzel-Sitzung; gleitender Ablauf; Logout löscht serverseitig |
 | **XSS** | strikte CSP ohne Inline-Skripte/-Styles, Trusted Types (D-07); nie `{@html}` (Lint-Regel `svelte/no-at-html-tags` als Fehler); Links nur http(s), volle URL sichtbar; Textregeln auch beim Empfänger |
 | **CSRF / Cross-Origin** | SameSite=Strict, Pflicht-Header, exakte Origin-Prüfung je API, kein CORS, getrennte Listener für Admin und Nutzer |
 | **Injection** | nur parametrisierte Statements; strikte Schemas ohne unbekannte Felder; Größenlimits |
@@ -640,6 +640,7 @@ Uhr und Zufall werden immer als Parameter übergeben (`{ now, rng }`). Das Backe
 - **CSP-Verträglichkeit (D-07):** Svelte 5 setzt Styles über das CSSOM und Übergänge über die Web Animations API; beides ist mit `style-src 'self'` vereinbar. Statische `style="…"`-Attribute in Templates sind verboten (Lint-Regel). Svelte bringt eine Trusted-Types-Policy `svelte-trusted-html` mit. Die CSP enthält deshalb `require-trusted-types-for 'script'; trusted-types svelte-trusted-html posteulen-sw` (die zweite Policy erlaubt genau `/sw.js` für die Registrierung des Service Workers, D-30). Diese Policy lässt das HTML ungeprüft durch und ist nur sicher, weil `{@html}` verboten ist. Ein Playwright-Test lauscht auf `securitypolicyviolation` und schlägt bei jedem Verstoß fehl.
 - **ALTCHA-Widget:** wird selbst gehostet. Ob es ohne Inline-Styles auskommt, prüfe ich in Stufe 1. Sonst baue ich eine eigene kleine Svelte-Komponente auf `altcha/lib`.
 - **Bilder:** Der Build (`sharp`) erzeugt WebP in 160, 480 und 960 px mit Hash im Namen und ein Manifest. Fehlende Bilder ersetzt er durch einen Platzhalter und gibt eine Warnung aus (9.2.6).
+- **Hilfe, Datenschutz, Impressum:** strukturierte Texte in `shared/texts/help.ts` und `legal.ts`, dargestellt von `TextPage.svelte` (Inhaltsverzeichnis, Sprungmarken, nur Text). `helpAsText()` liefert dieselbe Hilfe als Wissensbasis des Erklärbärs (D-91).
 - **Schriften:** Atkinson Hyperlegible Next (Fließtext, Namen) und eine Zierschrift für Überschriften (Cinzel Decorative, F-08), beide OFL, als WOFF2 selbst gehostet.
 
 ---
@@ -707,13 +708,14 @@ Auf dem Entwicklungsrechner (Debian 13, KVM ohne Root nutzbar) startet `deploy/t
 2. ein zweiter Lauf, der nichts überschreibt (Prüfsummen von Geheimnis-Datei und DB vorher/nachher);
 3. ab Stufe 1: Installation des vorigen Tags, Testdaten anlegen (Konten, Briefe per Playwright-Skript), Update auf den neuen Stand, Login und alte Briefe prüfen;
 4. ein absichtlich kaputtes Update (Test-Tag mit fehlerhafter Migration) → automatischer Rückfall, danach `--rollback`;
-5. Wiederherstellung nach readme; `shellcheck` über `deploy/`.
+5. Wiederherstellung nach readme: auf demselben Server und nach einem Totalausfall (alle Serverdaten gelöscht, Neuinstallation mit geretteter Geheimnis-Datei und bisherigem Backup-Schlüssel); `shellcheck` über `deploy/`.
 
 ---
 
 ## 11. Teststrategie (17)
 
-- **Ein Befehl:** `npm test` = Lint, Typprüfung (`tsc`, `svelte-check`), Vitest mit Abdeckung (Grenze 90 % Zeilen für `shared/crypto`, `shared/` (Spiellogik), `web/src/crypto`), `npm audit`, `shellcheck`. `npm run test:e2e` = Playwright (Handy, Desktop, Graustufen, Netzwerk- und CSP-Prüfung). `npm run test:vm` = 10.5.
+- **Ein Befehl:** `npm test` = Lint, Typprüfung (`tsc`, `svelte-check`), Vitest mit Abdeckung (Grenze 90 % Zeilen für `shared/crypto`, `shared/` (Spiellogik), `web/src/crypto`), `npm audit`, `shellcheck`. `npm run test:e2e` = Playwright (Handy, Desktop, Graustufen, Netzwerk- und CSP-Prüfung, Barrierefreiheit mit axe-core nach WCAG 2.2 AA an jeder Seite und jedem Screenshot-Zustand, D-93). `npm run test:vm` = 10.5.
 - **Krypto:** Ende-zu-Ende über echte Bibliotheken; Manipulationstests flippen gezielt Bytes in Chiffrat, AD und Metadaten; ein Abfangtest prüft alle Requests auf Passwort, Klartext und private Schlüssel (17.1, letzter Punkt).
 - **Spiellogik:** feste Uhr, deterministischer Seed; fast-check für Schemas, Normalisierung, Textregeln und Gold-Arithmetik.
+- **Routen-Inventar:** `backend/test/routes.test.ts` liest alle Endpunkte aus dem Quelltext und prüft Sitzungspflicht und leere Inhalte (D-94).
 - **Berechtigungen:** eine Tabelle aller Endpunkte, die automatisch gegen fremde Objekte, Nicht-Kontakte, inaktive und gelöschte Konten sowie Admin/Nutzer-Trennung geprüft wird (17.3).

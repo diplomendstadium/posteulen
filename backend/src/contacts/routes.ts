@@ -10,7 +10,7 @@ import { normalizeName } from '@posteulen/shared/names.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import { ContactRequest, VaultPut } from '@posteulen/shared/schemas/letters.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -114,11 +114,19 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     return { ok: true };
   });
 
-  app.delete('/api/contacts/requests/:id', { preHandler: authenticated }, async (request) => {
-    const id = parse(Id, (request.params as { id?: unknown }).id);
-    ctx.db.run('DELETE FROM contact_requests WHERE id = ? AND from_id = ?', id, userOf(request).id);
-    return { ok: true };
-  });
+  app.delete(
+    '/api/contacts/requests/:id',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      const id = parse(Id, (request.params as { id?: unknown }).id);
+      ctx.db.run(
+        'DELETE FROM contact_requests WHERE id = ? AND from_id = ?',
+        id,
+        userOf(request).id,
+      );
+      return { ok: true };
+    },
+  );
 
   app.get('/api/contacts', { preHandler: authenticated }, async (request) => {
     const me = userOf(request).id;
@@ -180,7 +188,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     };
   });
 
-  app.delete('/api/contacts/:id', { preHandler: authenticated }, async (request) => {
+  app.delete('/api/contacts/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const other = parse(Id, (request.params as { id?: unknown }).id);
     const me = userOf(request).id;
     const after: (() => void)[] = [];
@@ -217,25 +225,29 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     };
   });
 
-  app.post('/api/contacts/:id/key-warning', { preHandler: authenticated }, async (request) => {
-    const other = parse(Id, (request.params as { id?: unknown }).id);
-    const me = userOf(request).id;
-    const now = ctx.now();
-    ctx.db.transaction(() => {
-      const contact = findContact(ctx.db, me, other);
-      if (!contact) throw new HttpError(404, 'not_found');
-      if (hasKeyWarning(contact)) return;
-      const column = contact.user_lo === me ? 'warn_lo' : 'warn_hi';
-      ctx.db.run(
-        `UPDATE contacts SET ${column} = 1 WHERE user_lo = ? AND user_hi = ?`,
-        contact.user_lo,
-        contact.user_hi,
-      );
-      addSystemMessage(ctx, me, 'key_warning', { name: displayName(ctx.db, other) ?? '' }, now);
-    });
-    ctx.hub.notify(me, 'contacts');
-    return { ok: true };
-  });
+  app.post(
+    '/api/contacts/:id/key-warning',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      const other = parse(Id, (request.params as { id?: unknown }).id);
+      const me = userOf(request).id;
+      const now = ctx.now();
+      ctx.db.transaction(() => {
+        const contact = findContact(ctx.db, me, other);
+        if (!contact) throw new HttpError(404, 'not_found');
+        if (hasKeyWarning(contact)) return;
+        const column = contact.user_lo === me ? 'warn_lo' : 'warn_hi';
+        ctx.db.run(
+          `UPDATE contacts SET ${column} = 1 WHERE user_lo = ? AND user_hi = ?`,
+          contact.user_lo,
+          contact.user_hi,
+        );
+        addSystemMessage(ctx, me, 'key_warning', { name: displayName(ctx.db, other) ?? '' }, now);
+      });
+      ctx.hub.notify(me, 'contacts');
+      return { ok: true };
+    },
+  );
 
   // ── Kontakt-Tresor (nur Chiffrat, SPEC 5.7) ──
   app.get('/api/vault', { preHandler: authenticated }, async (request) => ({

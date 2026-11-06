@@ -48,7 +48,7 @@
           alt={fill(de.owls.imageAlt, { species: speciesName, what: current.caption })}
         />
       </button>
-      <figcaption role="status">{current.caption}</figcaption>
+      <figcaption class="name"><span role="status">{current.caption}</span></figcaption>
     </figure>
   {/key}
 {/if}
@@ -102,7 +102,5 @@
   figcaption {
     padding: 0.5rem 0.25rem 0.25rem;
     text-align: center;
-    font-family: var(--font-display);
-    font-weight: 700;
   }
 </style>

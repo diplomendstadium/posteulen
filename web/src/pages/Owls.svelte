@@ -219,7 +219,7 @@
         />
       </div>
       <div class="facts">
-        <h2>{owl.name}</h2>
+        <h2 class="name">{owl.name}</h2>
         <p class="species">
           {speciesName(owl.species)} · {owl.sex === 'f' ? de.owls.female : de.owls.male}
         </p>

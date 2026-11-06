@@ -1,13 +1,19 @@
 PostEulen.de – Installationsanleitung
 =====================================
 
-ENTWURF (Stand: Stufe 2). Diese Anleitung wächst mit jeder Stufe und wird in Stufe 6
-fertiggestellt. Abschnitte, die erst später gelten, sind markiert.
+Stand: Version 0.1.0.
 
 PostEulen ist ein Ende-zu-Ende-verschlüsselter Messenger, bei dem Eulen die Briefe bringen.
 Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit
 Debian 13 per HTTPS läuft. Sie ist für Einsteiger geschrieben. Jeder Schritt der Skripte ist
 erklärt, damit man ihn notfalls auch von Hand ausführen kann.
+
+Kurzfassung:
+  1. Server und Domain vorbereiten (Abschnitt 1).
+  2. Ein Befehl installiert alles (Abschnitt 2).
+  3. Geheimnis-Datei und Backup-Schlüssel außerhalb des Servers sichern (Abschnitte 2 und 5).
+  4. Im Adminpanel Passwort ändern, Registrierung öffnen, OpenAI-Key eintragen (Abschnitt 3).
+  5. Vor dem öffentlichen Betrieb Datenschutzerklärung und Impressum ausfüllen (Abschnitt 9).
 
 
 1. Voraussetzungen
@@ -23,7 +29,11 @@ erklärt, damit man ihn notfalls auch von Hand ausführen kann.
       posteulen.de        →  IP des Servers
       admin.posteulen.de  →  IP des Servers
   Ohne diese Einträge kann Caddy keine HTTPS-Zertifikate von Let's Encrypt bekommen.
-* SSH-Zugang zum Server, am besten mit einem SSH-Schlüssel statt Passwort.
+* SSH-Zugang zum Server, am besten mit einem SSH-Schlüssel statt Passwort. Den Schlüssel
+  hinterlegt man auf dem eigenen Rechner mit „ssh-copy-id benutzer@server“. Erst dann bietet
+  das Installations-Skript an, die Anmeldung per Passwort abzuschalten.
+* Für die Bots ein OpenAI-API-Key (https://platform.openai.com). Ohne Key läuft alles andere,
+  nur antworten die Bots nicht.
 
 
 2. Installation mit einem Befehl
@@ -99,7 +109,8 @@ Zertifikate von Caddy statt Let's Encrypt und überspringt die DNS-Prüfung.
   gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 * Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
 * OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt),
-  Modell wählen („Modelle von OpenAI laden“ oder von Hand), Tageslimit (Standard 200 Aufrufe),
+  Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand),
+  Tageslimit (Standard 200 Aufrufe),
   „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts;
   wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür
   ausgehende Verbindungen zu api.openai.com (Port 443).
@@ -138,14 +149,26 @@ zusammenpassen.
   Auch dort höchstens 7 Tage aufbewahren (rsync --delete erledigt das).
 * Geheimnis-Datei und privaten Backup-Schlüssel einmalig separat und sicher aufbewahren.
 
-Wiederherstellung (auf einem frisch installierten oder dem bestehenden Server):
+Wiederherstellung A – auf demselben Server (z. B. nach einem Bedienfehler):
 
-  1. Falls neu installiert: die gesicherte Geheimnis-Datei zurückspielen (vorher den Dienst
-     stoppen) und Rechte setzen:
-         sudo systemctl stop posteulen
-         sudo cp posteulen-secrets.json /etc/posteulen/secrets.json
-         sudo chown root:posteulen /etc/posteulen/secrets.json
-         sudo chmod 0640 /etc/posteulen/secrets.json
+  Weiter mit Schritt 2 unten. Die Geheimnis-Datei ist ja noch da.
+
+Wiederherstellung B – nach einem Totalausfall auf einem neuen Server:
+
+  Gebraucht werden die drei Dinge, die außerhalb des Servers gesichert sein sollten:
+  posteulen-secrets.json, posteulen-backup-schluessel.txt und eine Sicherung
+  (posteulen-…-taeglich.sqlite.age). Alle drei per scp auf den neuen Server kopieren, z. B.
+  nach /root.
+
+  1. VOR der Installation die Geheimnis-Datei zurücklegen. Das Skript übernimmt sie dann
+     (es überschreibt sie nie) und setzt die richtigen Rechte:
+         sudo install -d -m 0700 /etc/posteulen
+         sudo install -m 0600 posteulen-secrets.json /etc/posteulen/secrets.json
+     Dann wie in Abschnitt 2 installieren, aber mit dem bisherigen öffentlichen
+     Backup-Schlüssel. Er steht in der Schlüsseldatei in der Zeile „# public key: age1…“:
+         grep 'public key' posteulen-backup-schluessel.txt
+         sudo ./posteulen/deploy/install.sh --domain posteulen.de --backup-pubkey age1…
+     So bleiben auch alle künftigen Sicherungen mit dem bisherigen Schlüssel lesbar.
   2. Sicherung entschlüsseln und einspielen:
          sudo systemctl stop posteulen
          sudo age --decrypt --identity posteulen-backup-schluessel.txt \
@@ -158,6 +181,16 @@ Wiederherstellung (auf einem frisch installierten oder dem bestehenden Server):
          sudo posteulen-cli check
          sudo systemctl start posteulen
      „check“ meldet einen Fehler, wenn Geheimnis-Datei und Datenbank nicht zusammengehören.
+  4. Bei B: die Schlüsseldatei und die Sicherung vom neuen Server wieder löschen
+     (sudo rm /root/posteulen-backup-schluessel.txt /root/posteulen-*.sqlite.age).
+     Danach mit einem Konto anmelden und einen alten Brief öffnen.
+
+Alles, was nach der verwendeten Sicherung geschah, ist verloren. Nutzer müssen sich neu
+anmelden, wenn ihre Sitzung nach der Sicherung entstanden ist. Eulen, die laut Sicherung
+unterwegs waren, landen nach dem Start sofort, wenn ihre Ankunftszeit schon vorbei ist.
+
+Beide Wege (A und B) werden bei jeder Version automatisch in einer Debian-13-VM durchgespielt
+(npm run test:vm).
 
 
 6. Updates
@@ -204,6 +237,17 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte.
   Datenbank gehörende Datei zurückspielen.
 * „Migrationen stehen aus“: sudo posteulen-cli migrate
 * Kein HTTPS-Zertifikat: DNS-Einträge prüfen (Abschnitt 1), dann sudo systemctl restart caddy.
+* Bots antworten nicht: Im Adminpanel unter „OpenAI (Bots)“ Key, Modell und „Verbindung
+  testen“ prüfen; das Fehlerprotokoll zeigt die Ursache. Antworten werden alle 24 Stunden
+  erneut versucht, nach dem Speichern eines Keys sofort. Ist das Tageslimit erreicht, kommen
+  die Antworten am nächsten Tag.
+* Benachrichtigungen kommen nicht an: In der App unter Einstellungen eine Test-Benachrichtigung
+  schicken. Die Hilfe der App erklärt iPhone und Android ohne Google-Dienste. Der Server muss
+  Push-Dienste über Port 443 erreichen können.
+* Nutzer sehen „Bitte neu laden“: Nach einem Update lädt die App selbst neu; ältere Tabs
+  bekommen diese Aufforderung statt eines Fehlers.
+* Die App zeigt „Keine Verbindung“: Ist der Dienst gestartet (systemctl status posteulen) und
+  Caddy erreichbar (systemctl status caddy)?
 
 
 8. Optional
@@ -221,6 +265,20 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte.
   sendet an jede Push-Adresse, die der Browser meldet (nur HTTPS, keine privaten Adressen).
 * Ausgehende Verbindungen: Der Server muss Push-Dienste per HTTPS (Port 443) erreichen können
   (Mozilla, Google, Apple, UnifiedPush-Server).
+
+
+9. Datenschutzerklärung und Impressum
+-------------------------------------
+
+Beide liegen als ENTWURF in der App (/datenschutz und /impressum). Vor dem öffentlichen
+Betrieb die Platzhalter in eckigen Klammern ausfüllen – Verantwortlicher, Kontakt, Hoster,
+Auftragsverarbeitung – und beide Texte rechtlich prüfen lassen. Die Texte stehen in
+shared/src/texts/legal.ts. Im eigenen Repository ändern, committen, eine neue Version
+taggen und mit „sudo posteulen-update“ einspielen. (Direkt auf dem Server geänderte Dateien
+überschreibt das nächste Update.)
+
+Wer die Bots nutzt, überträgt Briefe an Bots an OpenAI. Dafür ggf. die Datenverarbeitungs-
+bedingungen von OpenAI (Data Processing Addendum) abschließen.
 
 
 Anhang: Lokale Entwicklung

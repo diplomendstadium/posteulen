@@ -52,7 +52,7 @@
     void send();
   }}
 >
-  <h3>{fill(de.owls.giftTitle, { name: owl.name ?? '' })}</h3>
+  <h3 class="name">{fill(de.owls.giftTitle, { name: owl.name ?? '' })}</h3>
   <p>{de.owls.giftIntro}</p>
   <label for={`gift-to-${owl.id}`}>{de.owls.giftTo}</label>
   <select id={`gift-to-${owl.id}`} bind:value={recipient} required>

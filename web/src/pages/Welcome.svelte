@@ -14,6 +14,7 @@
     <p>{de.welcome.iosSteps}</p>
     <h2>{de.welcome.degoogled}</h2>
     <p>{de.welcome.degoogledSteps}</p>
+    <p><Link href="/hilfe#benachrichtigungen">{de.welcome.degoogledLink}</Link></p>
   </section>
   <PushSettings />
   <p><Link href="/app" class="button">{de.welcome.continue}</Link></p>

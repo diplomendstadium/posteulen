@@ -1,5 +1,6 @@
 /** Admin API (SPEC 13). Never offers user lists, letters or changes to accounts. */
 import * as opaque from '@serenity-kit/opaque';
+import * as v from 'valibot';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import {
@@ -14,7 +15,7 @@ import {
 } from '@posteulen/shared/schemas/auth.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, randomToken, sha256 } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { loginThrottle } from '../auth/user-routes.ts';
@@ -39,6 +40,8 @@ declare module 'fastify' {
   }
 }
 
+/** Error log IDs are positive integers in decimal notation (no `1e2`, no signs). */
+const ErrorLogId = v.pipe(v.string(), v.regex(/^[1-9][0-9]{0,14}$/));
 export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   const spec = cookieSpec(ctx.config.adminOrigin, 'pe_admin');
 
@@ -148,7 +151,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     return { mustChangePassword: admin?.must_change_password === 1 };
   });
 
-  app.post('/api/logout', { preHandler: authenticated }, async (request, reply) => {
+  app.post('/api/logout', { preHandler: [authenticated, emptyBody] }, async (request, reply) => {
     ctx.db.run('DELETE FROM admin_sessions WHERE token_hash = ?', sessionOf(request).tokenHash);
     clearSessionCookie(reply, spec);
     return { ok: true };
@@ -276,9 +279,11 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     invites: listInvites(ctx, ctx.now()),
   }));
 
-  app.post('/api/invites', { preHandler: authenticated }, async () => createInvite(ctx, ctx.now()));
+  app.post('/api/invites', { preHandler: [authenticated, emptyBody] }, async () =>
+    createInvite(ctx, ctx.now()),
+  );
 
-  app.delete('/api/invites/:id', { preHandler: authenticated }, async (request) => {
+  app.delete('/api/invites/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = parse(Id, (request.params as { id?: unknown }).id);
     const result = ctx.db.run('DELETE FROM invite_codes WHERE id = ?', id);
     if (result.changes !== 1) throw new HttpError(404, 'not_found');
@@ -305,16 +310,14 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.patch('/api/errors/:id', { preHandler: authenticated }, async (request) => {
     parse(ErrorLogUpdate, request.body);
-    const id = Number((request.params as { id?: string }).id);
-    if (!Number.isSafeInteger(id) || id < 1) throw new HttpError(400, 'bad_request');
+    const id = Number(parse(ErrorLogId, (request.params as { id?: unknown }).id));
     if (ctx.db.run('UPDATE error_log SET read = 1 WHERE id = ?', id).changes !== 1)
       throw new HttpError(404, 'not_found');
     return { ok: true };
   });
 
-  app.delete('/api/errors/:id', { preHandler: authenticated }, async (request) => {
-    const id = Number((request.params as { id?: string }).id);
-    if (!Number.isSafeInteger(id) || id < 1) throw new HttpError(400, 'bad_request');
+  app.delete('/api/errors/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const id = Number(parse(ErrorLogId, (request.params as { id?: unknown }).id));
     if (ctx.db.run('DELETE FROM error_log WHERE id = ?', id).changes !== 1)
       throw new HttpError(404, 'not_found');
     return { ok: true };

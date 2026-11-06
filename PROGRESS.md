@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktuelle Stufe:** 5 – Bots (abgeschlossen, wartet auf Feedback und Tag-Signatur)
+**Aktuelle Stufe:** 6 – Abschluss (abgeschlossen, wartet auf Feedback und Tag-Signatur)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -47,11 +47,22 @@
 - Adminpanel: OpenAI-Key (verschlüsselt, nur schreibbar), Modell, Tageslimit, Verbindungstest.
 - Tests: 348 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 116 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.4`.
 
-## Offen
-- Tag `v0.1.0-stufe.5` signieren und pushen (Auftraggeber, D-28).
-- OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen (ohne Key antworten Bots nicht).
-- Web Push auf echten Geräten prüfen (D-61); Lage für Google-freies Android vor Stufe 6 erneut prüfen (11.7).
-- Freigabe für Stufe 6.
+### Nach Stufe 5 (Rückmeldung)
+- Standardmodell `gpt-6-luna`, Token-Budget für Reasoning-Modelle (D-90).
 
-## Nächste Stufe: 6 – Abschluss
-Hilfe, Datenschutzerklärung, Impressum, Design-Feinschliff, Barrierefreiheit und Graustufen, readme.txt final; Installation, Update von Stufe 5, Rückfall und Wiederherstellung aus einem Backup auf frischem Debian 13; Sicherheits-Review entlang SPEC 6.
+### Stufe 6
+- Hilfe (alle Funktionen, FAQ, Google-freies Android, Krisenhilfe), Datenschutzerklärung (Entwurf), Impressum; Hilfe als Wissensbasis des Erklärbärs (D-91).
+- Barrierefreiheit: axe-core (WCAG 2.2 AA) an allen Seiten und Screenshot-Zuständen; Namen nie in der Zierschrift; Karte mit überlappungsfreien Beschriftungen und Bot-Raute (D-93, D-95).
+- Sicherheits-Review entlang SPEC 6 (`SECURITY-REVIEW.md`): 4 niedrige Funde behoben (u. a. leere Inhalte, Sitzungs-Cookie mit 30 Tagen, D-92, D-94).
+- readme.txt final (u. a. Wiederherstellung nach Totalausfall); VM-Test um Totalausfall auf neu installiertem Server erweitert.
+- Lage Google-freies Android erneut geprüft: unverändert (D-97).
+
+## Offen
+- Tag `v0.1.0-stufe.6` signieren und pushen (Auftraggeber, D-28); danach Version `0.1.0` und Tag `v0.1.0`.
+- D-92 (Sitzungs-Cookie mit 30 Tagen Laufzeit) bestätigen.
+- OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
+- Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
+- Datenschutzerklärung und Impressum ausfüllen und rechtlich prüfen lassen (D-96).
+
+## Nächster Schritt
+Nach Freigabe: Version `0.1.0` (eine Zeile in `shared/src/version.ts`, CHANGELOG), Tag `v0.1.0` durch den Auftraggeber.

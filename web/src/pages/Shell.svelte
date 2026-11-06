@@ -103,7 +103,7 @@
       {:else if current.href === '/app/karte'}
         <MapPage />
       {:else}
-        <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.app.comingSoon}</span></p>
+        <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.pages.notFound}</span></p>
       {/if}
     {:else}
       <h1 class="visually-hidden">{de.nav.home}</h1>

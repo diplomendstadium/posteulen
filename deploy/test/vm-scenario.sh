@@ -179,6 +179,56 @@ check "Wiederhergestellte Daten da" has_marker
 has_account_support && check "Konto nach Wiederherstellung" account login
 has_letter_support && check "Brief nach Wiederherstellung für beide lesbar" letters letters-check --delivered
 
+echo "── 7. Totalausfall: neuer Server, Wiederherstellung nach readme.txt"
+# Gerettet ist nur, was die readme außerhalb des Servers zu sichern verlangt.
+rescue=/root/rettung
+rm -rf "$rescue" && install -d -m 0700 "$rescue"
+cp /etc/posteulen/secrets.json "$rescue/posteulen-secrets.json"
+cp /root/posteulen-backup-schluessel.txt "$rescue/posteulen-backup-schluessel.txt"
+systemctl start posteulen-backup.service
+cp "$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)" "$rescue/"
+rescued_backup=$(find "$rescue" -name '*-taeglich.sqlite.age' | head -1)
+# Der Server ist weg: nur der Testlauf löscht hier, nie die Skripte selbst.
+systemctl stop posteulen.service posteulen-backup.timer
+rm -rf /etc/posteulen /var/lib/posteulen /var/backups/posteulen /opt/posteulen /root/posteulen-backup-schluessel.txt
+# Schritt 1 der readme: Geheimnis-Datei vor der Installation zurücklegen.
+install -d -m 0700 /etc/posteulen
+install -m 0600 "$rescue/posteulen-secrets.json" /etc/posteulen/secrets.json
+old_pub=$(sed -n 's/^# public key: //p' "$rescue/posteulen-backup-schluessel.txt")
+# Schritt 2: installieren, mit dem bisherigen öffentlichen Backup-Schlüssel.
+check "Neuinstallation mit geretteter Geheimnis-Datei" /root/posteulen/deploy/install.sh --domain "$DOMAIN" --test-mode --yes \
+  --repo file:///srv/posteulen.git --ref "$v1" --ssh-hardening ja --backup-pubkey "$old_pub"
+check "Geheimnis-Datei unverändert übernommen" cmp -s "$rescue/posteulen-secrets.json" /etc/posteulen/secrets.json
+check "Backup-Schlüssel ist der bisherige" test "$(cat /etc/posteulen/backup.pub)" = "$old_pub"
+check "Kein neuer privater Backup-Schlüssel" test ! -e /root/posteulen-backup-schluessel.txt
+# Schritt 3: Sicherung einspielen.
+systemctl stop posteulen
+age --decrypt --identity "$rescue/posteulen-backup-schluessel.txt" --output /tmp/restore.sqlite "$rescued_backup"
+rm -f /var/lib/posteulen/posteulen.sqlite-wal /var/lib/posteulen/posteulen.sqlite-shm
+install -m 0600 -o posteulen -g posteulen /tmp/restore.sqlite /var/lib/posteulen/posteulen.sqlite
+rm -f /tmp/restore.sqlite
+check "posteulen-cli migrate" posteulen-cli migrate
+check "posteulen-cli check nach Neuaufbau" posteulen-cli check
+systemctl start posteulen
+sleep 2
+check "Version $v1 antwortet" test "$(api_version)" = "${v1#v}"
+check "Daten nach Neuaufbau da" has_marker
+has_account_support && check "Konto nach Neuaufbau" account login
+has_letter_support && check "Brief nach Neuaufbau für beide lesbar" letters letters-check --delivered
+new_backup_readable() {
+  systemctl start posteulen-backup.service || return 1
+  local newest
+  newest=$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)
+  # In eine Datei entschlüsseln: Ein früh beendetes „head“ würde „age“ mit SIGPIPE abbrechen (pipefail).
+  age --decrypt --identity "$rescue/posteulen-backup-schluessel.txt" --output /tmp/neu.sqlite "$newest" || return 1
+  local header
+  header=$(head -c 15 /tmp/neu.sqlite)
+  rm -f /tmp/neu.sqlite
+  [[ $header == 'SQLite format 3' ]]
+}
+check "Neue Sicherungen mit dem bisherigen Schlüssel lesbar" new_backup_readable
+rm -rf "$rescue"
+
 echo
 echo "Ergebnis: $pass bestanden, $failed fehlgeschlagen"
 [[ $failed -eq 0 ]]

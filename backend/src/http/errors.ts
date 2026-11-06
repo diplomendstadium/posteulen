@@ -23,3 +23,14 @@ export function parse<TSchema extends v.GenericSchema>(
   if (!result.success) throw new HttpError(400, 'bad_request');
   return result.output;
 }
+
+/**
+ * Pre-handler for state-changing endpoints without payload: anything but no body or `{}` is
+ * an unknown field and rejected (SPEC 6, security review stage 6).
+ */
+export async function emptyBody(request: { body?: unknown }): Promise<void> {
+  const body = request.body;
+  if (body === undefined || body === null) return;
+  if (typeof body === 'object' && !Array.isArray(body) && Object.keys(body).length === 0) return;
+  throw new HttpError(400, 'bad_request');
+}

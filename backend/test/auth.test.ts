@@ -234,6 +234,30 @@ describe('login (SPEC 5.3, 5.10)', () => {
     expect(raw.statusCode).toBe(400);
   });
 
+  it('session cookie lives 30 days and slides with use, so a browser restart keeps it (D-92)', async () => {
+    const response = await agent.request('POST', '/api/login/start', {});
+    expect(response.statusCode).toBe(400);
+    await login(agent, 'Lena', PASSWORD);
+    const cookieOf = (r: { headers: Record<string, unknown> }): string =>
+      [r.headers['set-cookie'] ?? []].flat().join('\n');
+    // Within a minute nothing is renewed (no Set-Cookie on every response).
+    expect(cookieOf(await agent.request('GET', '/api/sync'))).toBe('');
+    app.clock.now += 2 * TIME.MINUTE;
+    const renewed = cookieOf(await agent.request('GET', '/api/sync'));
+    expect(renewed).toContain('__Host-pe_session=');
+    expect(renewed).toContain(`Max-Age=${30 * 24 * 60 * 60}`);
+    expect(renewed).toContain('HttpOnly');
+    expect(renewed).toContain('Secure');
+    expect(renewed).toContain('SameSite=Strict');
+    expect(renewed).toContain('Path=/');
+    // App start renews as well.
+    app.clock.now += 2 * TIME.MINUTE;
+    expect(cookieOf(await agent.request('GET', '/api/session'))).toContain('Max-Age=');
+    // After 30 days without use, server and cookie expire together.
+    app.clock.now += 30 * TIME.DAY + TIME.MINUTE;
+    expect((await agent.request('GET', '/api/sync')).statusCode).toBe(401);
+  });
+
   it('records activity only as a date', async () => {
     await login(agent, 'Lena', PASSWORD);
     app.clock.now += 3 * TIME.DAY;

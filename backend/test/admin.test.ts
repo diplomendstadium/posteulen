@@ -1,3 +1,4 @@
+import { cookieSpec } from '../src/auth/sessions.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { TIME } from '@posteulen/shared/constants.ts';
@@ -188,6 +189,13 @@ describe('admin (SPEC 13)', () => {
       expect(
         (await new Agent(app.adminApi, USER_ORIGIN).json('GET', '/api/me')).body,
       ).toMatchObject({ code: 'forbidden_origin' });
+    });
+
+    it('the admin cookie ends with the browser session (no Max-Age, D-92)', () => {
+      expect(cookieSpec('https://admin.posteulen.test', 'pe_admin')).toEqual({
+        name: '__Host-pe_admin',
+        secure: true,
+      });
     });
 
     it('expires the admin session after 8 hours without use', async () => {

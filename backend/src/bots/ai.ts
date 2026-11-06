@@ -15,7 +15,7 @@ import { utcDay } from '../security/ids.ts';
 
 export const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 const TIMEOUT_MS = 60_000;
-const DEFAULT_MODEL = 'gpt-4o-mini';
+const DEFAULT_MODEL = 'gpt-6-luna';
 
 export interface AiMessage {
   readonly role: 'system' | 'user' | 'assistant';

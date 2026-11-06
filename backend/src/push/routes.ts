@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { IdList, PushAck, PushSubscriptionInput } from '@posteulen/shared/schemas/letters.ts';
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { checkEndpointUrl, EndpointError } from './transport.ts';
@@ -47,12 +47,16 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
     return { testId };
   });
 
-  app.delete('/api/push/subscription', { preHandler: authenticated }, async (request) => {
-    ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', userOf(request).id);
-    return { ok: true };
-  });
+  app.delete(
+    '/api/push/subscription',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', userOf(request).id);
+      return { ok: true };
+    },
+  );
 
-  app.post('/api/push/test', { preHandler: authenticated }, async (request) => {
+  app.post('/api/push/test', { preHandler: [authenticated, emptyBody] }, async (request) => {
     if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const me = userOf(request).id;

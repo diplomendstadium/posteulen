@@ -19,7 +19,7 @@ import {
   type LoginStartResponse,
 } from '@posteulen/shared/schemas/auth.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { cancelDeletion } from '../accounts/lifecycle.ts';
@@ -31,6 +31,7 @@ import {
   cookieSpec,
   createUserSession,
   requireUser,
+  renewCookie,
   resolveSession,
   setSessionCookie,
   userOf,
@@ -278,7 +279,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     };
   });
 
-  app.post('/api/logout', { preHandler: authenticated }, async (request, reply) => {
+  app.post('/api/logout', { preHandler: [authenticated, emptyBody] }, async (request, reply) => {
     const user = userOf(request);
     // Logout ends the session and the push subscription of this device (SPEC 11.3).
     ctx.db.run('DELETE FROM sessions WHERE token_hash = ?', user.tokenHash);
@@ -289,12 +290,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   // App start: never answers 401, so a missing session is not an error (SPEC 5.5).
-  app.get('/api/session', async (request) => {
+  app.get('/api/session', async (request, reply) => {
     limit(ctx, 'general', request);
     const session = resolveSession(ctx, spec, request);
     if ('reason' in session) {
       return { state: session.reason === 'session_expired' ? 'expired' : 'none' };
     }
+    renewCookie(request, reply, spec, session);
     return { state: 'active', profile: profileOf(ctx, session.id) };
   });
 

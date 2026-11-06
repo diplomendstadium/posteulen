@@ -6,7 +6,14 @@
   import { account, restore } from './lib/auth.svelte.ts';
   import Start from './pages/Start.svelte';
   import Shell from './pages/Shell.svelte';
-  import InfoPage from './pages/InfoPage.svelte';
+  import TextPage from './pages/TextPage.svelte';
+  import { HELP_FAQ, HELP_INTRO, HELP_SECTIONS } from '@posteulen/shared/texts/help.ts';
+  import {
+    IMPRINT_INTRO,
+    IMPRINT_SECTIONS,
+    PRIVACY_INTRO,
+    PRIVACY_SECTIONS,
+  } from '@posteulen/shared/texts/legal.ts';
   import Register from './pages/Register.svelte';
   import Welcome from './pages/Welcome.svelte';
   import Measure from './pages/Measure.svelte';
@@ -58,15 +65,25 @@
   {:else if route.path === '/messung'}
     <Measure />
   {:else if route.path === '/hilfe'}
-    <InfoPage title={de.pages.helpTitle} />
+    <TextPage
+      title={de.pages.helpTitle}
+      intro={HELP_INTRO}
+      sections={HELP_SECTIONS}
+      faq={HELP_FAQ}
+    />
   {:else if route.path === '/datenschutz'}
-    <InfoPage title={de.pages.privacyTitle} draft />
+    <TextPage
+      title={de.pages.privacyTitle}
+      intro={PRIVACY_INTRO}
+      sections={PRIVACY_SECTIONS}
+      draft
+    />
   {:else if route.path === '/impressum'}
-    <InfoPage title={de.pages.imprintTitle} />
+    <TextPage title={de.pages.imprintTitle} intro={IMPRINT_INTRO} sections={IMPRINT_SECTIONS} />
   {:else if route.path === '/konto-erstellen'}
     <Register />
   {:else}
-    <InfoPage title={de.errors.not_found} />
+    <TextPage title={de.errors.not_found} intro={de.pages.notFound} sections={[]} />
   {/if}
 </main>
 

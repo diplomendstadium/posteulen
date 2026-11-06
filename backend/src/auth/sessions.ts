@@ -1,6 +1,8 @@
 /**
  * Sessions (SPEC 5.5, 13): 256-bit random token in an HttpOnly, Secure, SameSite=Strict
- * __Host- cookie; only its SHA-256 hash is stored. Sliding expiry.
+ * __Host- cookie; only its SHA-256 hash is stored. Sliding expiry: the user cookie lives as long
+ * as the server session (30 days without use) and is renewed with it, so "angemeldet bleiben"
+ * survives a browser restart (D-92). The admin cookie ends with the browser session.
  */
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
@@ -12,6 +14,8 @@ import { randomToken, sha256, utcDay } from '../security/ids.ts';
 export interface CookieSpec {
   readonly name: string;
   readonly secure: boolean;
+  /** Lifetime in seconds; undefined = cookie of the browser session. */
+  readonly maxAgeSeconds?: number;
 }
 
 /**
@@ -20,7 +24,10 @@ export interface CookieSpec {
  */
 export function cookieSpec(origin: string, base: 'pe_session' | 'pe_admin'): CookieSpec {
   const secure = origin.startsWith('https://');
-  return { name: secure ? `__Host-${base}` : base, secure };
+  const name = secure ? `__Host-${base}` : base;
+  return base === 'pe_session'
+    ? { name, secure, maxAgeSeconds: (ACCOUNT.USER_SESSION_IDLE_DAYS * TIME.DAY) / 1000 }
+    : { name, secure };
 }
 
 export function setSessionCookie(reply: FastifyReply, spec: CookieSpec, token: string): void {
@@ -29,6 +36,7 @@ export function setSessionCookie(reply: FastifyReply, spec: CookieSpec, token: s
     httpOnly: true,
     secure: spec.secure,
     sameSite: 'strict',
+    ...(spec.maxAgeSeconds === undefined ? {} : { maxAge: spec.maxAgeSeconds }),
   });
 }
 
@@ -58,6 +66,8 @@ export interface SessionUser {
   readonly id: string;
   readonly nameDisplay: string;
   readonly tokenHash: Buffer;
+  /** The sliding expiry moved on with this request: the cookie is renewed as well. */
+  readonly renewed: boolean;
 }
 
 declare module 'fastify' {
@@ -101,7 +111,8 @@ export function resolveSession(
     ctx.db.run('DELETE FROM sessions WHERE token_hash = ?', hash);
     return { reason: 'session_expired' };
   }
-  if (now - row.last_used_at > TIME.MINUTE) {
+  const renewed = now - row.last_used_at > TIME.MINUTE;
+  if (renewed) {
     ctx.db.run('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?', now, hash);
   }
   // Activity only as a date, and only for requests the user triggered (SPEC 9.10).
@@ -114,7 +125,7 @@ export function resolveSession(
       row.user_id,
     );
   }
-  return { id: row.user_id, nameDisplay: row.name_display, tokenHash: hash };
+  return { id: row.user_id, nameDisplay: row.name_display, tokenHash: hash, renewed };
 }
 
 /** Resolves the session or answers 401 with a reason the client acts on (SPEC 5.5). */
@@ -123,10 +134,24 @@ export function requireUser(
   spec: CookieSpec,
   options: { background?: boolean } = {},
 ) {
-  return async (request: FastifyRequest): Promise<void> => {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const session = resolveSession(ctx, spec, request, options);
     if ('reason' in session) throw new HttpError(401, 'unauthorized', { reason: session.reason });
+    renewCookie(request, reply, spec, session);
     if (ctx.limits.session.hit(session.id, ctx.now()) > 0) throw new HttpError(429, 'rate_limited');
     request.sessionUser = session;
   };
+}
+
+/** Moves the cookie's expiry along with the server session (sliding, SPEC 5.5). */
+export function renewCookie(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  spec: CookieSpec,
+  session: SessionUser,
+): void {
+  const token = request.cookies[spec.name];
+  if (session.renewed && spec.maxAgeSeconds !== undefined && token) {
+    setSessionCookie(reply, spec, token);
+  }
 }

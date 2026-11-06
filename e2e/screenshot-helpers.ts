@@ -4,6 +4,7 @@ import type { Page, TestInfo } from '@playwright/test';
 import sharp from 'sharp';
 import { VERSION } from '../shared/src/version.ts';
 import { settle } from './fixtures.ts';
+import { expectAccessible } from './a11y-helpers.ts';
 
 /** Screenshots for the stage report (SPEC 14, 17.4): phone, desktop, some in grayscale. */
 const STAGE = VERSION.replace(/^.*-stufe\./, 'stufe-');
@@ -17,6 +18,8 @@ export async function shoot(
 ): Promise<void> {
   const device = info.project.name.includes('mobile') ? 'handy' : 'desktop';
   await settle(page);
+  // Every screenshot state is also checked for accessibility (SPEC 14, stage 6).
+  await expectAccessible(page, `${name} (${device})`);
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
   const image = await page.screenshot({ fullPage: true });
   fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}-${device}.png`), image);

@@ -9,7 +9,6 @@ export const de = {
     offline: 'Keine Verbindung – Eulen brauchen Netz.',
     updateAvailable: 'Eine neue Version ist da. Bitte neu laden.',
     reload: 'Neu laden',
-    comingSoon: 'Dieser Bereich wird gerade gebaut.',
     back: 'Zurück',
     skipToContent: 'Zum Inhalt springen',
   },
@@ -63,9 +62,9 @@ export const de = {
     iosSteps:
       'Teilen → „Zum Home-Bildschirm“. Benachrichtigungen gibt es nur in der installierten App.',
     degoogled: 'Android ohne Google-Dienste',
+    degoogledLink: 'So richtest du es ein (Hilfe)',
     degoogledSteps:
-      'Benachrichtigungen funktionieren mit IronFox oder Fennec und einer UnifiedPush-App wie Sunup. Details folgen in der Hilfe.',
-    pushLater: 'Benachrichtigungen richten wir in einem späteren Schritt ein.',
+      'Benachrichtigungen funktionieren mit IronFox oder Fennec und einer UnifiedPush-App wie Sunup.',
     continue: 'Weiter zur Übersicht',
   },
   settings: {
@@ -399,6 +398,7 @@ export const de = {
     title: 'Karte',
     legendHome: 'Dein Wohnort',
     legendContact: 'Kontakte',
+    legendBot: 'Bots',
     legendOwl: 'Deine Eulen unterwegs',
     legendNight: 'Nacht (Sonne tiefer als 6° unter dem Horizont)',
     flightsTitle: 'Deine Eulen unterwegs',
@@ -451,6 +451,10 @@ export const de = {
     privacyTitle: 'Datenschutz',
     privacyDraft: 'Entwurf',
     imprintTitle: 'Impressum',
+    contents: 'Inhalt',
+    faqTitle: 'Häufige Fragen',
+    toTop: 'Nach oben',
+    notFound: 'Diese Seite gibt es nicht. Vielleicht hat eine Eule die Adresse verlegt.',
   },
   admin: {
     title: 'PostEulen – Verwaltung',
