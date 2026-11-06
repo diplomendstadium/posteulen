@@ -73,7 +73,7 @@
 - Tag `v0.2.0` vom Auftraggeber signiert.
 - Designvorschläge (je drei für Briefe und Hintergrund) vorgelegt; gewählt: Briefbogen mit Wachssiegel, Aquarell-Weltkarte. Umgesetzt nach Rückfragen (Teil L in DECISIONS, D-112 bis D-128): längere Briefe (800/15 000), Briefbögen, Weltkarten-Hintergrund und Boxen für jeden Text, Ungelesen ohne Neuladen, Heimkehr mit Bild und Push, Spendenbitte, Update-Nachricht, Flug- und Stangenbilder, getrennte Eulengruppen, Menagerie-Reihenfolge mit Beschreibungen, Freilassen mit Namen, Flugspur mit „Zzz“, Tante nach 5 Minuten, Erklärbär erst nach dem ersten Brief auf der Karte, ausblendbarer Push-Hinweis, Gruppenbild, neue Erklärtexte (Migration 0008).
 - SPEC auf Stand v0.3 gebracht (Anhang G); README mit neuen Bildern.
-- Tests: TESTZAHLEN
+- Tests: 483 Unit-Tests (Abdeckung 95,3 %, shared/ je Datei ≥ 90 %), 178 E2E-Tests in 4 Browserprofilen (u. a. kein Text ohne Box auf allen Seiten), VM-Test 63/63 inkl. Update von `v0.2.0`.
 
 ## Offen
 - Tag `v0.3.0` signieren und pushen (Auftraggeber, D-28).
