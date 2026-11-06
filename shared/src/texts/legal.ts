@@ -110,11 +110,6 @@ export const IMPRINT_INTRO =
 
 export const IMPRINT_SECTIONS: readonly HelpSection[] = [
   {
-    id: 'angaben',
-    title: 'Angaben',
-    blocks: ['[Name und Anschrift nach rechtlicher Beratung ergänzen.]'],
-  },
-  {
     id: 'kontakt',
     title: 'Kontakt',
     blocks: [
@@ -129,10 +124,5 @@ export const IMPRINT_SECTIONS: readonly HelpSection[] = [
       'Für Inhalte, die Nutzer einander schreiben, sind allein diese selbst verantwortlich – lesen können wir sie ohnehin nicht. Antworten der Bots erzeugt eine KI; sie können falsch sein und sind keine Beratung.',
       'Für Inhalte verlinkter fremder Seiten sind ausschließlich deren Betreiber verantwortlich.',
     ],
-  },
-  {
-    id: 'entwurf',
-    title: 'Hinweis',
-    blocks: ['Dieses Impressum ist ein Entwurf und wird nach rechtlicher Beratung angepasst.'],
   },
 ];

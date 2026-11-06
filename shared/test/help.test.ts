@@ -122,13 +122,13 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       expect(text).toContain(required);
   });
 
-  it('das Impressum nennt Mastodon, schließt die Haftung aus und ist ein Entwurf', () => {
+  it('das Impressum nennt Mastodon und schließt die Haftung aus', () => {
     const text = `${IMPRINT_INTRO}\n${allText(IMPRINT_SECTIONS)}`;
     expect(text).toContain('technisches Experiment für den Eigengebrauch');
     expect(text).toContain('@iak@23.social');
     expect(text).toContain('https://23.social/@iak');
     expect(text).toContain('keinerlei Haftung');
-    expect(text).toContain('Entwurf');
+    expect(IMPRINT_SECTIONS.map((section) => section.id)).toEqual(['kontakt', 'haftung']);
   });
 
   it('keine Begriffe aus bekannten geschützten Werken (SPEC 14)', () => {

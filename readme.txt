@@ -1,5 +1,18 @@
-PostEulen.de – Installationsanleitung
-=====================================
+PostEulen.de
+============
+
+Weißt du noch, wie schön es war, einen richtigen Brief zu bekommen? PostEulen ist ein kleiner
+Messenger, bei dem Nachrichten nicht in Sekunden ankommen, sondern von einer Eule gebracht
+werden – und die braucht je nach Entfernung, Tageszeit und Kondition ein paar Stunden. Du
+kaufst oder leihst dir Eulen, fütterst und streichelst sie, und ein freundlicher Erklärbär,
+eine plauderfreudige Tante und ein etwas verrückter Onkel schreiben dir zurück. Was du deinen
+Freunden schreibst, bleibt unter euch: Die Briefe sind so verschlüsselt, dass nicht einmal der
+Server sie lesen kann. PostEulen ist ein Hobbyprojekt und läuft unter https://posteulen.de –
+schau gern vorbei!
+
+
+Installationsanleitung
+======================
 
 Stand: Version 0.1.0.
 
@@ -13,7 +26,7 @@ Kurzfassung:
   2. Ein Befehl installiert alles (Abschnitt 2).
   3. Geheimnis-Datei und Backup-Schlüssel außerhalb des Servers sichern (Abschnitte 2 und 5).
   4. Im Adminpanel Passwort ändern, Registrierung öffnen, OpenAI-Key eintragen (Abschnitt 3).
-  5. Vor dem öffentlichen Betrieb Datenschutzerklärung und Impressum ausfüllen (Abschnitt 9).
+  5. Vor dem öffentlichen Betrieb Datenschutzerklärung ausfüllen, Impressum prüfen (Abschnitt 9).
 
 
 1. Voraussetzungen
@@ -270,10 +283,11 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte.
 9. Datenschutzerklärung und Impressum
 -------------------------------------
 
-Beide liegen als ENTWURF in der App (/datenschutz und /impressum). Vor dem öffentlichen
+Die Datenschutzerklärung liegt als ENTWURF in der App (/datenschutz). Vor dem öffentlichen
 Betrieb die Platzhalter in eckigen Klammern ausfüllen – Verantwortlicher, Kontakt, Hoster,
-Auftragsverarbeitung – und beide Texte rechtlich prüfen lassen. Die Texte stehen in
-shared/src/texts/legal.ts. Im eigenen Repository ändern, committen, eine neue Version
+Auftragsverarbeitung. Das Impressum (/impressum) enthält Kontakt und Haftungsausschluss; ob
+weitere Angaben nötig sind (z. B. Name und Anschrift), hängt vom Betrieb ab. Beide Texte
+rechtlich prüfen lassen. Sie stehen in shared/src/texts/legal.ts. Im eigenen Repository ändern, committen, eine neue Version
 taggen und mit „sudo posteulen-update“ einspielen. (Direkt auf dem Server geänderte Dateien
 überschreibt das nächste Update.)
 
