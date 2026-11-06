@@ -2,7 +2,6 @@
   import { de, fill } from '@posteulen/shared/texts/de.ts';
   import { REPOSITORY_URL, VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
-  import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
   import { login } from '../lib/auth.svelte.ts';
@@ -11,7 +10,7 @@
   import { errorMessage } from '../lib/messages.ts';
   import { sceneImage } from '../lib/owl-image.ts';
 
-  /** The whole menagerie on its perches (v0.3), below the login. */
+  /** The whole menagerie on its perches, next to the login (v0.3.1: instead of the tawny owl). */
   const group = sceneImage('group');
 
   let name = $state('');
@@ -85,25 +84,20 @@
       </form>
     </section>
 
-    <figure class="owl">
-      <OwlPicture speciesId="waldkauz" alt="Ein Waldkauz" size={480} />
-    </figure>
+    {#if !group.placeholder}
+      <figure class="group">
+        <img
+          src={group.files['s960']}
+          srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
+          sizes="(min-width: 48rem) 28rem, 100vw"
+          width="960"
+          height="960"
+          alt={de.start.groupAlt}
+          decoding="async"
+        />
+      </figure>
+    {/if}
   </div>
-
-  {#if !group.placeholder}
-    <figure class="group">
-      <img
-        src={group.files['s960']}
-        srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
-        sizes="(min-width: 48rem) 40rem, 100vw"
-        width="960"
-        height="960"
-        alt={de.start.groupAlt}
-        loading="lazy"
-        decoding="async"
-      />
-    </figure>
-  {/if}
 
   <nav class="footer-links card" aria-label={de.nav.main}>
     <Link href="/hilfe">{de.nav.help}</Link>
@@ -128,8 +122,9 @@
   }
 
   .group {
-    margin: 2rem auto 0;
-    max-width: 40rem;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 28rem;
   }
 
   .group img {
@@ -173,13 +168,6 @@
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-bottom: 1rem;
-  }
-
-  .owl {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    --owl-size: 22rem;
   }
 
   .footer-links {

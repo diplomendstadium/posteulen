@@ -92,9 +92,11 @@ describe('notes after an update (v0.3)', () => {
     ).toBe(VERSION);
     // An update from 0.2: the remembered version is missing.
     app.db.run("DELETE FROM meta WHERE key = 'notes_version'");
-    expect(sendUpdateNotes(app.ctx)).toBe(1);
+    // From 0.2 straight to the current version: one note per version on the way.
+    expect(sendUpdateNotes(app.ctx)).toBe(2);
     expect(systemMessages(anna, 'update_notes').map((m) => m.params)).toEqual([
       { version: '0.3.0' },
+      { version: '0.3.1' },
     ]);
     // Starting again does not repeat it.
     expect(sendUpdateNotes(app.ctx)).toBe(0);

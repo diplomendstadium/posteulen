@@ -3,6 +3,15 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.3.1 – Gruppenbild neben dem Login
+
+- Auf der Startseite steht das Gruppenbild der Eulen jetzt neben der Anmeldung, an der Stelle des
+  Waldkauzes, statt weit unten.
+
+### Hinweise für Betreiber
+
+- Keine Migration. Update von v0.3.0: `sudo posteulen-update`.
+
 ## v0.3.0 – Briefbögen, Weltkarte und Eulen im Flug
 
 - **Längere Briefe:** Ein kostenloser Brief fasst jetzt 800 Zeichen, ein großes Pergament

@@ -48,6 +48,15 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.3.1',
+    title: 'Kleine Umräumaktion im Eulenturm: Version 0.3.1',
+    paragraphs: [
+      'Die Eulen haben sich beschwert: Ihr Gruppenbild hing so weit unten auf der Startseite, dass es kaum jemand gesehen hat.',
+      '• Jetzt hängt es gleich neben der Anmeldung, wo vorher der Waldkauz allein auf seiner Stange saß. Der Waldkauz ist natürlich weiter mit auf dem Bild – er wollte ohnehin nicht allein posieren.',
+      'Sonst hat sich nichts geändert. Viel Freude beim Schreiben!',
+    ],
+  },
+  {
     version: '0.3.0',
     title: 'Neues aus dem Eulenturm: Version 0.3',
     paragraphs: [

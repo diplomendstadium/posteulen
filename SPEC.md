@@ -2,7 +2,7 @@
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Entscheidungen, die sie offenlässt, werden in `DECISIONS.md` dokumentiert.
 >
-> **Stand: Version 0.3.0.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-128 und die Änderungen der Versionen 0.2 und 0.3 (Übersicht in Anhang F und G). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
+> **Stand: Version 0.3.1.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-128 und die Änderungen der Versionen 0.2 und 0.3 (Übersicht in Anhang F und G). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
 
 ---
 
@@ -300,7 +300,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ### 8.1 Startseite (nicht angemeldet)
 - Login-Maske (Nutzername, Passwort), „Konto erstellen“, „Hilfe“, „Datenschutz“, „Impressum“.
 - Unten neben „Hilfe · Datenschutz · Impressum“ die installierte Versionsnummer (z. B. „v0.3.0“) als Link auf das GitHub-Repository (`REPOSITORY_URL`, neues Fenster, `noopener noreferrer`).
-- Neben dem Login das Bild eines Waldkauzes, darunter das **Gruppenbild** aller Eulenarten auf ihren Stangen (`images/Gruppenbild.png`, 9.2.6).
+- Neben dem Login das **Gruppenbild** aller Eulenarten auf ihren Stangen (`images/Gruppenbild.png`, 9.2.6); auf dem Handy darunter.
 
 ### 8.2 Konto erstellen
 - Felder: Nutzername, Passwort, Passwort wiederholen, fiktiver Wohnort (Pin auf der Karte), Einladungscode (nur im Modus „nur mit Einladungscode“). Ist die Registrierung geschlossen, wird das klar angezeigt.
