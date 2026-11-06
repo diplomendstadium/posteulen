@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktueller Stand:** Version 0.1.0 (alle Stufen abgeschlossen; Tag `v0.1.0` signiert der Auftraggeber)
+**Aktueller Stand:** Version 0.2.0 (fertig; Tag `v0.2.0` signiert der Auftraggeber)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -63,11 +63,16 @@
 - Impressum gekürzt, readme mit Einleitung; Versionswahl der Skripte nach Semantic Versioning (D-98).
 - Tests: 453 Unit-Tests, 142 E2E-Tests in 4 Browserprofilen, VM-Test 63/63 inkl. Update von `v0.1.0-stufe.6`.
 
+### Version 0.2.0
+- Tag `v0.1.0` vom Auftraggeber signiert (auf `fe1cb43`).
+- Umgesetzt nach Rückfragen (Teil K in DECISIONS, D-100 bis D-111): Leiheule in der Eulenwahl, verschiedene Leiheulen-Namen, Löschfrist für Briefe mit Einstellung, Schriftrollen mit Handschriften und Druckschrift-Einstellung, „Neue Post!“, Versionsnummer, Karte (Pixelgrößen, Städte, Landesteile Großbritanniens, Auto-Zoom), 3 Umzüge pro Monat, neuer Pflegebonus, einheitlich „Menagerie“ (Migration 0007), Rechtstexte als Standardtexte, `README.md`, Hilfe und Erklärbär.
+- SPEC auf Stand v0.2 gebracht (alle Entscheidungen eingearbeitet, Anhang F).
+- Tests: 471 Unit-Tests (Abdeckung 95,3 %, shared/ je Datei ≥ 90 %), 154 E2E-Tests in 4 Browserprofilen, VM-Test 63/63 inkl. Update von `v0.1.0`.
+
 ## Offen
-- Tag `v0.1.0` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.2.0` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
-- Datenschutzerklärung ausfüllen, beide Rechtstexte rechtlich prüfen lassen (D-96).
 
 ## Nächster Schritt
-v0.1 ist fertig. Weitere Arbeit nur nach neuem Auftrag.
+v0.2 ist fertig. Weitere Arbeit nur nach neuem Auftrag.
