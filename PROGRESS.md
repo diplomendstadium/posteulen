@@ -45,7 +45,7 @@
 ### Stufe 5
 - Bots je Konto (Erklärbär, Tante, Onkel) mit festen Briefen und Goldsendungen, Bot-Eulen, Briefe an Bots mit 24-Stunden-Sperre, KI-Antworten mit Zusammenfassung und Tageslimit, Bots entfernen; Altkonten erhalten ihre Bots beim Update (D-82).
 - Adminpanel: OpenAI-Key (verschlüsselt, nur schreibbar), Modell, Tageslimit, Verbindungstest.
-- Tests: 348 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 116 E2E-Tests in 4 Browserprofilen, VM-Test siehe Stufenbericht.
+- Tests: 348 Unit-Tests (Abdeckung shared/ je Datei ≥ 90 %), 116 E2E-Tests in 4 Browserprofilen, VM-Test 52/52 inkl. Update von `v0.1.0-stufe.4`.
 
 ## Offen
 - Tag `v0.1.0-stufe.5` signieren und pushen (Auftraggeber, D-28).
