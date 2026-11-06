@@ -40,7 +40,11 @@ export function seededRandom(seed = 1): () => number {
 }
 
 export async function testApp(
-  options: { pushStatus?: number; random?: () => number } = {},
+  options: {
+    pushStatus?: number;
+    random?: () => number;
+    aiClient?: import('../src/bots/ai.ts').AiClient;
+  } = {},
 ): Promise<TestApp & { pushes: SentPush[] }> {
   const pushes: SentPush[] = [];
   const dir = tempDir();
@@ -58,6 +62,7 @@ export async function testApp(
       now: () => clock.now,
       altchaMaxCounter: 20,
       random: options.random ?? seededRandom(),
+      ...(options.aiClient ? { aiClient: options.aiClient } : {}),
       pushSender: async (subscription, payload) => {
         pushes.push({ endpoint: subscription.endpoint, payload });
         return { status: options.pushStatus ?? 201 };
@@ -290,3 +295,11 @@ export async function borrowOwl(who: Person): Promise<string> {
 
 /** A syntactically valid ID that belongs to no owl. */
 export const NO_OWL = 'AAAAAAAAAAAAAAAAAAAAAA';
+
+/** Removes all bots with their letters and plans (tests that count gold, chats or events). */
+export function withoutBots(app: TestApp): void {
+  app.db.run('DELETE FROM letters WHERE plaintext IS NOT NULL');
+  app.db.run("DELETE FROM chats WHERE peer_kind = 'bot'");
+  app.db.run("DELETE FROM scheduled_events WHERE type LIKE 'bot!_%' ESCAPE '!'");
+  app.db.run('DELETE FROM bots');
+}

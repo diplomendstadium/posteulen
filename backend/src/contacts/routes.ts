@@ -2,8 +2,9 @@
  * Address book (SPEC 8.8), coupling, contact vault and key warning (SPEC 5.7).
  * The answer to a contact request never reveals whether the name exists.
  */
+import { botTitle, ownBot, removeBot, type BotRow } from '../bots/service.ts';
 import type { FastifyInstance } from 'fastify';
-import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { normalizeName } from '@posteulen/shared/names.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
@@ -149,6 +150,10 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       me,
       now,
     );
+    const bots = ctx.db.all<BotRow>(
+      "SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1 ORDER BY CASE type WHEN 'explainer' THEN 0 WHEN 'aunt' THEN 1 ELSE 2 END",
+      me,
+    );
     return {
       contacts: rows.map((row) => ({
         userId: row.other,
@@ -156,6 +161,16 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
         since: row.since,
         active: isActiveDate(row.last_active_date, now),
         keyWarning: row.warn_mine === 1 || row.warn_theirs === 1,
+      })),
+      // Own bots, clearly marked (SPEC 8.8, 10.1); writable again 24 hours after the last letter.
+      bots: bots.map((bot) => ({
+        userId: bot.id,
+        name: botTitle(bot),
+        type: bot.type,
+        writableFrom:
+          bot.last_user_letter_at === null
+            ? null
+            : bot.last_user_letter_at + BOTS.WRITE_LOCK_HOURS * TIME.HOUR,
       })),
       requests: requests.map((row) => ({
         id: row.id,
@@ -170,6 +185,11 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     const me = userOf(request).id;
     const after: (() => void)[] = [];
     ctx.db.transaction(() => {
+      const bot = ownBot(ctx, me, other, true);
+      if (bot) {
+        removeBot(ctx, me, bot, ctx.now(), (work) => after.push(work));
+        return;
+      }
       if (!findContact(ctx.db, me, other)) throw new HttpError(404, 'not_found');
       removeContact(ctx, me, other, ctx.now(), (work) => after.push(work));
     });

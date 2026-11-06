@@ -17,7 +17,9 @@ export type TransactionType =
   | 'transfer_refund'
   | 'loan'
   | 'treatment'
-  | 'papeterie_wage';
+  | 'papeterie_wage'
+  | 'aunt_gift'
+  | 'uncle_inheritance';
 
 function record(
   db: Database,
@@ -26,14 +28,16 @@ function record(
   amount: number,
   at: number,
   counterpartId: string | null,
+  counterpartLabel: string | null = null,
 ): void {
   db.run(
-    'INSERT INTO transactions (user_id, at, type, amount, counterpart_id) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO transactions (user_id, at, type, amount, counterpart_id, counterpart_label) VALUES (?, ?, ?, ?, ?, ?)',
     userId,
     at,
     type,
     amount,
     counterpartId,
+    counterpartLabel,
   );
   db.run(
     `DELETE FROM transactions WHERE user_id = ? AND id NOT IN
@@ -71,10 +75,11 @@ export function credit(
   amount: number,
   at: number,
   counterpartId: string | null = null,
+  counterpartLabel: string | null = null,
 ): void {
   if (!Number.isInteger(amount) || amount <= 0) throw new Error('invalid credit');
   const updated = db.run('UPDATE users SET gold = gold + ? WHERE id = ?', amount, userId);
-  if (updated.changes === 1) record(db, userId, type, amount, at, counterpartId);
+  if (updated.changes === 1) record(db, userId, type, amount, at, counterpartId, counterpartLabel);
 }
 
 export function balance(db: Database, userId: string): number {

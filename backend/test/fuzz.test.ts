@@ -104,6 +104,7 @@ describe('stage-3 endpoints reject malformed input of a logged-in user', () => {
       `/api/clutches/${id}/gift/prepare`,
       `/api/clutches/${id}/gift/send`,
       '/api/account/delete',
+      '/api/bot-letters/send',
     ];
     const payloads = fc.oneof(
       bodies,
@@ -121,6 +122,8 @@ describe('stage-3 endpoints reject malformed input of a logged-in user', () => {
         ids: fc.array(fc.string()),
         kind: fc.oneof(fc.string(), fc.constant('vet'), fc.constant('self')),
         chickId: fc.oneof(fc.string(), fc.constant(id)),
+        botId: fc.string(),
+        text: fc.string(),
       }),
     );
     await fc.assert(
@@ -164,6 +167,7 @@ describe('every protected endpoint requires its session (SPEC 17.3)', () => {
     ['PATCH', '/api/account/name'],
     ['PATCH', '/api/account/home'],
     ['POST', '/api/account/delete'],
+    ['POST', '/api/bot-letters/send'],
   ];
   const adminRoutes: [string, string][] = [
     ['GET', '/api/me'],
@@ -184,6 +188,12 @@ describe('every protected endpoint requires its session (SPEC 17.3)', () => {
     ['PUT', '/api/settings/inactivity'],
     ['GET', '/api/broadcasts'],
     ['POST', '/api/broadcasts'],
+    ['GET', '/api/openai'],
+    ['PUT', '/api/openai/key'],
+    ['DELETE', '/api/openai/key'],
+    ['PUT', '/api/openai/settings'],
+    ['GET', '/api/openai/models'],
+    ['POST', '/api/openai/test'],
   ];
 
   it.each(userRoutes)('user %s %s → 401', async (method, url) => {

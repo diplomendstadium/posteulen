@@ -25,6 +25,7 @@ import { addSystemMessage } from '../messages/system.ts';
 import { displayName } from '../contacts/model.ts';
 import type { NotificationType } from '../push/service.ts';
 import { afterReturnHome, scheduleAdult } from '../owls/lifecycle.ts';
+import { letterReachedBot } from '../bots/service.ts';
 
 export type OwlKind = 'own' | 'loan' | 'stand_in' | 'bot';
 export type Purpose = 'letter' | 'gold' | 'gift';
@@ -64,11 +65,17 @@ export function flightEnvironment(ctx: Context): FlightEnvironment {
   };
 }
 
+/** Home of a person or of a bot (bots live on the map too, SPEC 10.1). */
 export function homeOf(ctx: Context, userId: string): Point {
-  const row = ctx.db.get<{ home_lat: number; home_lon: number }>(
-    'SELECT home_lat, home_lon FROM users WHERE id = ?',
-    userId,
-  );
+  const row =
+    ctx.db.get<{ home_lat: number; home_lon: number }>(
+      'SELECT home_lat, home_lon FROM users WHERE id = ?',
+      userId,
+    ) ??
+    ctx.db.get<{ home_lat: number; home_lon: number }>(
+      'SELECT home_lat, home_lon FROM bots WHERE id = ?',
+      userId,
+    );
   if (!row) throw new Error('unknown user');
   return { lat: row.home_lat / 100, lon: row.home_lon / 100 };
 }
@@ -323,6 +330,25 @@ function arriveHome(
 /** Delivery at a recipient: letters, gold, gifted owl – exactly one push (SPEC 11.2). */
 function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, after: After): void {
   const recipient = stop.userId;
+  const bot = ctx.db.get<{ id: string }>('SELECT id FROM bots WHERE id = ?', recipient);
+  if (bot) {
+    // A letter to a bot: no push, no statistics; the reply is due 2 hours later (SPEC 10.1).
+    const letters = ctx.db.all<{ id: string }>(
+      "SELECT id FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
+      flight.id,
+      recipient,
+    );
+    for (const letter of letters) {
+      ctx.db.run(
+        "UPDATE letters SET status = 'delivered', arrives_at = ? WHERE id = ?",
+        at,
+        letter.id,
+      );
+      letterReachedBot(ctx, letter.id, bot.id, at);
+    }
+    after(() => ctx.hub.notify(flight.holder_id, 'chats', 'map', 'owls'));
+    return;
+  }
   const letters = ctx.db.all<{ id: string; kind: string }>(
     "SELECT id, kind FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
     flight.id,

@@ -201,7 +201,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(FlightPreview, request.body);
     const me = userOf(request).id;
     const now = ctx.now();
-    checkRecipients(ctx, me, body.recipients, now);
+    checkRecipients(ctx, me, body.recipients, now, { allowBots: true });
     const own = ctx.db
       .all<OwlRow>(
         // Own owls first, then loan owls (9.6).

@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Context } from '../context.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName } from '../contacts/model.ts';
+import { botTitle, type BotRow } from '../bots/service.ts';
 import { homeOf, planOf, routeOf, type FlightRow } from './service.ts';
 
 export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
@@ -26,12 +27,25 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
     );
     return {
       home: homeOf(ctx, me),
-      contacts: contacts.map(({ other }) => ({
-        id: other,
-        name: displayName(ctx.db, other),
-        bot: false,
-        ...homeOf(ctx, other),
-      })),
+      contacts: contacts
+        .map(({ other }) => ({
+          id: other,
+          name: displayName(ctx.db, other),
+          bot: false,
+          ...homeOf(ctx, other),
+        }))
+        .concat(
+          // Bots live on the map too (SPEC 10.1, 12.1).
+          ctx.db
+            .all<BotRow>('SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1', me)
+            .map((bot) => ({
+              id: bot.id,
+              name: botTitle(bot),
+              bot: true,
+              lat: bot.home_lat / 100,
+              lon: bot.home_lon / 100,
+            })),
+        ),
       flights: flights.map((flight) => ({
         id: flight.id,
         owl: { name: flight.owl_name, species: flight.owl_species },

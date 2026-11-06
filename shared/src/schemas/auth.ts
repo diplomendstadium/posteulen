@@ -134,3 +134,13 @@ export const InactivityUpdate = v.strictObject({
 export const Broadcast = v.strictObject({
   text: v.pipe(v.string(), v.minLength(1), v.maxLength(3000)),
 });
+
+/** OpenAI settings (SPEC 13 item 5): the key is write-only. */
+export const OpenAiKey = v.strictObject({
+  key: v.pipe(v.string(), v.minLength(20), v.maxLength(300), v.regex(/^[A-Za-z0-9_-]+$/)),
+});
+
+export const OpenAiSettings = v.strictObject({
+  model: v.pipe(v.string(), v.minLength(1), v.maxLength(100), v.regex(/^[A-Za-z0-9._:-]+$/)),
+  dailyLimit: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(100_000)),
+});

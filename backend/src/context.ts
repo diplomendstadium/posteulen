@@ -15,6 +15,7 @@ import { Ephemeral, LoginGuard, RateLimiter } from './security/limits.ts';
 import { EventHub } from './events/hub.ts';
 import { EventQueue } from './queue/queue.ts';
 import type { PushService } from './push/service.ts';
+import { openAiClient } from './bots/ai.ts';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -73,6 +74,10 @@ export interface Context {
   readonly queue: EventQueue;
   /** Set right after creation (needs the context itself). */
   push: PushService;
+  /** OpenAI connection (tests inject a fake, SPEC 10.5). */
+  readonly ai: import('./bots/ai.ts').AiClient;
+  /** Set right after creation: runs due bot replies outside of transactions. */
+  botReplies: import('./bots/replies.ts').BotReplies;
   /** Only for automated local tests: flights run this many times faster (1 on servers). */
   readonly flightTimeScale: number;
   /** Uniform random number in [0, 1) – tests inject a fixed sequence (SPEC 17.2). */
@@ -116,6 +121,8 @@ export interface ContextOptions {
   /** Flight time scale for automated local tests (default 1). */
   readonly flightTimeScale?: number;
   readonly random?: () => number;
+  /** Replaces the OpenAI client (tests). */
+  readonly aiClient?: import('./bots/ai.ts').AiClient;
   /** Replaces the network transport of Web Push (tests). */
   readonly pushSender?: import('./push/service.ts').PushSender;
 }
@@ -171,6 +178,8 @@ export async function createContext(
     hub: new EventHub(),
     queue: new EventQueue(db, now),
     push: undefined as unknown as PushService,
+    ai: options.aiClient ?? openAiClient,
+    botReplies: undefined as unknown as import('./bots/replies.ts').BotReplies,
     flightTimeScale: options.flightTimeScale ?? 1,
     random: options.random ?? secureRandom,
   };

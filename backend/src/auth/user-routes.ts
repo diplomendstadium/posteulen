@@ -23,6 +23,7 @@ import { HttpError, parse } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { cancelDeletion } from '../accounts/lifecycle.ts';
+import { createBots } from '../bots/service.ts';
 import { ipKey } from '../security/ip.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import {
@@ -188,6 +189,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run(
         "UPDATE stats_counters SET value = value + 1 WHERE key = 'accounts_created_total'",
       );
+      // Three own bots, the Erklärbär's first letter already in the box (SPEC 10, D-50).
+      createBots(ctx, reservation.userId, now);
       // Automatic login: the session is created in the same transaction (SPEC 5.2 step 6).
       return createUserSession(ctx.db, reservation.userId, now);
     });

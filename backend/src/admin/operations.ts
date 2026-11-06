@@ -4,7 +4,24 @@
  */
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
-import { Broadcast, InactivityUpdate } from '@posteulen/shared/schemas/auth.ts';
+import {
+  Broadcast,
+  InactivityUpdate,
+  OpenAiKey,
+  OpenAiSettings,
+} from '@posteulen/shared/schemas/auth.ts';
+import { HttpError } from '../http/errors.ts';
+import {
+  aiDailyLimit,
+  aiModel,
+  deleteApiKey,
+  keySince,
+  loadApiKey,
+  setAiDailyLimit,
+  setAiModel,
+  storeApiKey,
+  usedToday,
+} from '../bots/ai.ts';
 import type { Context } from '../context.ts';
 import { parse } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
@@ -78,5 +95,67 @@ export function registerAdminOperations(
   app.post('/api/broadcasts', { preHandler: authenticated }, async (request) => {
     const body = parse(Broadcast, request.body);
     return { recipients: sendBroadcast(ctx, body.text, ctx.now()) };
+  });
+
+  // ── OpenAI (SPEC 13 item 5): the key is never shown again, only "hinterlegt seit" ──
+  app.get('/api/openai', { preHandler: authenticated }, async () => {
+    const now = ctx.now();
+    return {
+      keySince: keySince(ctx.db),
+      model: aiModel(ctx.db),
+      dailyLimit: aiDailyLimit(ctx.db),
+      usedToday: usedToday(ctx.db, now),
+    };
+  });
+
+  app.put('/api/openai/key', { preHandler: authenticated }, async (request) => {
+    const body = parse(OpenAiKey, request.body);
+    await storeApiKey(ctx, body.key, ctx.now());
+    // Replies that waited for a key are tried at once.
+    ctx.db.run('UPDATE bot_jobs SET due_at = ? WHERE attempts > 0', ctx.now());
+    ctx.botReplies.kick();
+    return { keySince: keySince(ctx.db) };
+  });
+
+  app.delete('/api/openai/key', { preHandler: authenticated }, async () => {
+    deleteApiKey(ctx.db);
+    return { ok: true };
+  });
+
+  app.put('/api/openai/settings', { preHandler: authenticated }, async (request) => {
+    const body = parse(OpenAiSettings, request.body);
+    setAiModel(ctx.db, body.model);
+    setAiDailyLimit(ctx.db, body.dailyLimit);
+    return { model: body.model, dailyLimit: body.dailyLimit };
+  });
+
+  /** Model list from the API; the admin may still type a model by hand. */
+  app.get('/api/openai/models', { preHandler: authenticated }, async () => {
+    const key = await loadApiKey(ctx);
+    if (!key) throw new HttpError(400, 'openai_no_key');
+    try {
+      return { models: await ctx.ai.listModels(key) };
+    } catch {
+      throw new HttpError(502, 'openai_failed');
+    }
+  });
+
+  /** "Verbindung testen": the key is valid and the model exists. */
+  app.post('/api/openai/test', { preHandler: authenticated }, async () => {
+    const key = await loadApiKey(ctx);
+    if (!key) return { ok: false, code: 'openai_no_key' };
+    try {
+      const models = await ctx.ai.listModels(key);
+      const model = aiModel(ctx.db);
+      return models.includes(model) ? { ok: true } : { ok: false, code: 'openai_model_unknown' };
+    } catch (error) {
+      return {
+        ok: false,
+        code:
+          (error as { status?: number | null }).status === 401
+            ? 'openai_key_invalid'
+            : 'openai_failed',
+      };
+    }
   });
 }

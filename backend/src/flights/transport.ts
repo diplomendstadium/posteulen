@@ -2,7 +2,8 @@
  * Common steps of every transport (letter, gold, gift): choosing the owl, preparing letter
  * IDs and keys, checking the encrypted letters, and the departure itself.
  */
-import { TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, TIME } from '@posteulen/shared/constants.ts';
+import { ownBot } from '../bots/service.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
@@ -38,13 +39,30 @@ export function chooseOwl(ctx: Context, userId: string, owlId: string, now: numb
   };
 }
 
+/**
+ * People: confirmed, active contacts with intact keys. Bots only where allowed (letters), only
+ * as the single recipient and at most once in 24 hours (SPEC 10.1).
+ */
 export function checkRecipients(
   ctx: Context,
   senderId: string,
   recipients: readonly string[],
   now: number,
+  options: { allowBots?: boolean } = {},
 ): void {
   for (const recipientId of recipients) {
+    const bot = ownBot(ctx, senderId, recipientId);
+    if (bot) {
+      if (!options.allowBots || recipients.length > 1)
+        throw new HttpError(400, 'recipient_invalid', { recipientId });
+      if (
+        bot.last_user_letter_at !== null &&
+        now - bot.last_user_letter_at < BOTS.WRITE_LOCK_HOURS * TIME.HOUR
+      ) {
+        throw new HttpError(400, 'bot_write_lock', { recipientId });
+      }
+      continue;
+    }
     const problem = recipientProblem(ctx, senderId, recipientId, now);
     if (problem) throw new HttpError(400, problem, { recipientId });
   }
@@ -190,7 +208,8 @@ export function depart(
       id,
     );
     ctx.db.run(
-      `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at) VALUES (?, ?, 'user', ?)
+      `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at)
+       VALUES (?, ?, CASE WHEN EXISTS (SELECT 1 FROM bots WHERE id = ?2) THEN 'bot' ELSE 'user' END, ?)
        ON CONFLICT (owner_id, peer_id) DO UPDATE SET last_activity_at = excluded.last_activity_at`,
       token.senderId,
       letter.recipientId,

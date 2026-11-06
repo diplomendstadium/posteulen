@@ -18,6 +18,9 @@ import { registerOwlRoutes } from './owls/routes.ts';
 import { registerLifecycleHandlers } from './owls/lifecycle.ts';
 import { registerAccountHandlers } from './accounts/lifecycle.ts';
 import { registerAccountRoutes } from './accounts/routes.ts';
+import { ensureBotsForAllUsers, registerBotHandlers } from './bots/service.ts';
+import { BotReplies, registerReplyHandler } from './bots/replies.ts';
+import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
 
 export interface App {
@@ -77,10 +80,15 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
   ctx.push = new PushService(ctx, options.pushSender);
+  ctx.botReplies = new BotReplies(ctx, ctx.ai);
   registerLetterHandlers(ctx);
   registerFlightHandlers(ctx);
   registerLifecycleHandlers(ctx);
   registerAccountHandlers(ctx);
+  registerBotHandlers(ctx);
+  registerReplyHandler(ctx);
+  // Accounts from before stage 5 get their bots once (D-82).
+  ensureBotsForAllUsers(ctx);
   registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);
@@ -90,6 +98,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerGoldRoutes(userApi, ctx);
   registerFlightRoutes(userApi, ctx);
   registerAccountRoutes(userApi, ctx);
+  registerBotRoutes(userApi, ctx);
   registerAdminRoutes(adminApi, ctx);
 
   return {
@@ -111,6 +120,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
 /** Starts background work: event queue (with daily jobs) and pending pushes. */
 export function startWorkers(app: App): void {
   app.ctx.queue.start();
+  app.ctx.botReplies.kick();
   app.ctx.push.resendPending(app.ctx.now());
 }
 

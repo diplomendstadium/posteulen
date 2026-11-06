@@ -50,3 +50,11 @@ export const PushSubscriptionInput = v.strictObject({
 });
 
 export const PushAck = v.strictObject({ id: Id });
+
+/** A plain-text letter to one's own bot (SPEC 10.1: not end-to-end encrypted). */
+export const BotLetterSend = v.strictObject({
+  botId: Id,
+  owlId: Id,
+  parchment: v.picklist(['small', 'large']),
+  text: v.pipe(v.string(), v.maxLength(LETTER.LARGE_MAX_CHARS * 2)),
+});

@@ -4,6 +4,8 @@ import type { Context } from '../context.ts';
 import type { Database } from '../db/database.ts';
 import { utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
+import { BOT_TITLES } from '@posteulen/shared/texts/bots.ts';
+import { fill } from '@posteulen/shared/texts/de.ts';
 import { turnBackBetween } from '../flights/service.ts';
 
 export function pair(a: string, b: string): [string, string] {
@@ -32,11 +34,18 @@ export function isActiveDate(lastActiveDate: string, now: number): boolean {
   return lastActiveDate >= utcDay(now - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY);
 }
 
+/** Current name of a person, or the title of a bot ("Tante Emma", SPEC 10.3). */
 export function displayName(db: Database, userId: string): string | null {
-  return (
-    db.get<{ name_display: string }>('SELECT name_display FROM users WHERE id = ?', userId)
-      ?.name_display ?? null
+  const user = db.get<{ name_display: string }>(
+    'SELECT name_display FROM users WHERE id = ?',
+    userId,
   );
+  if (user) return user.name_display;
+  const bot = db.get<{ type: 'explainer' | 'aunt' | 'uncle'; first_name: string | null }>(
+    'SELECT type, first_name FROM bots WHERE id = ?',
+    userId,
+  );
+  return bot ? fill(BOT_TITLES[bot.type], { name: bot.first_name ?? '' }) : null;
 }
 
 /**

@@ -4,6 +4,7 @@ import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { sealLetter } from '@posteulen/shared/crypto/letter.ts';
 import { rerouteForMove } from '../src/flights/service.ts';
 import {
+  withoutBots,
   advanceTo,
   borrowOwl,
   NO_OWL,
@@ -28,6 +29,7 @@ beforeEach(async () => {
   anna = await person(app, 'Anna');
   ben = await person(app, 'Ben', HAMBURG);
   await couple(anna, ben);
+  withoutBots(app);
 });
 afterEach(async () => {
   await app.close();

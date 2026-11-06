@@ -16,6 +16,7 @@ import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
+import { ownBot } from '../bots/service.ts';
 import { balance, debit } from '../gold/ledger.ts';
 import {
   checkLetters,
@@ -156,7 +157,10 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     return {
       system: { unread: systemUnread },
       chats: chats.map((chat) => {
-        const contact = findContact(ctx.db, me, chat.peer_id);
+        const contact =
+          chat.peer_kind === 'bot'
+            ? ownBot(ctx, me, chat.peer_id)
+            : findContact(ctx.db, me, chat.peer_id);
         return {
           peerId: chat.peer_id,
           peerKind: chat.peer_kind,
@@ -190,6 +194,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       owl_name: string;
       owl_species: string;
       cover_gold: number | null;
+      plaintext: string | null;
     }>(
       `SELECT l.*, f.gold AS cover_gold FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
         WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
@@ -219,6 +224,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           ...(row.kind === 'cover_gold' ? { coverGold: row.cover_gold ?? 0 } : {}),
           role: mine ? 'sender' : 'recipient',
           ciphertext: row.ciphertext ? toBase64Url(row.ciphertext) : null,
+          // Letters to and from bots are plain text (SPEC 10.1).
+          plaintext: row.plaintext,
           wrap: mine
             ? row.wrap_sender
               ? toBase64Url(row.wrap_sender)
@@ -276,6 +283,21 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const peer = parse(Id, (request.params as { peer?: unknown }).peer);
     const me = userOf(request).id;
     ctx.db.transaction(() => {
+      if (ownBot(ctx, me, peer, true)) {
+        // A bot keeps no copies: the conversation and its summary go entirely (SPEC 8.4).
+        ctx.db.run(
+          "DELETE FROM letters WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)) AND status != 'in_flight'",
+          me,
+          peer,
+          peer,
+          me,
+        );
+        ctx.db.run(
+          'UPDATE chats SET bot_summary = NULL, bot_summarized_until = NULL WHERE owner_id = ? AND peer_id = ?',
+          me,
+          peer,
+        );
+      }
       ctx.db.run(
         'UPDATE letters SET sender_has = 0 WHERE sender_id = ? AND recipient_id = ?',
         me,

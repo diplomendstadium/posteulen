@@ -3,6 +3,7 @@ import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts
 import { openLetter, sealLetter, type LetterMeta } from '@posteulen/shared/crypto/letter.ts';
 import { TIME } from '@posteulen/shared/constants.ts';
 import {
+  withoutBots,
   advanceTo,
   borrowOwl,
   NO_OWL,
@@ -25,6 +26,7 @@ beforeEach(async () => {
   app = await testApp();
   anna = await person(app, 'Anna');
   ben = await person(app, 'Ben', HAMBURG);
+  withoutBots(app);
 });
 afterEach(async () => {
   await app.close();
@@ -276,7 +278,8 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
       100 - 60 - 1 - 1, // owl, large parchment, the loan owl of the refused attempt
     );
-    const ids = app.db.all<{ id: string }>('SELECT id FROM letters');
+    // Only letters between people (Clara's bots write to her as well).
+    const ids = app.db.all<{ id: string }>('SELECT id FROM letters WHERE ciphertext IS NOT NULL');
     expect(new Set(ids.map((r) => r.id)).size).toBe(2);
   });
 

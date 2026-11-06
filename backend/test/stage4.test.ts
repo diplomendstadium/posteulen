@@ -5,6 +5,7 @@ import { utcDay } from '../src/security/ids.ts';
 import { sendBroadcast } from '../src/admin/operations.ts';
 import { setInactivityDays } from '../src/admin/settings.ts';
 import {
+  withoutBots,
   ADMIN_ORIGIN,
   Agent,
   advanceTo,
@@ -32,6 +33,7 @@ beforeEach(async () => {
   anna = await person(app, 'Anna');
   ben = await person(app, 'Ben', HAMBURG);
   await couple(anna, ben);
+  withoutBots(app);
 });
 afterEach(async () => {
   await app.close();
