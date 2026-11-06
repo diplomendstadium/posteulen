@@ -83,8 +83,8 @@
 </script>
 
 <div class="page">
-  <p><Link href="/" class="back">← {de.app.back}</Link></p>
-  <h1>{de.register.title}</h1>
+  <p class="plate"><Link href="/" class="back">← {de.app.back}</Link></p>
+  <h1 class="plate">{de.register.title}</h1>
 
   {#if mode === 'closed'}
     <p class="notice" role="status">

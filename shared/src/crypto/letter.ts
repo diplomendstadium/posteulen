@@ -11,6 +11,7 @@ import { unwrapKey, wrapKey } from './hpke.ts';
 import { sodium } from './sodium.ts';
 import { countCodePoints } from '../names.ts';
 import { maxChars, paddedBytes, sanitizeLetterText, type Parchment } from '../text-rules.ts';
+import { LETTER } from '../constants.ts';
 
 export const LETTER_FORMAT = 1;
 export type LetterKind = 'letter' | 'cover_gold' | 'cover_owl' | 'cover_chick';
@@ -30,6 +31,17 @@ const FIELD_COUNT = 9;
 /** Exact ciphertext length per parchment – the server rejects anything else (SPEC 5.9). */
 export function ciphertextBytes(parchment: Parchment): number {
   return NONCE_BYTES + paddedBytes(parchment) + TAG_BYTES;
+}
+
+/**
+ * Padded size of a stored letter: the current size, or for large letters from before v0.3 the
+ * old one (they were sealed with 16 KiB). Anything else is not a valid letter.
+ */
+function storedPaddedBytes(parchment: Parchment, ciphertextLength: number): number | null {
+  if (ciphertextLength === ciphertextBytes(parchment)) return paddedBytes(parchment);
+  const legacy = LETTER.LEGACY_LARGE_PADDED_BYTES;
+  if (parchment === 'large' && ciphertextLength === NONCE_BYTES + legacy + TAG_BYTES) return legacy;
+  return null;
 }
 
 export interface LetterMeta {
@@ -100,12 +112,13 @@ export async function sealLetter(
 
 /**
  * Without the text checks – only for tests that simulate a manipulated client (SPEC 5.9:
- * the receiver must check again).
+ * the receiver must check again) or a large letter from before v0.3 (`blockBytes`).
  */
 export async function sealUnchecked(
   meta: LetterMeta,
   clean: string,
   keys: SealKeys,
+  blockBytes: number = paddedBytes(meta.parchment),
 ): Promise<SealedLetter> {
   const s = await sodium();
   const content = body(meta, clean);
@@ -116,8 +129,8 @@ export async function sealUnchecked(
   const plain = new Uint8Array(content.length + SIGNATURE_BYTES);
   plain.set(content);
   plain.set(signature, content.length);
-  const padded = s.pad(plain, paddedBytes(meta.parchment));
-  if (padded.length !== paddedBytes(meta.parchment)) throw new Error('padding overflow');
+  const padded = s.pad(plain, blockBytes);
+  if (padded.length !== blockBytes) throw new Error('padding overflow');
   const letterKey = s.randombytes_buf(32);
   const nonce = s.randombytes_buf(NONCE_BYTES);
   const encrypted = s.crypto_aead_xchacha20poly1305_ietf_encrypt(
@@ -165,7 +178,8 @@ export async function openLetter(input: {
   const s = await sodium();
   const fail = (reason: string): OpenResult => ({ ok: false, reason });
   const { server } = input;
-  if (input.ciphertext.length !== ciphertextBytes(server.parchment)) return fail('length');
+  const blockBytes = storedPaddedBytes(server.parchment, input.ciphertext.length);
+  if (blockBytes === null) return fail('length');
   if (input.role === 'recipient' && server.recipientId !== input.ownUserId)
     return fail('not_for_me');
   if (input.role === 'sender' && server.senderId !== input.ownUserId) return fail('not_mine');
@@ -195,7 +209,7 @@ export async function openLetter(input: {
     letterKey.fill(0);
   }
   try {
-    const plain = s.unpad(padded, paddedBytes(server.parchment));
+    const plain = s.unpad(padded, blockBytes);
     const { fields, rest } = decodeFields(plain, FIELD_COUNT);
     if (rest.length !== SIGNATURE_BYTES) return fail('format');
     const content = plain.subarray(0, plain.length - SIGNATURE_BYTES);

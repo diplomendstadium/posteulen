@@ -35,9 +35,14 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
           ...homeOf(ctx, other),
         }))
         .concat(
-          // Bots live on the map too (SPEC 10.1, 12.1).
+          // Bots live on the map too (SPEC 10.1, 12.1); the Erklärbär only once the user has
+          // written to him (v0.3).
           ctx.db
-            .all<BotRow>('SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1', me)
+            .all<BotRow>(
+              `SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1
+                 AND (type != 'explainer' OR last_user_letter_at IS NOT NULL)`,
+              me,
+            )
             .map((bot) => ({
               id: bot.id,
               name: botTitle(bot),

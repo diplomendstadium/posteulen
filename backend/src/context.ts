@@ -152,8 +152,10 @@ export async function createContext(
     now,
     guards: {
       names: new LoginGuard(),
-      // Per IP more generous: many people may share one address.
-      ips: new LoginGuard(20, 10),
+      // Per IP more generous: many people may share one address. Local automated tests
+      // (relaxed limits, development only) log in hundreds of times from one address: there the
+      // per-IP delay never starts; per name everything stays as in production.
+      ips: options.relaxedLimits ? new LoginGuard(10_000, 10) : new LoginGuard(20, 10),
       admin: new LoginGuard(),
     },
     limits: options.relaxedLimits

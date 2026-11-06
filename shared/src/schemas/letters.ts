@@ -27,7 +27,7 @@ export const LetterSend = v.strictObject({
     v.array(
       v.strictObject({
         letterId: Id,
-        ciphertext: Base64Url(5000, 22000),
+        ciphertext: Base64Url(5000, 88_000),
         wrapRecipient: Base64Url(107, 107),
         wrapSender: Base64Url(107, 107),
       }),

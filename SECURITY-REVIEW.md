@@ -79,3 +79,18 @@ Geprüft wurden die neuen und geänderten Stellen; kein neuer Befund.
 | Handschriften im Chat | Links, Namen und Metadaten bleiben in der Schrift, in der I/l/1 und O/0 unterscheidbar sind (SPEC 6, 7.1) | `v02.spec.ts`, CSS in `LetterText.svelte` |
 | Link auf das Repository | Fester Link aus `shared/src/version.ts`, `noopener noreferrer`, keine Anfrage an fremde Hosts beim Laden | `v02.spec.ts`, E2E-Wächter |
 | Migration 0007 (Neuaufbau `owls`) | Zuordnung Flug → Eule bleibt erhalten, `PRAGMA foreign_key_check` leer | `v02.test.ts` |
+
+## 7. Nachtrag Version 0.3.0 (2026-11-06)
+
+Geprüft wurden die neuen und geänderten Stellen; kein neuer Befund.
+
+| Änderung | Prüfung | Nachweis |
+|---|---|---|
+| Größeres Padding für große Briefe (65 536 statt 16 384 Byte) | Nur die Länge ändert sich, nicht Verfahren oder Kontexte. Der Server nimmt beim Versand nur die neue exakte Länge an; der Empfänger öffnet große Briefe mit der neuen oder der alten Länge, alle anderen Längen werden abgelehnt (`length`). Die Textlänge wird beim Empfänger weiter gegen die Pergamentart geprüft | `letter.test.ts` (alte Länge, falsche Länge bei kleinem Brief, 15 000 Zeichen à 4 Byte), `letters.test.ts` (5 Empfänger × 64 KiB) |
+| Höhere Body-Grenzen (Versand 512 KiB, Bot-Briefe 128 KiB) | nur für diese zwei Routen; Schema begrenzt jedes Chiffrat (≤ 88 000 Zeichen Base64) und die Zahl der Empfänger (≤ 5); Rate-Limit „teuer“ unverändert | Quelltext, `routes.test.ts` |
+| Freilassen mit Namen | `POST /api/owls/:id/release` verlangt `{ name }` (striktes Schema); fremde Eulen liefern 404, bevor der Body geprüft wird; falscher Name `owl_name_mismatch` | `owls.test.ts` |
+| Spendenbitte mit externem Link | Fester Link aus `shared/constants.ts`, gerendert als `<a target="_blank" rel="noopener noreferrer">`; keine Anfrage an fremde Hosts beim Laden | E2E-Wächter, Quelltext `SystemChat.svelte` |
+| Update-Nachricht beim Start | schreibt nur Systemnachrichten mit Versionskennung; Texte kommen aus dem Code, nicht aus der DB | `v03.test.ts` |
+| Push `owl_home` | Text ohne Namen und Inhalte („Eine deiner Eulen ist wieder zu Hause.“), wie alle Pushes | `v03.test.ts`, `sw.ts` |
+| Hinweis ausblenden (`localStorage`) | speichert nur ein Flag, keine personenbezogenen Daten | Quelltext `auth.svelte.ts` |
+

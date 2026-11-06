@@ -45,9 +45,9 @@ test.describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
   test('Hilfe nach dem Login und Link aus der Willkommensseite', async ({ page }) => {
     await registerViaUi(page);
     await page.goto('/willkommen');
-    await page.getByRole('link', { name: 'So richtest du es ein (Hilfe)' }).click();
-    await expect(page).toHaveURL(/\/hilfe#benachrichtigungen$/);
-    await expect(page.locator('#benachrichtigungen')).toBeInViewport();
+    await page.getByRole('link', { name: 'Noch Fragen? Die Hilfe erklärt alles in Ruhe' }).click();
+    await expect(page).toHaveURL(/\/hilfe#installieren$/);
+    await expect(page.locator('#installieren')).toBeInViewport();
     await page.goto('/app');
     await page.getByRole('link', { name: 'Hilfe', exact: true }).first().click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hilfe');

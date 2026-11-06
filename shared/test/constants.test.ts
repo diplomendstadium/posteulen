@@ -29,7 +29,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(7);
+    expect(OWL_IMAGE_KINDS).toHaveLength(11);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -41,6 +41,10 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Streicheln.png',
       'Schleiereule-Grummelig.png',
       'Schleiereule-Kueken.png',
+      'Schleiereule-Tagflug.png',
+      'Schleiereule-Nachtflug.png',
+      'Schleiereule-Heimkehr-Tag.png',
+      'Schleiereule-Heimkehr-Nacht.png',
     ]);
   });
 });
@@ -54,7 +58,8 @@ describe('constants (SPEC Anhang A)', () => {
 
   it('keeps padding lengths and limits', () => {
     expect(LETTER.SMALL_PADDED_BYTES).toBe(4096);
-    expect(LETTER.LARGE_PADDED_BYTES).toBe(16384);
+    expect(LETTER.LARGE_PADDED_BYTES).toBe(65536);
+    expect(LETTER.LEGACY_LARGE_PADDED_BYTES).toBe(16384);
     expect(SECURITY.MAX_REQUEST_BYTES).toBe(65536);
     expect(SECURITY.ARGON2_MEMORY_KIB).toBe(65536);
   });

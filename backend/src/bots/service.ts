@@ -127,6 +127,8 @@ export function dispatchBotLetter(
   text: string,
   gold: number,
   now: number,
+  /** Fixed landing time instead of the simulated flight (the aunt's welcome letter, v0.3). */
+  fixedArrival?: number,
 ): { letterId: string; arrivesAt: number } {
   const species = pick(ctx, SPECIES).id;
   const owlName = pick(ctx, OWL_NAMES);
@@ -141,7 +143,7 @@ export function dispatchBotLetter(
     [{ index: 0, point: userHome(ctx, bot.owner_id) }],
     flightEnvironment(ctx),
   );
-  const arrivesAt = simulation.arrivals[0]?.at ?? now;
+  const arrivesAt = fixedArrival ?? simulation.arrivals[0]?.at ?? now;
   const letterId = randomId();
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
@@ -208,7 +210,8 @@ export function createBots(ctx: Context, userId: string, now: number): void {
       firstName,
       home.latE2,
       home.lonE2,
-      type === 'uncle' ? 0 : 1,
+      // Aunt and uncle appear in the address book and on the map with their first letter.
+      type === 'explainer' ? 1 : 0,
     );
     const bot = botById(ctx, id);
     if (!bot) throw new Error('bot not created');
@@ -236,10 +239,18 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     pick(ctx, SPECIES).id,
   );
   upsertBotChat(ctx, userId, explainer.id, now, 1);
-  for (const day of [1, 2, 4, 7] as const) {
+  for (const day of BOTS.EXPLAINER_LETTER_DAYS.filter((day) => day > 0)) {
     ctx.queue.schedule('bot_letter', `${explainer.id}:day${day}`, now + day * TIME.DAY);
   }
-  dispatchBotLetter(ctx, aunt, letterText(aunt, AUNT_LETTERS.welcome), 0, now);
+  // The aunt's welcome letter lands five minutes after registration (v0.3).
+  dispatchBotLetter(
+    ctx,
+    aunt,
+    letterText(aunt, AUNT_LETTERS.welcome),
+    0,
+    now,
+    now + (BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES * TIME.MINUTE) / ctx.flightTimeScale,
+  );
   ctx.queue.schedule('bot_gold', aunt.id, now + GOLD.AUNT_GIFT_AFTER_DAYS * TIME.DAY);
   ctx.queue.schedule(
     'bot_letter',
@@ -281,7 +292,7 @@ function deliverShipment(ctx: Context, shipmentId: string, at: number, after: Af
     );
   }
   if (bot.in_addressbook === 0) {
-    // The uncle appears with his first letter (SPEC 8.8).
+    // Aunt and uncle appear with their first letter (SPEC 8.8, v0.3).
     ctx.db.run('UPDATE bots SET in_addressbook = 1 WHERE id = ?', bot.id);
     after(() => ctx.hub.notify(bot.owner_id, 'contacts', 'map'));
   }

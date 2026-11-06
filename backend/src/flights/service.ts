@@ -311,7 +311,16 @@ function arriveHome(
     credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
     ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
   }
-  addSystemMessage(ctx, flight.holder_id, 'owl_home', { owl: flight.owl_name }, at, after);
+  // With a picture of the owl at the window, by day or night at reading time (v0.3), and a push.
+  addSystemMessage(
+    ctx,
+    flight.holder_id,
+    'owl_home',
+    { owl: flight.owl_name, species: flight.owl_species },
+    at,
+    after,
+  );
+  ctx.push.notify(flight.holder_id, 'owl_home', null, at, after);
   if (flight.owl_id) {
     const owl = ctx.db.get<{ is_chick: number; hatched_at: number | null }>(
       'SELECT is_chick, hatched_at FROM owls WHERE id = ?',

@@ -1,6 +1,6 @@
 import { helpAsText } from '@posteulen/shared/texts/help.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { BOTS, GOLD, TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, GOLD, LETTER, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { distanceKm } from '@posteulen/shared/game/geo.ts';
 import { EXPLAINER_LETTERS } from '@posteulen/shared/texts/bots.ts';
@@ -55,6 +55,8 @@ beforeEach(async () => {
   ai = new FakeAi();
   app = await testApp({ aiClient: ai });
   anna = await person(app, 'Anna');
+  // The aunt appears with her welcome letter five minutes after registration (v0.3).
+  advanceTo(app, app.clock.now + BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES * TIME.MINUTE);
 });
 afterEach(async () => {
   await app.ctx.botReplies.idle();
@@ -110,44 +112,53 @@ async function writeToBot(who: Person, botId: string, text: string) {
 }
 
 describe('bots of a new account (SPEC 10, 17.2)', () => {
-  it('Erklärbär and aunt in the address book; the day-0 letter is already delivered', async () => {
-    const list = await bots(anna);
-    expect(list.map((bot) => bot.type)).toEqual(['explainer', 'aunt']);
-    const aunt = botRow(anna, 'aunt');
-    expect(list[1]!.name).toBe(`Tante ${aunt.first_name}`);
-    const explainer = list[0]!;
-    const letters = await botLetters(anna, explainer.userId);
-    expect(letters).toEqual([
+  it('first only the Erklärbär; the aunt comes with her letter after 5 minutes (v0.3)', async () => {
+    const paula = await person(app, 'Paula', PARIS);
+    const mapBots = async () =>
+      (
+        await paula.agent.json<{ contacts: { bot: boolean; name: string }[] }>('GET', '/api/map')
+      ).body.contacts
+        .filter((c) => c.bot)
+        .map((c) => c.name);
+    expect((await bots(paula)).map((bot) => bot.type)).toEqual(['explainer']);
+    const explainer = (await bots(paula))[0]!;
+    expect(await botLetters(paula, explainer.userId)).toEqual([
       expect.objectContaining({
         role: 'recipient',
         status: 'delivered',
         plaintext: EXPLAINER_LETTERS.day0,
       }),
     ]);
-    const chats = await anna.agent.json<{
+    const chats = await paula.agent.json<{
       chats: { peerKind: string; name: string; unread: number }[];
     }>('GET', '/api/chats');
     expect(chats.body.chats).toEqual([
       expect.objectContaining({ peerKind: 'bot', name: 'Erklärbär', unread: 1 }),
     ]);
-    // The bots live on the map; the uncle is not there yet.
-    const map = await anna.agent.json<{ contacts: { bot: boolean; name: string }[] }>(
-      'GET',
-      '/api/map',
-    );
-    expect(
-      map.body.contacts
-        .filter((c) => c.bot)
-        .map((c) => c.name)
-        .sort(),
-    ).toEqual(['Erklärbär', `Tante ${aunt.first_name}`].sort());
+    // Nobody on the map yet: the Erklärbär only once written to, the aunt with her letter.
+    expect(await mapBots()).toEqual([]);
+    const aunt = botRow(paula, 'aunt');
+    const arrival = app.db.get<{ arrives_at: number; sent_at: number }>(
+      'SELECT arrives_at, sent_at FROM letters WHERE sender_id = ?',
+      aunt.id,
+    )!;
+    expect(arrival.arrives_at - arrival.sent_at).toBe(5 * TIME.MINUTE);
+    advanceTo(app, arrival.arrives_at);
+    const list = await bots(paula);
+    expect(list.map((bot) => bot.type)).toEqual(['explainer', 'aunt']);
+    expect(list[1]!.name).toBe(`Tante ${aunt.first_name}`);
+    expect(await mapBots()).toEqual([`Tante ${aunt.first_name}`]);
+    expect(await writeToBot(paula, explainer.userId, 'Hallo Bär!')).toMatchObject({ status: 200 });
+    expect((await mapBots()).sort()).toEqual(['Erklärbär', `Tante ${aunt.first_name}`].sort());
     // Bot letters are plain text by design (SPEC 10.1) – and nothing of them is encrypted.
     expect(
-      app.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM letters WHERE plaintext IS NOT NULL')?.n,
-    ).toBe(2);
+      app.db.get<{ n: number }>(
+        'SELECT COUNT(*) AS n FROM letters WHERE plaintext IS NOT NULL AND ciphertext IS NULL',
+      )?.n,
+    ).toBe(app.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM letters')?.n);
   });
 
-  it('the Erklärbär flies 200 km/h with unlimited energy; letters on days 1, 2, 4 and 7', async () => {
+  it('the Erklärbär flies 200 km/h with unlimited energy; letters on days 1, 2, 3, 4 and 7', async () => {
     const paula = await person(app, 'Paula', PARIS);
     const explainer = botRow(paula, 'explainer');
     advanceTo(app, app.clock.now + TIME.DAY);
@@ -166,6 +177,7 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
       EXPLAINER_LETTERS.day0,
       EXPLAINER_LETTERS.day1,
       EXPLAINER_LETTERS.day2,
+      EXPLAINER_LETTERS.day3,
       EXPLAINER_LETTERS.day4,
       EXPLAINER_LETTERS.day7,
     ]);
@@ -225,7 +237,9 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
 describe('removing a bot (SPEC 10.1, 8.8)', () => {
   it('is final: chat, planned gold and the owl on its way vanish; own owls turn back', async () => {
     const aunt = botRow(anna, 'aunt');
-    // Aunt's welcome letter is still flying.
+    // The aunt's gift sets off now and is still flying when she is removed.
+    app.ctx.queue.schedule('bot_gold', aunt.id, app.clock.now);
+    advanceTo(app, app.clock.now);
     expect(app.db.all('SELECT 1 FROM bot_shipments WHERE bot_id = ?', aunt.id)).toHaveLength(1);
     setGold(app, anna, 200);
     const owl = await buyOwl(app, anna);
@@ -321,7 +335,7 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
           botId: botRow(anna, 'aunt').id,
           owlId: owl,
           parchment: 'small',
-          text: 'x'.repeat(501),
+          text: 'x'.repeat(LETTER.SMALL_MAX_CHARS + 1),
         })
       ).body,
     ).toMatchObject({ code: 'letter_too_long' });

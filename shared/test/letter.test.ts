@@ -19,6 +19,7 @@ import {
   sealVaultEntry,
 } from '../src/crypto/vault.ts';
 import { letterTextError, sanitizeLetterText } from '../src/text-rules.ts';
+import { LETTER } from '../src/constants.ts';
 
 let alice: IdentityKeys;
 let bob: IdentityKeys;
@@ -77,7 +78,7 @@ describe('letters (SPEC 5.8, 17.1)', () => {
       const m = meta({ parchment });
       const sealed = await seal(m, 'Hallo Bob!\nGrüße 0123 #* ©®™ https://example.org');
       expect(sealed.ciphertext).toHaveLength(ciphertextBytes(parchment));
-      expect(ciphertextBytes(parchment)).toBe(parchment === 'small' ? 4136 : 16424);
+      expect(ciphertextBytes(parchment)).toBe(parchment === 'small' ? 4136 : 65576);
       expect(await openAsBob(m, sealed.ciphertext, sealed.wrapRecipient)).toEqual({
         ok: true,
         text: 'Hallo Bob!\nGrüße 0123 #* ©®™ https://example.org',
@@ -98,8 +99,8 @@ describe('letters (SPEC 5.8, 17.1)', () => {
   });
 
   it('fits the maximum text into the padding (4-byte characters)', async () => {
-    const small = '𝔄'.repeat(500);
-    const large = '𝔄'.repeat(3000);
+    const small = '𝔄'.repeat(LETTER.SMALL_MAX_CHARS);
+    const large = '𝔄'.repeat(LETTER.LARGE_MAX_CHARS);
     const sealedSmall = await seal(meta(), small);
     expect((await openAsBob(meta(), sealedSmall.ciphertext, sealedSmall.wrapRecipient)).ok).toBe(
       true,
@@ -114,7 +115,29 @@ describe('letters (SPEC 5.8, 17.1)', () => {
         )
       ).ok,
     ).toBe(true);
-    await expect(seal(meta(), 'a'.repeat(501))).rejects.toThrow('too long');
+    await expect(seal(meta(), 'a'.repeat(LETTER.SMALL_MAX_CHARS + 1))).rejects.toThrow('too long');
+  });
+
+  it('still opens large letters sealed before v0.3 (16 KiB padding), nothing else', async () => {
+    const m = meta({ parchment: 'large' });
+    const keys = {
+      senderEd25519Secret: alice.ed25519Secret,
+      senderX25519Public: alice.x25519Public,
+      recipientX25519Public: bob.x25519Public,
+    };
+    const legacy = await sealUnchecked(m, 'Ein alter, langer Brief.', keys, 16_384);
+    expect(legacy.ciphertext.length).toBe(16_424);
+    expect(await openAsBob(m, legacy.ciphertext, legacy.wrapRecipient)).toMatchObject({
+      ok: true,
+      text: 'Ein alter, langer Brief.',
+    });
+    // The old size is only accepted for large letters; other sizes are never valid.
+    const small = meta();
+    const odd = await sealUnchecked(small, 'kurz', keys, 16_384);
+    expect(await openAsBob(small, odd.ciphertext, odd.wrapRecipient)).toEqual({
+      ok: false,
+      reason: 'length',
+    });
   });
 
   it('detects tampering with ciphertext, associated data and metadata', async () => {
@@ -209,7 +232,7 @@ describe('letters (SPEC 5.8, 17.1)', () => {
       ok: true,
       text: 'Hallo txt.exe ',
     });
-    const tooLong = await sealUnchecked(m, 'a'.repeat(600), {
+    const tooLong = await sealUnchecked(m, 'a'.repeat(LETTER.SMALL_MAX_CHARS + 1), {
       senderEd25519Secret: alice.ed25519Secret,
       senderX25519Public: alice.x25519Public,
       recipientX25519Public: bob.x25519Public,
@@ -231,9 +254,12 @@ describe('text rules (SPEC 5.9)', () => {
   });
 
   it('validates text length per parchment in code points', () => {
-    expect(letterTextError('a'.repeat(500), 'small')).toBeNull();
-    expect(letterTextError('a'.repeat(501), 'small')).toBe('too_long');
-    expect(letterTextError('a'.repeat(3000), 'large')).toBeNull();
+    expect(LETTER.SMALL_MAX_CHARS).toBe(800);
+    expect(LETTER.LARGE_MAX_CHARS).toBe(15_000);
+    expect(letterTextError('a'.repeat(800), 'small')).toBeNull();
+    expect(letterTextError('a'.repeat(801), 'small')).toBe('too_long');
+    expect(letterTextError('a'.repeat(15_000), 'large')).toBeNull();
+    expect(letterTextError('a'.repeat(15_001), 'large')).toBe('too_long');
     expect(letterTextError('   ', 'small')).toBe('empty');
     expect(letterTextError('a​b', 'small')).toBe('invalid');
   });

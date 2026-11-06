@@ -107,7 +107,8 @@ Das Ed25519- und das X25519-Schlüsselpaar sind unabhängig voneinander erzeugt 
 content    = enc("PostEulen/letter/v1", fmtVersion, letterId, senderId, recipientId,
                  sentAt, kind, parchment, text)
 signature  = Ed25519.sign(enc("PostEulen/letter-sig/v1", content), sender_ed25519_sk)
-plaintext  = pad(content ‖ signature, 4096 | 16384)            ISO 7816-4
+plaintext  = pad(content ‖ signature, 4096 | 65536)            ISO 7816-4
+             (große Briefe vor v0.3: 16384; der Empfänger akzeptiert für „groß“ beide Längen)
 ad         = enc("PostEulen/letter-ad/v1", letterId, senderId, recipientId, kind, parchment)
 ciphertext = nonce24 ‖ XChaCha20-Poly1305(plaintext, letterKey, ad)
              → genau 4 136 Byte (klein) bzw. 16 424 Byte (groß); der Server prüft das exakt
@@ -161,7 +162,7 @@ Legende Schutz: **E2E** = nur der Browser des Nutzers kann entschlüsseln · **S
 
 | Tabelle | Felder | Schutz |
 |---|---|---|
-| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `home_moves_month` + `home_moves_count` (v0.2: 3 Umzüge je Monat) · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` · `letter_retention_days` (30/90/180/365) · `letters_print` | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
+| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `home_moves_month` + `home_moves_count` (v0.2: 3 Umzüge je Monat) · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` · `letter_retention_days` (30/90/180/365) · `letters_print` · `donation_count` (v0.3: Zahl der Spendenbitten, bestimmt den nächsten Text) | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
 | `sessions` | `token_hash` PK (SHA-256) · `user_id` · `last_used_at` | **H** |
 | `push_subscriptions` | `user_id` PK · `endpoint` · `p256dh` · `auth` · `created_at` · `last_confirmed_at` | lesbar (nötig zum Senden) |
 | `notifications` | `id` PK (= Push-ID, 128 Bit) · `user_id` · `type` · `params` (JSON, z. B. Betrag, Eulen-ID) · `created_at` · `push_state` | lesbar |
@@ -179,7 +180,8 @@ Nur im Arbeitsspeicher (bewusst nicht in der DB): Registrierungs-Reservierungen 
 | `vault_entries` | `owner_id`, `contact_id` PK · `version` · `blob` | **E2E** |
 | `chats` | `owner_id`, `peer_id` PK · `peer_kind` (`user`/`bot`/`system`) · `last_activity_at` · `unread` · `bot_summary` (nur Bots) | lesbar; `bot_summary` Klartext (Bot-Ausnahme, 3) |
 | `letters` | `id` PK · `sender_id` · `recipient_id` · `kind` · `parchment` · `sent_at` · `ciphertext` (Mensch↔Mensch) · `wrap_recipient` · `wrap_sender` · `plaintext` (nur Bot-Briefe) · `flight_id` · `status` (`in_flight`/`delivered`/`returned`) · `read` · `sender_has` · `recipient_has` · `arrival_seen` · `owl_name`, `owl_species` (Momentaufnahme für „Gebracht von …“) | `ciphertext`, `wrap_*`: **E2E**; Bot-Brieftexte lesbar (Ausnahme, 3); Metadaten lesbar |
-| `system_messages` | `id` · `user_id` · `type` · `params` · `created_at` · `arrival_image` (Art, für die Einblendung) | lesbar |
+| `system_messages` | `id` · `user_id` · `type` · `params` · `created_at` · `arrival_image` (Art, für die Einblendung) · `seen` · `arrival_shown`. v0.3: `owl_home` mit `{owl, species}` (Heimkehr-Bild), `donation` mit `{text}` (0–2), `update_notes` mit `{version}`; die langen Texte stehen in `shared/texts/messages.ts`, nicht in der DB | lesbar |
+| `meta` | `key` PK · `value`: `secrets_fingerprint`, `notes_version` (zuletzt angekündigte Version, v0.3) | lesbar |
 
 Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient_has` bilden die „eigenen Kopien“ ab. Die Zeile wird gelöscht, sobald beide 0 sind (8.4). Ein umgekehrter Brief setzt `recipient_has = 0`.
 
@@ -219,7 +221,7 @@ Alle Spielstände sind lesbar (3: „für den Server sichtbare Metadaten“).
 
 ## 4. API-Übersicht
 
-Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Endpunkte ohne Nutzdaten akzeptieren nur einen leeren Inhalt oder `{}` (`emptyBody`, D-94). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der deutsche Text kommt aus `texts/de.ts`. Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
+Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Endpunkte ohne Nutzdaten akzeptieren nur einen leeren Inhalt oder `{}` (`emptyBody`, D-94). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 512 KiB (v0.3: 15 000 Zeichen an bis zu 5 Empfänger) und `POST /api/bot-letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der deutsche Text kommt aus `texts/de.ts`. Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
 
 Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Registrierung, Vorbereitung/Flugvorschau, Kontaktanfragen) · **A** Admin streng. `bg` = Hintergrundanfrage, zählt nicht als Aktivität (9.10).
 
@@ -258,7 +260,7 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `GET /contacts/:id/keys` | öffentliche Schlüssel des Kontakts | bestätigter oder getrennter Kontakt mit Chat | N |
 | `GET /vault`, `PUT /vault/:contactId` | Tresor lesen bzw. Eintrag schreiben (Version muss steigen) | eigener Tresor | N |
 | `POST /contacts/:id/key-warning` | Schlüsselabweichung melden → Versandsperre und Systemnachricht | eigener Kontakt | N |
-| `GET /owls` · `POST /owls/buy` · `POST /owls/:id/name` · `/feed` · `/pet` · `/treat` · `/menagerie` · `/release` | Eulenverwaltung | Besitzer, Zustand 9.2.5 | N |
+| `GET /owls` · `POST /owls/buy` · `POST /owls/:id/name` · `/feed` · `/pet` · `/treat` · `/menagerie` · `/release` | Eulenverwaltung (`/release` mit `{ name }`, exakt wie die Eule heißt, v0.3; `GET /owls` liefert bei fliegenden Eulen `absence.daylight`) | Besitzer, Zustand 9.2.5 | N |
 | `GET /menagerie` · `POST /menagerie/loan` | Angebot und Leihen | Sitzung | N |
 | `POST /clutches/:id/gift/prepare` · `/gift/send` | ein Küken verschenken (benannt wird über `/owls/:id/name`) | Halter der Mutter | T/N |
 | `GET /finance` | Goldstand und letzte 20 Buchungen | Sitzung | N |

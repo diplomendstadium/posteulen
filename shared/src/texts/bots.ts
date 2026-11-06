@@ -1,5 +1,5 @@
 /**
- * Fixed letters of the bots (SPEC 10.2–10.4): small parchment (at most 500 characters), short,
+ * Fixed letters of the bots (SPEC 10.2–10.4): small parchment (at most 800 characters), short,
  * friendly, simple. They contain no names of the user on purpose – the bot chats are sent to
  * OpenAI as context, and requests must not carry names (SPEC 10.5).
  * Placeholders: {aunt}, {uncle} (first names of the bots).
@@ -19,12 +19,23 @@ Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und K
 
 Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
 
-Fragen zu PostEulen? Schreib mir einfach!`,
-  day1: `Hallo, heute geht es um Eulen!
+Fragen zu PostEulen? Schreib mir einfach! Sobald du mir geschrieben hast, findest du mich auch auf deiner Karte.`,
+  day1: `Hallo, heute verrate ich dir einen kleinen Zaubertrick!
+
+PostEulen gibt es in keinem App-Store – und trotzdem kannst du es wie eine App auf dein Handy holen. Du legst es einfach auf deinen Startbildschirm:
+
+Android mit Chrome: oben rechts auf die drei Punkte tippen, dann „Zum Startbildschirm hinzufügen“ oder „App installieren“.
+
+iPhone mit Safari: auf das Teilen-Symbol tippen (Quadrat mit Pfeil, bei neueren iPhones hinter den drei Punkten unten rechts), dann „Zum Home-Bildschirm“.
+
+Danach wohnt eine Eule auf deinem Startbildschirm, und Benachrichtigungen klappen auch. Mit anderen Browsern geht es als Lesezeichen, nur ohne Benachrichtigungen. Ein echter Briefkasten klingelt ja auch nicht.
+
+Dein Erklärbär`,
+  day3: `Hallo, heute geht es um Eulen!
 
 Jede Eule hat Energie. Nachts braucht sie 1 Punkt pro Kilometer, tagsüber 1,5. Ist sie leer, schläft sie 10 Stunden und fliegt dann ausgeruht weiter. Über Wasser fliegt sie weiter, bis sie Land findet.
 
-Zu Hause erholt sie sich von selbst. Auf der Karte siehst du, wo deine Eulen gerade sind und wo es Nacht ist.
+Zu Hause erholt sie sich von selbst. Auf der Karte siehst du, wo deine Eulen gerade sind, welchen Weg sie schon geflogen sind und wo es Nacht ist. Ein „Zzz“ zeigt, wo eine Eule übernachtet hat.
 
 Bis bald, dein Erklärbär`,
   day2: `Hallo, heute geht es ums Gold!

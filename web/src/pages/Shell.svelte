@@ -4,7 +4,7 @@
   import Link from '../components/Link.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
-  import { account } from '../lib/auth.svelte.ts';
+  import { account, setPushHintHidden } from '../lib/auth.svelte.ts';
   import { live, startLive, stopLive } from '../lib/live.svelte.ts';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
@@ -96,8 +96,13 @@
       <span>{de.units.gold(account.profile?.gold ?? 0)}</span>
     </p>
   </header>
-  {#if live.pushState !== 'confirmed'}
-    <p class="push-hint"><Link href="/app/einstellungen">{de.push.headerHint}</Link></p>
+  {#if live.pushState !== 'confirmed' && !account.pushHintHidden}
+    <p class="push-hint">
+      <Link href="/app/einstellungen">{de.push.headerHint}</Link>
+      <button class="hide-hint" type="button" onclick={() => setPushHintHidden(true)}
+        >{de.push.headerHide}</button
+      >
+    </p>
   {/if}
 
   <div class="content">
@@ -107,7 +112,7 @@
       </p>
     {/if}
     {#if current}
-      <h1>{chatPeer === 'system' ? de.letters.system : current.label}</h1>
+      <h1 class="plate">{chatPeer === 'system' ? de.letters.system : current.label}</h1>
       {#if current.href === '/app/einstellungen'}
         <Settings />
       {:else if chatPeer === 'system'}
@@ -286,7 +291,24 @@
     margin: 0;
     padding: 0.25rem 1rem;
     background: var(--parchment-deep);
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0 1rem;
+  }
+
+  /* Hides the hint until the next login (v0.3). */
+  .hide-hint {
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    border: none;
+    background: none;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .push-hint :global(a) {

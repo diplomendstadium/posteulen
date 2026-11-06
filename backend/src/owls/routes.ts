@@ -27,6 +27,7 @@ import {
   LOAN_REF_PREFIX,
   OwlBuy,
   OwlName,
+  OwlRelease,
   OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
 import { leftHome, markCareDay } from './care.ts';
@@ -180,11 +181,16 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
-  app.post('/api/owls/:id/release', { preHandler: [authenticated, emptyBody] }, async (request) => {
+  app.post('/api/owls/:id/release', { preHandler: authenticated }, async (request) => {
     const id = owlIdParam(request.params);
     const me = userOf(request).id;
+    // Foreign owls stay invisible (404) before anything about the body is said (17.3).
     const owl = ownOwl(ctx, me, id);
+    const body = parse(OwlRelease, request.body);
     if (!canRelease(facts(owl))) throw new HttpError(400, 'owl_not_home');
+    // The user typed the exact name and confirmed twice (v0.3).
+    if (owl.name === null || body.name.normalize('NFC') !== owl.name.normalize('NFC'))
+      throw new HttpError(400, 'owl_name_mismatch');
     ctx.db.run('DELETE FROM owls WHERE id = ?', id);
     ctx.hub.notify(me, 'owls');
     return { ok: true };

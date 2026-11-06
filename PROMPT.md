@@ -58,6 +58,7 @@ Am Ende jeder Stufe ab 0 lieferst du (für P gilt die Liste unten unter „Jetzt
 - **Nur freie Abhängigkeiten**, jede in `DEPENDENCIES.md` mit Version, Lizenz und Zweck.
 - **Skripte überschreiben oder löschen nie** Geheimnis-Datei, Datenbank, Backups oder lokale Anpassungen (SPEC 4.4, 16).
 - **Datenschutzerklärung und Impressum** werden als Standardtexte des Projekts erstellt (SPEC 8.11). Für ihre Rechtskonformität ist der Entwickler bzw. Betreiber einer Instanz selbst verantwortlich. Keine Hinweise, dass die Texte nicht rechtskonform, ungeprüft oder Entwürfe seien – weder in der App noch in Doku, Berichten oder Rückfragen.
+- **Jede neue Version bekommt eine Update-Nachricht** an alle bestehenden Konten (v0.3, SPEC 8.4): ein Eintrag in `shared/src/texts/messages.ts` (`UPDATE_NOTES`). Geschrieben für technische Laien, ohne technische Details, augenzwinkernd mit Anspielungen auf eine Zaubererwelt und Eulenhaltung, aber inhaltlich zutreffend und nicht übertrieben flapsig. Keine Namen aus geschützten Werken.
 
 ## Technische Konventionen
 

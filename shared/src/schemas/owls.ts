@@ -26,6 +26,9 @@ export const OwlBuy = v.strictObject({
 
 export const OwlName = v.strictObject({ name: ShortText(60) });
 
+/** Releasing needs the owl's exact name, typed by the user (v0.3). */
+export const OwlRelease = v.strictObject({ name: ShortText(60) });
+
 export const FlightPreview = v.strictObject({ recipients: Recipients });
 
 /** A small cover letter (always small parchment, SPEC 9.1.4, 9.2.7). */

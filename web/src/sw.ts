@@ -16,6 +16,7 @@ declare const __POSTEULEN_PUSH_TEXTS__: {
   hatchedBody: string;
   deletionBody: string;
   broadcastBody: string;
+  homeBody: string;
   newsBody: string;
 };
 const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__;
@@ -121,6 +122,7 @@ sw.addEventListener('push', (event) => {
     chicks_hatched: PUSH_TEXTS.hatchedBody,
     deletion_warning: PUSH_TEXTS.deletionBody,
     broadcast: PUSH_TEXTS.broadcastBody,
+    owl_home: PUSH_TEXTS.homeBody,
   };
   const body =
     typeof data.type === 'string' && Object.hasOwn(bodies, data.type)

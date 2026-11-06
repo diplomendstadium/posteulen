@@ -3,6 +3,48 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.3.0 – Briefbögen, Weltkarte und Eulen im Flug
+
+- **Längere Briefe:** Ein kostenloser Brief fasst jetzt 800 Zeichen, ein großes Pergament
+  15 000. Große Briefe von früher bleiben lesbar.
+- **Briefbögen mit Wachssiegel:** geripptes Büttenpapier mit ausgefranstem Rand, rotes Siegel,
+  Briefe an dich in deutscher Schulschrift (Blauschwarz), deine eigenen in Federschrift (Sepia).
+- **Neuer Seitenhintergrund:** eine verblasste Weltkarte wie mit Tinte als Aquarell auf grobem
+  Papier gemalt. Alle Texte stehen in Boxen.
+- **Eulen im Flug:** Die Eulenübersicht zeigt fliegende Eulen bei Tag oder unter Sternen, je nach
+  Ort; eine an die Menagerie verliehene Eule zeigt ihre leere Stange. Leiheulen und eigene Eulen
+  stehen unter getrennten Überschriften.
+- **Flugspur auf der Karte:** dünne dunkelbraune Linie für den bisherigen Weg, „Zzz“ an
+  Übernachtungsorten, die kommende Route bleibt geheim. Aktualisierung alle 5 Minuten.
+- **Heimkehr:** Kommt eine Eule heim, gibt es eine Systemnachricht mit Bild (Fensterbrett bei Tag
+  oder Kerzenschein) und eine Benachrichtigung.
+- **Menagerie:** Leiheulen oben, Kaufeulen nach Preis sortiert und mit Beschreibung; lange Namen
+  passen jetzt in ihre Karte.
+- **Freilassen** nur noch mit eingetipptem Namen und zweiter Bestätigung.
+- **Gelesen ist gelesen:** Ungelesen-Zähler und „Neue Post!“ gehen sofort zurück, ohne Neuladen.
+- **Hinweis auf Benachrichtigungen** lässt sich bis zur nächsten Anmeldung ausblenden.
+- **Bots:** Die Tante schreibt 5 Minuten nach der Anmeldung und erscheint erst dann; der
+  Erklärbär erscheint auf der Karte, sobald man ihm schreibt, und erklärt in einem neuen Brief,
+  wie PostEulen ohne App-Store aufs Handy kommt. Der Hinweis zur Antwortzeit im Bot-Chat entfällt.
+- **Spendenbitte:** alle fünf Wochen eine freundliche, freiwillige Bitte (ko-fi.com/posteulen),
+  drei Texte reihum.
+- **Update-Nachricht:** Nach jedem Update erzählt eine Systemnachricht, was neu ist.
+- Willkommensseite, Hilfe und Benachrichtigungs-Hinweise für technische Laien neu geschrieben;
+  Gruppenbild auf der Startseite und im README.
+- SPEC auf den Stand v0.3 gebracht (Anhang G).
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0008** (läuft beim Update automatisch): neue Spalte für die Spendenbitten.
+- **Nach dem ersten Start** bekommt jedes bestehende Konto einmal die Update-Nachricht zu v0.3
+  (ohne Push). Spendenbitten starten für bestehende Konten zum nächsten 5-Wochen-Termin ab dem
+  Registrierungstag.
+- Neue Bilder in `images/` (vier je Art, leere Stange, Gruppenbild); der Build dauert dadurch
+  etwas länger. Neuer Seitenhintergrund `web/assets/world-map.webp`.
+- Schriften: Dancing Script und Playwrite DE Grund statt Kalam und Caveat (OFL).
+- Briefversand nimmt jetzt bis 512 KiB an (große Briefe an bis zu 5 Empfänger).
+- Update von v0.2.0: `sudo posteulen-update`.
+
 ## v0.2.0 – Briefe wie Briefe
 
 - **Leiheule direkt beim Briefschreiben:** Ist keine eigene Eule da, bietet die Eulenwahl die

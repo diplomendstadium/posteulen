@@ -1,5 +1,6 @@
 /** Owl rows, current energy and the view sent to the browser (SPEC 8.5, 9.2, 9.3). */
 import { energyNow, displayEnergy } from '@posteulen/shared/game/energy.ts';
+import { isDay } from '@posteulen/shared/game/sun.ts';
 import {
   canCare,
   canGift,
@@ -125,6 +126,8 @@ export interface OwlView {
     readonly purpose: string;
     readonly recipients: readonly (string | null)[];
     readonly returnsAt: number | null;
+    /** Daylight where the owl is right now: picks the day or night flight picture (v0.3). */
+    readonly daylight: boolean;
   } | null;
 }
 
@@ -137,7 +140,9 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
     const flight = activeFlightOf(ctx, owl.id);
     if (flight) {
       const route = routeOf(flight);
+      const position = flightPosition(flight, now)?.position;
       absence = {
+        daylight: position ? isDay(now, position.lat, position.lon) : true,
         purpose: flight.purpose,
         recipients: route
           .filter((stop) => stop.type === 'deliver' && stop.status === 'pending')

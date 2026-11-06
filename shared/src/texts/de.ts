@@ -20,6 +20,8 @@ export const de = {
     title: 'Willkommen bei PostEulen',
     intro:
       'Hier schreibst du Briefe, die von Eulen überbracht werden – sicher verschlüsselt und mit etwas Geduld.',
+    groupAlt:
+      'Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand.',
     loginHeading: 'Anmelden',
     userName: 'Nutzername',
     password: 'Passwort',
@@ -59,16 +61,35 @@ export const de = {
   },
   welcome: {
     title: 'Willkommen bei PostEulen!',
-    intro: 'Dein Konto ist fertig. Damit Eulen dich gut finden, installiere PostEulen als App:',
-    android: 'Android (Chrome)',
-    androidSteps: 'Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.',
-    ios: 'iPhone und iPad (Safari, ab iOS 16.4)',
-    iosSteps:
-      'Teilen → „Zum Home-Bildschirm“. Benachrichtigungen gibt es nur in der installierten App.',
-    degoogled: 'Android ohne Google-Dienste',
-    degoogledLink: 'So richtest du es ein (Hilfe)',
-    degoogledSteps:
-      'Benachrichtigungen funktionieren mit IronFox oder Fennec und einer UnifiedPush-App wie Sunup.',
+    intro:
+      'Dein Konto ist fertig – herzlichen Glückwunsch, du bist jetzt offiziell Eulenhalterin oder Eulenhalter! Bevor die erste Eule abhebt, verraten wir dir noch einen kleinen Zaubertrick: wie PostEulen auf deinen Startbildschirm kommt, ganz wie eine richtige App.',
+    appTitle: 'Eine App ganz ohne App-Store',
+    app1: 'Apps holt man sich im App-Store, oder? Meistens schon. Es gibt aber noch einen zweiten, ziemlich praktischen Weg: Manche Webseiten können sich in eine App verwandeln. Du legst PostEulen einfach auf deinen Startbildschirm – und ab dann hat es dort ein eigenes Eulen-Symbol, öffnet sich ohne Adresszeile und sieht aus wie jede andere App.',
+    app2: 'Das ist kein Hexenwerk und auch nicht gefährlich. Es wird nichts heimlich installiert, PostEulen will nicht an deine Fotos oder dein Telefonbuch, und du kannst das Symbol jederzeit wieder löschen wie jede andere App auch. Updates kommen von selbst, ganz ohne Store.',
+    android: 'Android-Handy mit Chrome',
+    androidSteps: [
+      'Öffne PostEulen in Chrome – das tust du vermutlich gerade.',
+      'Tippe oben rechts auf die drei Punkte ⋮.',
+      'Wähle „Zum Startbildschirm hinzufügen“ und dann „Installieren“. Auf manchen Handys heißt der Eintrag gleich „App installieren“.',
+      'Fertig! Auf deinem Startbildschirm sitzt jetzt eine Eule. Öffne PostEulen ab sofort am besten über dieses Symbol.',
+    ],
+    ios: 'iPhone oder iPad mit Safari',
+    iosSteps: [
+      'Öffne PostEulen in Safari. Mit anderen Browsern klappt es auf dem iPhone leider nicht richtig.',
+      'Tippe auf das Teilen-Symbol: das Quadrat mit dem Pfeil nach oben. Bei neueren iPhones versteckt es sich hinter den drei Punkten ••• unten rechts.',
+      'Schiebe die Liste etwas nach oben und tippe auf „Zum Home-Bildschirm“, dann auf „Hinzufügen“.',
+      'Fertig! Öffne PostEulen ab jetzt über das neue Symbol auf deinem Home-Bildschirm – nur dort gibt es auf dem iPhone Benachrichtigungen.',
+    ],
+    other: 'Alle anderen Handys und der Computer',
+    otherSteps:
+      'Du nutzt einen anderen Browser, zum Beispiel Firefox, oder sitzt am Computer? Kein Problem: Leg dir PostEulen als Lesezeichen auf den Startbildschirm oder in die Lesezeichenleiste – oder benutze es einfach ganz normal im Browser. Alles funktioniert genauso: Briefe schreiben, Eulen füttern, Gold verdienen.',
+    pushTitle: 'Und die Benachrichtigungen?',
+    push1:
+      'Der einzige Unterschied: Als App auf dem Startbildschirm (Android mit Chrome oder iPhone mit Safari) kann PostEulen dir Bescheid sagen, wenn eine Eule bei dir landet. Im normalen Browser kommt die Post genauso an – du siehst sie eben, wenn du das nächste Mal hineinschaust.',
+    push2: 'Im echten Leben klingelt der Briefkasten ja auch nicht, wenn Post kommt. ;-)',
+    push3:
+      'Möchtest du Benachrichtigungen? Dann tippe unten auf „Benachrichtigungen einrichten“ und erlaube sie, wenn dein Handy fragt. PostEulen schickt dir sofort eine Probe-Nachricht, damit du siehst, dass alles klappt. Auf dem iPhone geht das erst, wenn du PostEulen über das neue Symbol auf dem Home-Bildschirm geöffnet hast.',
+    helpLink: 'Noch Fragen? Die Hilfe erklärt alles in Ruhe',
     continue: 'Weiter zur Übersicht',
   },
   settings: {
@@ -172,8 +193,8 @@ export const de = {
       'Dieser Brief konnte nicht als echt bestätigt werden und wird deshalb nicht angezeigt.',
     compose: 'Neuen Brief schreiben',
     parchment: 'Pergament',
-    smallOption: 'Klein – bis 500 Zeichen, kostenlos',
-    largeOption: 'Groß – bis 3 000 Zeichen, 0,1 Gold',
+    smallOption: 'Klein – bis 800 Zeichen, kostenlos',
+    largeOption: 'Groß – bis 15 000 Zeichen, 0,1 Gold',
     text: 'Text',
     counter: '{count} von {max} Zeichen',
     noSmileys: 'Pergament kennt keine Smileys.',
@@ -227,7 +248,7 @@ export const de = {
     letter_returned_chick:
       'Das Küken für {name} wurde nicht zugestellt – es ist umgekehrt und fliegt zu dir zurück.',
     password_changed: 'Dein Passwort wurde geändert.',
-    owl_home: '{owl} ist wieder zu Hause.',
+    owl_home: '{owl} ist wieder zu Hause und sitzt schon auf dem Fensterbrett.',
     gold_arrived: '{name} hat dir {amount} geschickt – die Eule ist gelandet.',
     owl_gift_received: '{name} hat dir die Eule {owl} geschenkt. Sie wohnt ab jetzt bei dir.',
     chick_gift_received: '{name} hat dir das Küken {owl} geschenkt. In 7 Tagen ist es erwachsen.',
@@ -259,6 +280,7 @@ export const de = {
     chicks_hatched: 'Küken sind geschlüpft.',
     deletion_warning: 'Dein Konto wird bald wegen Inaktivität gelöscht.',
     broadcast: 'Es gibt eine Nachricht für alle.',
+    owl_home: 'Eine deiner Eulen ist wieder zu Hause.',
   },
   push: {
     title: 'Benachrichtigungen',
@@ -278,13 +300,20 @@ export const de = {
     hatchedBody: 'Küken sind geschlüpft.',
     deletionBody: 'Dein Konto wird bald wegen Inaktivität gelöscht.',
     broadcastBody: 'Es gibt eine Nachricht für alle.',
+    homeBody: 'Eine deiner Eulen ist wieder zu Hause.',
     newsBody: 'Es gibt Neuigkeiten bei PostEulen.',
-    headerHint: 'Benachrichtigungen sind nicht bestätigt.',
+    headerHint: 'Benachrichtigungen sind noch nicht eingerichtet – so geht’s',
+    headerHide: 'Ausblenden bis zur nächsten Anmeldung',
     iosHint:
       'Auf iPhone und iPad gibt es Benachrichtigungen nur, wenn PostEulen über „Zum Home-Bildschirm“ installiert ist.',
     denied:
       'Benachrichtigungen wurden im Browser abgelehnt. Du kannst sie in den Website-Einstellungen wieder erlauben.',
     failedTitle: 'Die Test-Benachrichtigung ist nicht angekommen.',
+    intro:
+      'Auf Wunsch sagt dir PostEulen Bescheid, wenn eine Eule bei dir landet. Das klappt in der App auf dem Startbildschirm – auf Android mit Chrome und auf dem iPhone mit Safari. Ohne Benachrichtigungen kommt deine Post trotzdem an; du siehst sie, sobald du hineinschaust.',
+    failedHint:
+      'Versuch es später noch einmal. Klappt es dann immer noch nicht, findest du in der Hilfe ausführliche Tipps – auch für besondere Handys.',
+    helpLink: 'Hilfe zu Benachrichtigungen',
     degoogledTitle: 'Android ohne Google-Dienste (LineageOS, GrapheneOS)',
     degoogled1:
       'Chrome, Brave, Vanadium und Cromite liefern Benachrichtigungen nur über Google-Dienste. Ohne diese kommt nichts an – auch beim normalen Firefox nicht.',
@@ -302,7 +331,6 @@ export const de = {
       'Geht es dir nicht gut? Hilfe gibt es sofort und anonym: TelefonSeelsorge Deutschland 0800 111 0 111, Österreich 142, Schweiz 143. Im Notfall: 112.',
     writableFrom:
       'Diesem Bot kannst du wieder ab {time} schreiben (höchstens ein Brief in 24 Stunden).',
-    replyHint: 'Der Bot antwortet etwa zwei Stunden, nachdem dein Brief angekommen ist.',
     type_explainer: 'erklärt dir PostEulen',
     type_aunt: 'entfernt verwandte Tante',
     type_uncle: 'entfernt verwandter Onkel',
@@ -349,8 +377,22 @@ export const de = {
     renameBlocked: 'Umbenennen erst wieder im nächsten Kalenderjahr.',
     gift: 'Verschenken',
     release: 'In die Freiheit entlassen',
-    releaseConfirm:
-      '{name} wirklich in die Freiheit entlassen? Das kann nicht rückgängig gemacht werden.',
+    releaseTitle: '{name} in die Freiheit entlassen',
+    releaseIntro:
+      'Eine freigelassene Eule kommt nie wieder zurück – sie ist danach unwiderruflich fort, samt Namen und Energie.',
+    releaseNameLabel: 'Tippe zur Bestätigung den Namen der Eule ein: {name}',
+    releaseNext: 'Weiter',
+    releaseSure:
+      'Bist du ganz sicher? {name} fliegt für immer davon. Das lässt sich nicht rückgängig machen.',
+    releaseFinal: 'Ja, {name} endgültig freilassen',
+    releaseDone: '{name} ist in die Freiheit geflogen.',
+    loanGroup: 'Leiheulen',
+    ownGroup: 'Deine Eulen',
+    flyingDayAlt: '{name} im Flug bei Tag',
+    flyingNightAlt: '{name} im Flug bei Nacht',
+    perchAlt: 'Leere Stange – {name} hilft gerade in der Menagerie aus',
+    homeDayAlt: '{name} sitzt bei Tag auf dem Fensterbrett',
+    homeNightAlt: '{name} sitzt bei Nacht im Kerzenschein auf dem Fensterbrett',
     nameTitle: 'Wie soll deine neue {species} heißen?',
     renameTitle: 'Neuer Name für {name}',
     nameLabel: 'Name (2–20 Zeichen)',
@@ -426,6 +468,8 @@ export const de = {
     legendContact: 'Kontakte',
     legendBot: 'Bots',
     legendOwl: 'Deine Eulen unterwegs',
+    legendTrack: 'Bisherige Flugstrecke',
+    legendSleep: 'Hier hat eine Eule übernachtet',
     legendNight: 'Nacht (Sonne tiefer als 6° unter dem Horizont)',
     flightsTitle: 'Deine Eulen unterwegs',
     flightsNone: 'Gerade ist keine deiner Eulen unterwegs.',
@@ -596,6 +640,8 @@ export const de = {
     owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen.',
     owl_not_home: 'Das geht nur, wenn die Eule zu Hause ist.',
+    owl_name_mismatch:
+      'Der Name stimmt nicht. Bitte tippe den Namen der Eule genau so ein, wie er dasteht.',
     owl_rename_blocked: 'Diese Eule kann erst im nächsten Kalenderjahr wieder umbenannt werden.',
     owl_name_too_short: 'Der Name ist zu kurz (mindestens 2 Zeichen).',
     owl_name_too_long: 'Der Name ist zu lang (höchstens 20 Zeichen).',

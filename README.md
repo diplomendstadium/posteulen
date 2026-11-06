@@ -6,9 +6,15 @@
 
 ## Teil 1: Für alle, die gern Post bekommen
 
+<p align="center">
+  <img src="docs/readme/gruppenbild.jpg" alt="Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand" width="520">
+</p>
+
 Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie zehn Stunden Nickerchen. Auf der Karte kannst du ihr dabei zusehen.
 
-Du kaufst oder leihst dir Eulen, gibst ihnen Namen, fütterst und streichelst sie. Gut umsorgte Eulen werden seltener krank, und mit etwas Glück legt eine eines Tages Eier. Gold gibt es jeden Tag ein bisschen, und drei Brieffreunde sind von Anfang an dabei: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
+Du kaufst oder leihst dir Eulen, gibst ihnen Namen, fütterst und streichelst sie. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu, und jede erzählt dort ein bisschen über ihren Charakter. Gut umsorgte Eulen werden seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Kommt sie heim, wartet sie auf dem Fensterbrett.
+
+Gold gibt es jeden Tag ein bisschen, und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
 
 ### Spiel? Messenger? Beides – und zwar ernsthaft sicher.
 
@@ -25,14 +31,29 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 
 - **Briefe sind vergänglich.** Alle Briefe werden spätestens **ein Jahr** nach der Zustellung automatisch und unwiderruflich gelöscht. Wer mag, stellt in den Einstellungen 30, 90 oder 180 Tage ein. Was bleiben soll, schreibt man sich besser ab – wie früher.
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
-- PostEulen läuft im Browser und lässt sich wie eine App aufs Handy legen (Android, iPhone, Desktop). Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fragen per Brief.
+- **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
+- **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen). Niemand muss, alle dürfen.
+
+### Wie kommt PostEulen aufs Handy? Ganz ohne App-Store!
+
+Apps holt man sich im App-Store, oder? Meistens schon. PostEulen gibt es dort aber absichtlich nicht – und trotzdem wird es eine richtige App mit eigenem Eulen-Symbol. Der Trick: Manche Webseiten können sich in eine App verwandeln (Fachleute sagen „Progressive Web App“, das Wort darf man aber sofort wieder vergessen). Man legt sie einfach auf den Startbildschirm. Es wird nichts heimlich installiert, die App will weder Fotos noch Telefonbuch, und Updates kommen von selbst.
+
+- **Android mit Chrome:** [posteulen.de](https://posteulen.de) öffnen → oben rechts auf die drei Punkte ⋮ → „Zum Startbildschirm hinzufügen“ → „Installieren“ (manchmal heißt es direkt „App installieren“).
+- **iPhone oder iPad mit Safari:** [posteulen.de](https://posteulen.de) öffnen → Teilen-Symbol (Quadrat mit Pfeil; bei neueren iPhones hinter den drei Punkten ••• unten rechts) → „Zum Home-Bildschirm“ → „Hinzufügen“. Danach PostEulen immer über das neue Symbol öffnen.
+- **Alle anderen Handys, Firefox und der Computer:** einfach als Lesezeichen auf den Startbildschirm legen oder ganz normal im Browser benutzen. Alles funktioniert genauso.
+
+Der einzige Unterschied: Benachrichtigungen („Eine Eule ist gelandet!“) gibt es nur in der App auf dem Startbildschirm von Android/Chrome und iPhone/Safari. Im Browser kommt die Post trotzdem an – man sieht sie beim nächsten Hineinschauen. Im echten Leben klingelt der Briefkasten ja auch nicht. 😉
+
+**Sonderfall Android ohne Google-Dienste** (LineageOS, GrapheneOS, /e/OS …): Chrome und seine Verwandten liefern Benachrichtigungen nur über Google-Dienste. Ohne sie klappt es mit **IronFox** oder **Fennec** (aus F-Droid) plus einer **UnifiedPush**-App wie **Sunup** oder **ntfy**: In IronFox unter Einstellungen → IronFox-Einstellungen → Verschiedenes „Use UnifiedPush“ einschalten, Browser neu starten und Benachrichtigungen für PostEulen erlauben (Datenschutz und Sicherheit → Website-Einstellungen → Berechtigungen → Benachrichtigungen → „Erlauben erfragen“). Unter GrapheneOS geht alternativ „Sandboxed Google Play“ mit Chrome. Die ausführliche Hilfe in der App erklärt das Schritt für Schritt.
+
+Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fragen per Brief.
 
 <p align="center">
-  <img src="docs/readme/briefe.png" alt="Ein Briefwechsel: Briefe als Schriftrollen in zwei Handschriften" width="260">
+  <img src="docs/readme/briefe.png" alt="Ein Briefwechsel: Briefbögen mit ausgefranstem Rand und rotem Siegel in zwei Handschriften" width="260">
   &nbsp;
-  <img src="docs/readme/karte.png" alt="Die Karte mit Wohnort, Kontakten, Städten und einer fliegenden Eule" width="260">
+  <img src="docs/readme/karte.png" alt="Die Karte mit Wohnort, Kontakten, Städten und einer fliegenden Eule samt bisheriger Flugspur" width="260">
   &nbsp;
-  <img src="docs/readme/eulen.png" alt="Die Eulenübersicht mit Energie und Zustand" width="260">
+  <img src="docs/readme/eulen.png" alt="Die Eulenübersicht: Leiheulen und eigene Eulen, eine davon im Flug" width="260">
 </p>
 
 PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesunden Portion Eulenliebe.
@@ -43,7 +64,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.2.0**.
+Stand: **Version 0.3.0**.
 
 **Kurzfassung**
 
@@ -196,10 +217,14 @@ Beide Wege (A und B) werden bei jeder Version automatisch in einer Debian-13-VM 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v0.2.0      # spielt eine bestimmte Version ein
+sudo posteulen-update v0.3.0      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → starten → Funktionsprüfung. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden.
+
+Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal eine Systemnachricht, die die Neuerungen in einfachen Worten erklärt (ohne Push-Benachrichtigung). Wer Versionen überspringt, bekommt die Nachrichten aller übersprungenen Versionen. Eine frische Installation verschickt nichts. Die Texte stehen in `shared/src/texts/messages.ts`; zu jeder neuen Version gehört dort ein neuer Eintrag.
+
+Außerdem bekommt jedes Konto alle fünf Wochen nach der Registrierung eine freundliche Bitte um eine freiwillige Spende an das Projekt ([ko-fi.com/posteulen](https://ko-fi.com/posteulen)), drei Texte reihum. Das gehört zum Projekt und ist auf jeder Instanz gleich.
 
 Optional prüft `--verify-tags` die Signatur der Version gegen die Schlüssel in `deploy/allowed_signers` (Versionen werden vom Projektverantwortlichen signiert).
 

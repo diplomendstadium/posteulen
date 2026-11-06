@@ -1,16 +1,31 @@
 <script lang="ts">
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
   import { de } from '@posteulen/shared/texts/de.ts';
-  import { owlImage } from '../lib/owl-image.ts';
+  import { owlImage, sceneImage } from '../lib/owl-image.ts';
 
   let {
     speciesId,
     kind = 'normal',
     alt,
     size = 160,
-  }: { speciesId: string; kind?: OwlImageKind; alt: string; size?: 160 | 480 } = $props();
+    perch = false,
+  }: {
+    speciesId: string;
+    kind?: OwlImageKind;
+    alt: string;
+    size?: 160 | 480;
+    /** Empty perch instead of the owl (lent to the menagerie, v0.3). */
+    perch?: boolean;
+  } = $props();
 
-  const image = $derived(owlImage(speciesId, kind));
+  const image = $derived.by(() => {
+    if (!perch) return owlImage(speciesId, kind);
+    const scene = sceneImage('perch');
+    return {
+      files: { s160: scene.files['s160'] ?? '', s480: scene.files['s480'] ?? '' },
+      placeholder: scene.placeholder,
+    };
+  });
 </script>
 
 <img

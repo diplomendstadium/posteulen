@@ -40,9 +40,13 @@ export const test = base.extend<{ guard: Guard }>({
       // worker answers it as "intercepted … unexpected error" (D-75). Only for /assets/.
       const abortedInFirefox = (text: string): boolean =>
         browserName === 'firefox' &&
-        /localhost:180\d\d\/assets\/\S+’\. A ServiceWorker intercepted the request and encountered an unexpected error/.test(
+        (/localhost:180\d\d\/assets\/\S+’\. A ServiceWorker intercepted the request and encountered an unexpected error/.test(
           text,
-        );
+        ) ||
+          // A web font whose download a navigation aborted (NS_BINDING_ABORTED), v0.3.
+          /downloadable font: download failed .* status=2152398850 source: http:\/\/localhost:180\d\d\/assets\//.test(
+            text,
+          ));
       page.on('console', (message) => {
         if (
           message.type() !== 'error' ||

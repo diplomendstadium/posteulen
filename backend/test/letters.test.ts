@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { openLetter, sealLetter, type LetterMeta } from '@posteulen/shared/crypto/letter.ts';
-import { TIME } from '@posteulen/shared/constants.ts';
+import { LETTER, TIME } from '@posteulen/shared/constants.ts';
 import {
   withoutBots,
   advanceTo,
@@ -260,6 +260,36 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(
       app.db.get<{ human_letters: number }>('SELECT human_letters FROM stats_daily')?.human_letters,
     ).toBe(1);
+  });
+
+  it('carries 15,000 characters on large parchment to five recipients at once (v0.3)', async () => {
+    const others = [ben];
+    for (const [index, name] of ['Clara', 'Dora', 'Emil', 'Fritz'].entries()) {
+      const other = await person(app, name, { lat: 51 + index * 0.3, lon: 9 + index * 0.4 });
+      await couple(anna, other);
+      others.push(other);
+    }
+    await couple(anna, ben);
+    setGold(app, anna, 100);
+    const owl = await buyOwl(app, anna);
+    app.db.run('UPDATE owls SET energy = 540 WHERE id = ?', owl);
+    // The worst case: 4-byte characters everywhere.
+    const text = '𝔄'.repeat(LETTER.LARGE_MAX_CHARS);
+    const sent = await send(anna, others, text, 'large', owl);
+    expect(sent.status).toBe(200);
+    expect(
+      app.db
+        .all<{ n: number }>(
+          'SELECT length(ciphertext) AS n FROM letters WHERE sender_id = ?',
+          anna.id,
+        )
+        .map((row) => row.n),
+    ).toEqual(Array(5).fill(65_576));
+    advanceTo(app, app.clock.now + 3 * TIME.DAY);
+    const [read] = await readAll(ben, anna, anna);
+    expect(read?.opened).toMatchObject({ ok: true, text });
+    // One character more is refused by the sender's own device.
+    await expect(send(anna, [ben], `${text}a`, 'large', owl)).rejects.toThrow('too long');
   });
 
   it('sends one letter per recipient in order and charges large parchment once', async () => {

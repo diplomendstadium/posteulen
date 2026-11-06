@@ -21,17 +21,40 @@ export interface Profile {
   readonly lettersPrint: boolean;
 }
 
+/** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */
+const PUSH_HINT_KEY = 'posteulen.pushHintHidden';
+
+function storedPushHintHidden(): boolean {
+  try {
+    return localStorage.getItem(PUSH_HINT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export const account = $state<{
   checked: boolean;
   profile: Profile | null;
   keys: LocalKeys | null;
   notice: string | null;
+  pushHintHidden: boolean;
 }>({
   checked: false,
   profile: null,
   keys: null,
   notice: null,
+  pushHintHidden: storedPushHintHidden(),
 });
+
+export function setPushHintHidden(hidden: boolean): void {
+  account.pushHintHidden = hidden;
+  try {
+    if (hidden) localStorage.setItem(PUSH_HINT_KEY, '1');
+    else localStorage.removeItem(PUSH_HINT_KEY);
+  } catch {
+    // Without storage the hint stays hidden for this visit only.
+  }
+}
 
 async function cryptoModules() {
   const [client, keys, encoding] = await Promise.all([
@@ -144,6 +167,7 @@ export async function login(
   account.profile = finish.profile;
   account.keys = await loadKeys();
   account.notice = finish.deletionCancelled ? 'deletionCancelled' : null;
+  setPushHintHidden(false);
   return 'ok';
 }
 
@@ -188,6 +212,7 @@ export async function register(
   created.account.masterKey.fill(0);
   account.profile = done.profile;
   account.keys = await loadKeys();
+  setPushHintHidden(false);
 }
 
 export async function logout(): Promise<void> {

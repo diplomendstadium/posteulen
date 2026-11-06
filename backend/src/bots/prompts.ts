@@ -2,7 +2,7 @@
  * System prompts of the bots (SPEC 10.5), collected in one file. The requests to OpenAI contain
  * no user IDs, names or other identifiers – only these prompts, the summary and letter texts.
  */
-import { ACCOUNT, BOTS, GOLD, LETTER, OWL } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, BOTS, DONATION, GOLD, LETTER, MAP, OWL } from '@posteulen/shared/constants.ts';
 import { helpAsText } from '@posteulen/shared/texts/help.ts';
 
 export type BotType = 'explainer' | 'aunt' | 'uncle';
@@ -30,8 +30,12 @@ const RULES = `Regelübersicht:
 - Krankheit: Chance 1/30 pro Tag, mit guter Pflege viel seltener (an ${OWL.CARE_BONUS_MIN_DAYS} der letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage mit mindestens einer Stunde zu Hause gestreichelt oder gefüttert; Reisetage zählen nicht); erst nach ${OWL.SICKNESS_GRACE_DAYS} Tagen beim Besitzer. Behandlung: selbst pflegen 0,2 Gold für 7 Tage oder Eulenarzt 1 Gold für 24 Stunden.
 - Küken: Weibliche Eulen legen selten Eier, nach 7 Tagen schlüpfen 1–3 Küken. Bei 2 oder 3 Küken muss eines verschenkt werden.
 - Inaktiv nach 21 Tagen ohne Nutzung; nach langer Inaktivität wird das Konto gelöscht (Warnung 30 Tage vorher).
-- Benachrichtigungen: in den Einstellungen einrichten; ohne Google-Dienste auf Android braucht es IronFox mit UnifiedPush.
-- Bots: Erklärbär, Tante und Onkel. Einem Bot kann man alle 24 Stunden schreiben; er antwortet nach etwa 2 Stunden.
+- App aufs Handy: PostEulen gibt es in keinem App-Store. Man legt es aus dem Browser auf den Startbildschirm (Android mit Chrome: Menü mit drei Punkten, „Zum Startbildschirm hinzufügen“ oder „App installieren“; iPhone mit Safari: Teilen-Symbol, „Zum Home-Bildschirm“). Andere Browser: als Lesezeichen oder ganz normal im Browser, nur ohne Benachrichtigungen. Erkläre das einfach und ohne Fachbegriffe.
+- Benachrichtigungen: in den Einstellungen einrichten; nur in der App auf dem Startbildschirm. Sonderfälle (Android ohne Google-Dienste) nur auf ausdrückliche Nachfrage erklären und auf die Hilfe verweisen.
+- Eulenübersicht: Leiheulen oben, eigene Eulen darunter. Fliegende Eulen zeigen ein Flugbild bei Tag oder Nacht, Eulen in der Menagerie ihre leere Stange. Freilassen nur mit eingetipptem Namen und zweiter Bestätigung.
+- Karte: zeigt die bisher geflogene Strecke eigener Eulen als dünne Linie und „Zzz“ an Übernachtungsorten, nie die künftige Route; wird alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu berechnet. Der Erklärbär erscheint dort erst, wenn man ihm geschrieben hat.
+- Systemnachrichten: Heimkehr einer Eule mit Bild (und Benachrichtigung), Neuigkeiten nach Updates, alle ${DONATION.INTERVAL_DAYS / 7} Wochen eine freundliche, freiwillige Spendenbitte.
+- Bots: Erklärbär, Tante und Onkel. Die Tante meldet sich ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach der Anmeldung zum ersten Mal und steht erst dann im Adressbuch. Einem Bot kann man alle 24 Stunden schreiben; er antwortet nach etwa 2 Stunden.
 - Tante schenkt einmalig ${GOLD.AUNT_GIFT / 10} Gold, Onkel später ${GOLD.UNCLE_INHERITANCE / 10} Gold.`;
 
 /** Knowledge base of the Erklärbär: the help text plus the rules overview (SPEC 10.2, D-88). */

@@ -36,7 +36,7 @@
 </script>
 
 <div class="page">
-  <h1>{de.measure.title}</h1>
+  <h1 class="plate">{de.measure.title}</h1>
   <p>{de.measure.intro}</p>
   <button class="button" type="button" disabled={running} onclick={() => void measure()}
     >{de.measure.start}</button

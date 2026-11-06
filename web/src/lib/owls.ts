@@ -32,6 +32,8 @@ export interface Owl {
     readonly purpose: 'letter' | 'gold' | 'gift';
     readonly recipients: readonly (string | null)[];
     readonly returnsAt: number | null;
+    /** Daylight where the owl is right now (v0.3: day or night flight picture). */
+    readonly daylight: boolean;
   } | null;
 }
 
@@ -96,8 +98,8 @@ export function petOwl(id: string): Promise<{ owl: Owl }> {
   return api('POST', `/api/owls/${id}/pet`, {});
 }
 
-export function releaseOwl(id: string): Promise<{ ok: true }> {
-  return api('POST', `/api/owls/${id}/release`, {});
+export function releaseOwl(id: string, name: string): Promise<{ ok: true }> {
+  return api('POST', `/api/owls/${id}/release`, { name });
 }
 
 /** Ready owls with the server's flight preview (SPEC 8.4 step 4). */

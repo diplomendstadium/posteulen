@@ -11,6 +11,7 @@
     type PushState,
   } from '../lib/push.ts';
   import { live } from '../lib/live.svelte.ts';
+  import Link from './Link.svelte';
 
   let pushState = $state<PushState>('none');
   let busy = $state(false);
@@ -52,6 +53,7 @@
 
 <section class="card" aria-labelledby="push-title">
   <h2 id="push-title">{de.push.title}</h2>
+  <p>{de.push.intro}</p>
   <p role="status"><strong>Status:</strong> <span data-testid="push-state">{label}</span></p>
   {#if pushState === 'denied'}<p>{de.push.denied}</p>{/if}
   {#if isIos() && pushState === 'unavailable'}<p>{de.push.iosHint}</p>{/if}
@@ -69,15 +71,12 @@
       {/if}
     </p>
   {/if}
+  {#if failed}
+    <p role="alert"><strong>{de.push.failedTitle}</strong> {de.push.failedHint}</p>
+  {/if}
   {#if failed || pushState === 'unavailable' || pushState === 'unconfirmed'}
-    <details open={failed}>
-      <summary>{failed ? de.push.failedTitle : de.push.degoogledTitle}</summary>
-      <h3>{de.push.degoogledTitle}</h3>
-      <p>{de.push.degoogled1}</p>
-      <p>{de.push.degoogled2}</p>
-      <p>{de.push.degoogled3}</p>
-      <p>{de.push.degoogled4}</p>
-    </details>
+    <!-- Special cases such as phones without Google services: only in the help (v0.3). -->
+    <p class="help-link"><Link href="/hilfe#benachrichtigungen">{de.push.helpLink}</Link></p>
   {/if}
 </section>
 
@@ -92,15 +91,13 @@
     gap: 0.75rem;
   }
 
-  summary {
-    cursor: pointer;
-    font-weight: 700;
-    min-height: 2.75rem;
-    display: flex;
-    align-items: center;
+  section > :last-child {
+    margin-bottom: 0;
   }
 
-  h3 {
-    font-size: 1.05rem;
+  .help-link :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
   }
 </style>

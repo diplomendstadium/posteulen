@@ -8,7 +8,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import sharp from 'sharp';
-import { SPECIES, OWL_IMAGE_KINDS, owlImageFileName } from '@posteulen/shared/species.ts';
+import {
+  SPECIES,
+  OWL_IMAGE_KINDS,
+  SCENE_IMAGES,
+  owlImageFileName,
+} from '@posteulen/shared/species.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const SOURCE_DIR = path.join(ROOT, 'images');
@@ -17,7 +22,15 @@ const ICON_DIR = path.join(ROOT, 'web/public/icons');
 const LOGO = path.join(ROOT, 'web/assets/logo.svg');
 
 /** Overlay kinds get an additional large variant (SPEC 9.2.6). */
-const OVERLAY_KINDS = new Set(['departure', 'arrival', 'feeding', 'petting', 'chick']);
+const OVERLAY_KINDS = new Set([
+  'departure',
+  'arrival',
+  'feeding',
+  'petting',
+  'chick',
+  'homeDay',
+  'homeNight',
+]);
 const SIZES = [160, 480] as const;
 const LARGE = 960;
 
@@ -49,9 +62,10 @@ async function writeVariants(
   input: Buffer | string,
   base: string,
   large: boolean,
+  only?: readonly number[],
 ): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
-  const sizes = large ? [...SIZES, LARGE] : [...SIZES];
+  const sizes = only ?? (large ? [...SIZES, LARGE] : [...SIZES]);
   for (const size of sizes) {
     const file = `${base}-${size}.webp`;
     await sharp(input)
@@ -134,13 +148,37 @@ async function buildOwlImages(): Promise<void> {
     );
     lines.push(`  ${JSON.stringify(speciesId)}: { ${entries.join(', ')} },`);
   }
+  lines.push('};');
+  // Pictures without a species (empty perch, group picture); a missing one is left out.
+  lines.push('export const SCENES: Readonly<Record<string, Readonly<Record<string, string>>>> = {');
+  for (const scene of SCENE_IMAGES) {
+    const sourcePath = path.join(SOURCE_DIR, scene.file);
+    if (!fs.existsSync(sourcePath)) {
+      missing.push(scene.file);
+      continue;
+    }
+    const base = `scene-${scene.id}`;
+    const key = `scene/${scene.id}`;
+    const fingerprint = fingerprintOf(sourcePath);
+    const upToDate =
+      cache[key]?.fingerprint === fingerprint &&
+      scene.sizes.every((size) => fs.existsSync(path.join(OUT_DIR, `${base}-${size}.webp`)));
+    if (!upToDate) {
+      await writeVariants(sourcePath, base, false, scene.sizes);
+      cache[key] = { source: scene.file, fingerprint };
+    }
+    const entries = scene.sizes.map((size) => `s${size}: ${urlOf(`${base}-${size}.webp`)}`);
+    lines.push(`  ${JSON.stringify(scene.id)}: { ${entries.join(', ')} },`);
+  }
   lines.push('};', '');
+  fs.writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
+  fs.writeFileSync(path.join(OUT_DIR, 'missing.json'), JSON.stringify(missing, null, 2));
   fs.writeFileSync(path.join(OUT_DIR, 'manifest.ts'), lines.join('\n'));
 
   for (const warning of warnings) console.warn(`Warnung Eulenbild: ${warning}`);
   if (missing.length > 0) {
     console.warn(
-      `Warnung: ${missing.length} von ${SPECIES.length * OWL_IMAGE_KINDS.length} Eulenbildern fehlen – Platzhalter werden verwendet (Liste: web/src/generated/owl-images/missing.json).`,
+      `Warnung: ${missing.length} von ${SPECIES.length * OWL_IMAGE_KINDS.length + SCENE_IMAGES.length} Bildern fehlen – Platzhalter werden verwendet (Liste: web/src/generated/owl-images/missing.json).`,
     );
   }
 }

@@ -96,7 +96,7 @@
 
 {#if live.bots.length > 0}
   <section aria-labelledby="bots-title">
-    <h2 id="bots-title">{de.bots.title}</h2>
+    <h2 id="bots-title" class="plate">{de.bots.title}</h2>
     <ul class="contacts">
       {#each live.bots as bot (bot.userId)}
         <li class="contact" data-testid="bot-contact">

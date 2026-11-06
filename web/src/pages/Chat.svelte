@@ -7,12 +7,13 @@
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
   import { loadConversation, type ShownLetter } from '../lib/letters.ts';
-  import { live, refreshTopics } from '../lib/live.svelte.ts';
+  import { live, markChatRead, refreshTopics } from '../lib/live.svelte.ts';
   import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { formatGold } from '@posteulen/shared/game/gold.ts';
+  import { deckleClass } from '../lib/deckle.ts';
 
   let { peerId }: { peerId: string } = $props();
 
@@ -48,8 +49,10 @@
       const unread = letters
         .filter((l) => l.role === 'recipient' && l.status === 'delivered' && !l.read)
         .map((l) => l.id);
-      if (unread.length > 0 && document.visibilityState === 'visible')
+      if (unread.length > 0 && document.visibilityState === 'visible') {
         await api('POST', '/api/letters/read', { ids: unread });
+        markChatRead(peerId);
+      }
       const unseen = letters.filter(
         (l) => l.role === 'recipient' && l.status === 'delivered' && !l.arrivalSeen,
       );
@@ -100,7 +103,7 @@
   }
 </script>
 
-<p class="partner">
+<p class="partner plate">
   <span class="name">{name}</span>
   {#if bot}<span class="bot-label"><span aria-hidden="true">🤖</span> {de.bots.label}</span>{/if}
 </p>
@@ -108,7 +111,7 @@
   <p class="notice bot-notice" data-testid="bot-notice">
     <span aria-hidden="true">🔓</span><span>{de.bots.notice}</span>
   </p>
-  <p class="hint crisis">{de.bots.crisis}</p>
+  <p class="hint crisis plate">{de.bots.crisis}</p>
 {/if}
 {#if contact?.keyWarning}
   <p class="warning" role="alert">
@@ -119,44 +122,47 @@
     <span aria-hidden="true">ℹ</span><span>{de.letters.notContact}</span>
   </p>{/if}
 
-<p class="hint retention">{retention}</p>
+<p class="hint retention plate">{retention}</p>
 
 <ol class="letters" class:print aria-live="polite">
   {#each letters as letter (letter.id)}
-    <li class="scroll" class:mine={letter.role === 'sender'}>
-      {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
-      <p class="meta">
-        {dateTime(letter.sentAt)} · {letter.parchment === 'large'
-          ? de.letters.large
-          : de.letters.small}
-        {#if letter.role === 'recipient'}
-          · {fill(de.letters.from, {
-            owl: letter.owl.name,
-            species: speciesName(letter.owl.species),
-          })}{/if}
-      </p>
-      {#if letter.text !== null}
-        <LetterText text={letter.text} />
-      {:else}
-        <p class="invalid">
-          <span aria-hidden="true">⚠</span> <strong>{de.letters.invalid}</strong> – {de.letters
-            .invalidLong}
+    <li class="letter" class:mine={letter.role === 'sender'}>
+      <article class={`sheet ${deckleClass(letter.id)}`}>
+        {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
+        <p class="meta">
+          {dateTime(letter.sentAt)} · {letter.parchment === 'large'
+            ? de.letters.large
+            : de.letters.small}
+          {#if letter.role === 'recipient'}
+            · {fill(de.letters.from, {
+              owl: letter.owl.name,
+              species: speciesName(letter.owl.species),
+            })}{/if}
         </p>
-      {/if}
-      {#if letter.role === 'sender'}
-        <p class="status">
-          <span aria-hidden="true"
-            >{letter.status === 'returned'
-              ? '↩'
-              : letter.status === 'in_flight'
-                ? '🦉'
-                : letter.read
-                  ? '✔✔'
-                  : '✔'}</span
-          >
-          {statusText(letter)}
-        </p>
-      {/if}
+        {#if letter.text !== null}
+          <LetterText text={letter.text} />
+        {:else}
+          <p class="invalid">
+            <span aria-hidden="true">⚠</span> <strong>{de.letters.invalid}</strong> – {de.letters
+              .invalidLong}
+          </p>
+        {/if}
+        {#if letter.role === 'sender'}
+          <p class="status">
+            <span aria-hidden="true"
+              >{letter.status === 'returned'
+                ? '↩'
+                : letter.status === 'in_flight'
+                  ? '🦉'
+                  : letter.read
+                    ? '✔✔'
+                    : '✔'}</span
+            >
+            {statusText(letter)}
+          </p>
+        {/if}
+      </article>
+      <span class="seal" aria-hidden="true">P</span>
     </li>
   {/each}
 </ol>
@@ -171,7 +177,6 @@
       >
     </p>
   {:else}
-    <p class="hint">{de.bots.replyHint}</p>
     <Compose
       {peerId}
       bot
@@ -214,63 +219,74 @@
     color: var(--ink-soft);
   }
 
-  /* Letters as scrolls (v0.2): a sheet of paper between two rolled ends. The text itself
-     stands on a plain colour (SPEC 14: never on textures). */
+  /* Letters as sheets of laid paper with a deckle edge and a wax seal (v0.3). The paper
+     texture is very light; text contrast is checked like everywhere else (e2e). */
   .letters {
     list-style: none;
-    padding: 0.75rem 0.75rem 0;
+    padding: 0.75rem 0.25rem 0;
     display: grid;
-    gap: 2.25rem;
+    gap: 2.5rem;
   }
 
-  .scroll {
+  .letter {
     position: relative;
-    width: min(100%, 34rem);
-    padding: 1.1rem 1.4rem 1rem;
-    background: var(--paper);
-    border-inline: 1px solid #d8c39a;
-    box-shadow:
-      inset 0.6rem 0 0.6rem -0.6rem rgb(138 106 63 / 0.35),
-      inset -0.6rem 0 0.6rem -0.6rem rgb(138 106 63 / 0.35),
-      var(--shadow);
+    width: min(100%, 36rem);
+    filter: drop-shadow(0 2px 3px rgb(43 29 14 / 0.3));
+  }
+
+  .letter.mine {
+    margin-left: auto;
+  }
+
+  .sheet {
+    padding: 1.5rem clamp(1rem, 4vw, 2rem) 2.1rem;
+    color: var(--ink-other);
     font-family: var(--font-hand-other);
-    font-size: 1.4rem;
-    line-height: 1.35;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    background:
+      repeating-linear-gradient(90deg, rgb(120 90 40 / 0.07) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(0deg, rgb(120 90 40 / 0.035) 0 1px, transparent 1px 4px),
+      var(--paper-grain), #f7eed9;
     transform: rotate(-0.4deg);
   }
 
-  .scroll.mine {
-    margin-left: auto;
-    background: #fbf3e2;
+  .mine .sheet {
+    color: var(--ink-own);
     font-family: var(--font-hand-own);
-    font-size: 1.15rem;
-    line-height: 1.5;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    background-color: #f5e9cc;
     transform: rotate(0.4deg);
   }
 
-  /* The rolled ends, slightly wider than the sheet. */
-  .scroll::before,
-  .scroll::after {
-    content: '';
+  /* Red wax seal at the lower edge: right for letters to you, left for your own. */
+  .seal {
     position: absolute;
-    left: -0.7rem;
-    right: -0.7rem;
-    height: 1.1rem;
-    border-radius: 0.55rem;
-    background: linear-gradient(to bottom, #c9a46a, #f1dfb6 40%, #e2c690 65%, #a9834d);
-    box-shadow: 0 1px 2px rgb(43 29 14 / 0.3);
+    right: 1.4rem;
+    bottom: -1.1rem;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 47% 53% 50% 50% / 52% 48% 55% 45%;
+    background: radial-gradient(circle at 38% 35%, #c0392b, #8b1e1e 55%, #5e1010);
+    box-shadow:
+      inset 0 0 0 0.35rem rgb(0 0 0 / 0.12),
+      inset 0 0 0 0.45rem rgb(255 255 255 / 0.08),
+      0 2px 3px rgb(0 0 0 / 0.35);
+    color: rgb(255 220 210 / 0.6);
+    font-family: var(--font-display);
+    font-size: 1.25rem;
   }
 
-  .scroll::before {
-    top: -0.6rem;
+  .mine .seal {
+    right: auto;
+    left: 1.4rem;
   }
 
-  .scroll::after {
-    bottom: -0.6rem;
-  }
-
-  .print .scroll,
-  .print .scroll.mine {
+  .print .sheet,
+  .print .mine .sheet {
     font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.5;
@@ -284,8 +300,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .scroll,
-    .scroll.mine {
+    .sheet,
+    .mine .sheet {
       transform: none;
     }
   }
@@ -316,6 +332,7 @@
     display: flex;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
+    background: var(--paper);
     border: 2px solid var(--seal);
     border-radius: 0.5rem;
     font-weight: 700;

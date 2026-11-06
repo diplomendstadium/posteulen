@@ -9,6 +9,10 @@
   import { navigate } from '../lib/router.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
+  import { sceneImage } from '../lib/owl-image.ts';
+
+  /** The whole menagerie on its perches (v0.3), below the login. */
+  const group = sceneImage('group');
 
   let name = $state('');
   let password = $state('');
@@ -41,7 +45,7 @@
 </script>
 
 <div class="start">
-  <header class="hero">
+  <header class="hero card">
     <img class="logo" src="/icons/icon.svg" alt="" width="96" height="96" />
     <h1>{de.start.title}</h1>
     <p class="intro">{de.start.intro}</p>
@@ -86,7 +90,22 @@
     </figure>
   </div>
 
-  <nav class="footer-links" aria-label={de.nav.main}>
+  {#if !group.placeholder}
+    <figure class="group">
+      <img
+        src={group.files['s960']}
+        srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
+        sizes="(min-width: 48rem) 40rem, 100vw"
+        width="960"
+        height="960"
+        alt={de.start.groupAlt}
+        loading="lazy"
+        decoding="async"
+      />
+    </figure>
+  {/if}
+
+  <nav class="footer-links card" aria-label={de.nav.main}>
     <Link href="/hilfe">{de.nav.help}</Link>
     <Link href="/datenschutz">{de.nav.privacy}</Link>
     <Link href="/impressum">{de.nav.imprint}</Link>
@@ -106,6 +125,20 @@
   .hero {
     text-align: center;
     margin-bottom: 1.5rem;
+  }
+
+  .group {
+    margin: 2rem auto 0;
+    max-width: 40rem;
+  }
+
+  .group img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
   }
 
   .logo {
@@ -151,9 +184,13 @@
 
   .footer-links {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
+    gap: 0 1.5rem;
+    margin: 2rem auto 0;
+    padding: 0.25rem 1rem;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .version {

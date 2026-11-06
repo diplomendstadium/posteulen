@@ -17,6 +17,7 @@ export type NotificationType =
   | 'chicks_hatched'
   | 'deletion_warning'
   | 'broadcast'
+  | 'owl_home'
   | 'push_test';
 
 export type PushSender = (

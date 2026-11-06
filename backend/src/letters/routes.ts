@@ -104,7 +104,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.post(
     '/api/letters/send',
-    { preHandler: authenticated, bodyLimit: 128 * 1024 },
+    { preHandler: authenticated, bodyLimit: 512 * 1024 },
     async (request) => {
       if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');

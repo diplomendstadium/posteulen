@@ -158,6 +158,14 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   await Promise.allSettled(tasks);
 }
 
+/**
+ * Letters of a chat were just marked read: the chat list and "Neue Post!" show it at once,
+ * without a reload (v0.3). The server tells only the sender.
+ */
+export function markChatRead(peerId: string): void {
+  live.chats = live.chats.map((chat) => (chat.peerId === peerId ? { ...chat, unread: 0 } : chat));
+}
+
 export function refreshTopics(...topics: Topic[]): Promise<void> {
   return refresh(topics);
 }

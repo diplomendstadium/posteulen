@@ -32,7 +32,10 @@ export const SPECIES: readonly Species[] = [
   { id: 'waldohreule', name: 'Waldohreule', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45 },
 ];
 
-/** The seven image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image. */
+/**
+ * The eleven image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image.
+ * v0.3: in flight by day/night (owl list) and back home by day/night (system message).
+ */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
   { kind: 'departure', suffix: 'Abflug' },
@@ -41,7 +44,19 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'petting', suffix: 'Streicheln' },
   { kind: 'grumpy', suffix: 'Grummelig' },
   { kind: 'chick', suffix: 'Kueken' },
+  { kind: 'flyingDay', suffix: 'Tagflug' },
+  { kind: 'flyingNight', suffix: 'Nachtflug' },
+  { kind: 'homeDay', suffix: 'Heimkehr-Tag' },
+  { kind: 'homeNight', suffix: 'Heimkehr-Nacht' },
 ] as const;
+
+/** Pictures without a species (SPEC Anhang B): empty perch and the group picture. */
+export const SCENE_IMAGES = [
+  { id: 'perch', file: 'Leere-Stange.png', sizes: [160, 480] },
+  { id: 'group', file: 'Gruppenbild.png', sizes: [480, 960] },
+] as const;
+
+export type SceneId = (typeof SCENE_IMAGES)[number]['id'];
 
 export type OwlImageKind = (typeof OWL_IMAGE_KINDS)[number]['kind'];
 

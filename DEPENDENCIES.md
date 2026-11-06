@@ -33,8 +33,8 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `altcha` | 3.4.1 | MIT | Proof-of-Work-Widget (selbst gehostet; Prüfung auf Inline-Styles in Stufe 1, sonst eigene Komponente auf `altcha/lib`) |
 | `@fontsource/atkinson-hyperlegible-next` | 5.3.0 | OFL-1.1 | Fließtext und alle Namen |
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
-| `@fontsource/kalam` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.2, D-107) |
-| `@fontsource/caveat` | 5.3.0 | OFL-1.1 | Handschrift für Briefe des Gegenübers (v0.2, D-107) |
+| `@fontsource/dancing-script` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.3, D-112; veröffentlicht 2026-07-19) |
+| `@fontsource/playwrite-de-grund` | 5.3.0 | OFL-1.1 | Handschrift für Briefe des Gegenübers (v0.3, D-112; veröffentlicht 2026-07-19) |
 
 ## Entwicklung, Build, Tests
 
@@ -65,6 +65,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | Paket / Daten | Version | Lizenz | Zweck |
 |---|---|---|---|
 | Natural Earth 1:10m / 1:50m (Länder, Land, Seen; ab v0.2 auch „Map Units“ für England/Schottland/Wales/Nordirland und besiedelte Orte) | 5.1.2 | gemeinfrei | Kartengeometrie, Land/Wasser-Maske, deutsche Länder- und Städtenamen (`NAME_DE`), Einwohnerzahlen (`POP_MAX`) |
+| Natural Earth 1:110m Land (ab v0.3) | 5.1.2 | gemeinfrei | Weltkarte im Seitenhintergrund (`tools/map/background.ts`) |
 | `d3-geo` | 3.1.1 | ISC | Projektion (ETRS89-LAEA), Rasterung |
 | `d3-geo-projection` | 4.0.0 | ISC | zusätzliche Projektionsfunktionen |
 | `topojson-server`, `topojson-simplify`, `topojson-client` | in Stufe 1 festgelegt | ISC | Vereinfachung der Geometrie |

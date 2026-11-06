@@ -114,8 +114,10 @@
   }
 </script>
 
-<p class="balance">{fill(de.finance.balance, { amount: goldText(gold) })}</p>
-<p class="hint">{fill(de.finance.daily, { time: dailyTime })}</p>
+<div class="card summary">
+  <p class="balance">{fill(de.finance.balance, { amount: goldText(gold) })}</p>
+  <p class="hint">{fill(de.finance.daily, { time: dailyTime })}</p>
+</div>
 
 <section class="card" aria-labelledby="send-title">
   <h2 id="send-title">{de.finance.sendTitle}</h2>
@@ -164,12 +166,15 @@
   {/if}
 </section>
 
-<section aria-labelledby="tx-title">
+<section class="card" aria-labelledby="tx-title">
   <h2 id="tx-title">{de.finance.transactions}</h2>
   {#if transactions.length === 0}
     <p>{de.finance.none}</p>
   {:else}
-    <div class="table-wrap">
+    <!-- Scrolls sideways on narrow screens; a scrollable region must be reachable by keyboard
+         (WCAG 2.1.1, axe scrollable-region-focusable), hence tabindex on a labelled group. -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    <div class="table-wrap" tabindex="0" role="group" aria-labelledby="tx-title">
       <table>
         <thead>
           <tr>
@@ -205,6 +210,14 @@
 </section>
 
 <style>
+  .summary {
+    margin-bottom: 1rem;
+  }
+
+  .summary > :last-child {
+    margin-bottom: 0;
+  }
+
   .balance {
     font-size: 1.4rem;
     font-weight: 700;

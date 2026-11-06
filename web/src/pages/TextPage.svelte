@@ -29,11 +29,13 @@
 </script>
 
 <div class="page">
-  <p><Link href="/" class="back">← {de.app.back}</Link></p>
-  <h1 id="top" tabindex="-1">
-    {title}
-  </h1>
-  <p class="intro">{intro}</p>
+  <p class="plate"><Link href="/" class="back">← {de.app.back}</Link></p>
+  <header class="card head">
+    <h1 id="top" tabindex="-1">
+      {title}
+    </h1>
+    <p class="intro">{intro}</p>
+  </header>
 
   {#if showContents}
     <nav class="contents card" aria-labelledby="contents-title">
@@ -50,7 +52,7 @@
   {/if}
 
   {#each sections as section (section.id)}
-    <section class="section" aria-labelledby={section.id}>
+    <section class="section card" aria-labelledby={section.id}>
       <h2 id={section.id} tabindex="-1">{section.title}</h2>
       {#each section.blocks as block, index (index)}
         {#if typeof block === 'string'}
@@ -67,7 +69,7 @@
   {/each}
 
   {#if faq.length > 0}
-    <section class="section" aria-labelledby="fragen">
+    <section class="section card" aria-labelledby="fragen">
       <h2 id="fragen" tabindex="-1">{de.pages.faqTitle}</h2>
       <dl class="faq">
         {#each faq as item (item.question)}
@@ -79,7 +81,7 @@
   {/if}
 
   {#if showContents}
-    <p class="top"><a href="#top">↑ {de.pages.toTop}</a></p>
+    <p class="top plate"><a href="#top">↑ {de.pages.toTop}</a></p>
   {/if}
 </div>
 
@@ -105,6 +107,11 @@
 
   .intro {
     font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .head {
+    margin-top: 0.5rem;
   }
 
   .contents {
@@ -121,8 +128,12 @@
   }
 
   .section {
-    margin-top: 2rem;
+    margin-top: 1.25rem;
     scroll-margin-top: 1rem;
+  }
+
+  .section > :last-child {
+    margin-bottom: 0;
   }
 
   .section h2 {

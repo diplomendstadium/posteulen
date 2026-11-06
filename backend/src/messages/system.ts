@@ -30,7 +30,9 @@ export type SystemMessageType =
   | 'menagerie_done'
   | 'deletion_warning'
   | 'deletion_cancelled'
-  | 'broadcast';
+  | 'broadcast'
+  | 'donation'
+  | 'update_notes';
 
 export function addSystemMessage(
   ctx: Context,

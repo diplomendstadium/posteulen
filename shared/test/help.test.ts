@@ -4,6 +4,7 @@ import { formatGold } from '../src/game/gold.ts';
 import { SPECIES } from '../src/species.ts';
 import { sanitizeLetterText } from '../src/text-rules.ts';
 import { de } from '../src/texts/de.ts';
+import { EXPLAINER_LETTERS } from '../src/texts/bots.ts';
 import {
   HELP_FAQ,
   HELP_INTRO,
@@ -98,7 +99,29 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       expect(text).toContain(`Antwort: ${item.answer}`);
     }
     // Lists become dashes, nothing is lost.
-    expect(text).toContain(`- ${de.welcome.android}`);
+    expect(text).toContain(`- ${de.welcome.androidSteps[0]}`);
+  });
+
+  it('nennt beim Schreiben die aktuellen Höchstlängen (v0.3)', () => {
+    const spaced = (n: number): string => n.toLocaleString('de-DE').replace('.', ' ');
+    expect(de.letters.smallOption).toContain(spaced(LETTER.SMALL_MAX_CHARS));
+    expect(de.letters.largeOption).toContain(spaced(LETTER.LARGE_MAX_CHARS));
+  });
+
+  it('erklärt Laien den Weg aufs Handy; Sonderfälle nur in der Hilfe (v0.3)', () => {
+    const ids = HELP_SECTIONS.map((section) => section.id);
+    // Right after the introduction, before anything else.
+    expect(ids.slice(0, 2)).toEqual(['idee', 'installieren']);
+    const install = allText(HELP_SECTIONS.filter((section) => section.id === 'installieren'));
+    for (const word of ['App-Store', 'Chrome', 'Safari', 'Firefox', 'Lesezeichen', 'Briefkasten'])
+      expect(install).toContain(word);
+    const help = allText(HELP_SECTIONS);
+    expect(help).toContain('UnifiedPush');
+    // Onboarding and the Erklärbär's letters leave out phones without Google and UnifiedPush.
+    const onboarding = JSON.stringify(de.welcome) + JSON.stringify(EXPLAINER_LETTERS);
+    expect(onboarding).not.toMatch(/UnifiedPush|IronFox|Fennec|GrapheneOS|Google-Dienste/);
+    for (const letter of Object.values(EXPLAINER_LETTERS))
+      expect([...letter].length).toBeLessThanOrEqual(LETTER.SMALL_MAX_CHARS);
   });
 
   it('die Datenschutzerklärung ist vollständig, ohne Entwurfshinweis und Platzhalter (v0.2)', () => {

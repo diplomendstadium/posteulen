@@ -74,6 +74,7 @@ export default defineConfig({
       hatchedBody: de.push.hatchedBody,
       deletionBody: de.push.deletionBody,
       broadcastBody: de.push.broadcastBody,
+      homeBody: de.push.homeBody,
       newsBody: de.push.newsBody,
     }),
   },

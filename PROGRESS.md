@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktueller Stand:** Version 0.2.0 (fertig; Tag `v0.2.0` signiert der Auftraggeber)
+**Aktueller Stand:** Version 0.3.0 (fertig; Tag `v0.3.0` signiert der Auftraggeber)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -69,10 +69,16 @@
 - SPEC auf Stand v0.2 gebracht (alle Entscheidungen eingearbeitet, Anhang F).
 - Tests: 471 Unit-Tests (Abdeckung 95,3 %, shared/ je Datei ≥ 90 %), 154 E2E-Tests in 4 Browserprofilen, VM-Test 63/63 inkl. Update von `v0.1.0`.
 
+### Version 0.3.0
+- Tag `v0.2.0` vom Auftraggeber signiert.
+- Designvorschläge (je drei für Briefe und Hintergrund) vorgelegt; gewählt: Briefbogen mit Wachssiegel, Aquarell-Weltkarte. Umgesetzt nach Rückfragen (Teil L in DECISIONS, D-112 bis D-128): längere Briefe (800/15 000), Briefbögen, Weltkarten-Hintergrund und Boxen für jeden Text, Ungelesen ohne Neuladen, Heimkehr mit Bild und Push, Spendenbitte, Update-Nachricht, Flug- und Stangenbilder, getrennte Eulengruppen, Menagerie-Reihenfolge mit Beschreibungen, Freilassen mit Namen, Flugspur mit „Zzz“, Tante nach 5 Minuten, Erklärbär erst nach dem ersten Brief auf der Karte, ausblendbarer Push-Hinweis, Gruppenbild, neue Erklärtexte (Migration 0008).
+- SPEC auf Stand v0.3 gebracht (Anhang G); README mit neuen Bildern.
+- Tests: TESTZAHLEN
+
 ## Offen
-- Tag `v0.2.0` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.3.0` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
 
 ## Nächster Schritt
-v0.2 ist fertig. Weitere Arbeit nur nach neuem Auftrag.
+v0.3 ist fertig. Weitere Arbeit nur nach neuem Auftrag.

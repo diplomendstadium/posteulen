@@ -131,7 +131,8 @@ describe('Routen-Inventar (SPEC 6, 17.3)', () => {
     const someone = await person(app, 'Leerkörper');
     const admin = await adminAgent();
     const empty = ROUTES.filter((route) => route.emptyBody);
-    expect(empty.length).toBeGreaterThanOrEqual(18);
+    // v0.3: releasing an owl now carries the typed name.
+    expect(empty.length).toBeGreaterThanOrEqual(17);
     for (const route of empty) {
       if (route.url.endsWith('/logout')) continue; // would end the session for the next checks
       const agent = route.api === 'user' ? someone.agent : admin;

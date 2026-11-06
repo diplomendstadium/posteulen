@@ -271,14 +271,21 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     await sendGold(anna, ben, 1, id).catch(() => undefined);
     setGold(app, anna, 200);
     expect((await sendGold(anna, ben, 1, id)).status).toBe(200);
-    expect((await anna.agent.json('POST', `/api/owls/${id}/release`, {})).body).toMatchObject({
-      code: 'owl_not_home',
-    });
+    const name = app.db.get<{ name: string }>('SELECT name FROM owls WHERE id = ?', id)!.name;
+    const release = (typed: string) =>
+      anna.agent.json('POST', `/api/owls/${id}/release`, { name: typed });
+    expect((await release(name)).body).toMatchObject({ code: 'owl_not_home' });
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).body).toMatchObject({
       code: 'owl_not_home',
     });
     advanceTo(app, app.clock.now + 3 * TIME.DAY);
-    expect((await anna.agent.json('POST', `/api/owls/${id}/release`, {})).status).toBe(200);
+    // v0.3: only with the exact name, typed by the user.
+    expect((await anna.agent.json('POST', `/api/owls/${id}/release`, {})).status).toBe(400);
+    expect((await release(`${name}x`)).body).toMatchObject({ code: 'owl_name_mismatch' });
+    expect(
+      (await release(name.toLowerCase() === name ? name.toUpperCase() : name.toLowerCase())).body,
+    ).toMatchObject({ code: 'owl_name_mismatch' });
+    expect((await release(name)).status).toBe(200);
     expect(await owls(anna)).toEqual([]);
   });
 });

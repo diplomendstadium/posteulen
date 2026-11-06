@@ -19,6 +19,11 @@ import { registerLifecycleHandlers } from './owls/lifecycle.ts';
 import { registerAccountHandlers } from './accounts/lifecycle.ts';
 import { registerAccountRoutes } from './accounts/routes.ts';
 import { ensureBotsForAllUsers, registerBotHandlers } from './bots/service.ts';
+import {
+  ensureDonationSchedules,
+  registerDonationHandler,
+  sendUpdateNotes,
+} from './messages/periodic.ts';
 import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
@@ -89,6 +94,10 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerReplyHandler(ctx);
   // Accounts from before stage 5 get their bots once (D-82).
   ensureBotsForAllUsers(ctx);
+  // v0.3: donation requests every five weeks, notes about an update for every account.
+  registerDonationHandler(ctx);
+  ensureDonationSchedules(ctx);
+  sendUpdateNotes(ctx);
   registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);

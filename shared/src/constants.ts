@@ -32,10 +32,14 @@ export const GOLD = {
 } as const;
 
 export const LETTER = {
-  SMALL_MAX_CHARS: 500,
-  LARGE_MAX_CHARS: 3000,
+  SMALL_MAX_CHARS: 800,
+  LARGE_MAX_CHARS: 15_000,
+  /** 800 characters of up to 4 bytes plus the signed header fit (SPEC 5.9). */
   SMALL_PADDED_BYTES: 4096,
-  LARGE_PADDED_BYTES: 16384,
+  /** 15,000 characters of up to 4 bytes plus header (v0.3). */
+  LARGE_PADDED_BYTES: 65_536,
+  /** Large letters written before v0.3 were padded to this size; they stay readable. */
+  LEGACY_LARGE_PADDED_BYTES: 16_384,
   MAX_RECIPIENTS: 5,
   MAX_RECIPIENTS_LOAN_OWL: 1,
   /** Every letter and system message is deleted at the latest this many days after delivery. */
@@ -151,8 +155,18 @@ export const BOTS = {
   AI_DAILY_LIMIT_DEFAULT: 200,
   SUMMARY_MAX_WORDS: 250,
   CONTEXT_LETTERS: 6,
-  EXPLAINER_LETTER_DAYS: [0, 1, 2, 4, 7],
+  EXPLAINER_LETTER_DAYS: [0, 1, 2, 3, 4, 7],
   UNCLE_FIRST_LETTER_AFTER_DAYS: 14,
+  /** The aunt's welcome letter lands this long after registration; she appears with it (v0.3). */
+  AUNT_FIRST_LETTER_AFTER_MINUTES: 5,
+} as const;
+
+/** Friendly request for donations as a system message (v0.3), on every server. */
+export const DONATION = {
+  INTERVAL_DAYS: 35,
+  URL: 'https://ko-fi.com/posteulen',
+  /** Number of different texts, shown in turn. */
+  TEXTS: 3,
 } as const;
 
 export const MAP = {
@@ -161,7 +175,7 @@ export const MAP = {
   SOUTH_LAT: 35.8,
   NORTH_LAT: 60.6,
   LAND_MASK_RESOLUTION_DEG: 0.02,
-  CLIENT_REFRESH_MINUTES: 10,
+  CLIENT_REFRESH_MINUTES: 5,
   /** Cities on the map (v0.2): from this population when zoomed in, … */
   CITY_MIN_POPULATION: 200_000,
   /** … only from this population when zoomed out. */
