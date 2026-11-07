@@ -179,6 +179,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         owl,
         kind,
         today,
+        now,
         energy === undefined ? undefined : { value: energy, at: now },
       );
     });

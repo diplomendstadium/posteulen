@@ -20,7 +20,7 @@ export interface Species {
 
 // prettier-ignore
 export const SPECIES: readonly Species[] = [
-  { id: 'bartkauz', name: 'Bartkauz', nameEn: 'Great Grey Owl', imageName: 'Bartkauz', price: 19, maxEnergy: 760, speedFactor: 0.9, recoveryFactor: 0.85 },
+  { id: 'bartkauz', name: 'Bartkauz', nameEn: 'Great Grey Owl', imageName: 'Bartkauz', price: 12, maxEnergy: 760, speedFactor: 0.9, recoveryFactor: 0.85 },
   { id: 'brillenkauz', name: 'Brillenkauz', nameEn: 'Spectacled Owl', imageName: 'Brillenkauz', price: 34, maxEnergy: 640, speedFactor: 1.15, recoveryFactor: 1.15 },
   { id: 'elfenkauz', name: 'Elfenkauz', nameEn: 'Elf Owl', imageName: 'Elfenkauz', price: 40, maxEnergy: 100, speedFactor: 1.65, recoveryFactor: 2.0 },
   { id: 'haubenkauz', name: 'Haubenkauz', nameEn: 'Crested Owl', imageName: 'Haubenkauz', price: 48, maxEnergy: 540, speedFactor: 1.2, recoveryFactor: 1.2 },
@@ -33,7 +33,7 @@ export const SPECIES: readonly Species[] = [
   { id: 'schleiereule', name: 'Schleiereule', nameEn: 'Barn Owl', imageName: 'Schleiereule', price: 7, maxEnergy: 380, speedFactor: 1.45, recoveryFactor: 1.5 },
   { id: 'schneeeule', name: 'Schneeeule', nameEn: 'Snowy Owl', imageName: 'Schneeeule', price: 24, maxEnergy: 990, speedFactor: 1.75, recoveryFactor: 0.85 },
   { id: 'sperbereule', name: 'Sperbereule', nameEn: 'Northern Hawk Owl', imageName: 'Sperbereule', price: 22, maxEnergy: 440, speedFactor: 2.0, recoveryFactor: 1.4 },
-  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 16, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4 },
+  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 7, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4 },
   { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65 },
   { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25 },
   { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 100, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true },
@@ -44,6 +44,7 @@ export const SPECIES: readonly Species[] = [
  * The image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image.
  * v0.3: in flight by day/night (owl list) and back home by day/night (system message).
  * v0.5: drinking water and the favourite treat (13 kinds; the phoenix has no chick picture).
+ * v0.5.1: asleep on the way at night / by day, and a nap at home by day (16 kinds).
  */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
@@ -59,6 +60,9 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'homeNight', suffix: 'Heimkehr-Nacht' },
   { kind: 'drinking', suffix: 'Trinken' },
   { kind: 'snack', suffix: 'Leckerli' },
+  { kind: 'sleepNight', suffix: 'Nachtpause' },
+  { kind: 'sleepDay', suffix: 'Tagschlaf-Unterwegs' },
+  { kind: 'napHome', suffix: 'Tagschlaf-Zuhause' },
 ] as const;
 
 /** The image kinds a species has (v0.5: no chick picture for mythical species). */

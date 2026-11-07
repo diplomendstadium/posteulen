@@ -14,6 +14,9 @@
   } from '@posteulen/shared/game/motivation.ts';
   import { speciesSnack } from '@posteulen/shared/texts/species.ts';
   import GaugeBar from '../components/GaugeBar.svelte';
+  import { isDay } from '@posteulen/shared/game/sun.ts';
+  import { OWL_NAP_AFTER_CARE_MS, OWL_NAP_SHARE } from '@posteulen/shared/constants.ts';
+  import { account } from '../lib/auth.svelte.ts';
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
   import { TIME } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
@@ -158,19 +161,56 @@
    * Picture of the owl card: in flight by day or night where the owl is right now, grumpy when
    * ill (v0.3). An owl in the menagerie shows its empty perch instead (OwlPicture `perch`).
    */
+  /**
+   * v0.5.1: a healthy adult owl at home naps by day – each time the overview is opened, every
+   * owl rolls once (50 %) whether it is asleep. Never within ten minutes after the last
+   * interaction, never at night (dark at the owner's home: sun 6° or more below the horizon).
+   */
+  // Plain Map on purpose: the roll is fixed bookkeeping while rendering, not reactive state
+  // (writing state while rendering is not allowed).
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const naps = new Map<string, boolean>();
+  function napping(owl: Owl): boolean {
+    if (owl.isChick || !['home', 'brooding'].includes(owl.state)) return false;
+    const home = account.profile?.home;
+    const now = Date.now();
+    if (!home || !isDay(now, home.lat, home.lon)) return false;
+    if (owl.caredAt !== null && now - owl.caredAt < OWL_NAP_AFTER_CARE_MS) return false;
+    let asleep = naps.get(owl.id);
+    if (asleep === undefined) {
+      asleep = Math.random() < OWL_NAP_SHARE;
+      naps.set(owl.id, asleep);
+    }
+    return asleep;
+  }
+
   function pictureKind(owl: Owl): OwlImageKind {
-    if (owl.state === 'flying' && owl.absence)
+    if (owl.state === 'flying' && owl.absence) {
+      // v0.5.1: asleep on the way, by day or at night where it is right now.
+      if (owl.absence.sleeping) return owl.absence.daylight ? 'sleepDay' : 'sleepNight';
       return owl.absence.daylight ? 'flyingDay' : 'flyingNight';
+    }
     if (owl.isChick) return 'chick';
-    return ['sick', 'self_care', 'vet'].includes(owl.state) ? 'grumpy' : 'normal';
+    if (['sick', 'self_care', 'vet'].includes(owl.state)) return 'grumpy';
+    return napping(owl) ? 'napHome' : 'normal';
   }
 
   function pictureAlt(owl: Owl): string {
     const name = owl.name ?? '';
+    const species = speciesName(owl.species);
     if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
-    if (owl.state === 'flying' && owl.absence)
-      return `${fill(owl.absence.daylight ? t.owls.flyingDayAlt : t.owls.flyingNightAlt, { name })}, ${speciesName(owl.species)}`;
-    return `${name}, ${speciesName(owl.species)}`;
+    if (owl.state === 'flying' && owl.absence) {
+      const text = owl.absence.sleeping
+        ? owl.absence.daylight
+          ? t.owls.sleepDayAlt
+          : t.owls.sleepNightAlt
+        : owl.absence.daylight
+          ? t.owls.flyingDayAlt
+          : t.owls.flyingNightAlt;
+      return `${fill(text, { name })}, ${species}`;
+    }
+    if (pictureKind(owl) === 'napHome') return `${fill(t.owls.napAlt, { name })}, ${species}`;
+    return `${name}, ${species}`;
   }
 
   /** Loan owls above the own ones, each under its own heading (v0.3). */

@@ -3,6 +3,22 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.5.1 – Schlafende Eulen
+
+- **Schlafbilder:** Macht eine Eule unterwegs eine Schlafpause, zeigt die Eulenübersicht sie schlafend
+  – bei Tag oder bei Nacht, je nach ihrer Position.
+- **Nickerchen zu Hause:** Ist es am Wohnort hell, döst eine gesunde Eule bei jedem Öffnen der
+  Eulenübersicht mit 50 % Wahrscheinlichkeit; nachts und in den 10 Minuten nach einer Pflege nie.
+- **Preise:** Sumpfohreule 7 Gold (vorher 16), Bartkauz 12 Gold (vorher 19).
+- Hilfe, Erklärbär, README und SPEC (Anhang K) de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0012** (läuft beim Update automatisch): neue Spalte `owls.cared_at`.
+- 54 neue Bilder in `images/` (drei Schlafbilder je Art, zusammen 289).
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.5.1.
+- Update: `sudo posteulen-update`.
+
 ## v0.5.0 – Motivation und ein Phönix
 
 - **Motivation:** Jede Eule hat neben der Energie einen Motivationsbalken (0,8–1,2). Er sinkt jede

@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktueller Stand:** Version 0.5.0 (fertig; Tag `v0.5.0` signiert der Auftraggeber)
+**Aktueller Stand:** Version 0.5.1 (fertig; Tag `v0.5.1` signiert der Auftraggeber)
 **Stand:** 2026-11-07
 
 ## Erledigt
@@ -88,10 +88,14 @@
 - Nach Rückfragen (Teil O, D-146 bis D-157): nicht lesbare Briefe beim Absender, 4 Leiheulen, neue Artbeschreibungen, Schlaf unterwegs nur so lange wie nötig, Phönix, Wasser und Lieblingsleckerli, Pflegetag mit zwei Aktionen, Motivation (Migration 0011), Werte in km/h und %/h, Update-Banner-Korrektur. Hilfe, Erklärbär, README und SPEC (9.3a, Anhang J) de/en.
 - Tests: 514 Unit-Tests (Abdeckung 95,5 %, shared/ je Datei ≥ 90 %; neu u. a. Schlaf nach Bedarf, Motivation, Pflege, Phönix, nicht lesbare Briefe), 178 E2E-Tests in 4 Browserprofilen grün, Lint, Typen, `npm audit` (Laufzeit 0 Funde); Prüfung im Browser (Menagerie, Phönix kaufen, Wasser, Leckerli, Streicheln mit Bild, Motivation ±%, englische Ansicht, Handy 390 px). VM-Test nicht erneut gelaufen.
 
+### Version 0.5.1
+- Nach Rückfragen (Teil P, D-158 bis D-161): Preise Sumpfohreule 7 und Bartkauz 12 Gold, Schlafbilder unterwegs (Tag/Nacht), Nickerchen zu Hause bei Tag (50 %, nicht 10 Minuten nach Pflege; Migration 0012). Hilfe, Erklärbär, README und SPEC (Anhang K) de/en.
+- Tests: 517 Unit-Tests (Abdeckung 95,5 %), 182 E2E-Tests in 4 Browserprofilen grün (neu: Nickerchen-Bild mit fester Mittagszeit), Lint, Typen, `npm audit` (Laufzeit 0 Funde). VM-Test nicht erneut gelaufen.
+
 ## Offen
-- Tag `v0.5.0` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.5.1` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
 
 ## Nächster Schritt
-v0.5 ist fertig. Weitere Arbeit nur nach neuem Auftrag.
+v0.5.1 ist fertig. Weitere Arbeit nur nach neuem Auftrag.

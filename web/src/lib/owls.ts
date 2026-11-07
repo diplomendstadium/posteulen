@@ -20,6 +20,8 @@ export interface Owl {
   readonly snackedToday: boolean;
   /** v0.5: motivation in tenths (8–12). */
   readonly motivation: number;
+  /** v0.5.1: time of the last interaction. */
+  readonly caredAt: number | null;
   readonly ready: boolean;
   readonly stateUntil: number | null;
   readonly loanExpiresAt: number | null;
@@ -39,6 +41,8 @@ export interface Owl {
     readonly returnsAt: number | null;
     /** Daylight where the owl is right now (v0.3: day or night flight picture). */
     readonly daylight: boolean;
+    /** v0.5.1: asleep on the way right now. */
+    readonly sleeping: boolean;
   } | null;
 }
 

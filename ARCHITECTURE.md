@@ -190,7 +190,7 @@ Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient
 
 | Tabelle | Felder |
 |---|---|
-| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`menagerie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `watered_on`, `snacked_on` (v0.5) · `motivation` (v0.5, Zehntel 8–12) · `pending_sickness` · `loan_expires_at` |
+| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`menagerie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `watered_on`, `snacked_on` (v0.5) · `motivation` (v0.5, Zehntel 8–12) · `cared_at` (v0.5.1: letzte Pflege-Aktion, für das Nickerchen-Bild) · `pending_sickness` · `loan_expires_at` |
 | `owl_care_days` · `owl_away` | v0.2 (D-103): Pflegetage (`owl_id`, `day`) und Zeiten fort von zu Hause (`owl_id`, `since_at`, `until_at`), je höchstens 60 Tage |
 | `clutches` | `id` · `mother_id` · `owner_id` · `hatch_at` · `chick_ids` · `name_deadline` · `gift_deadline` · `gift_required` |
 | `flights` | `id` · `holder_id` · `owl_id` · `cargo` (JSON: Brief-IDs, Goldbetrag, Geschenk-Eule/Küken, Begleitbrief-ID) · `route` (JSON: Wegpunkte mit Nutzer-IDs) · `plan` (BLOB, Segmentliste) · `started_at` · `state` · `next_stop` |

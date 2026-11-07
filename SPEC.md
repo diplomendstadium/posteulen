@@ -1,8 +1,8 @@
-# PostEulen.de – Spezifikation v0.5
+# PostEulen.de – Spezifikation v0.5.1
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Entscheidungen, die sie offenlässt, werden in `DECISIONS.md` dokumentiert.
 >
-> **Stand: Version 0.5.0.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-157 und die Änderungen der Versionen 0.2, 0.3, 0.3.1, 0.3.2, 0.4 und 0.5 (Übersicht in Anhang F bis J). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
+> **Stand: Version 0.5.1.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-161 und die Änderungen der Versionen 0.2 bis 0.5.1 (Übersicht in Anhang F bis K). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
 
 ---
 
@@ -348,7 +348,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ### 8.5 Eulen
 - Übersicht aller eigenen Eulen, Küken und Leiheulen unter zwei Überschriften: oben **„Leiheulen“**, darunter **„Deine Eulen“** (eigene Eulen und Küken); eine Überschrift erscheint nur, wenn es dazu Eulen gibt. Je Eule: Bild, Name, Art, Geschlecht, Energie (Zahl + Balken), Motivation (Zahl + Balken, v0.5, 9.3a), Zustand. Beide Balken haben einen Farbverlauf von Rot (leer) nach Grün (voll); beim Motivationsbalken ist 0,8 leer und 1,2 voll. Darunter die festen Werte der Art: Geschwindigkeit in km/h (25 km/h × Faktor) und Erholung in Prozent pro Stunde (10 % × Faktor). Ist die Motivation nicht 1,0, steht hinter beiden Werten grün „+10 %“/„+20 %“ bzw. rot „−10 %“/„−20 %“ (mit Vorzeichen, also auch in Graustufen lesbar); die angezeigten Werte selbst ändern sich nicht. Über der Liste erklärt ein kurzer Hinweis die Motivation.
-- **Bild je Zustand (9.2.6):** normal; bei kranken Eulen das grummelige Bild; bei Küken das Küken-Bild; **solange die Eule fliegt** (Brief zustellen oder Rückweg) das Flugbild ihrer Art – „Tagflug“, wenn an ihrer aktuellen Position gerade Tag ist (Sonne > −6°), sonst „Nachtflug“ (vom Server beim Abruf der Liste berechnet); **solange sie an die Menagerie verliehen ist** das Bild der leeren Stange.
+- **Bild je Zustand (9.2.6):** normal (bei Tag zu Hause manchmal das Nickerchen-Bild „Tagschlaf zuhause“, v0.5.1); bei kranken Eulen das grummelige Bild; bei Küken das Küken-Bild; **solange die Eule unterwegs schläft** das Schlafbild „Tagschlaf unterwegs“ bzw. „Nachtpause“ (v0.5.1); **solange die Eule fliegt** (Brief zustellen oder Rückweg) das Flugbild ihrer Art – „Tagflug“, wenn an ihrer aktuellen Position gerade Tag ist (Sonne > −6°), sonst „Nachtflug“ (vom Server beim Abruf der Liste berechnet); **solange sie an die Menagerie verliehen ist** das Bild der leeren Stange.
 - Abwesende Eulen sind als abwesend markiert, mit Grund und Zeit, z. B. „Fliegt gerade einen Brief zu Peter. Voraussichtlich zurück in 5 Std.“, „In der Menagerie bis Fr., 14:00“, „Beim Eulenarzt bis morgen 09:12“, „Brütet bis …“.
 - Aktionen je nach Zustand (9.2.5): Wasser geben, streicheln, Eulenkeks, Lieblingsleckerli (v0.5, 9.3; jeweils mit eingeblendetem Bild, 9.2.6; der Knopf nennt das Leckerli der Art, z. B. „Haselnüsse geben (0,2 Gold)“), umbenennen, Krankheit behandeln, an die Menagerie verleihen, an einen Kontakt verschenken (optional mit Begleitbrief, 9.2.7), in die Freiheit entlassen (mit eingetipptem Namen und zweiter Bestätigung, 9.2.8).
 
@@ -460,7 +460,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 | Leiheule vor dem Abflug | Brief an bis zu 5 Empfänger, Gold an 1 | ja | nein | nein |
 
 #### 9.2.6 Bilder
-- Der Auftraggeber liefert für jede Art dreizehn Bilder im Ordner `/images/` (Dateinamen: Anhang B; der Phönix zwölf, ohne Küken), dazu zwei Bilder ohne Art: die leere Stange und das Gruppenbild. Alle Eulen einer Art – gekaufte, geschenkte, Leih- und Bot-Eulen – zeigen dieselben Bilder; Küken zeigen statt des normalen Bilds das Küken-Bild:
+- Der Auftraggeber liefert für jede Art sechzehn Bilder im Ordner `/images/` (Dateinamen: Anhang B; der Phönix fünfzehn, ohne Küken), dazu zwei Bilder ohne Art: die leere Stange und das Gruppenbild. Alle Eulen einer Art – gekaufte, geschenkte, Leih- und Bot-Eulen – zeigen dieselben Bilder; Küken zeigen statt des normalen Bilds das Küken-Bild:
 
 | Bild | Verwendung |
 |---|---|
@@ -473,7 +473,9 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 | Streicheln | Einblendung beim Streicheln |
 | Grummelig | ersetzt das normale Bild, solange die Eule krank ist |
 | Küken | Küken dieser Art bis zum Erwachsensein, auch als Abflug- und Ankunftsbild eines Kükens |
-| Tagflug / Nachtflug | ersetzt in der Eulenübersicht das normale Bild, solange die Eule unterwegs ist (Zustellung oder Rückweg) – je nach Tag oder Nacht an ihrer aktuellen Position (8.5) |
+| Tagflug / Nachtflug | ersetzt in der Eulenübersicht das normale Bild, solange die Eule unterwegs ist (Zustellung oder Rückweg) und fliegt – je nach Tag oder Nacht an ihrer aktuellen Position (8.5) |
+| Tagschlaf unterwegs / Nachtpause (v0.5.1) | ersetzt in der Eulenübersicht das Flugbild, solange die Eule unterwegs eine Schlafpause macht (9.4.2) – „Tagschlaf unterwegs“, wenn es an ihrer aktuellen Position hell ist, sonst „Nachtpause“ |
+| Tagschlaf zuhause (v0.5.1) | „Nickerchen“ einer gesunden, erwachsenen Eule zu Hause (auch Leiheule und brütende Eule) bei Tag am Wohnort des Halters: bei jedem Öffnen der Eulenübersicht würfelt jede solche Eule einmal, mit 50 % zeigt sie dieses Bild statt des normalen. Nachts immer das normale Bild, ebenso in den 10 Minuten nach der letzten Pflege-Aktion (`owls.cared_at`). Ohne Einfluss auf Pflege oder Versand |
 | Heimkehr Tag / Heimkehr Nacht | die Eule auf dem Fensterbrett, bei Tageslicht bzw. bei Kerzenschein; Bild der Systemnachricht „wieder zu Hause“ (8.4) |
 | Leere Stange (ohne Art) | ersetzt in der Eulenübersicht das Bild einer Eule, solange sie an die Menagerie verliehen ist (8.5) |
 | Gruppenbild (ohne Art) | Startseite (8.1) und README |
@@ -949,7 +951,8 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Kükenflug | 10 km/h, 1 h Flug / 1 h Pause |
 | Küken erwachsen | 14 Tage nach Schlupf / 7 Tage nach Ankunft beim Beschenkten |
 | Max. eigene Eulen | 50 |
-| Eulenbilder | 13 je Art (normal, Abflug, Ankunft, Füttern, Streicheln, grummelig, Küken, Tagflug, Nachtflug, Heimkehr Tag, Heimkehr Nacht, Trinken, Leckerli; Phönix ohne Küken) + leere Stange + Gruppenbild |
+| Eulenbilder | 16 je Art (normal, Abflug, Ankunft, Füttern, Streicheln, grummelig, Küken, Tagflug, Nachtflug, Heimkehr Tag, Heimkehr Nacht, Trinken, Leckerli, Nachtpause, Tagschlaf unterwegs, Tagschlaf zuhause; Phönix ohne Küken) + leere Stange + Gruppenbild |
+| Nickerchen zu Hause | bei Tag 50 % je Eule und Öffnen der Eulenübersicht; nie nachts, nie in den 10 Minuten nach einer Pflege-Aktion |
 | Eulenname | 2–20 Zeichen; Umbenennen 1× pro Kalenderjahr |
 | Nutzername | 3–20 Zeichen; Umbenennen 1× pro Kalenderjahr |
 | Namenssperre | 90 Tage |
@@ -999,7 +1002,7 @@ Es gibt 17 Eulenarten – genau die, für die Bilder vorliegen (Absprache vom 20
 
 | Art | Bildname (Dateien) | Preis | Energiepunkte | Fluggeschwindigkeitsfaktor | Erholungsfaktor |
 |---|---|---|---|---|---|
-| Bartkauz | Bartkauz | 19 | 760 | 0,90 | 0,85 |
+| Bartkauz | Bartkauz | 12 (bis v0.5.0: 19) | 760 | 0,90 | 0,85 |
 | Brillenkauz | Brillenkauz | 34 | 640 | 1,15 | 1,15 |
 | Elfenkauz | Elfenkauz | 40 | 100 | 1,65 | 2,00 |
 | Haubenkauz | Haubenkauz | 48 | 540 | 1,20 | 1,20 |
@@ -1012,13 +1015,13 @@ Es gibt 17 Eulenarten – genau die, für die Bilder vorliegen (Absprache vom 20
 | Schleiereule | Schleiereule | 7 | 380 | 1,45 | 1,50 |
 | Schneeeule | Schneeeule | 24 | 990 | 1,75 | 0,85 |
 | Sperbereule | Sperbereule | 22 | 440 | 2,00 | 1,40 |
-| Sumpfohreule | Sumpfohreule | 16 | 430 | 1,35 | 1,40 |
+| Sumpfohreule | Sumpfohreule | 7 (bis v0.5.0: 16) | 430 | 1,35 | 1,40 |
 | Südliche Weißgesichtseule | Suedliche-Weissgesichtseule | 32 | 300 | 1,30 | 1,65 |
 | Waldkauz | Waldkauz | 6 | 540 | 1,10 | 1,25 |
 | Waldohreule | Waldohreule | 8 | 410 | 1,35 | 1,45 |
 | Phönix (v0.5) | Phoenix | 100 | 2000 | 4,00 | 2,00 |
 
-**Bilddateien:** dreizehn je Art im Ordner `/images/` (der Phönix zwölf, ohne Küken), dazu `Leere-Stange.png` und `Gruppenbild.png`, zusammen 235 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
+**Bilddateien:** sechzehn je Art im Ordner `/images/` (der Phönix fünfzehn, ohne Küken), dazu `Leere-Stange.png` und `Gruppenbild.png`, zusammen 289 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
 
 | Bild | Dateiname | Beispiel Waldkauz |
 |---|---|---|
@@ -1035,6 +1038,9 @@ Es gibt 17 Eulenarten – genau die, für die Bilder vorliegen (Absprache vom 20
 | Heimkehr Nacht | `<Bildname>-Heimkehr-Nacht.png` | `Waldkauz-Heimkehr-Nacht.png` |
 | Trinken (v0.5) | `<Bildname>-Trinken.png` | `Waldkauz-Trinken.png` |
 | Leckerli (v0.5) | `<Bildname>-Leckerli.png` | `Waldkauz-Leckerli.png` |
+| Nachtpause (v0.5.1) | `<Bildname>-Nachtpause.png` | `Waldkauz-Nachtpause.png` |
+| Tagschlaf unterwegs (v0.5.1) | `<Bildname>-Tagschlaf-Unterwegs.png` | `Waldkauz-Tagschlaf-Unterwegs.png` |
+| Tagschlaf zuhause (v0.5.1) | `<Bildname>-Tagschlaf-Zuhause.png` | `Waldkauz-Tagschlaf-Zuhause.png` |
 
 Bildnamen und Bildkennungen beginnen mit einem Großbuchstaben, enthalten keine Umlaute und keine Leerzeichen (ä → ae, ö → oe, ü → ue, ß → ss, Leerzeichen → Bindestrich), genau wie die Bildnamen in der Tabelle oben. Der Build sucht die Dateien anhand dieser Tabelle (nicht durch Zerlegen der Dateinamen am Bindestrich), vergleicht Groß- und Kleinschreibung nicht und ignoriert Leerzeichen; findet er eine Datei nur auf diese tolerante Weise, meldet er eine Warnung. Die Originale sind quadratisch (derzeit 1 254 × 1 254 px).
 
@@ -1165,4 +1171,15 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 | Motivation | Neuer Wert 0,8–1,2 je Eule mit Balken; −0,1 jede Nacht, +0,1 je Pflege-Art und Tag; wirkt ab Abflug auf Energie, Tempo und Erholung der Reise; Anzeige von km/h und %/h mit ±x % | 9.3a, 8.5 |
 | PWA | Update-Hinweis bleibt nach dem Neuladen nicht mehr hängen (wartender Service Worker wird aktiviert; „Neu laden“ lädt notfalls direkt) | 15 |
 | Daten | Migration 0011: `owls.motivation`, `owls.watered_on`, `owls.snacked_on`, `letters.unreadable` | 4.6 |
+
+---
+
+## Anhang K – Änderungen in Version 0.5.1
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Preise | Sumpfohreule 7 Gold (vorher 16), Bartkauz 12 Gold (vorher 19) | Anhang B |
+| Eulenübersicht | Schlafbilder unterwegs: „Nachtpause“ bei Dunkelheit, „Tagschlaf unterwegs“ bei Helligkeit an der Position der Eule | 8.5, 9.2.6 |
+| Eulenübersicht | „Tagschlaf zuhause“: gesunde Eulen zu Hause dösen bei Tag (50 % je Öffnen), nie nachts, nie 10 Minuten nach einer Pflege-Aktion | 8.5, 9.2.6 |
+| Daten | Migration 0012: `owls.cared_at` (Zeitpunkt der letzten Pflege-Aktion) | 9.3 |
 

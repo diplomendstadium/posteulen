@@ -52,6 +52,18 @@ const motivation = (id: string) =>
 const gold = (who: Person) =>
   app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', who.id)?.gold ?? 0;
 
+const sendGold = async (owlId: string) => {
+  const prepared = await anna.agent.json<{ token: string }>('POST', '/api/gold/prepare', {
+    recipient: ben.id,
+    amount: 5,
+    owlId,
+    withCover: false,
+  });
+  return anna.agent.json<{ arrivesAt: number }>('POST', '/api/gold/send', {
+    token: prepared.body.token,
+  });
+};
+
 describe('motivation and the four interactions (v0.5)', () => {
   it('bought owls start at 1.0; each kind raises it once a day, capped at 1.2', async () => {
     setGold(app, anna, 200);
@@ -86,6 +98,19 @@ describe('motivation and the four interactions (v0.5)', () => {
     expect(motivation(id)).toBe(8);
   });
 
+  it('v0.5.1: remembers the time of the last interaction (no nap picture right after it)', async () => {
+    setGold(app, anna, 200);
+    const id = await buyOwl(app, anna);
+    const before = await anna.agent.json<{ owls: (OwlView & { caredAt: number | null })[] }>(
+      'GET',
+      '/api/owls',
+    );
+    expect(before.body.owls.find((owl) => owl.id === id)?.caredAt).toBeNull();
+    app.clock.now += TIME.MINUTE;
+    const petted = await act(anna, id, 'pet');
+    expect((petted.body.owl as OwlView & { caredAt: number }).caredAt).toBe(app.clock.now);
+  });
+
   it('a care day needs two different interactions', async () => {
     setGold(app, anna, 200);
     const id = await buyOwl(app, anna);
@@ -105,18 +130,6 @@ describe('motivation and the four interactions (v0.5)', () => {
 });
 
 describe('motivation on a flight (v0.5)', () => {
-  const sendGold = async (owlId: string) => {
-    const prepared = await anna.agent.json<{ token: string }>('POST', '/api/gold/prepare', {
-      recipient: ben.id,
-      amount: 5,
-      owlId,
-      withCover: false,
-    });
-    return anna.agent.json<{ arrivesAt: number }>('POST', '/api/gold/send', {
-      token: prepared.body.token,
-    });
-  };
-
   it('fixed at departure: speed, energy and recovery for the whole trip', async () => {
     await couple(anna, ben);
     setGold(app, anna, 500);
@@ -170,6 +183,32 @@ describe('the phoenix (v0.5)', () => {
     expect(app.db.get<{ state: string }>('SELECT state FROM owls WHERE id = ?', id)?.state).toBe(
       'home',
     );
+  });
+
+  it('v0.5.1: the owl list says whether an owl on its way is asleep right now', async () => {
+    await couple(anna, ben);
+    setGold(app, anna, 500);
+    const id = await buyOwl(app, anna);
+    app.db.run('UPDATE owls SET energy = 20 WHERE id = ?', id);
+    const sent = await sendGold(id);
+    expect(sent.status).toBe(200);
+    const plan = JSON.parse(app.db.get<{ plan: string }>('SELECT plan FROM flights')!.plan) as {
+      kind: string;
+      t0: number;
+      t1: number;
+    }[];
+    const sleep = plan.find((segment) => segment.kind === 'sleep')!;
+    const absence = async () =>
+      (
+        await anna.agent.json<{ owls: { id: string; absence: { sleeping: boolean } | null }[] }>(
+          'GET',
+          '/api/owls',
+        )
+      ).body.owls.find((owl) => owl.id === id)?.absence;
+    app.clock.now = (sleep.t0 + sleep.t1) / 2;
+    expect((await absence())?.sleeping).toBe(true);
+    app.clock.now = sleep.t1 + TIME.MINUTE;
+    expect((await absence())?.sleeping).toBe(false);
   });
 
   it('flies a long way fast: Berlin → Paris within a day', async () => {

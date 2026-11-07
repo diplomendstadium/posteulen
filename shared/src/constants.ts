@@ -121,6 +121,11 @@ export const MOTIVATION = {
   DECAY_HOUR_UTC: 0,
 } as const;
 
+/** v0.5.1: share of healthy owls at home that nap by day (rolled at each opening of the list). */
+export const OWL_NAP_SHARE = 0.5;
+/** v0.5.1: no nap picture within ten minutes after the last interaction. */
+export const OWL_NAP_AFTER_CARE_MS = 10 * TIME.MINUTE;
+
 export const MENAGERIE = {
   OFFER_SPECIES_COUNT: 4,
   OFFER_HOUR_UTC: 0,

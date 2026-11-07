@@ -38,6 +38,8 @@ export function interact(
   owl: OwlRow,
   kind: Interaction,
   today: string,
+  /** v0.5.1: time of the interaction (no nap picture within ten minutes after it). */
+  at: number,
   energy?: { readonly value: number; readonly at: number },
 ): void {
   const last = {
@@ -49,9 +51,10 @@ export function interact(
   const already = last[kind] === today;
   const motivation = motivationAfter(owl.motivation, already);
   ctx.db.run(
-    `UPDATE owls SET ${COLUMN[kind]} = ?, motivation = ? WHERE id = ?`,
+    `UPDATE owls SET ${COLUMN[kind]} = ?, motivation = ?, cared_at = ? WHERE id = ?`,
     today,
     motivation,
+    at,
     owl.id,
   );
   if (energy) {

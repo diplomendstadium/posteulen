@@ -41,6 +41,8 @@ export interface OwlRow {
   readonly snacked_on: string | null;
   /** v0.5: motivation in tenths, 8–12. */
   readonly motivation: number;
+  /** v0.5.1: time of the last interaction. */
+  readonly cared_at: number | null;
   readonly pending_sickness: number;
   readonly loan_expires_at: number | null;
   readonly adult_at: number | null;
@@ -128,6 +130,8 @@ export interface OwlView {
   readonly wateredToday: boolean;
   readonly snackedToday: boolean;
   readonly motivation: number;
+  /** v0.5.1: time of the last interaction (nap picture only ten minutes after it). */
+  readonly caredAt: number | null;
   readonly ready: boolean;
   /** End of brooding, treatment or menagerie. */
   readonly stateUntil: number | null;
@@ -148,6 +152,8 @@ export interface OwlView {
     readonly returnsAt: number | null;
     /** Daylight where the owl is right now: picks the day or night flight picture (v0.3). */
     readonly daylight: boolean;
+    /** v0.5.1: asleep on the way right now (sleeping picture). */
+    readonly sleeping: boolean;
   } | null;
 }
 
@@ -160,9 +166,11 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
     const flight = activeFlightOf(ctx, owl.id);
     if (flight) {
       const route = routeOf(flight);
-      const position = flightPosition(flight, now)?.position;
+      const info = flightPosition(flight, now);
+      const position = info?.position;
       absence = {
         daylight: position ? isDay(now, position.lat, position.lon) : true,
+        sleeping: info?.phase === 'sleep',
         purpose: flight.purpose,
         recipients: route
           .filter((stop) => stop.type === 'deliver' && stop.status === 'pending')
@@ -187,6 +195,7 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
     wateredToday: owl.watered_on === today,
     snackedToday: owl.snacked_on === today,
     motivation: owl.motivation,
+    caredAt: owl.cared_at,
     ready: isReady(owl),
     stateUntil: owl.state_until,
     loanExpiresAt: owl.loan_expires_at,

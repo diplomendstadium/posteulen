@@ -82,6 +82,30 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(page.getByRole('cell', { name: 'Futter' })).toBeVisible();
   });
 
+  test('v0.5.1: Nickerchen bei Tag zu Hause, nicht nach dem Streicheln', async ({ page }) => {
+    const me = await registerViaUi(page);
+    setGold(me.name, 100);
+    await buyAndName(page, 'Schleiereule', 'Schleier');
+    // Noon UTC (daylight at the home in France) and a roll that always naps.
+    const noon = new Date();
+    noon.setUTCHours(12, 0, 0, 0);
+    await page.clock.setFixedTime(noon);
+    await page.addInitScript(() => {
+      Math.random = () => 0.1;
+    });
+    await page.reload();
+    const picture = page.getByTestId('owl-card').first().locator('.picture img');
+    await expect(picture).toHaveAttribute('src', /napHome/);
+    await expect(picture).toHaveAttribute('alt', /Nickerchen/);
+    // Right after an interaction the owl is awake for ten minutes (the server stores the time;
+    // the browser compares with its own clock – one minute later here).
+    await page.getByRole('button', { name: 'Streicheln' }).click();
+    await page.keyboard.press('Escape');
+    await page.clock.setFixedTime(new Date(Date.now() + 60_000));
+    await page.reload();
+    await expect(picture).not.toHaveAttribute('src', /napHome/);
+  });
+
   test('Einblendung ohne Animation bei reduzierter Bewegung, schließt sich selbst', async ({
     page,
   }) => {

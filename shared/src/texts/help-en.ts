@@ -176,7 +176,8 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Your owls',
     blocks: [
       'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter” or “In the Menagerie until Fri, 14:00”.',
-      'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is helping out in the Menagerie, you see its empty perch.',
+      'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is taking a rest on the way, you see it asleep, by day or at night. If it is helping out in the Menagerie, you see its empty perch.',
+      'Owls are night birds: when it is light at your home, a healthy owl sometimes dozes – whether it is asleep is decided anew each time you open the owl overview, about every other time. At night and for ten minutes after you last looked after it, it is always awake. You can still care for it and send it off at any time.',
       'Each species has a price, a maximum energy, a speed factor and a recovery factor. Owls do not grow old and do not die.',
       [
         `Renaming: once per calendar year per owl (${OWL.NAME_MIN_CHARS}–${OWL.NAME_MAX_CHARS} characters). The first name after buying or hatching does not count.`,

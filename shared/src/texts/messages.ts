@@ -48,6 +48,17 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.5.1',
+    title: 'Pssst, hier wird geschlafen: Version 0.5.1',
+    paragraphs: [
+      'Eulen sind Nachtvögel – und das sieht man jetzt auch:',
+      '• Macht eine Eule unterwegs eine Schlafpause, zeigt die Eulenübersicht sie schlafend, bei Tag oder unter dem Nachthimmel.',
+      '• Ist es bei dir zu Hause hell, döst eine gesunde Eule manchmal auf ihrer Stange. Keine Sorge: Pflegen und losschicken kannst du sie trotzdem, und nach einer Streicheleinheit ist sie erst einmal hellwach.',
+      '• Die Sumpfohreule kostet jetzt nur noch 7 Gold, der Bartkauz 12 Gold.',
+      'Schlaf gut – und viel Freude beim Schreiben!',
+    ],
+  },
+  {
     version: '0.5.0',
     title: 'Ein Phönix auf der Fensterbank: Version 0.5',
     paragraphs: [
@@ -150,6 +161,17 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.5.1',
+    title: 'Shh, owls asleep: version 0.5.1',
+    paragraphs: [
+      'Owls are night birds – and now you can see it:',
+      '• When an owl takes a rest on the way, the owl overview shows it asleep, by day or under the night sky.',
+      '• When it is light at your home, a healthy owl sometimes dozes on its perch. Do not worry: you can still care for it and send it off, and after a cuddle it is wide awake for a while.',
+      '• The Short-eared Owl now costs only 7 gold, the Great Grey Owl 12 gold.',
+      'Sleep well – and enjoy writing!',
+    ],
+  },
   {
     version: '0.5.0',
     title: 'A phoenix on the window sill: version 0.5',

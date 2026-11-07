@@ -34,12 +34,17 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     }
   });
 
+  it('v0.5.1: Sumpfohreule 7 gold, Bartkauz 12 gold', () => {
+    expect(SPECIES.find((s) => s.id === 'sumpfohreule')?.price).toBe(7);
+    expect(SPECIES.find((s) => s.id === 'bartkauz')?.price).toBe(12);
+  });
+
   it('uses image names without umlauts or spaces (SPEC Anhang B)', () => {
     for (const s of SPECIES) expect(s.imageName).toMatch(/^[A-Z][A-Za-z-]*$/);
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(13);
+    expect(OWL_IMAGE_KINDS).toHaveLength(16);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -57,6 +62,9 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Heimkehr-Nacht.png',
       'Schleiereule-Trinken.png',
       'Schleiereule-Leckerli.png',
+      'Schleiereule-Nachtpause.png',
+      'Schleiereule-Tagschlaf-Unterwegs.png',
+      'Schleiereule-Tagschlaf-Zuhause.png',
     ]);
   });
 });
