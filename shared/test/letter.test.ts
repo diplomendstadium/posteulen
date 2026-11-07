@@ -55,7 +55,7 @@ async function seal(m: LetterMeta, text: string, to: IdentityKeys = bob) {
 }
 
 function openAsBob(
-  m: Pick<LetterMeta, 'letterId' | 'senderId' | 'recipientId' | 'kind' | 'parchment'>,
+  m: Pick<LetterMeta, 'letterId' | 'senderId' | 'recipientId' | 'sentAt' | 'kind' | 'parchment'>,
   ciphertext: Uint8Array,
   wrap: Uint8Array,
   signer = alice,
@@ -161,6 +161,10 @@ describe('letters (SPEC 5.8, 17.1)', () => {
     expect(
       (await openAsBob({ ...m, senderId: C }, sealed.ciphertext, sealed.wrapRecipient)).ok,
     ).toBe(false);
+    // v0.6.1: the signed send time must be the one the server reports.
+    expect(
+      await openAsBob({ ...m, sentAt: m.sentAt + 1 }, sealed.ciphertext, sealed.wrapRecipient),
+    ).toEqual({ ok: false, reason: 'metadata' });
     expect(
       await openAsBob({ ...m, parchment: 'large' }, sealed.ciphertext, sealed.wrapRecipient),
     ).toEqual({ ok: false, reason: 'length' });

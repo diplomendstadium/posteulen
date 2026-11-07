@@ -27,6 +27,12 @@ describe('SSRF protection for push endpoints (SPEC 11.3)', () => {
     ['::ffff:10.0.0.1', false],
     ['64:ff9b::a00:1', false],
     ['2001:db8::1', false],
+    // v0.6.1: IPv4-compatible, IPv4-translated, documentation and SRv6 ranges.
+    ['::127.0.0.1', false],
+    ['::a00:1', false],
+    ['::ffff:0:a00:1', false],
+    ['3fff::1', false],
+    ['5f00::1', false],
     ['8.8.8.8', true],
     ['2a00:1450:4001:80b::200a', true],
     ['kaputt', false],

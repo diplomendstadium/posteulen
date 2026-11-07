@@ -89,6 +89,7 @@ interface ApiLetter {
   id: string;
   senderId: string;
   recipientId: string;
+  sentAt: number;
   kind: 'letter';
   parchment: 'small' | 'large';
   status: string;

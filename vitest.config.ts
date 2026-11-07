@@ -5,6 +5,8 @@ export default defineConfig({
     include: ['shared/test/**/*.test.ts', 'backend/test/**/*.test.ts'],
     environment: 'node',
     pool: 'forks',
+    // Many tests run Argon2id (OPAQUE) several times; under full parallel load 5 s was too tight.
+    testTimeout: 20_000,
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'text', 'json-summary'],
