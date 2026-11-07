@@ -31,7 +31,7 @@ import {
   OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
 import { leftHome, markCareDay } from './care.ts';
-import { borrow, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
+import { borrow, loanedOn, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -375,20 +375,18 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const me = userOf(request).id;
     const now = ctx.now();
     const day = utcDay(now);
-    const loans = ctx.db.all<{ species: string }>(
-      "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
-      me,
-    );
+    // Borrowed today (v0.3.2: the limit is per offer day, not for all loan owls at once).
+    const loaned = loanedOn(ctx, me, day);
     const identities = loanIdentitiesFor(ctx, me, day);
     return {
       day,
-      maxLoans: MENAGERIE.MAX_CONCURRENT_LOANS,
-      loans: loans.length,
+      maxLoans: MENAGERIE.LOANS_PER_DAY,
+      loans: loaned.length,
       offer: offerOf(ctx, day).map((species) => ({
         species,
         name: identities.get(species)?.name ?? '',
         sex: identities.get(species)?.sex ?? 'f',
-        loaned: loans.some((loan) => loan.species === species),
+        loaned: loaned.includes(species),
       })),
     };
   });

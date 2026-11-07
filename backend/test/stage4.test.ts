@@ -169,6 +169,27 @@ describe('loan owls (SPEC 9.6)', () => {
     expect((await anna.agent.json('POST', `/api/owls/${first}/menagerie`, {})).status).toBe(400);
   });
 
+  it('v0.3.2: three a day – the next offer can all be borrowed, whatever still waits', async () => {
+    for (let i = 0; i < 3; i++) await borrowOwl(anna);
+    const today = await anna.agent.json<{ loans: number; maxLoans: number }>(
+      'GET',
+      '/api/menagerie',
+    );
+    expect(today.body).toMatchObject({ loans: 3, maxLoans: 3 });
+    // Half past midnight UTC: yesterday's three still wait, the new offer is free to borrow.
+    const midnight = Date.UTC(2026, 10, 6, 0, 30);
+    advanceTo(app, midnight);
+    const tomorrow = await anna.agent.json<{ loans: number; offer: { loaned: boolean }[] }>(
+      'GET',
+      '/api/menagerie',
+    );
+    expect(tomorrow.body.loans).toBe(0);
+    expect(tomorrow.body.offer.every((o) => !o.loaned)).toBe(true);
+    for (let i = 0; i < 3; i++) await borrowOwl(anna);
+    const waiting = (await owls(anna)).owls.filter((owl) => owl.kind === 'loan');
+    expect(waiting).toHaveLength(6);
+  });
+
   it('expires after 24 hours without refund', async () => {
     const id = await borrowOwl(anna);
     advanceTo(app, app.clock.now + 24 * TIME.HOUR);

@@ -3,6 +3,26 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.3.2 – Pergament und kurze Wege
+
+- **Leihen pro Tag:** Jede angebotene Leiheule kann einmal am Tag geliehen werden – sobald um
+  Mitternacht (UTC) neue angeboten werden, sind alle sofort leihbar, auch wenn noch Leiheulen vom
+  Vortag warten.
+- 31 neue Namen für Leiheulen und Küken.
+- **Kürzeste Route:** Mehrere Empfänger werden so vorsortiert, dass die Eule den kürzesten Weg
+  fliegt; die Reihenfolge bleibt änderbar.
+- **Briefe auf Pergament:** helles Pergament für Briefe an dich, dunkleres für deine eigenen;
+  das Siegel entfällt.
+- Gruppenbild der Eulen auf der Übersicht neben den Kacheln (am Desktop).
+- README und Hilfe: PostEulen als erster Messenger für Kinder.
+- SPEC auf Stand v0.3.2 (Anhang H).
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0009** (läuft beim Update automatisch): neue Tabelle `loan_days`.
+- Nach dem Update bekommt jedes Konto die kurze Update-Nachricht zu 0.3.2.
+- Update: `sudo posteulen-update`.
+
 ## v0.3.1 – Gruppenbild neben dem Login
 
 - Auf der Startseite steht das Gruppenbild der Eulen jetzt neben der Anmeldung, an der Stelle des

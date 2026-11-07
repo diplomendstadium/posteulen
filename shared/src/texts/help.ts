@@ -139,7 +139,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         `Kleines Pergament: bis ${LETTER.SMALL_MAX_CHARS} Zeichen, kostenlos.`,
         `Großes Pergament: bis ${LETTER.LARGE_MAX_CHARS} Zeichen, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} Aufpreis pro Versand.`,
       ],
-      `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}, die Reihenfolge legst du fest), Eule wählen und absenden. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
+      `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}), Eule wählen und absenden. Bei mehreren Empfängern sortiert PostEulen sie so, dass die Eule den kürzesten Weg fliegt – von dir zu allen und wieder nach Hause. Mit den Pfeilen kannst du die Reihenfolge trotzdem ändern. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
       `Keine Eule zu Hause? Dann bietet dir die Eulenwahl direkt die Leiheulen des Tages an. Geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
       'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Leiheulen tragen nur einen Brief an einen Empfänger; Bots sind nie bei mehreren Empfängern dabei.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst.',
@@ -150,7 +150,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„nicht zugestellt – die Eule ist umgekehrt“: zum Beispiel, weil die Verbindung gekappt wurde.',
       ],
       'Kommt eine Eule bei dir an, siehst du beim ersten Anzeigen ihr Ankunftsbild. Es schließt sich nach ein paar Sekunden von selbst, per Tippen oder mit der Escape-Taste.',
-      'Im Chat erscheinen Briefe als Briefbögen aus Büttenpapier mit ausgefranstem Rand und rotem Siegel. Briefe an dich stehen in deutscher Schulschrift und blauschwarzer Tinte, deine eigenen in geschwungener Federschrift und Sepia. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
+      'Im Chat erscheinen Briefe als Pergamentbögen mit ausgefranstem Rand: Briefe an dich auf hellem Pergament, in deutscher Schulschrift und blauschwarzer Tinte, deine eigenen auf dunklerem Pergament, in geschwungener Federschrift und Sepia. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
       'Chat löschen entfernt deine Kopien aller Briefe dieses Chats endgültig. Dein Gegenüber behält seine.',
     ],
   },
@@ -236,7 +236,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Oben stehen die Leiheulen des Tages, darunter alle Eulen zum Kaufen – nach Preis sortiert, die günstigste zuerst. Zu jeder Kaufeule erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist.',
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen. Ihr Geschlecht ist zufällig, ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Du kannst höchstens ${MENAGERIE.MAX_CONCURRENT_LOANS} Leiheulen gleichzeitig haben, eine je Art. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist.`,
+      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Sobald um Mitternacht neue Eulen angeboten werden, kannst du sie alle leihen. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist.`,
       `Eine Leiheule trägt genau einen Brief oder Gold an einen Empfänger und ist danach weg. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich füttern und streicheln, aber nicht umbenennen oder verschenken.`,
       `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (Waldkauz, 6 Gold) reicht es nach ein paar Tagen – oder sobald das Geschenk der Tante da ist.`,
     ],
@@ -355,6 +355,11 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
     question: 'Ich finde PostEulen nicht im App-Store. Habe ich etwas falsch gemacht?',
     answer:
       'Nein, alles richtig! PostEulen gibt es absichtlich nicht im App-Store. Du legst es direkt aus dem Browser auf deinen Startbildschirm und hast dann trotzdem eine richtige App mit Eulen-Symbol – wie das geht, steht unter „PostEulen aufs Handy holen“.',
+  },
+  {
+    question: 'Ist PostEulen etwas für Kinder?',
+    answer:
+      'Gut möglich – PostEulen eignet sich prima, um Kinder behutsam an Messenger heranzuführen. Weil Briefe Stunden unterwegs sind, gibt es kein Dauer-Tippen und keinen Sog, ständig nachzusehen. Und schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat: Fremde können dein Kind nicht anschreiben. Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI; wer das nicht möchte, entfernt sie im Adressbuch.',
   },
   {
     question: 'Was kostet PostEulen?',

@@ -11,6 +11,11 @@ export const OWL_NAMES: readonly string[] = [
   'Yuki', 'Nalu', 'Quinn', 'Sky', 'Ari', 'Neo', 'Jona', 'Remy', 'Eli', 'Lio',
   'Huhu', 'Schuhu', 'Kuckuck', 'Professor', 'Brille', 'Knick', 'Flatter', 'Wupp', 'Glubsch', 'Schnabel',
   'Plüsch', 'Knarz', 'Wölkchen', 'Murmel', 'Pompom', 'Knuff', 'Zwirbel', 'Quatsch', 'Knurps',
+  // v0.3.2: old-fashioned, historical and mythological first names (D-130).
+  'Hermes', 'Arnold', 'Dougal', 'Bathilda', 'Ariana', 'Kendra', 'Hestia', 'Phineas', 'Arcturus', 'Ruppert',
+  'Walburga', 'Septimus', 'Septima', 'Aurora', 'Wilhelmina', 'Silvanus', 'Cuthbert', 'Galatea', 'Rolanda', 'Irma',
+  'Garrick', 'Ambrosius', 'Rosmerta', 'Dilys', 'Armando', 'Everard', 'Perenelle', 'Hepzibah', 'Merope', 'Wendelin',
+  'Gunhilda',
 ];
 
 /** SPEC Anhang E: first names for the uncle bot. */

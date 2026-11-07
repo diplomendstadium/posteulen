@@ -1,6 +1,6 @@
 # PostEulen.de – Fortschritt
 
-**Aktueller Stand:** Version 0.3.0 (fertig; Tag `v0.3.0` signiert der Auftraggeber)
+**Aktueller Stand:** Version 0.3.2 (fertig; Tag `v0.3.2` signiert der Auftraggeber)
 **Stand:** 2026-11-06
 
 ## Erledigt
@@ -75,8 +75,13 @@
 - SPEC auf Stand v0.3 gebracht (Anhang G); README mit neuen Bildern.
 - Tests: 483 Unit-Tests (Abdeckung 95,3 %, shared/ je Datei ≥ 90 %), 178 E2E-Tests in 4 Browserprofilen (u. a. kein Text ohne Box auf allen Seiten), VM-Test 63/63 inkl. Update von `v0.2.0`.
 
+### Version 0.3.1 und 0.3.2
+- 0.3.1: Gruppenbild neben der Anmeldung (D-129).
+- 0.3.2 nach Rückfragen (Teil M, D-130 bis D-135): Leihen pro Tag (Migration 0009), neue Leiheulen-Namen, kürzeste Route als Vorschlag, Pergament-Texturen ohne Siegel, Gruppenbild auf der Übersicht, README/Hilfe zu Kindern. SPEC auf Stand v0.3.2 (Anhang H).
+- Tests auf Wunsch nur die nötigen: Lint, Typen, Unit-Tests (neu: Route, Leihen pro Tag), betroffene E2E-Tests.
+
 ## Offen
-- Tag `v0.3.0` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.3.2` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
 

@@ -80,7 +80,7 @@ test.describe('Version 0.3', () => {
     }
   });
 
-  test('Briefbogen mit Siegel; gelesen gilt sofort, auch ohne Neuladen', async ({ page }) => {
+  test('Briefbogen auf Pergament; gelesen gilt sofort, auch ohne Neuladen', async ({ page }) => {
     await registerViaUi(page);
     await page.goto('/app');
     const newPost = page.getByRole('link', { name: /Neue Post!/ });
@@ -90,7 +90,11 @@ test.describe('Version 0.3', () => {
     await expect(explainer).toContainText('1 ungelesen');
     await explainer.click();
     const letter = page.locator('li.letter').first();
-    await expect(letter.locator('.seal')).toBeVisible();
+    // v0.3.2: parchment texture instead of the seal.
+    await expect(letter.locator('.seal')).toHaveCount(0);
+    expect(
+      await letter.locator('.sheet').evaluate((el) => getComputedStyle(el).backgroundImage),
+    ).toContain('parchment-light');
     expect(
       await letter.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily),
     ).toMatch(/Playwrite DE Grund/);

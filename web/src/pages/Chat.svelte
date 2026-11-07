@@ -162,7 +162,6 @@
           </p>
         {/if}
       </article>
-      <span class="seal" aria-hidden="true">P</span>
     </li>
   {/each}
 </ol>
@@ -219,8 +218,9 @@
     color: var(--ink-soft);
   }
 
-  /* Letters as sheets of laid paper with a deckle edge and a wax seal (v0.3). The paper
-     texture is very light; text contrast is checked like everywhere else (e2e). */
+  /* Letters as parchment sheets with a deckle edge (v0.3; v0.3.2: real parchment textures,
+     light for letters to the user, dark for their own, no seal). Text stays dark enough on the
+     darkest spots of the texture (WCAG AA). */
   .letters {
     list-style: none;
     padding: 0.75rem 0.25rem 0;
@@ -244,10 +244,7 @@
     font-family: var(--font-hand-other);
     font-size: 1.05rem;
     line-height: 1.9;
-    background:
-      repeating-linear-gradient(90deg, rgb(120 90 40 / 0.07) 0 1px, transparent 1px 26px),
-      repeating-linear-gradient(0deg, rgb(120 90 40 / 0.035) 0 1px, transparent 1px 4px),
-      var(--paper-grain), #f7eed9;
+    background: url('../../assets/parchment-light.webp') center / 450px repeat #f3dcb0;
     transform: rotate(-0.4deg);
   }
 
@@ -256,33 +253,14 @@
     font-family: var(--font-hand-own);
     font-size: 1.5rem;
     line-height: 1.4;
-    background-color: #f5e9cc;
+    background: url('../../assets/parchment-dark.webp') center / 450px repeat #d4b47c;
     transform: rotate(0.4deg);
   }
 
-  /* Red wax seal at the lower edge: right for letters to you, left for your own. */
-  .seal {
-    position: absolute;
-    right: 1.4rem;
-    bottom: -1.1rem;
-    display: grid;
-    place-items: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 47% 53% 50% 50% / 52% 48% 55% 45%;
-    background: radial-gradient(circle at 38% 35%, #c0392b, #8b1e1e 55%, #5e1010);
-    box-shadow:
-      inset 0 0 0 0.35rem rgb(0 0 0 / 0.12),
-      inset 0 0 0 0.45rem rgb(255 255 255 / 0.08),
-      0 2px 3px rgb(0 0 0 / 0.35);
-    color: rgb(255 220 210 / 0.6);
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-  }
-
-  .mine .seal {
-    right: auto;
-    left: 1.4rem;
+  /* On dark parchment the small print uses the darkest ink as well. */
+  .mine .meta,
+  .mine .status {
+    color: var(--ink);
   }
 
   .print .sheet,

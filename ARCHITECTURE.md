@@ -181,6 +181,7 @@ Nur im Arbeitsspeicher (bewusst nicht in der DB): Registrierungs-Reservierungen 
 | `chats` | `owner_id`, `peer_id` PK · `peer_kind` (`user`/`bot`/`system`) · `last_activity_at` · `unread` · `bot_summary` (nur Bots) | lesbar; `bot_summary` Klartext (Bot-Ausnahme, 3) |
 | `letters` | `id` PK · `sender_id` · `recipient_id` · `kind` · `parchment` · `sent_at` · `ciphertext` (Mensch↔Mensch) · `wrap_recipient` · `wrap_sender` · `plaintext` (nur Bot-Briefe) · `flight_id` · `status` (`in_flight`/`delivered`/`returned`) · `read` · `sender_has` · `recipient_has` · `arrival_seen` · `owl_name`, `owl_species` (Momentaufnahme für „Gebracht von …“) | `ciphertext`, `wrap_*`: **E2E**; Bot-Brieftexte lesbar (Ausnahme, 3); Metadaten lesbar |
 | `system_messages` | `id` · `user_id` · `type` · `params` · `created_at` · `arrival_image` (Art, für die Einblendung) · `seen` · `arrival_shown`. v0.3: `owl_home` mit `{owl, species}` (Heimkehr-Bild), `donation` mit `{text}` (0–2), `update_notes` mit `{version}`; die langen Texte stehen in `shared/texts/messages.ts`, nicht in der DB | lesbar |
+| `loan_days` | `user_id`, `day`, `species` PK (v0.3.2: heute geliehene Arten; Grenze je Angebotstag) | lesbar |
 | `meta` | `key` PK · `value`: `secrets_fingerprint`, `notes_version` (zuletzt angekündigte Version, v0.3) | lesbar |
 
 Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient_has` bilden die „eigenen Kopien“ ab. Die Zeile wird gelöscht, sobald beide 0 sind (8.4). Ein umgekehrter Brief setzt `recipient_has = 0`.

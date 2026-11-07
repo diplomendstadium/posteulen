@@ -70,7 +70,7 @@ describe('constants (SPEC Anhang A)', () => {
   });
 
   it('has the name lists of Anhang D and E', () => {
-    expect(OWL_NAMES).toHaveLength(99);
+    expect(OWL_NAMES).toHaveLength(130);
     expect(new Set(OWL_NAMES).size).toBe(OWL_NAMES.length);
     expect(UNCLE_NAMES).toHaveLength(50);
     expect(AUNT_NAMES).toHaveLength(49);

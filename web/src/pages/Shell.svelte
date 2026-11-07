@@ -4,6 +4,7 @@
   import Link from '../components/Link.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
+  import { sceneImage } from '../lib/owl-image.ts';
   import { account, setPushHintHidden } from '../lib/auth.svelte.ts';
   import { live, startLive, stopLive } from '../lib/live.svelte.ts';
   import { api } from '../lib/api.ts';
@@ -68,6 +69,9 @@
         void showSystemArrivals().catch(() => undefined);
     }
   });
+
+  /** The whole menagerie, next to the tiles on wide screens (v0.3.2). */
+  const group = sceneImage('group');
 </script>
 
 <div class="shell">
@@ -149,16 +153,33 @@
           </ul>
         </section>
       {/if}
-      <ul class="tiles">
-        {#each sections as section (section.href)}
-          <li>
-            <Link href={section.href} class="tile">
-              <span class="tile-icon" aria-hidden="true">{section.icon}</span>
-              <span>{section.label}</span>
-            </Link>
-          </li>
-        {/each}
-      </ul>
+      <div class="home-grid">
+        <ul class="tiles">
+          {#each sections as section (section.href)}
+            <li>
+              <Link href={section.href} class="tile">
+                <span class="tile-icon" aria-hidden="true">{section.icon}</span>
+                <span>{section.label}</span>
+              </Link>
+            </li>
+          {/each}
+        </ul>
+        <!-- v0.3.2: on wide screens the whole menagerie keeps the tiles company. -->
+        {#if !group.placeholder}
+          <figure class="group">
+            <img
+              src={group.files['s480']}
+              srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
+              sizes="24rem"
+              width="960"
+              height="960"
+              alt={de.start.groupAlt}
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+        {/if}
+      </div>
     {/if}
   </div>
 
@@ -349,6 +370,38 @@
   @media (min-width: 48rem) {
     .tiles {
       grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Group picture only on desktop width, next to the tiles (two columns of tiles there). */
+  .group {
+    display: none;
+    margin: 0;
+  }
+
+  .group img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+
+  @media (min-width: 64rem) {
+    .home-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .home-grid .tiles {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .group {
+      display: block;
     }
   }
 

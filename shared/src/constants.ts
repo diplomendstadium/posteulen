@@ -99,7 +99,8 @@ export const OWL = {
 export const MENAGERIE = {
   OFFER_SPECIES_COUNT: 3,
   OFFER_HOUR_UTC: 0,
-  MAX_CONCURRENT_LOANS: 3,
+  /** Loan owls per offer day (00:00 UTC), one per offered species (v0.3.2). */
+  LOANS_PER_DAY: 3,
   MAX_LOANS_PER_SPECIES: 1,
   LOAN_EXPIRY_HOURS: 24,
 } as const;

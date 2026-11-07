@@ -42,7 +42,7 @@ Bis bald, dein Erklärbär`,
 
 In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Gold kannst du per Eule an Kontakte schicken.
 
-In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort drei neue Leiheulen, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
 Viel Spaß beim Sparen, dein Erklärbär`,
   day4: `Hallo, heute geht es um Kontakte!

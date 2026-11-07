@@ -7,7 +7,8 @@
   import ErrorText from './ErrorText.svelte';
   import OwlChoice from './OwlChoice.svelte';
   import { KeyMismatchError, prepare, sendPrepared, sendToBot } from '../lib/letters.ts';
-  import { previewFlights, type OwlChoice as Choice } from '../lib/owls.ts';
+  import { shortestOrder } from '@posteulen/shared/game/route.ts';
+  import { mapInfo, previewFlights, type MapInfo, type OwlChoice as Choice } from '../lib/owls.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
@@ -51,7 +52,42 @@
     prepared = null;
   }
 
+  /** Homes of the user and the contacts, loaded once for the route suggestion. */
+  let places: MapInfo | null = null;
+
+  /**
+   * v0.3.2: several recipients are put in the order of the shortest round trip from home
+   * (a suggestion – the arrows still change it). Without the homes the order stays as it is.
+   */
+  async function shortestRoute(list: string[]): Promise<string[]> {
+    if (list.length < 2) return list;
+    try {
+      places ??= await mapInfo();
+    } catch {
+      return list;
+    }
+    const homes = list.map((id) => places?.contacts.find((contact) => contact.id === id));
+    if (!places || homes.some((home) => home === undefined)) return list;
+    const order = shortestOrder(
+      places.home,
+      homes.map((home) => ({ lat: home?.lat ?? 0, lon: home?.lon ?? 0 })),
+    );
+    return order.map((index) => list[index] ?? '');
+  }
+
+  let routeRequest = 0;
+
+  async function setRecipients(list: string[]): Promise<void> {
+    recipients = list;
+    prepared = null;
+    const request = ++routeRequest;
+    const sorted = await shortestRoute(list);
+    // Only if the recipients did not change meanwhile (arrows, another addition).
+    if (request === routeRequest) recipients = sorted;
+  }
+
   function move(index: number, delta: number): void {
+    routeRequest++;
     const next = [...recipients];
     const [item] = next.splice(index, 1);
     if (item === undefined) return;
@@ -169,15 +205,13 @@
                 type="button"
                 class="button secondary small"
                 aria-label={de.letters.removeRecipient}
-                onclick={() => {
-                  recipients = recipients.filter((r) => r !== id);
-                  prepared = null;
-                }}>✕</button
+                onclick={() => void setRecipients(recipients.filter((r) => r !== id))}>✕</button
               >
             {/if}
           </li>
         {/each}
       </ol>
+      {#if recipients.length > 1}<p class="hint">{de.letters.routeHint}</p>{/if}
       {#if recipients.length < LETTER.MAX_RECIPIENTS && candidates.length > 0}
         <label for="extra">{de.letters.addRecipient}</label>
         <select
@@ -185,9 +219,8 @@
           bind:value={extra}
           onchange={() => {
             if (extra) {
-              recipients = [...recipients, extra];
+              void setRecipients([...recipients, extra]);
               extra = '';
-              prepared = null;
             }
           }}
         >
@@ -296,5 +329,10 @@
     min-height: 2.75rem;
     font: inherit;
     width: 100%;
+  }
+
+  .hint {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
   }
 </style>

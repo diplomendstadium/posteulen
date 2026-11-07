@@ -199,6 +199,8 @@ export const de = {
     counter: '{count} von {max} Zeichen',
     noSmileys: 'Pergament kennt keine Smileys.',
     recipients: 'Empfänger (höchstens 5, in dieser Reihenfolge)',
+    routeHint:
+      'PostEulen hat die Empfänger so sortiert, dass die Eule den kürzesten Weg fliegt. Mit ↑ und ↓ kannst du die Reihenfolge trotzdem ändern.',
     addRecipient: 'Weiteren Empfänger hinzufügen',
     choose: 'Kontakt wählen …',
     up: 'Nach oben',
@@ -426,7 +428,7 @@ export const de = {
     loanTitle: 'Eulen leihen',
     loanIntro:
       'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief oder Gold an genau einen Empfänger und verschwindet danach. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung).',
-    loanCount: 'Du hast {count} von {max} Leiheulen.',
+    loanCount: 'Heute geliehen: {count} von {max}. Morgen gibt es neue Eulen zum Leihen.',
     loan: '{name} leihen ({species}, {sex})',
     loaned: 'Schon geliehen',
     loanDone: '{name} wartet jetzt bei deinen Eulen.',
@@ -650,8 +652,8 @@ export const de = {
       'Keine Leerzeichen am Anfang oder Ende und keine doppelten Leerzeichen.',
     transfer_amount: 'Bitte 0,1 bis 20,0 Gold.',
     loan_not_offered: 'Diese Eulenart gibt es heute nicht zu leihen.',
-    loan_limit: 'Du hast schon drei Leiheulen.',
-    loan_species: 'Von dieser Art hast du schon eine Leiheule.',
+    loan_limit: 'Du hast heute schon drei Leiheulen geliehen. Morgen gibt es neue.',
+    loan_species: 'Diese Leiheule hast du heute schon geliehen.',
     owl_not_sick: 'Diese Eule ist nicht krank.',
     owl_unnamed: 'Bitte gib dem Küken zuerst einen Namen.',
     clutch_done: 'Aus diesem Gelege wurde schon ein Küken verschenkt.',

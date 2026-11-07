@@ -35,7 +35,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await page.goto('/app/menagerie');
     await expect(page.getByTestId('loan-offer')).toHaveCount(3);
     const name = await borrowViaUi(page);
-    await expect(page.getByText('Du hast 1 von 3 Leiheulen.')).toBeVisible();
+    await expect(page.getByText(/^Heute geliehen: 1 von 3\./)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Schon geliehen' })).toBeDisabled();
     await page.goto('/app/eulen');
     const card = page.getByTestId('owl-card');

@@ -77,14 +77,27 @@ export function loanIdentitiesFor(
 }
 
 /** Why this user cannot borrow this species now, or null (9.6). */
+/** Species this user has already borrowed on the given offer day (UTC, v0.3.2). */
+export function loanedOn(ctx: Context, userId: string, day: string): string[] {
+  return ctx.db
+    .all<{ species: string }>(
+      'SELECT species FROM loan_days WHERE user_id = ? AND day = ?',
+      userId,
+      day,
+    )
+    .map((row) => row.species);
+}
+
+/**
+ * v0.3.2: per offer day (00:00 UTC) every offered species can be borrowed once – so up to
+ * three a day, however many loan owls are still waiting from the day before.
+ */
 export function loanProblem(ctx: Context, userId: string, species: string, now: number) {
-  if (!offerOf(ctx, utcDay(now)).includes(species)) return 'loan_not_offered';
-  const loans = ctx.db.all<{ species: string }>(
-    "SELECT species FROM owls WHERE owner_id = ? AND kind = 'loan'",
-    userId,
-  );
-  if (loans.length >= MENAGERIE.MAX_CONCURRENT_LOANS) return 'loan_limit';
-  if (loans.some((loan) => loan.species === species)) return 'loan_species';
+  const day = utcDay(now);
+  if (!offerOf(ctx, day).includes(species)) return 'loan_not_offered';
+  const today = loanedOn(ctx, userId, day);
+  if (today.length >= MENAGERIE.LOANS_PER_DAY) return 'loan_limit';
+  if (today.includes(species)) return 'loan_species';
   return null;
 }
 
@@ -100,6 +113,14 @@ export function borrow(ctx: Context, userId: string, species: string, now: numbe
   const problem = loanProblem(ctx, userId, species, now);
   if (problem) throw new HttpError(400, problem);
   debit(ctx.db, userId, 'loan', GOLD.LOAN_PRICE, now);
+  const day = utcDay(now);
+  ctx.db.run('DELETE FROM loan_days WHERE user_id = ? AND day < ?', userId, day);
+  ctx.db.run(
+    'INSERT INTO loan_days (user_id, day, species) VALUES (?, ?, ?)',
+    userId,
+    day,
+    species,
+  );
   return loanOwl(ctx, userId, species, now);
 }
 

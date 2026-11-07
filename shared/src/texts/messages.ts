@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.3.2',
+    title: 'Frisch gefegte Stangen: Version 0.3.2',
+    paragraphs: [
+      'Die Eulenmeister haben wieder ein paar Kleinigkeiten verzaubert:',
+      '• Leihen ohne Warten: Jeden Tag kannst du alle drei Leiheulen des Tages leihen – auch wenn von gestern noch welche bei dir sitzen. Um Mitternacht kommen neue.',
+      '• Viele neue Namen für Leiheulen, von Hermes über Wilhelmina bis Gunhilda.',
+      '• Schreibst du mehreren Freunden auf einmal, sortiert PostEulen sie so, dass deine Eule den kürzesten Weg fliegt. Wer es anders möchte, ändert die Reihenfolge einfach selbst.',
+      '• Briefe stehen jetzt auf echtem Pergament: Briefe an dich auf hellem, deine eigenen auf dunklerem. Das rote Siegel hat Feierabend.',
+      '• Am großen Bildschirm leistet dir auf der Übersicht jetzt die ganze Eulenschar Gesellschaft.',
+      'Viel Freude beim Schreiben!',
+    ],
+  },
+  {
     version: '0.3.1',
     title: 'Kleine Umräumaktion im Eulenturm: Version 0.3.1',
     paragraphs: [

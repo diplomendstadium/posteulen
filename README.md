@@ -34,6 +34,14 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
 - **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen). Niemand muss, alle dürfen.
 
+### Ein guter erster Messenger für Kinder
+
+PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen:
+
+- **Kein Sog, keine Dauerbereitschaft.** Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt.
+- **Keine Fremden.** Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
+- Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie mit einem Tipp im Adressbuch.
+
 ### Wie kommt PostEulen aufs Handy? Ganz ohne App-Store!
 
 Apps holt man sich im App-Store, oder? Meistens schon. PostEulen gibt es dort aber absichtlich nicht – und trotzdem wird es eine richtige App mit eigenem Eulen-Symbol. Der Trick: Manche Webseiten können sich in eine App verwandeln (Fachleute sagen „Progressive Web App“, das Wort darf man aber sofort wieder vergessen). Man legt sie einfach auf den Startbildschirm. Es wird nichts heimlich installiert, die App will weder Fotos noch Telefonbuch, und Updates kommen von selbst.
@@ -49,7 +57,7 @@ Der einzige Unterschied: Benachrichtigungen („Eine Eule ist gelandet!“) gibt
 Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fragen per Brief.
 
 <p align="center">
-  <img src="docs/readme/briefe.png" alt="Ein Briefwechsel: Briefbögen mit ausgefranstem Rand und rotem Siegel in zwei Handschriften" width="260">
+  <img src="docs/readme/briefe.png" alt="Ein Briefwechsel: Pergamentbögen mit ausgefranstem Rand in zwei Handschriften" width="260">
   &nbsp;
   <img src="docs/readme/karte.png" alt="Die Karte mit Wohnort, Kontakten, Städten und einer fliegenden Eule samt bisheriger Flugspur" width="260">
   &nbsp;
@@ -64,7 +72,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.3.1**.
+Stand: **Version 0.3.2**.
 
 **Kurzfassung**
 

@@ -53,7 +53,7 @@ test.describe('Version 0.2', () => {
     await expect(other.getByRole('link', { name: /Neue Post!/ })).toBeVisible({ timeout: 30_000 });
     await other.getByRole('link', { name: /Neue Post!/ }).click();
     await other.getByRole('link', { name: new RegExp(anna.name) }).click();
-    // v0.3: a letter sheet with seal; the other side's letters in the German school hand.
+    // v0.3: a letter sheet; the other side's letters in the German school hand.
     const sheet = other.locator('li.letter').filter({ hasText: 'Leiheule' });
     await expect(sheet).toBeVisible({ timeout: 30_000 });
     expect(await sheet.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(
