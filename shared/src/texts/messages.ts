@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.6.1',
+    title: 'Neue Schlösser für den Eulenturm: Version 0.6.1',
+    paragraphs: [
+      'Diesmal waren die Schlossmeister zu Gast. Sie haben an jeder Tür und jedem Fenster des Turms gerüttelt und überall dort nachgebessert, wo ein Schloss nicht so fest saß, wie es sollte:',
+      '• Wer an der Tür Passwörter rät, muss jetzt in jedem Fall die vorgeschriebene Wartezeit einhalten – auch wer es mit vielen Versuchen gleichzeitig probiert.',
+      '• Viele Nachbarn, die sich über dieselbe Internetleitung anmelden, werden nicht mehr irrtümlich für Passwort-Rater gehalten.',
+      '• Nach dem Abmelden vergisst die App jetzt auch die Schlüsselbindungen deiner Kontakte sofort. Meldet sich danach jemand anderes im selben Fenster an, sieht er nichts davon.',
+      '• Beim Öffnen eines Briefwechsels prüft die App erneut, ob die Schlüssel deines Gegenübers noch dieselben sind.',
+      '• Links in Briefen, deren Adresse ungewöhnliche Zeichen enthält – etwa ein Buchstabe aus einem fremden Alphabet, der wie ein bekannter aussieht –, zeigt die App jetzt in ihrer technischen Form und mit einem Warnhinweis. So fällt eine verkleidete Adresse sofort auf.',
+      'Für deine Briefe ändert sich sonst nichts: Alles bleibt lesbar, und deine Eulen fliegen wie gewohnt.',
+    ],
+  },
+  {
     version: '0.6.0',
     title: 'Großer Hausputz im Eulenturm: Version 0.6',
     paragraphs: [
@@ -174,6 +187,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.6.1',
+    title: 'New locks for the owl tower: version 0.6.1',
+    paragraphs: [
+      'This time the locksmiths came to visit. They rattled every door and window of the tower and tightened every lock that did not sit as firmly as it should:',
+      '• Anyone guessing passwords at the door now always has to sit out the prescribed waiting time – even when trying many guesses at once.',
+      '• Many neighbours signing in over the same internet connection are no longer mistaken for password guessers.',
+      '• After you sign out, the app now forgets the key bindings of your contacts at once. If someone else then signs in in the same window, they see nothing of it.',
+      '• When you open a conversation, the app checks again that the keys of the other person are still the same.',
+      '• Links in letters whose address contains unusual characters – such as a letter from another alphabet that looks like a familiar one – are now shown in their technical form, with a warning. A disguised address stands out at once.',
+      'Nothing else changes for your letters: everything stays readable, and your owls fly as usual.',
+    ],
+  },
   {
     version: '0.6.0',
     title: 'A big spring clean in the owl tower: version 0.6',

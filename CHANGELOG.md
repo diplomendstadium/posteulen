@@ -3,6 +3,65 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.6.1 – Neue Schlösser
+
+Wartungsversion ohne neue Funktionen: Sicherheitsprüfung mit Schwerpunkt auf Kryptografie, Schutz
+der Nutzer und Briefinhalte sowie Schutz des Servers vor Angriffen und Missbrauch. Jede gefundene
+Lücke ist geschlossen und hat einen eigenen Test (SPEC Anhang O).
+
+- **Passwort-Raten:** Mehrere gleichzeitige Anmeldeversuche mit derselben Captcha-Lösung kamen alle
+  durch, und die Wartezeit wurde erst danach gezählt. Jetzt gilt eine Lösung genau einmal, und die
+  Wartezeit wird nach der Captcha-Prüfung erneut geprüft.
+- **Zählertabellen:** Liefen die Fehlversuchs- und Rate-Limit-Tabellen im Arbeitsspeicher voll (z. B.
+  mit vielen IPv6-Präfixen), wurden sie komplett geleert – samt den Zählern eines angegriffenen Kontos.
+  Jetzt wird gezielt Platz gemacht. Der geheime Captcha-Zähler kommt aus dem sicheren Zufall statt aus
+  `Math.random`.
+- **Geteilte Adressen:** Erfolgreiche Anmeldungen zählten beim IP-Zähler als Fehlversuch (nach etwa
+  zehn Anmeldungen pro Tag bekam eine geteilte Adresse ein Captcha). Ein Erfolg nimmt jetzt seinen
+  eigenen Fehlversuch zurück.
+- **Serverfehler von außen:** Formal gültige, aber kryptografisch kaputte OPAQUE-Nachrichten und nicht
+  dekodierbare Base64-Längen führten zu einem 500-Fehler mit Eintrag im Fehlerprotokoll – auslösbar ohne
+  Konto. Jetzt `400` ohne Eintrag.
+- **Konten:** Registrierung und Passwortwechsel speichern nur Datensätze, mit denen eine Anmeldung möglich
+  ist, und nur gültige öffentliche Schlüssel. Ein abgelehnter Datensatz verbraucht das Wechsel-Token nicht.
+- **Sitzungen:** Ein Passwortwechsel beendet auch die Live-Verbindungen der alten Sitzungen. Abgelaufene
+  Sitzungen werden täglich gelöscht statt erst beim nächsten Login.
+- **Browser:** Nach dem Abmelden blieb der entschlüsselte Kontakt-Tresor im Arbeitsspeicher; meldete
+  sich danach ein anderes Konto im selben Tab an, nutzte es ihn weiter (z. B. „Sicherheitsnummer
+  verglichen“ des vorigen Kontos). Jetzt werden Tresor und Listen geleert und verspätete Antworten
+  verworfen.
+- **Schlüsselbindung:** Der Browser vergleicht die Schlüssel eines Kontakts jetzt auch beim Öffnen des
+  Briefwechsels (SPEC 5.7) und prüft bei jedem Brief zusätzlich den signierten Sendezeitpunkt und dass
+  der Brief zu diesem Briefwechsel gehört.
+- **Verkleidete Links:** Links mit Nicht-ASCII-Zeichen oder Zugangsdaten im Host erscheinen in Punycode
+  mit dem Hinweis „Ungewöhnliche Zeichen in der Adresse“.
+- **SSRF:** Sperrliste für Push-Endpunkte um IPv4-kompatible und -übersetzte IPv6-Adressen, `3fff::/20`
+  und `5f00::/16` ergänzt.
+- **Missbrauch:** Push-Abo und Test-Push höchstens 10-mal pro Stunde und Konto. Gleiche Meldungen im
+  Fehlerprotokoll werden innerhalb einer Stunde zusammengefasst (Zähler und letztes Auftreten im
+  Adminpanel).
+- **Signaturen:** `install.sh` und `posteulen-update` prüfen die Tag-Signatur jetzt immer (auch den im
+  Tag eingetragenen Namen); abschalten nur mit `--no-verify-tags`. `install.sh` zeigt den Fingerabdruck
+  des Signaturschlüssels. Der VM-Test signiert seine Test-Tags mit einem eigenen Schlüssel und prüft,
+  dass unsignierte und umbenannte Tags abgelehnt werden.
+- **Lokale Vorschau:** strengere Pfadprüfung im Vorschau-Server.
+- **Tests:** neue Unit-Tests (`backend/test/v061.test.ts`, `shared/test/links.test.ts`) und E2E-Tests
+  (`e2e/v061.spec.ts`); Zeitlimit je Unit-Test 20 s.
+- SPEC (Stand 0.6.1, Anhang O, Entscheidungen D-169 bis D-183), PROMPT, README, Hilfe und Erklärbär
+  de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration `0013_v061.sql`** (Schema 13): zwei neue Spalten im Fehlerprotokoll (`count`,
+  `last_at`). Läuft beim Update automatisch.
+- **Dieses Update einmal mit Signaturprüfung von Hand starten** – der Update-Befehl von 0.6.0 prüft
+  nur auf Wunsch: `sudo posteulen-update --verify-tags`. Ab 0.6.1 ist die Prüfung Standard; eigene,
+  unsignierte Stände brauchen künftig `--no-verify-tags`.
+- `install.sh` installiert zusätzlich `openssh-client` (für `ssh-keygen`, das die Signatur prüft; auf
+  Debian-Servern meist schon vorhanden).
+- Keine neuen Bilder, keine neuen npm-Pakete.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.6.1.
+
 ## v0.6.0 – Großer Hausputz
 
 Wartungsversion ohne neue Funktionen: Die App wurde gründlich gegen die Spezifikation geprüft, alle

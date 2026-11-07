@@ -1,6 +1,6 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 0.6.0 (2026-11-07). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> Stand: Version 0.6.1 (2026-11-08). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-07: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
@@ -79,10 +79,10 @@ Das Werkzeug kommt ohne npm-Abhängigkeiten aus (eigene Rasterung, Douglas–Peu
 | `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
 | `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |
 
-## Bekannte Funde (`npm audit`, 2026-11-07)
+## Bekannte Funde (`npm audit`, 2026-11-08)
 
 | Paket | Schwere | Advisory | Weg | Bewertung |
 |---|---|---|---|---|
 | `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | **Behoben:** per `overrides` auf 11.0.4 (`package.json`) |
 | `deepmerge` 4.3.1 | niedrig | GHSA-gcqx-w48m-w2h4 (Prototype Poisoning) | `@sveltejs/vite-plugin-svelte` (nur Build) | Keine korrigierte Version verfügbar; verarbeitet nur eigene Build-Konfiguration, keine fremden Eingaben |
-| `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge). Auf 1.1.1 wechseln, sobald veröffentlicht (Stand 2026-11-07: noch nicht) |
+| `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge); was die Bibliothek trotzdem nicht lesen kann (z. B. kein gültiger Punkt), ergibt seit v0.6.1 `400` statt `500` (`backend/src/auth/opaque-guard.ts`). Gemessen (D-178): 60 000 solche Aufrufe → etwa 20 MB mehr Speicher, die Instanz bleibt funktionsfähig. Auf 1.1.1 wechseln, sobald veröffentlicht (Stand 2026-11-08: neueste Version 1.1.0) |

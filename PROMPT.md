@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.6.0)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.6.1)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel und Skripte für Installation und Updates auf Debian 13.
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.6.0, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.6.1, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -92,7 +92,7 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
   git -C <Pfad zum Repository> tag -v v<Version>
   git -C <Pfad zum Repository> push origin v<Version>
   ```
-  dazu den Update-Befehl für den Server (`sudo posteulen-update`, optional mit `--verify-tags`).
+  dazu den Update-Befehl für den Server (`sudo posteulen-update`). Seit v0.6.1 prüft er die Tag-Signatur immer; nur ein Server, der noch eine Version vor 0.6.1 hat, braucht einmalig `--verify-tags`. Ein Tag ohne gültige Signatur wird weder installiert noch eingespielt – deshalb muss das Tag vor dem Update signiert und gepusht sein.
 
 ## Nicht verhandelbar
 
@@ -117,6 +117,9 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 - Lockfile mit fest gepinnten Versionen; neue Versionen erst ab 14 Tagen Alter (Sicherheitskorrekturen ausgenommen).
 - Keine TODOs oder FIXMEs ohne Eintrag in SPEC Anhang N.
 - Der Browser lädt nachweislich nichts von fremden Hosts, CSP und Sicherheits-Header sind vorhanden (automatisch geprüft, SPEC 17.4).
-- Jeder Stand lässt sich per Skript auf einem frischen Debian 13 installieren (Testmodus mit `tls internal`), ein zweiter Lauf überschreibt nichts, und er lässt sich vom Tag der vorigen Version aus ohne Datenverlust aktualisieren; ein absichtlich fehlschlagendes Update wird automatisch zurückgerollt, und `--rollback` funktioniert (SPEC 16, 17.6). Steht dir keine Debian-13-VM zur Verfügung, sag das im Bericht, statt den Test stillschweigend auszulassen.
+- Was ein Client absichtlich falsch schicken kann, beantwortet der Server mit einem `4xx`, nie mit einem `500` – unerwartete Fehler landen im Fehlerprotokoll, und das darf niemand von außen füllen können. Server-Aufrufe der OPAQUE-Bibliothek laufen über `backend/src/auth/opaque-guard.ts`; Tabellen im Arbeitsspeicher werden beim Überlauf nie ganz geleert (SPEC 5.10).
+- Zustand des angemeldeten Kontos, den der Browser im Arbeitsspeicher hält, meldet sich mit `onSignOut` (`web/src/lib/auth.svelte.ts`) zum Leeren an und prüft `accountGeneration()`, bevor er eine Serverantwort speichert (SPEC 5.5).
+- Wartungsversionen mit Schwerpunkt Sicherheit: jede gefundene Lücke bekommt einen Test, der ohne die Korrektur fehlschlägt (Gegenprobe), und einen Eintrag im Änderungsanhang der SPEC.
+- Jeder Stand lässt sich per Skript auf einem frischen Debian 13 installieren (Testmodus mit `tls internal`), ein zweiter Lauf überschreibt nichts, und er lässt sich vom Tag der vorigen Version aus ohne Datenverlust aktualisieren; ein absichtlich fehlschlagendes Update wird automatisch zurückgerollt, und `--rollback` funktioniert (SPEC 16, 17.6). Der VM-Test signiert seine Test-Tags mit einem eigenen Testschlüssel und prüft, dass unsignierte Tags abgelehnt werden; er testet nur den committeten Stand (HEAD). Steht dir keine Debian-13-VM zur Verfügung, sag das im Bericht, statt den Test stillschweigend auszulassen.
 - Die Eulenbilder liefere ich im Ordner `images/` (Dateinamen: SPEC Anhang B). Fehlen einzelne Bilder, verwende Platzhalter (der Build warnt, bricht aber nicht ab) und liste die fehlenden Dateien im Bericht auf. Logo und App-Icons sind einfache, austauschbare SVGs.
 - Das Repository liegt bei mir im Nextcloud-Ordner. Große erzeugte Ordner (`node_modules`, `dist`, `coverage`, `test-results`) sind in `.gitignore`; VM-Images liegen außerhalb des synchronisierten Ordners (z. B. `~/.cache/posteulen-vm`).

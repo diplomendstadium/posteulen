@@ -24,7 +24,8 @@ PostEulen bewegt sich bewusst im Grenzbereich zwischen Spiel und Messenger. Die 
 
 - Briefe zwischen Menschen werden **auf deinem Gerät** verschlüsselt (XChaCha20-Poly1305) und unterschrieben (Ed25519). Den Schlüssel bekommen nur Absender und Empfänger, verpackt nach dem Standard HPKE (RFC 9180).
 - Dein **Passwort verlässt nie dein Gerät.** Die Anmeldung läuft über OPAQUE (RFC 9807) – der Server kann dein Passwort weder sehen noch aus einer gestohlenen Datenbank erraten.
-- Eine **Sicherheitsnummer** zeigt euch, dass niemand dazwischensitzt.
+- Eine **Sicherheitsnummer** zeigt euch, dass niemand dazwischensitzt. Dein Gerät vergleicht die Schlüssel deiner Kontakte außerdem vor jedem Brief und beim Öffnen eines Briefwechsels und schlägt Alarm, wenn etwas nicht stimmt.
+- **Verkleidete Links fallen auf:** Sieht eine Adresse nur so aus wie eine bekannte – etwa mit einem kyrillischen „а“ statt „a“ –, zeigt PostEulen sie in ihrer technischen Form und mit einem Warnhinweis.
 - Keine Werbung, kein Tracking, keine gespeicherten IP-Adressen, keine Inhalte von fremden Servern.
 
 PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nicht auf Minuten ankommt. Was es nicht verbergen kann: *wer* wem *wann* schreibt. Und wer dein entsperrtes Handy in der Hand hält, kann natürlich mitlesen. Das liegt nicht an der Eule.
@@ -76,7 +77,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.6.0**.
+Stand: **Version 0.6.1**.
 
 **Kurzfassung**
 
@@ -131,6 +132,8 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    | `/etc/posteulen` | Konfiguration und Geheimnis-Datei |
    | `/etc/posteulen/local` | eigene Anpassungen (werden nie überschrieben) |
 
+   Vor dem Bauen prüft es die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
+
    Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an und schreibt die Caddyfile, den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
 5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren.
 6. Am Ende zeigt es eine Zusammenfassung und einen großen Hinweis zur Sicherung.
@@ -153,7 +156,7 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das Admin-Erstpasswort. Damit unter `https://admin.posteulen.de` anmelden.
 - Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes.
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
-- Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage lang.
+- Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
@@ -238,7 +241,16 @@ Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal 
 
 Außerdem bekommt jedes Konto alle fünf Wochen nach der Registrierung eine freundliche Bitte um eine freiwillige Spende an das Projekt ([ko-fi.com/posteulen](https://ko-fi.com/posteulen)), drei Texte reihum. Das gehört zum Projekt und ist auf jeder Instanz gleich.
 
-Optional prüft `--verify-tags` die Signatur der Version gegen die Schlüssel in `deploy/allowed_signers` (Versionen werden vom Projektverantwortlichen signiert).
+**Signaturprüfung:** Jede Version ist ein vom Projektverantwortlichen signiertes Git-Tag. Seit Version 0.6.1 prüfen `install.sh` und `posteulen-update` diese Signatur **immer** gegen die Schlüssel in `deploy/allowed_signers` (beim Update die Datei der installierten Version) und auch, dass der im Tag eingetragene Name stimmt. Ist die Signatur ungültig oder fehlt sie, bricht das Skript ab, bevor irgendetwas gebaut wird. Der Fingerabdruck des Schlüssels für die offiziellen Versionen lautet:
+
+```text
+SHA256:DVR9kntFOoln4Oiqhwn13rEa/wpVDo5gvbV4C6uR900
+```
+
+Nur für eigene, bewusst unsignierte Stände (z. B. ein Fork mit eigenen Tags) lässt sich die Prüfung mit `--no-verify-tags` abschalten; wer selbst signiert, trägt stattdessen den eigenen öffentlichen Schlüssel in `deploy/allowed_signers` ein.
+
+> [!NOTE]
+> Das Update **von 0.6.0 auf 0.6.1** läuft noch mit dem Update-Befehl von 0.6.0, der die Signatur nur auf Wunsch prüft. Deshalb dieses eine Mal: `sudo posteulen-update --verify-tags`. Ab 0.6.1 ist die Prüfung Standard.
 
 Wenn ein Update schiefgeht: Das Skript kehrt automatisch zur vorherigen Version zurück und spielt die unmittelbar davor gemachte Momentaufnahme der Datenbank ein. Es erklärt, was passiert ist. Den Fehler bitte mit der Ausgabe von `journalctl -u posteulen -n 100` melden.
 

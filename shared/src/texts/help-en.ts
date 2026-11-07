@@ -13,6 +13,7 @@ import {
   MAP,
   MENAGERIE,
   OWL,
+  SECURITY,
 } from '../constants.ts';
 import { formatGold } from '../game/gold.ts';
 import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
@@ -77,7 +78,7 @@ const SECTIONS: readonly HelpSection[] = [
       `Your password has at least ${ACCOUNT.PASSWORD_MIN_CHARS} characters. A sentence you can remember easily is ideal. The password never leaves your device and is not stored anywhere on the server. So remember: if you forget it, all your data is lost for good. Nobody can reset it, not even the admin.`,
       'When creating your account you set a fictional home on the map with a pin – please not your real address. That is where your owls live and where they take off from.',
       'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
-      `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device; the next time you sign in it fetches them back from the server, encrypted.`,
+      `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device and also forgets everything it remembered about your contacts – if someone else then signs in in the same window, they see nothing of it. The next time you sign in, PostEulen fetches your keys back from the server, encrypted.`,
     ],
   },
   {
@@ -123,7 +124,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Letters between people are encrypted and signed on your device. The server only sees gibberish. But it does see who writes to whom and when, how large the parchment is and whether a letter has been read.',
       'Each contact shares a safety number of 60 digits with you. Compare it outside the app, for example when you meet or on the phone. If it matches, mark it as compared in the address book. Then you know for sure that nobody is sitting in between.',
-      'If your device notices that a contact’s keys have changed, it warns you clearly and blocks sending to them. That should never happen, because keys never change in PostEulen. Sort it out outside the app; then remove each other and pair again.',
+      'Your device compares your contacts’ keys before every letter and when you open a conversation. If it notices that a contact’s keys have changed, it warns you clearly and blocks sending to them. That should never happen, because keys never change in PostEulen. Sort it out outside the app; then remove each other and pair again.',
       'If a letter cannot be verified, PostEulen shows “Authenticity cannot be verified” instead of its content.',
       'Limits: anyone holding your unlocked device can read your letters. Letters to bots and system messages are not encrypted.',
     ],
@@ -141,6 +142,7 @@ const SECTIONS: readonly HelpSection[] = [
       `No owl at home? Then the owl choice offers you the loan owls of the day right away. They are only borrowed and paid for (${gold(GOLD.LOAN_PRICE)}) when you really send – your letter stays as it is.`,
       'With several recipients, the owl flies from one to the next. Everyone only sees their own letter and can only reply to you. This works with your own owls and with loan owls; a loan owl vanishes after the last recipient. Bots are never among several recipients.',
       'Letters are plain text. Parchment knows no smileys and emojis – they are removed. Links starting with http:// or https:// can be clicked and open in the browser; check the address shown before you tap.',
+      `Beware of disguised addresses: some letters from other alphabets look just like ours (a Cyrillic “а” looks like an “a”). If the address of a link contains such characters, or a name with “@” in front of the actual address, PostEulen shows it in its technical form, such as “xn--pypal-4ve.com” instead of “pаypal.com”, and writes next to it: “${en.letters.linkWarning}” That way you see where the link really leads. Genuine addresses with accented letters (such as café.fr) look like that too.`,
       [
         '“Owl on its way – arrives around …”: the letter is on its way.',
         '“delivered”: the owl has arrived.',
@@ -321,7 +323,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Notifications are the small notes that pop up at the top of your phone screen. PostEulen can use them to let you know when an owl lands with a letter, one of your owls comes home, gold arrives, a gift turns up, eggs are laid, chicks hatch, automatic deletion is near or the admin writes to everyone. Notifications never contain names or content – anyone looking over your shoulder learns nothing.',
       'It works best if you have put PostEulen on your home screen (see “Getting PostEulen onto your phone”): on Android with Chrome and on the iPhone with Safari. In a normal browser or as a bookmark there are no notifications – your post reaches you anyway, you see it the next time you look in. A real letterbox does not ring either.',
-      'You can set them up in the settings under “Notifications”. Tap “Set up notifications” and allow them when your phone asks. PostEulen then sends a test message straight away. If it arrives, it says “active and confirmed”. With “Send a test notification” you can repeat that at any time.',
+      `You can set them up in the settings under “Notifications”. Tap “Set up notifications” and allow them when your phone asks. PostEulen then sends a test message straight away. If it arrives, it says “active and confirmed”. With “Send a test notification” you can repeat that – together with setting up, up to ${SECURITY.PUSH_CHANGES_PER_HOUR} times an hour.`,
       'By the way, PostEulen never asks for new letters in the background – that saves your battery. The message comes from the server as soon as something happens.',
       'Notifications are shown in the language of your account.',
       en.push.iosHint,
@@ -344,7 +346,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Language: German or English, for this account on every device.',
         'Notifications: see the status and test them.',
         `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
-        'Sign out: removes all keys from this device.',
+        'Sign out: removes all keys from this device, and PostEulen forgets everything about your account that it remembered in this window.',
       ],
     ],
   },

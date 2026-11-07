@@ -2,7 +2,16 @@
  * System prompts of the bots (SPEC 10.5), collected in one file. The requests to OpenAI contain
  * no user IDs, names or other identifiers – only these prompts, the summary and letter texts.
  */
-import { ACCOUNT, BOTS, DONATION, GOLD, LETTER, MAP, OWL } from '@posteulen/shared/constants.ts';
+import {
+  ACCOUNT,
+  BOTS,
+  DONATION,
+  GOLD,
+  LETTER,
+  MAP,
+  OWL,
+  SECURITY,
+} from '@posteulen/shared/constants.ts';
 import type { Language } from '@posteulen/shared/i18n.ts';
 import { helpAsText } from '@posteulen/shared/texts/help.ts';
 
@@ -37,7 +46,8 @@ Regeln, die immer gelten:
 const RULES = `Regelübersicht:
 - Konto: Name 3–20 Zeichen, einmal pro Jahr änderbar. Passwort mindestens 15 Zeichen; geht es verloren, sind alle Daten weg (niemand kann es zurücksetzen). Fiktiver Wohnort auf der Karte, bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat änderbar.
 - Kontakte: Beide tragen sich im Adressbuch mit dem genauen Namen ein. Briefe zwischen Menschen sind Ende-zu-Ende-verschlüsselt; die Sicherheitsnummer zeigt, ob die Schlüssel stimmen. Briefe an Bots sind nicht verschlüsselt.
-- Sicherheit: PostEulen ist Spiel und Messenger zugleich; die Verschlüsselung ist ernst gemeint (XChaCha20-Poly1305, Ed25519, HPKE, Anmeldung per OPAQUE) und eignet sich auch für vertrauliche Briefe. Nur Metadaten sieht der Server.
+- Sicherheit: PostEulen ist Spiel und Messenger zugleich; die Verschlüsselung ist ernst gemeint (XChaCha20-Poly1305, Ed25519, HPKE, Anmeldung per OPAQUE) und eignet sich auch für vertrauliche Briefe. Nur Metadaten sieht der Server. Das Gerät vergleicht die Schlüssel eines Kontakts vor jedem Brief und beim Öffnen des Briefwechsels; bei einer Abweichung warnt es und sperrt den Versand. Beim Abmelden vergisst die App alles über das Konto, auch im selben Fenster. Wer oft falsche Passwörter probiert, muss warten und ein Rechenrätsel lösen lassen.
+- Links in Briefen (seit v0.6.1): Enthält eine Adresse Buchstaben aus fremden Alphabeten, die wie unsere aussehen, oder einen Namen mit „@“ vor der eigentlichen Adresse, zeigt die App die technische Form (z. B. „xn--…“) mit dem Hinweis „Ungewöhnliche Zeichen in der Adresse“. Dann genau prüfen, wohin der Link führt; das betrifft auch echte Adressen mit Umlauten. Test-Benachrichtigungen gehen bis zu ${SECURITY.PUSH_CHANGES_PER_HOUR}-mal pro Stunde.
 - Briefe: kleines Pergament bis ${LETTER.SMALL_MAX_CHARS} Zeichen (kostenlos), großes bis ${LETTER.LARGE_MAX_CHARS} Zeichen (0,1 Gold). Eine eigene Eule oder eine Leiheule kann bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander anfliegen; die App sortiert sie für den kürzesten Weg vor, die Reihenfolge bleibt änderbar. Ist keine eigene Eule da, bietet die Eulenwahl die Leiheulen des Tages an; geliehen wird erst beim Abschicken.
 - Löschung: Alle Briefe und Systemnachrichten werden spätestens ${LETTER.RETENTION_MAX_DAYS} Tage nach der Zustellung unwiderruflich gelöscht. In den Einstellungen kann man die eigenen Kopien schon nach 30, 90 oder 180 Tagen löschen lassen.
 - Eulenflug: 25 km/h mal Artfaktor. Energie: nachts 1, tagsüber 1,5 pro km. Leer: Schlaf an Land (über Wasser erst an der Küste), dabei 10 % Erholung pro Stunde mal Erholungsfaktor wie zu Hause – aber nur so lange, bis die Energie bis zum nächsten Ziel (nächster Empfänger oder Zuhause) reicht, höchstens bis sie voll ist.

@@ -18,6 +18,7 @@ import {
   MAP,
   MENAGERIE,
   OWL,
+  SECURITY,
 } from '../constants.ts';
 import { formatGold } from '../game/gold.ts';
 import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
@@ -96,7 +97,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Dein Passwort hat mindestens ${ACCOUNT.PASSWORD_MIN_CHARS} Zeichen. Ein Satz, den du dir gut merken kannst, ist ideal. Das Passwort verlässt nie dein Gerät und liegt nirgends auf dem Server. Deshalb gilt: Wenn du es vergisst, sind alle deine Daten unwiderruflich verloren. Niemand kann es zurücksetzen, auch der Admin nicht.`,
       'Beim Erstellen setzt du einen fiktiven Wohnort per Pin auf die Karte – bitte nicht deine echte Adresse. Dort wohnen deine Eulen; von dort fliegen sie los.',
       'Du kannst immer nur auf einem Gerät angemeldet sein. Meldest du dich auf einem anderen Gerät an, endet die Sitzung auf dem alten. Nach mehrfach falschem Passwort musst du etwas warten und ein kleines Rechenrätsel lösen lassen (das macht dein Gerät automatisch).',
-      `Ohne Nutzung endet die Anmeldung nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen. Beim Abmelden löscht PostEulen alle Schlüssel von deinem Gerät; beim nächsten Anmelden holt es sie verschlüsselt vom Server zurück.`,
+      `Ohne Nutzung endet die Anmeldung nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen. Beim Abmelden löscht PostEulen alle Schlüssel von deinem Gerät und vergisst auch alles, was es sich über deine Kontakte gemerkt hat – meldet sich danach jemand anderes im selben Fenster an, sieht er nichts davon. Beim nächsten Anmelden holt PostEulen deine Schlüssel verschlüsselt vom Server zurück.`,
     ],
   },
   {
@@ -142,7 +143,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Briefe zwischen Menschen werden auf deinem Gerät verschlüsselt und unterschrieben. Der Server sieht nur Kauderwelsch. Er sieht aber, wer wem wann schreibt, wie groß das Pergament ist und ob ein Brief gelesen wurde.',
       'Jeder Kontakt hat mit dir eine gemeinsame Sicherheitsnummer aus 60 Ziffern. Vergleicht sie außerhalb der App, etwa beim Treffen oder am Telefon. Stimmt sie überein, markiere sie im Adressbuch als verglichen. So weißt du sicher, dass niemand dazwischensitzt.',
-      'Bemerkt dein Gerät, dass sich die Schlüssel eines Kontakts geändert haben, warnt es deutlich und sperrt den Versand an ihn. Das sollte nie passieren, denn Schlüssel ändern sich in PostEulen nie. Klärt es außerhalb der App; danach entfernt ihr euch und koppelt euch neu.',
+      'Dein Gerät vergleicht die Schlüssel deiner Kontakte vor jedem Brief und beim Öffnen eines Briefwechsels. Bemerkt es, dass sich die Schlüssel eines Kontakts geändert haben, warnt es deutlich und sperrt den Versand an ihn. Das sollte nie passieren, denn Schlüssel ändern sich in PostEulen nie. Klärt es außerhalb der App; danach entfernt ihr euch und koppelt euch neu.',
       'Kann ein Brief nicht geprüft werden, zeigt PostEulen statt des Inhalts „Echtheit nicht prüfbar“.',
       'Grenzen: Wer dein entsperrtes Gerät in der Hand hat, kann deine Briefe lesen. Briefe an Bots und Systemnachrichten sind nicht verschlüsselt.',
     ],
@@ -160,6 +161,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Keine Eule zu Hause? Dann bietet dir die Eulenwahl direkt die Leiheulen des Tages an. Geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
       'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Das geht mit eigenen Eulen und mit Leiheulen; eine Leiheule verschwindet nach dem letzten Empfänger. Bots sind nie bei mehreren Empfängern dabei.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst.',
+      `Vorsicht vor verkleideten Adressen: Manche Buchstaben aus fremden Alphabeten sehen aus wie unsere (ein kyrillisches „а“ wie ein „a“). Enthält die Adresse eines Links solche Zeichen oder einen Namen mit „@“ vor der eigentlichen Adresse, zeigt PostEulen sie in ihrer technischen Form, etwa „xn--pypal-4ve.com“ statt „pаypal.com“, und schreibt daneben: „${de.letters.linkWarning}“ So siehst du, wohin der Link wirklich führt. Auch echte Adressen mit Umlauten (z. B. müller.de) sehen dann so aus.`,
       [
         '„Eule unterwegs – Ankunft ca. …“: der Brief ist auf dem Weg.',
         '„zugestellt“: die Eule ist angekommen.',
@@ -339,7 +341,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Benachrichtigungen sind die kleinen Hinweise, die oben auf dem Handy-Bildschirm auftauchen. PostEulen kann dir so Bescheid sagen, wenn eine Eule mit einem Brief landet, eine deiner Eulen heimkommt, Gold ankommt, ein Geschenk eintrifft, Eier gelegt werden, Küken schlüpfen, die automatische Löschung droht oder der Admin allen schreibt. Benachrichtigungen enthalten nie Namen oder Inhalte – wer dir über die Schulter schaut, erfährt nichts.',
       'Am besten klappt das, wenn du PostEulen auf den Startbildschirm gelegt hast (siehe „PostEulen aufs Handy holen“): auf Android mit Chrome und auf dem iPhone mit Safari. Im normalen Browser oder als Lesezeichen kommen keine Benachrichtigungen – deine Post erreicht dich trotzdem, du siehst sie beim nächsten Hineinschauen. Ein echter Briefkasten klingelt ja auch nicht.',
-      'Einrichten kannst du sie in den Einstellungen unter „Benachrichtigungen“. Tippe auf „Benachrichtigungen einrichten“ und erlaube sie, wenn dein Handy fragt. PostEulen schickt dann sofort eine Probe-Nachricht. Kommt sie an, steht dort „aktiv und bestätigt“. Mit „Test-Benachrichtigung senden“ kannst du das jederzeit wiederholen.',
+      `Einrichten kannst du sie in den Einstellungen unter „Benachrichtigungen“. Tippe auf „Benachrichtigungen einrichten“ und erlaube sie, wenn dein Handy fragt. PostEulen schickt dann sofort eine Probe-Nachricht. Kommt sie an, steht dort „aktiv und bestätigt“. Mit „Test-Benachrichtigung senden“ kannst du das wiederholen – zusammen mit dem Einrichten bis zu ${SECURITY.PUSH_CHANGES_PER_HOUR}-mal pro Stunde.`,
       'PostEulen fragt übrigens nie im Hintergrund nach neuen Briefen – das schont den Akku. Die Nachricht kommt vom Server, sobald etwas passiert.',
       de.push.iosHint,
       `Für Fortgeschrittene – ${de.push.degoogledTitle}:`,
@@ -361,7 +363,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
-        'Abmelden: entfernt alle Schlüssel von diesem Gerät.',
+        'Abmelden: entfernt alle Schlüssel von diesem Gerät, und PostEulen vergisst alles über dein Konto, was es sich in diesem Fenster gemerkt hat.',
       ],
     ],
   },

@@ -56,6 +56,8 @@ Füge Freunde im Adressbuch hinzu, indem ihr euch gegenseitig mit dem genauen Na
 
 Deine Briefe an Menschen sind Ende-zu-Ende-verschlüsselt: Nur ihr beide könnt sie lesen. Das ist kein Spiel, sondern echte, moderne Kryptografie – PostEulen taugt also auch für Vertrauliches. Vergleicht am besten einmal die Sicherheitsnummer, zum Beispiel beim nächsten Treffen.
 
+Steht neben einem Link „Ungewöhnliche Zeichen in der Adresse“, schau genau hin: Manche Buchstaben aus fremden Alphabeten sehen aus wie unsere.
+
 Briefe an Bots wie mich sind übrigens nicht verschlüsselt. Und denk daran: Nach spätestens einem Jahr verschwinden alle Briefe von selbst.
 
 Dein Erklärbär`,

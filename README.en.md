@@ -26,7 +26,8 @@ PostEulen deliberately sits on the border between game and messenger. The owls a
 
 - Letters between people are encrypted **on your device** (XChaCha20-Poly1305) and signed (Ed25519). Only sender and recipient get the key, wrapped according to the HPKE standard (RFC 9180).
 - Your **password never leaves your device.** Signing in uses OPAQUE (RFC 9807) – the server can neither see your password nor guess it from a stolen database.
-- A **safety number** shows you that nobody is sitting in between.
+- A **safety number** shows you that nobody is sitting in between. Your device also compares your contacts’ keys before every letter and when you open a conversation, and raises the alarm if something is wrong.
+- **Disguised links stand out:** if an address only looks like a familiar one – say, with a Cyrillic “а” instead of an “a” – PostEulen shows it in its technical form, with a warning.
 - No adverts, no tracking, no stored IP addresses, no content from other servers.
 
 So PostEulen is quite suitable as a secure way of communicating – as long as minutes do not matter. What it cannot hide: *who* writes to *whom* and *when*. And anyone holding your unlocked phone can of course read along. That is not the owl’s fault.
@@ -80,7 +81,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.6.0**.
+Version: **0.6.1**.
 
 **In short**
 
@@ -135,6 +136,8 @@ The script only asks what is necessary. All questions can also be answered with 
    | `/etc/posteulen` | configuration and secrets file |
    | `/etc/posteulen/local` | your own adjustments (never overwritten) |
 
+   Before building, it checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
+
    Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database and writes the Caddyfile, the hardened systemd service `posteulen` and the backup timer.
 5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work.
 6. At the end it shows a summary and a big note about backups.
@@ -157,7 +160,7 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - At the end of the installation (or of the update that added the admin panel) the initial admin password is shown once. Use it to sign in at `https://admin.posteulen.de`.
 - At the first login it must be changed (at least 15 characters); nothing else is possible before that.
 - Choose the registration mode: “geschlossen” (closed, default), “nur mit Einladungscode” (invitation code only) or “offen für alle” (open to everyone). Invitation codes are valid for 48 hours, can be used once and are only shown when created.
-- The error log shows understandable entries (without personal data) for 30 days.
+- The error log shows understandable entries (without personal data) for 30 days after they last occurred. If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
 - Statistics: accounts created, existing and active, and letters (daily counters only).
 - Deletion period for inactivity: default 180 days, at least 60. Those affected are warned 30 days before; even shortening the period deletes nobody without this warning.
 - Message to everyone: appears in the system chat of all accounts, with a notification.
@@ -242,7 +245,16 @@ After the first start of a new version, every existing account gets one system m
 
 In addition, every account gets a friendly request for a voluntary donation to the project ([ko-fi.com/posteulen](https://ko-fi.com/posteulen)) every five weeks after registration, three texts in turn. This is part of the project and the same on every instance.
 
-Optionally, `--verify-tags` checks the signature of the version against the keys in `deploy/allowed_signers` (versions are signed by the project maintainer).
+**Signature check:** every version is a Git tag signed by the project maintainer. Since version 0.6.1, `install.sh` and `posteulen-update` **always** check this signature against the keys in `deploy/allowed_signers` (for an update, the file of the installed version), and also that the name recorded in the tag is right. If the signature is invalid or missing, the script stops before anything is built. The fingerprint of the key for the official versions is:
+
+```text
+SHA256:DVR9kntFOoln4Oiqhwn13rEa/wpVDo5gvbV4C6uR900
+```
+
+Only for your own, deliberately unsigned builds (e.g. a fork with its own tags) can the check be switched off with `--no-verify-tags`; if you sign yourself, put your own public key into `deploy/allowed_signers` instead.
+
+> [!NOTE]
+> The update **from 0.6.0 to 0.6.1** still runs with the update command of 0.6.0, which checks the signature only on request. So this one time: `sudo posteulen-update --verify-tags`. From 0.6.1 on, the check is the default.
 
 If an update goes wrong: the script automatically goes back to the previous version and restores the database snapshot taken just before. It explains what happened. Please report the error with the output of `journalctl -u posteulen -n 100`.
 

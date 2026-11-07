@@ -18,7 +18,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
       [
         'Account: user name, fictional home (rounded to about 1 km), day of registration, day of your last activity (only the day, no time, no history) and the language of the app you have chosen.',
         'Sign-in: an OPAQUE record. Your password cannot be derived from it; the password itself never leaves your device.',
-        'Session: a check value of your session cookie and the time it was last used.',
+        `Session: a check value of your session cookie and the time it was last used; deleted after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days without use.`,
         'Keys: your public keys readably, your private keys and your contact vault only encrypted. Only your device knows the key for them while you are signed in.',
         'Contacts: who is connected with whom, open contact requests (at most 24 hours) and key warnings.',
         'Letters between people: only encrypted. The server can read sender, recipient, times, parchment size, delivery and read status (only yes/no).',

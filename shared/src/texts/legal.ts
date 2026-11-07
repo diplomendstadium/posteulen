@@ -24,7 +24,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
       [
         'Konto: Nutzername, fiktiver Wohnort (auf etwa 1 km gerundet), Tag der Registrierung, Tag deiner letzten Aktivität (nur der Tag, keine Uhrzeit, kein Verlauf) und die gewählte Sprache der App.',
         'Anmeldung: ein OPAQUE-Datensatz. Aus ihm lässt sich dein Passwort nicht ermitteln; das Passwort selbst verlässt nie dein Gerät.',
-        'Sitzung: ein Prüfwert deines Sitzungs-Cookies und der Zeitpunkt der letzten Nutzung.',
+        `Sitzung: ein Prüfwert deines Sitzungs-Cookies und der Zeitpunkt der letzten Nutzung; nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen ohne Nutzung gelöscht.`,
         'Schlüssel: deine öffentlichen Schlüssel lesbar, deine privaten Schlüssel und dein Kontakt-Tresor nur verschlüsselt. Den Schlüssel dafür kennt nur dein Gerät, während du angemeldet bist.',
         'Kontakte: wer mit wem verbunden ist, offene Kontaktanfragen (höchstens 24 Stunden) und Schlüsselwarnungen.',
         'Briefe zwischen Menschen: nur verschlüsselt. Lesbar für den Server sind Absender, Empfänger, Zeitpunkte, Pergamentgröße, Zustell- und Lesestatus (nur ja/nein).',

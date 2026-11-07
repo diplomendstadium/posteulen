@@ -54,6 +54,8 @@ Add friends in the address book: you both enter each other's exact name. Only th
 
 Your letters to people are end-to-end encrypted: only the two of you can read them. That is no game but real, modern cryptography – so PostEulen is fine for confidential things too. Ideally, compare your safety number once, for example the next time you meet.
 
+If a link says “Unusual characters in the address” next to it, look closely: some letters from other alphabets look just like ours.
+
 By the way, letters to bots like me are not encrypted. And remember: after one year at the latest, all letters vanish by themselves.
 
 Your Explainer Bear`,
