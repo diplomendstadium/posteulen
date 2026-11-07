@@ -175,6 +175,10 @@ export const SECURITY = {
   /** Letters to bots: plain text, one recipient. */
   MAX_BOT_LETTER_REQUEST_BYTES: 128 * 1024,
   PUSH_VERIFY_SECONDS: 60,
+  /** Push subscription changes and test pushes per account and hour (v0.6.1). */
+  PUSH_CHANGES_PER_HOUR: 10,
+  /** Identical error log entries within this time count up one entry (v0.6.1). */
+  ERROR_LOG_MERGE_MINUTES: 60,
 } as const;
 
 export const BOTS = {

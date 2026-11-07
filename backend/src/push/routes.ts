@@ -11,6 +11,16 @@ import { checkEndpointUrl, EndpointError } from './transport.ts';
 export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
 
+  /**
+   * v0.6.1: every test push to an endpoint that keeps failing costs the server a connection
+   * and an error report – so per account at most SECURITY.PUSH_CHANGES_PER_HOUR an hour.
+   */
+  const pushLimit = (userId: string): void => {
+    const wait = ctx.limits.push.hit(userId, ctx.now());
+    if (wait > 0)
+      throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
+  };
+
   app.get('/api/push/key', { preHandler: authenticated }, async () => ({
     publicKey: ctx.secrets.vapid.publicKey,
   }));
@@ -19,6 +29,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
   app.put('/api/push/subscription', { preHandler: authenticated }, async (request) => {
     if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
+    pushLimit(userOf(request).id);
     const body = parse(PushSubscriptionInput, request.body);
     try {
       checkEndpointUrl(body.endpoint);
@@ -60,6 +71,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
     if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const me = userOf(request).id;
+    pushLimit(me);
     if (!ctx.db.get('SELECT 1 FROM push_subscriptions WHERE user_id = ?', me))
       throw new HttpError(400, 'push_not_subscribed');
     const after: (() => void)[] = [];

@@ -6,6 +6,7 @@ import { getRandomValues } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
+import { SECURITY } from '@posteulen/shared/constants.ts';
 import { MASK_BYTES } from '@posteulen/shared/map/landmask.ts';
 import type { Config } from './config.ts';
 import type { Database } from './db/database.ts';
@@ -65,6 +66,8 @@ export interface Context {
     readonly registration: RateLimiter;
     readonly session: RateLimiter;
     readonly admin: RateLimiter;
+    /** Push subscription changes and tests per account (v0.6.1). */
+    readonly push: RateLimiter;
   };
   readonly attempts: Ephemeral<LoginAttempt>;
   readonly reservations: Ephemeral<Reservation>;
@@ -165,6 +168,7 @@ export async function createContext(
           registration: new RateLimiter(100_000, HOUR),
           session: new RateLimiter(100_000, MINUTE),
           admin: new RateLimiter(100_000, MINUTE),
+          push: new RateLimiter(100_000, HOUR),
         }
       : {
           general: new RateLimiter(600, MINUTE),
@@ -172,6 +176,7 @@ export async function createContext(
           registration: new RateLimiter(5, HOUR),
           session: new RateLimiter(300, MINUTE),
           admin: new RateLimiter(120, MINUTE),
+          push: new RateLimiter(SECURITY.PUSH_CHANGES_PER_HOUR, HOUR),
         },
     attempts: new Ephemeral(),
     reservations: new Ephemeral(),

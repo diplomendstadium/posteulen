@@ -3,7 +3,7 @@
  * 24-hour grace period, final deletion, inactivity warnings and automatic deletion, and the
  * daily clean-up.
  */
-import { ACCOUNT, OPERATIONS, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { pruneCareHistory } from '../owls/care.ts';
 import { purgeOldLetters } from '../letters/retention.ts';
 import type { Context } from '../context.ts';
@@ -18,6 +18,7 @@ import {
   type FlightRow,
 } from '../flights/service.ts';
 import { getInactivityDays } from '../admin/settings.ts';
+import { pruneErrorLog } from '../ops/error-log.ts';
 
 type After = (work: () => void) => void;
 
@@ -162,12 +163,18 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   for (const user of toDelete) beginFinalDeletion(ctx, user.id, at, after);
 
   ctx.db.run('DELETE FROM invite_codes WHERE expires_at <= ?', at);
+  // v0.6.1: expired sessions go, too – before, they stayed until the next login of the account.
+  ctx.db.run(
+    'DELETE FROM sessions WHERE last_used_at < ?',
+    at - ACCOUNT.USER_SESSION_IDLE_DAYS * TIME.DAY,
+  );
+  ctx.db.run(
+    'DELETE FROM admin_sessions WHERE last_used_at < ?',
+    at - ACCOUNT.ADMIN_SESSION_IDLE_HOURS * TIME.HOUR,
+  );
   ctx.db.run('DELETE FROM name_locks WHERE expires_on < ?', day);
   ctx.db.run('DELETE FROM contact_requests WHERE expires_at <= ?', at);
-  ctx.db.run(
-    'DELETE FROM error_log WHERE at < ?',
-    at - OPERATIONS.ERROR_LOG_RETENTION_DAYS * TIME.DAY,
-  );
+  pruneErrorLog(ctx.db, at);
   // Unconfirmed notifications are kept for "Neuigkeiten", but not forever.
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
   pruneCareHistory(ctx, at);

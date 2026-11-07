@@ -207,6 +207,7 @@ export const en: Texts = {
     unreadable: 'not readable – the letter could not be decrypted by the recipient',
     invalid: 'Authenticity cannot be verified',
     invalidLong: 'This letter could not be confirmed as genuine and is therefore not shown.',
+    linkWarning: 'Unusual characters in the address – check carefully where the link leads.',
     compose: 'Write a new letter',
     parchment: 'Parchment',
     smallOption: 'Small – up to 800 characters, free',

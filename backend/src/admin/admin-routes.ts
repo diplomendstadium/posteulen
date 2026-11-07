@@ -19,6 +19,7 @@ import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, randomToken, sha256 } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { loginThrottle } from '../auth/user-routes.ts';
+import { checkRegistrationRecord, opaqueStep } from '../auth/opaque-guard.ts';
 import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
 import { createInvite, getRegistrationMode, listInvites, setRegistrationMode } from './settings.ts';
 import { registerAdminOperations } from './operations.ts';
@@ -99,14 +100,16 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     if (throttle) return throttle as LoginStartResponse;
     const now = ctx.now();
     const admin = adminRecord();
-    const { serverLoginState, loginResponse } = opaque.server.startLogin({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: admin.credential_id,
-      registrationRecord: admin.opaque_record,
-      startLoginRequest: body.startLoginRequest,
-    });
     ctx.guards.admin.fail(ADMIN_KEY, now);
     ctx.guards.ips.fail(ip, now);
+    const { serverLoginState, loginResponse } = opaqueStep(() =>
+      opaque.server.startLogin({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: admin.credential_id,
+        registrationRecord: admin.opaque_record,
+        startLoginRequest: body.startLoginRequest,
+      }),
+    );
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
@@ -131,6 +134,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
       throw new HttpError(401, 'login_failed');
     }
     ctx.guards.admin.reset(ADMIN_KEY);
+    ctx.guards.ips.succeed(attempt.ipKey);
     const token = randomToken();
     ctx.db.transaction(() => {
       ctx.db.run(
@@ -186,13 +190,15 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     const wait = ctx.guards.admin.waitMs(ADMIN_KEY, now);
     if (wait > 0) return { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) };
     const admin = adminRecord();
-    const { serverLoginState, loginResponse } = opaque.server.startLogin({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: admin.credential_id,
-      registrationRecord: admin.opaque_record,
-      startLoginRequest: body.startLoginRequest,
-    });
     ctx.guards.admin.fail(ADMIN_KEY, now);
+    const { serverLoginState, loginResponse } = opaqueStep(() =>
+      opaque.server.startLogin({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: admin.credential_id,
+        registrationRecord: admin.opaque_record,
+        startLoginRequest: body.startLoginRequest,
+      }),
+    );
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
@@ -231,19 +237,28 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(AdminPasswordStart, request.body);
     const token = ctx.reauthTokens.get(body.token, ctx.now());
     if (token?.subject !== ADMIN_KEY) throw new HttpError(403, 'reauth_required');
-    const { registrationResponse } = opaque.server.createRegistrationResponse({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: adminRecord().credential_id,
-      registrationRequest: body.registrationRequest,
-    });
+    const { registrationResponse } = opaqueStep(() =>
+      opaque.server.createRegistrationResponse({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: adminRecord().credential_id,
+        registrationRequest: body.registrationRequest,
+      }),
+    );
     return { registrationResponse };
   });
 
   app.post('/api/password/finish', { preHandler: authenticated }, async (request, reply) => {
     const body = parse(AdminPasswordFinish, request.body);
     const now = ctx.now();
-    const token = ctx.reauthTokens.take(body.token, now);
+    const token = ctx.reauthTokens.get(body.token, now);
     if (token?.subject !== ADMIN_KEY) throw new HttpError(403, 'reauth_required');
+    // v0.6.1: a record the server cannot use would lock the admin out.
+    checkRegistrationRecord(
+      ctx.secrets.opaqueServerSetup,
+      adminRecord().credential_id,
+      body.registrationRecord,
+    );
+    ctx.reauthTokens.delete(body.token);
     const session = randomToken();
     ctx.db.transaction(() => {
       ctx.db.run(
@@ -302,10 +317,18 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
         cause: string;
         action: string;
         read: number;
+        count: number;
+        last_at: number | null;
       }>(
-        'SELECT id, at, component, severity, what, cause, action, read FROM error_log ORDER BY at DESC LIMIT 500',
+        `SELECT id, at, component, severity, what, cause, action, read, count, last_at
+           FROM error_log ORDER BY COALESCE(last_at, at) DESC LIMIT 500`,
       )
-      .map((row) => ({ ...row, read: row.read === 1 })),
+      // v0.6.1: merged entries carry how often and when last (SPEC 13 item 7).
+      .map(({ last_at: lastAt, ...row }) => ({
+        ...row,
+        read: row.read === 1,
+        lastAt: lastAt ?? row.at,
+      })),
   }));
 
   app.patch('/api/errors/:id', { preHandler: authenticated }, async (request) => {

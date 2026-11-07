@@ -60,8 +60,16 @@ function staticServer(distDir: string, apiPort: number): http.Server {
       req.pipe(upstream);
       return;
     }
-    let file = path.join(distDir, path.normalize(decodeURIComponent(url.pathname)));
-    if (!file.startsWith(distDir)) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(url.pathname);
+    } catch {
+      res.writeHead(400).end();
+      return;
+    }
+    let file = path.join(distDir, path.normalize(decoded));
+    // With the separator: "/…/web/dist-other" must not count as inside "/…/web/dist" (v0.6.1).
+    if (file !== distDir && !file.startsWith(`${distDir}${path.sep}`)) {
       res.writeHead(400).end();
       return;
     }

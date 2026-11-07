@@ -209,6 +209,8 @@ export const de = {
     invalid: 'Echtheit nicht prüfbar',
     invalidLong:
       'Dieser Brief konnte nicht als echt bestätigt werden und wird deshalb nicht angezeigt.',
+    /** v0.6.1: a link whose address contains unusual characters (shown in technical form). */
+    linkWarning: 'Ungewöhnliche Zeichen in der Adresse – genau prüfen, wohin der Link führt.',
     compose: 'Neuen Brief schreiben',
     parchment: 'Pergament',
     smallOption: 'Klein – bis 800 Zeichen, kostenlos',
@@ -626,6 +628,8 @@ export const de = {
     errorAction: 'Was tun',
     errorRead: 'Als gelesen markieren',
     errorDelete: 'Löschen',
+    /** v0.6.1: merged entries („23× · zuletzt 7. Nov. 2026, 14:05“). */
+    errorRepeated: '{count}× · zuletzt {time}',
     unread: 'neu',
     severity_info: 'Info',
     severity_warning: 'Warnung',

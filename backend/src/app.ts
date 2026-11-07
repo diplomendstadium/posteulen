@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance } from 'fastify';
 import type { Config } from './config.ts';
 import { openDatabase, type Database } from './db/database.ts';
@@ -54,6 +55,7 @@ export async function verifySecretsFingerprint(db: Database, secrets: Secrets): 
 }
 
 export async function createApp(config: Config, options: ContextOptions = {}): Promise<App> {
+  await opaque.ready;
   const secrets = loadSecrets(config.secretsFile);
   fs.mkdirSync(config.dataDir, { recursive: true, mode: 0o700 });
   const db = openDatabase(config.databaseFile);

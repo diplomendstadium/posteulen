@@ -29,6 +29,7 @@ import { createBots } from '../bots/service.ts';
 import { scheduleDonations } from '../messages/periodic.ts';
 import { ipKey } from '../security/ip.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
+import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
 import {
   clearSessionCookie,
   cookieSpec,
@@ -73,22 +74,31 @@ interface Throttle {
   readonly retryAfterSeconds?: number;
 }
 
-/** Same rules for every name, known or not (SPEC 5.10). */
+/**
+ * Same rules for every name, known or not (SPEC 5.10). The caller counts the attempt right
+ * after this returns, without awaiting anything in between.
+ */
 async function loginThrottle(
   ctx: Context,
   keys: { name: string; ip: string; admin?: boolean },
   altcha: Parameters<Context['altcha']['verify']>[0] | undefined,
 ): Promise<Throttle | null> {
-  const now = ctx.now();
   const nameGuard = keys.admin ? ctx.guards.admin : ctx.guards.names;
-  const wait = Math.max(nameGuard.waitMs(keys.name, now), ctx.guards.ips.waitMs(keys.ip, now));
-  if (wait > 0) return { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) };
+  const waiting = (): Throttle | null => {
+    const now = ctx.now();
+    const wait = Math.max(nameGuard.waitMs(keys.name, now), ctx.guards.ips.waitMs(keys.ip, now));
+    return wait > 0 ? { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) } : null;
+  };
+  const before = waiting();
+  if (before) return before;
+  const now = ctx.now();
   const needsCaptcha =
     nameGuard.captchaRequired(keys.name, now) || ctx.guards.ips.captchaRequired(keys.ip, now);
-  if (needsCaptcha && !(altcha && (await ctx.altcha.verify(altcha, now)))) {
-    return { status: 'captcha_required' };
-  }
-  return null;
+  if (!needsCaptcha) return null;
+  if (!(altcha && (await ctx.altcha.verify(altcha, now)))) return { status: 'captcha_required' };
+  // v0.6.1: requests sent at the same time may have counted failures while the solution was
+  // checked – without this second look they would all pass the waiting time.
+  return waiting();
 }
 
 export { loginThrottle };
@@ -131,17 +141,20 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
 
     const userId = randomId();
     const reservationId = randomId();
+    // Before the reservation: a malformed request reserves nothing (v0.6.1).
+    const { registrationResponse } = opaqueStep(() =>
+      opaque.server.createRegistrationResponse({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: userId,
+        registrationRequest: body.registrationRequest,
+      }),
+    );
     ctx.reservations.set(
       reservationId,
       { userId, display: name.display, key: name.key, inviteHmac: invite },
       ACCOUNT.REGISTRATION_RESERVATION_MINUTES * TIME.MINUTE,
       now,
     );
-    const { registrationResponse } = opaque.server.createRegistrationResponse({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: userId,
-      registrationRequest: body.registrationRequest,
-    });
     return { reservationId, userId, registrationResponse };
   });
 
@@ -153,6 +166,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     if (!reservation) throw new HttpError(410, 'reservation_expired');
     const { latE2, lonE2 } = roundHome(body.home.lat, body.home.lon);
     if (!isLand(ctx.landMask, latE2 / 100, lonE2 / 100)) throw new HttpError(400, 'home_invalid');
+    // v0.6.1: only usable records and keys are stored (no broken accounts).
+    checkRegistrationRecord(
+      ctx.secrets.opaqueServerSetup,
+      reservation.userId,
+      body.registrationRecord,
+    );
+    await checkPublicKeys(fromBase64Url(body.ed25519Public), fromBase64Url(body.x25519Public));
 
     const today = utcDay(now);
     const token = ctx.db.transaction(() => {
@@ -218,15 +238,17 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT id, opaque_record FROM users WHERE name_key = ? AND state != 'deleting'",
       nameKey,
     );
-    const { serverLoginState, loginResponse } = opaque.server.startLogin({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: user?.id ?? fakeCredentialId(ctx, nameKey),
-      registrationRecord: user?.opaque_record ?? null,
-      startLoginRequest: body.startLoginRequest,
-    });
-    // Counted as a failure until the login is completed (D-19).
+    // Counted as a failure until the login is completed (D-19) – also a malformed request.
     ctx.guards.names.fail(nameKey, now);
     ctx.guards.ips.fail(ip, now);
+    const { serverLoginState, loginResponse } = opaqueStep(() =>
+      opaque.server.startLogin({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: user?.id ?? fakeCredentialId(ctx, nameKey),
+        registrationRecord: user?.opaque_record ?? null,
+        startLoginRequest: body.startLoginRequest,
+      }),
+    );
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
@@ -254,6 +276,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     if (attempt.userId === null) throw new HttpError(401, 'login_failed');
     const userId = attempt.userId;
     ctx.guards.names.reset(attempt.nameKey);
+    ctx.guards.ips.succeed(attempt.ipKey);
     const result = ctx.db.transaction(() => {
       const user = ctx.db.get<{ state: string }>('SELECT state FROM users WHERE id = ?', userId);
       if (!user || user.state === 'deleting') throw new HttpError(401, 'login_failed');
@@ -326,14 +349,16 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       const throttle = await loginThrottle(ctx, { name: user.name_key, ip }, body.altcha);
       if (throttle) return throttle as LoginStartResponse;
       const now = ctx.now();
-      const { serverLoginState, loginResponse } = opaque.server.startLogin({
-        serverSetup: ctx.secrets.opaqueServerSetup,
-        userIdentifier: userId,
-        registrationRecord: user.opaque_record,
-        startLoginRequest: body.startLoginRequest,
-      });
       ctx.guards.names.fail(user.name_key, now);
       ctx.guards.ips.fail(ip, now);
+      const { serverLoginState, loginResponse } = opaqueStep(() =>
+        opaque.server.startLogin({
+          serverSetup: ctx.secrets.opaqueServerSetup,
+          userIdentifier: userId,
+          registrationRecord: user.opaque_record,
+          startLoginRequest: body.startLoginRequest,
+        }),
+      );
       const attemptId = randomId();
       ctx.attempts.set(
         attemptId,
@@ -369,6 +394,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       throw new HttpError(401, 'login_failed');
     }
     ctx.guards.names.reset(attempt.nameKey);
+    ctx.guards.ips.succeed(attempt.ipKey);
     const token = randomId();
     ctx.reauthTokens.set(
       token,
@@ -388,11 +414,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     if (!token || token.subject !== userId || token.purpose !== 'password') {
       throw new HttpError(403, 'reauth_required');
     }
-    const { registrationResponse } = opaque.server.createRegistrationResponse({
-      serverSetup: ctx.secrets.opaqueServerSetup,
-      userIdentifier: userId,
-      registrationRequest: body.registrationRequest,
-    });
+    const { registrationResponse } = opaqueStep(() =>
+      opaque.server.createRegistrationResponse({
+        serverSetup: ctx.secrets.opaqueServerSetup,
+        userIdentifier: userId,
+        registrationRequest: body.registrationRequest,
+      }),
+    );
     return { registrationResponse };
   });
 
@@ -401,10 +429,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(PasswordFinish, request.body);
     const userId = userOf(request).id;
     const now = ctx.now();
-    const token = ctx.reauthTokens.take(body.token, now);
+    const token = ctx.reauthTokens.get(body.token, now);
     if (!token || token.subject !== userId || token.purpose !== 'password') {
       throw new HttpError(403, 'reauth_required');
     }
+    // v0.6.1: a record the server cannot use would lock the account out.
+    checkRegistrationRecord(ctx.secrets.opaqueServerSetup, userId, body.registrationRecord);
+    ctx.reauthTokens.delete(body.token);
     // Record and key package are replaced together, or not at all (SPEC 5.6 step 3).
     const session = ctx.db.transaction(() => {
       const updated = ctx.db.run(
@@ -423,6 +454,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       addSystemMessage(ctx, userId, 'password_changed', {}, now);
       return createUserSession(ctx.db, userId, now);
     });
+    // v0.6.1: live connections of the ended sessions close, too (the app reconnects).
+    ctx.hub.close(userId);
     setSessionCookie(reply, spec, session);
     return { ok: true };
   });

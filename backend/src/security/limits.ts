@@ -1,27 +1,41 @@
 /**
  * In-memory rate limits and login back-off (SPEC 5.10). Nothing here is ever persisted:
  * no permanent locks, IP addresses only in memory.
+ *
+ * v0.6.1: a full table is never cleared as a whole any more – otherwise flooding it with
+ * fresh keys (e.g. from many IPv6 prefixes) would wipe the counters of an attacked account.
  */
 import { SECURITY } from '@posteulen/shared/constants.ts';
 
 const MAX_ENTRIES = 100_000;
+
+/** Removes the oldest entries (Map order = insertion order) until `target` remain. */
+function evictOldest<V>(map: Map<string, V>, target: number): void {
+  for (const key of map.keys()) {
+    if (map.size <= target) return;
+    map.delete(key);
+  }
+}
 
 /** Fixed-window counter per key. */
 export class RateLimiter {
   private readonly windows = new Map<string, { count: number; resetAt: number }>();
   private readonly limit: number;
   private readonly windowMs: number;
+  private readonly maxEntries: number;
 
-  constructor(limit: number, windowMs: number) {
+  constructor(limit: number, windowMs: number, maxEntries = MAX_ENTRIES) {
     this.limit = limit;
     this.windowMs = windowMs;
+    this.maxEntries = maxEntries;
   }
 
   /** Counts a hit; returns ms to wait if over the limit, else 0. */
   hit(key: string, now: number): number {
     let entry = this.windows.get(key);
     if (!entry || entry.resetAt <= now) {
-      if (this.windows.size >= MAX_ENTRIES) this.prune(now);
+      if (entry) this.windows.delete(key);
+      if (this.windows.size >= this.maxEntries) this.prune(now);
       entry = { count: 0, resetAt: now + this.windowMs };
       this.windows.set(key, entry);
     }
@@ -29,9 +43,12 @@ export class RateLimiter {
     return entry.count > this.limit ? entry.resetAt - now : 0;
   }
 
+  /** Expired windows first; if still full, the oldest windows (they reset soonest anyway). */
   private prune(now: number): void {
     for (const [key, entry] of this.windows) if (entry.resetAt <= now) this.windows.delete(key);
-    if (this.windows.size >= MAX_ENTRIES) this.windows.clear();
+    if (this.windows.size >= this.maxEntries) {
+      evictOldest(this.windows, Math.floor(this.maxEntries * 0.9));
+    }
   }
 }
 
@@ -50,15 +67,18 @@ export class LoginGuard {
   private readonly captchaFrom: number;
   /** Counters are forgotten after this long without failures. */
   private readonly forgetAfterMs: number;
+  private readonly maxEntries: number;
 
   constructor(
     backoffFrom: number = SECURITY.LOGIN_BACKOFF_FROM_FAILURE,
     captchaFrom: number = SECURITY.LOGIN_CAPTCHA_FROM_FAILURE,
     forgetAfterMs = 24 * 60 * 60 * 1000,
+    maxEntries = MAX_ENTRIES,
   ) {
     this.backoffFrom = backoffFrom;
     this.captchaFrom = captchaFrom;
     this.forgetAfterMs = forgetAfterMs;
+    this.maxEntries = maxEntries;
   }
 
   private current(key: string, now: number): Failures {
@@ -83,13 +103,43 @@ export class LoginGuard {
   }
 
   fail(key: string, now: number): void {
-    if (this.failures.size >= MAX_ENTRIES) this.failures.clear();
     const entry = this.current(key, now);
+    // Re-inserted, so that the Map order follows the time of the last failure.
+    this.failures.delete(key);
+    if (this.failures.size >= this.maxEntries) this.prune(now);
     this.failures.set(key, { count: entry.count + 1, lastAt: now });
+  }
+
+  /**
+   * A completed login takes back exactly the failure its start counted (v0.6.1). Used for
+   * the per-IP counter: successful logins of people sharing an address no longer add up,
+   * while every failed attempt still counts.
+   */
+  succeed(key: string): void {
+    const entry = this.failures.get(key);
+    if (!entry) return;
+    if (entry.count <= 1) this.failures.delete(key);
+    else entry.count--;
   }
 
   reset(key: string): void {
     this.failures.delete(key);
+  }
+
+  /**
+   * Makes room without losing what matters: forgotten counters first, then counters below the
+   * captcha threshold (they slow nobody down yet), only then the least recently failed ones.
+   */
+  private prune(now: number): void {
+    for (const [key, entry] of this.failures) {
+      if (now - entry.lastAt > this.forgetAfterMs) this.failures.delete(key);
+    }
+    if (this.failures.size < this.maxEntries) return;
+    for (const [key, entry] of this.failures) {
+      if (entry.count < this.captchaFrom) this.failures.delete(key);
+    }
+    if (this.failures.size < this.maxEntries) return;
+    evictOldest(this.failures, Math.floor(this.maxEntries * 0.9));
   }
 }
 

@@ -22,6 +22,9 @@
     cause: string;
     action: string;
     read: boolean;
+    /** v0.6.1: how often the same message occurred, and when last. */
+    count: number;
+    lastAt: number;
   }
 
   let mode = $state<Mode>('closed');
@@ -146,6 +149,9 @@
               <strong>{de.admin[`severity_${entry.severity}`]}</strong> · {time(entry.at)} · {entry.component}
               {#if !entry.read}<span class="badge">{de.admin.unread}</span>{/if}
             </p>
+            {#if entry.count > 1}<p class="repeated">
+                {fill(de.admin.errorRepeated, { count: entry.count, time: time(entry.lastAt) })}
+              </p>{/if}
             <p>{entry.what}</p>
             <p><strong>{de.admin.errorCause}:</strong> {entry.cause}</p>
             <p><strong>{de.admin.errorAction}:</strong> {entry.action}</p>
