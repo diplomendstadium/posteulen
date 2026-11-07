@@ -20,7 +20,7 @@ import {
   OWL,
 } from '../constants.ts';
 import { formatGold } from '../game/gold.ts';
-import { SPECIES } from '../species.ts';
+import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
 import { de } from './de.ts';
 import { HELP_EN } from './help-en.ts';
 
@@ -133,7 +133,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„Schlüsselwarnung“: etwas stimmt mit den Schlüsseln nicht – nichts mehr senden, siehe Verschlüsselung.',
       ],
       'Entfernst du einen Kontakt, müsst ihr euch neu koppeln. Eulen, die zwischen euch unterwegs sind, kehren sofort um. Der Chat bleibt erhalten, zeigt aber „unbekannt“ als Namen, bis ihr euch wieder verbindet.',
-      `Der Erklärbär steht von Anfang an im Adressbuch. Die Tante kommt mit ihrem ersten Brief dazu, etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach der Anmeldung, der Onkel ein paar Tage später (siehe Bots).`,
+      `Der Erklärbär steht von Anfang an im Adressbuch. Die Tante kommt mit ihrem ersten Brief dazu, etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach der Anmeldung, der Onkel nach ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} Tagen (siehe Bots).`,
     ],
   },
   {
@@ -165,6 +165,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„zugestellt“: die Eule ist angekommen.',
         '„gelesen“: dein Gegenüber hat den Brief auf dem Bildschirm gesehen.',
         '„nicht zugestellt – die Eule ist umgekehrt“: zum Beispiel, weil die Verbindung gekappt wurde.',
+        '„nicht lesbar“: das Gerät deines Gegenübers konnte den Brief nicht als echt bestätigen und zeigt ihn deshalb nicht an.',
       ],
       'Kommt eine Eule bei dir an, siehst du beim ersten Anzeigen ihr Ankunftsbild. Es schließt sich nach ein paar Sekunden von selbst, per Tippen oder mit der Escape-Taste.',
       'Im Chat erscheinen Briefe als Pergamentbögen mit ausgefranstem Rand: Briefe an dich auf hellem Pergament, in deutscher Schulschrift und blauschwarzer Tinte, deine eigenen auf dunklerem Pergament, in geschwungener Federschrift und Sepia. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
@@ -272,7 +273,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen. Ihr Geschlecht ist zufällig, ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
       `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Sobald um Mitternacht neue Eulen angeboten werden, kannst du sie alle leihen. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist. Den Phönix gibt es nie zum Leihen.`,
       `Eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen Empfänger und ist nach dem letzten weg – zurück fliegt sie nicht. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich pflegen wie jede Eule, aber nicht umbenennen oder verschenken. Ihre Motivation liegt zwischen 0,8 und 1,0.`,
-      `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (Waldkauz, 6 Gold) reicht es nach ein paar Tagen – oder sobald das Geschenk der Tante da ist.`,
+      `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (${CHEAPEST.name}, ${CHEAPEST.price} Gold) reicht es schon nach ein, zwei Tagen.`,
     ],
   },
   {
@@ -313,7 +314,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Weibliche Eulen legen nach einer Heimkehr manchmal Eier (etwa jedes hundertste Mal; der Phönix nie). Sie brüten dann ${OWL.BROODING_DAYS} Tage; danach schlüpfen ${OWL.CHICKS_MIN} bis ${OWL.CHICKS_MAX} Küken.`,
       `Du benennst die Küken binnen ${OWL.CHICK_NAME_DEADLINE_HOURS} Stunden, sonst bekommen sie Zufallsnamen. Bei ${OWL.CHICK_GIFT_FROM_COUNT} oder mehr Küken musst du binnen ${OWL.CHICK_GIFT_DEADLINE_HOURS} Stunden genau eines an einen Kontakt verschenken, gern mit Begleitbrief. Sonst entscheidet das Los unter deinen aktiven Kontakten. Hast du keine, darfst du alle behalten.`,
-      `Küken fliegen gemütlich mit ${FLIGHT.CHICK_SPEED_KMH} km/h, eine Stunde Flug, eine Stunde Pause. Sie können gestreichelt und gefüttert werden, tragen aber keine Briefe. Erwachsen werden sie bei dir nach ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} Tagen, beim Beschenkten ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} Tage nach der Ankunft.`,
+      `Küken fliegen gemütlich mit ${FLIGHT.CHICK_SPEED_KMH} km/h, eine Stunde Flug, eine Stunde Pause. Sie lassen sich pflegen wie jede Eule, tragen aber keine Briefe. Erwachsen werden sie bei dir nach ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} Tagen, beim Beschenkten ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} Tage nach der Ankunft.`,
     ],
   },
   {
@@ -356,6 +357,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         `Nutzername ändern: einmal pro Kalenderjahr. Deine Kontakte erfahren es per Systemnachricht; der alte Name ist ${ACCOUNT.NAME_LOCK_DAYS} Tage gesperrt.`,
         `Wohnort ändern: bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat, egal wie kurz hintereinander. Eulen unterwegs passen ihren Kurs an.`,
         'Passwort ändern: altes Passwort einmal, neues zweimal. Alle Briefe bleiben lesbar.',
+        'Sprache: Deutsch oder Englisch, für dieses Konto auf jedem Gerät.',
         'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
@@ -408,10 +410,10 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   {
     question: 'Warum kommt mein Brief nicht sofort an?',
     answer:
-      'Eulen brauchen Zeit. Die Flugzeit hängt von Entfernung, Art und Energie ab, nachts sparen Eulen Energie, und leere Eulen schlafen 10 Stunden. Die Ankunftszeit siehst du am Brief.',
+      'Eulen brauchen Zeit. Die Flugzeit hängt von Entfernung, Art und Energie ab: Nachts sparen Eulen Energie, und ist eine Eule leer, legt sie unterwegs eine Schlafpause ein. Die Ankunftszeit siehst du am Brief.',
   },
   {
-    question: 'Ich finde meinen Freund nicht.',
+    question: 'Ich finde meine Freundin oder meinen Freund nicht.',
     answer:
       'Ihr müsst euch beide mit dem genauen Namen eintragen. PostEulen sagt aus Datenschutzgründen nie, ob ein Name existiert. Prüft die Schreibweise und tragt euch innerhalb von 24 Stunden gegenseitig ein.',
   },

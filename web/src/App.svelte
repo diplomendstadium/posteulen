@@ -12,7 +12,6 @@
   import { legalOf } from '@posteulen/shared/texts/legal.ts';
   import Register from './pages/Register.svelte';
   import Welcome from './pages/Welcome.svelte';
-  import Measure from './pages/Measure.svelte';
 
   onMount(() => {
     void restore();
@@ -74,8 +73,6 @@
       <Shell />
     {:else if route.path === '/willkommen'}
       <Welcome />
-    {:else if route.path === '/messung'}
-      <Measure />
     {:else if route.path === '/hilfe'}
       <TextPage
         title={t.pages.helpTitle}

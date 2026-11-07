@@ -65,6 +65,17 @@ export function goldText(tenths: number): string {
   return fill(t.header.goldAmount, { amount: formatGold(tenths) });
 }
 
+/** "Gewählt: 52,52° N, 8,61° W" – compass letters instead of a minus sign (v0.6). */
+export function chosenHome(lat: number, lon: number): string {
+  const r = t.register;
+  return fill(r.homeChosen, {
+    lat: decimal(Math.abs(lat), 2),
+    ns: lat < 0 ? r.south : r.north,
+    lon: decimal(Math.abs(lon), 2),
+    ew: lon < 0 ? r.west : r.east,
+  });
+}
+
 /** A decimal number with fixed digits in the notation of the language ("52,38" / "52.38"). */
 export function decimal(value: number, digits: number): string {
   // Round half up in decimal (28.75 → 28.8), not in binary floating point.

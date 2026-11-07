@@ -76,7 +76,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.5.1**.
+Stand: **Version 0.6.0**.
 
 **Kurzfassung**
 
@@ -300,4 +300,4 @@ Voraussetzung: Node.js 26 (z. B. aus <https://deb.nodesource.com> oder <https://
 | `npm test` | alle Prüfungen und Tests |
 | `npm run test:vm` | Installations- und Update-Test in einer Debian-13-VM (QEMU/KVM) |
 
-Weiterführend: [SPEC.md](SPEC.md) (vollständige Spezifikation), [ARCHITECTURE.md](ARCHITECTURE.md), [DECISIONS.md](DECISIONS.md), [SECURITY-REVIEW.md](SECURITY-REVIEW.md), [CHANGELOG.md](CHANGELOG.md).
+Weiterführend: [SPEC.md](SPEC.md) (vollständige Spezifikation, mit technischem Anhang L und Entscheidungsprotokoll), [PROMPT.md](PROMPT.md) (Bauauftrag für Coding-Agents), [CHANGELOG.md](CHANGELOG.md) (alle Versionen mit Hinweisen für Betreiber), [DEPENDENCIES.md](DEPENDENCIES.md) (Abhängigkeiten mit Lizenz).

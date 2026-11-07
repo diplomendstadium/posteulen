@@ -3,6 +3,42 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.6.0 – Großer Hausputz
+
+Wartungsversion ohne neue Funktionen: Die App wurde gründlich gegen die Spezifikation geprüft, alle
+Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Repository aufgeräumt.
+
+- **Schmale Handys:** Bei 320–390 px schoben ein dreistelliger Goldstand und „Neue Post!“ Goldanzeige
+  und Fähnchen aus dem Fenster. „Neue Post!“ steht dort jetzt in einer eigenen Zeile.
+- **Layout:** Lange Überschriften (z. B. „Benachrichtigungen“) brechen bei 320 px um, die Beschriftungen
+  der unteren Leiste passen. Neuer Test prüft alle Seiten in acht Breiten (320–1920 px), Deutsch und
+  Englisch, in Chromium, Firefox und WebKit.
+- **Namen:** Die englischen Bot-Namen sind reserviert („Explainer Bear“, „Aunt …“, „Uncle …“,
+  „System messages“, „Unknown“), damit sich niemand als Bot ausgeben kann.
+- **Texte:** Wohnort mit N/S und O/W statt Minuszeichen; Karte nennt richtig „alle 5 Minuten“;
+  Fehlermeldung nennt vier Leiheulen; „Das Konto von … wurde gelöscht“ (passt auch zur automatischen
+  Löschung); Hilfe ohne die veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“ und dem Onkel nach
+  14 Tagen; Datenschutz nennt den lokal gespeicherten ausgeblendeten Benachrichtigungs-Hinweis; viele
+  kleine Korrekturen in beiden Sprachen.
+- **Karte:** Schlug das Laden der Land/Wasser-Maske einmal fehl (offline oder beim Seitenwechsel),
+  merkte sich die App den Fehler bis zum Neuladen; jetzt lädt sie beim nächsten Tippen neu.
+- **Technik:** Grenzen für die Request-Größe als Konstanten (Briefversand 512 KiB, Briefe an Bots
+  128 KiB).
+- **Repository:** Stufen-Screenshots, `PROGRESS.md`, `SECURITY-REVIEW.md`, die Messseite `/messung`
+  sowie `ARCHITECTURE.md` und `DECISIONS.md` entfernt; ihr wesentlicher Inhalt steht jetzt in der SPEC
+  (Anhang L: technische Umsetzung, Anhang N: Entscheidungsprotokoll). `PROMPT.md` ist der Bauauftrag
+  für den aktuellen Stand und beschreibt den Ablauf für Folgeversionen. `DEPENDENCIES.md` auf den
+  tatsächlichen Stand gebracht.
+- SPEC (Stand 0.6.0, Anhang M), README, Hilfe de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Keine Datenbank-Migration**, keine neuen Bilder, keine neuen Pakete.
+- Konten, deren Name mit „Aunt“ oder „Uncle“ beginnt oder „Explainer Bear“ lautet, bleiben unverändert;
+  neu vergeben werden solche Namen nicht mehr.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.6.
+- Update: `sudo posteulen-update`.
+
 ## v0.5.1 – Schlafende Eulen
 
 - **Schlafbilder:** Macht eine Eule unterwegs eine Schlafpause, zeigt die Eulenübersicht sie schlafend

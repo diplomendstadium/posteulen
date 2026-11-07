@@ -1,17 +1,17 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Schritt P (2026-11-05). Geplante Versionen; das Lockfile pinnt sie in Stufe 0 exakt. Regel für die Versionswahl (D-10): die neueste Version, die mindestens 14 Tage alt ist (Stichtag 2026-10-22). Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
-> `npm audit` vom 2026-11-05 (Stufe 0, Lockfile): Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 1 niedriger Fund (`deepmerge`, siehe unten; Regel: D-26).
-> In Stufe 0 installiert: alle Pakete aus „Laufzeit – Backend“ außer `@fastify/cookie`, `@hpke/*`, `libsodium-wrappers-sumo`, `altcha-lib` (folgen mit Stufe 1–2), `suncalc` (seit Stufe 3). Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Stand Stufe 0: 309 Pakete; Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
+> Stand: Version 0.6.0 (2026-11-07). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> `npm audit` vom 2026-11-07: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
+> Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, nur Build), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
 
 | Paket | Version | Lizenz | Zweck |
 |---|---|---|---|
-| Node.js | 26.x LTS „Lithium“ (aktuell 26.13.0) | MIT | Laufzeit; eingebaut genutzt: `node:sqlite`, `node:crypto`, WebCrypto, Type-Stripping (D-01, D-04, D-05) |
+| Node.js | 26.x LTS „Lithium“ (Entwicklung: 26.13.0) | MIT | Laufzeit; eingebaut genutzt: `node:sqlite`, `node:crypto`, WebCrypto, Type-Stripping |
 | `fastify` | 5.12.7 | MIT | HTTP-Server, Routing, Schema-Hooks |
 | `@fastify/cookie` | 11.1.3 | MIT | Cookies lesen und setzen |
-| `pino` | 10.4.0 | MIT | strukturiertes Logging mit Redaktion (über Fastify, D-21) |
+| `pino` | über Fastify | MIT | strukturiertes Logging mit Redaktion (keine eigene Abhängigkeit, kommt mit Fastify) |
 | `valibot` | 1.5.0 | MIT | Schema-Validierung, gemeinsam mit dem Browser (`shared/`, D-13) |
 | `@serenity-kit/opaque` | 1.1.0 | MIT | OPAQUE (RFC 9807; auf Basis von opaque-ke 4.0.0) |
 | `libsodium-wrappers-sumo` | 0.8.4 (libsodium 1.0.22) | ISC | Ed25519, X25519, XChaCha20-Poly1305, Zufall, Padding |
@@ -22,7 +22,7 @@
 | `altcha-lib` | 2.7.0 | MIT | ALTCHA-Challenges erzeugen und prüfen |
 | `suncalc` | 2.1.1 | BSD-2-Clause | Sonnenhöhe (Flug Tag/Nacht, Karte). Hinweis: Im npm-Paket fehlt das Feld `license`; die LICENSE-Datei im Repository ist BSD-2-Clause |
 
-Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino). Die vollständige Liste mit Lizenzen erzeugt ab Stufe 0 ein Skript aus dem Lockfile (`npm run deps:report`) und hängt sie hier an.
+Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino). Die vollständige Liste mit Lizenzen erzeugt `npm run deps:report` aus dem Lockfile.
 
 ## Laufzeit – Browser (Nutzer-PWA und Adminpanel)
 
@@ -30,7 +30,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 |---|---|---|---|
 | `svelte` | 5.57.2 | MIT | UI-Framework (kompiliert, ohne SSR) |
 | `@serenity-kit/opaque`, `libsodium-wrappers-sumo`, `@hpke/*`, `valibot`, `suncalc` | wie oben | wie oben | Client-Kryptografie, Schemas, Kartenanzeige |
-| `altcha` | 3.4.1 | MIT | Proof-of-Work-Widget (selbst gehostet; Prüfung auf Inline-Styles in Stufe 1, sonst eigene Komponente auf `altcha/lib`) |
+| `altcha-lib` | 2.7.0 | MIT | Lösen der Proof-of-Work-Aufgabe im Browser; eigene kleine Oberfläche statt des ALTCHA-Widgets (strikte CSP) |
 | `@fontsource/atkinson-hyperlegible-next` | 5.3.0 | OFL-1.1 | Fließtext und alle Namen |
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
 | `@fontsource/dancing-script` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.3, D-112; veröffentlicht 2026-07-19) |
@@ -60,17 +60,13 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `globals` | 17.13.0 | MIT | Liste globaler Bezeichner für ESLint |
 | `sharp` | 0.35.5 | Apache-2.0 (libvips: LGPL-3.0) | Eulenbilder → WebP beim Build; vorkompilierte Binärdatei für amd64 und arm64, nichts wird auf dem Server kompiliert (D-16) |
 
-## Werkzeug Kartendaten (`tools/map/`, nur Entwicklungsrechner, D-09)
+## Werkzeug Kartendaten (`tools/map/`, nur Entwicklungsrechner)
 
 | Paket / Daten | Version | Lizenz | Zweck |
 |---|---|---|---|
 | Natural Earth 1:10m / 1:50m (Länder, Land, Seen; ab v0.2 auch „Map Units“ für England/Schottland/Wales/Nordirland und besiedelte Orte) | 5.1.2 | gemeinfrei | Kartengeometrie, Land/Wasser-Maske, deutsche Länder- und Städtenamen (`NAME_DE`), Einwohnerzahlen (`POP_MAX`) |
 | Natural Earth 1:110m Land (ab v0.3) | 5.1.2 | gemeinfrei | Weltkarte im Seitenhintergrund (`tools/map/background.ts`) |
-| `d3-geo` | 3.1.1 | ISC | Projektion (ETRS89-LAEA), Rasterung |
-| `d3-geo-projection` | 4.0.0 | ISC | zusätzliche Projektionsfunktionen |
-| `topojson-server`, `topojson-simplify`, `topojson-client` | in Stufe 1 festgelegt | ISC | Vereinfachung der Geometrie |
-
-`mapshaper` wird **nicht** verwendet: Es zieht `better-sqlite3` (native Kompilierung) nach sich.
+Das Werkzeug kommt ohne npm-Abhängigkeiten aus (eigene Rasterung, Douglas–Peucker-Vereinfachung, Rechteck-Zuschnitt, LAEA-Projektion in `shared/src/map/`). Quell-Dateien sind mit SHA-256 in `tools/map/sources.json` festgeschrieben.
 
 ## Server (APT, Debian 13)
 
@@ -83,10 +79,10 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
 | `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |
 
-## Bekannte Funde (`npm audit`, 2026-11-05)
+## Bekannte Funde (`npm audit`, 2026-11-07)
 
 | Paket | Schwere | Advisory | Weg | Bewertung |
 |---|---|---|---|---|
-| `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | **Behoben:** per `overrides` auf 11.0.4 (D-35) |
+| `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | **Behoben:** per `overrides` auf 11.0.4 (`package.json`) |
 | `deepmerge` 4.3.1 | niedrig | GHSA-gcqx-w48m-w2h4 (Prototype Poisoning) | `@sveltejs/vite-plugin-svelte` (nur Build) | Keine korrigierte Version verfügbar; verarbeitet nur eigene Build-Konfiguration, keine fremden Eingaben |
-| `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge). Auf 1.1.1 wechseln, sobald veröffentlicht |
+| `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge). Auf 1.1.1 wechseln, sobald veröffentlicht (Stand 2026-11-07: noch nicht) |

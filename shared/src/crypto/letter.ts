@@ -1,5 +1,5 @@
 /**
- * Letters between people (SPEC 5.8, 5.9; ARCHITECTURE 2.4):
+ * Letters between people (SPEC 5.8, 5.9; SPEC Anhang L.2):
  * sign (Ed25519, domain-separated, all fields) → pad (ISO 7816-4 to 4 096 / 16 384 bytes) →
  * encrypt (XChaCha20-Poly1305, random 256-bit letter key, bound associated data) →
  * wrap the letter key with HPKE for the recipient and for the sender.

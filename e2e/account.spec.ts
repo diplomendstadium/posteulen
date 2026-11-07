@@ -76,12 +76,4 @@ test.describe('Konto (Stufe 1, SPEC 5, 17.1, 17.4)', () => {
     await expect(page).toHaveURL(/\/$/);
     await settle(page);
   });
-
-  test('Messseite misst Argon2id im Browser (SPEC 5.3)', async ({ page }) => {
-    test.skip(test.info().project.name !== 'chromium-mobile', 'eine Messung genügt');
-    await page.goto('/messung');
-    await page.getByRole('button', { name: 'Messung starten' }).click();
-    await expect(page.getByTestId('measure-result')).toContainText('Dauer:', { timeout: 60_000 });
-    console.warn(await page.getByTestId('measure-result').textContent());
-  });
 });

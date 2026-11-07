@@ -5,7 +5,7 @@
  * kept for letters that were already on the way with the stage-2 placeholder owl.
  */
 import type { FastifyInstance } from 'fastify';
-import { GOLD } from '@posteulen/shared/constants.ts';
+import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { canAfford } from '@posteulen/shared/game/gold.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
@@ -104,7 +104,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.post(
     '/api/letters/send',
-    { preHandler: authenticated, bodyLimit: 512 * 1024 },
+    { preHandler: authenticated, bodyLimit: SECURITY.MAX_LETTER_REQUEST_BYTES },
     async (request) => {
       if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');

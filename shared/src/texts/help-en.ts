@@ -15,7 +15,7 @@ import {
   OWL,
 } from '../constants.ts';
 import { formatGold } from '../game/gold.ts';
-import { SPECIES } from '../species.ts';
+import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
 import { en } from './en.ts';
 import type { Help, HelpQuestion, HelpSection } from './help.ts';
 
@@ -33,7 +33,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'idee',
     title: 'What is PostEulen?',
     blocks: [
-      'PostEulen is a letter box with owls. You write letters to friends, and an owl carries them there – not in seconds like a text message, but as long as an owl takes to fly. The further away the other person lives, the longer it takes. Looking forward to it is part of the fun.',
+      'PostEulen is a letterbox with owls. You write letters to friends, and an owl carries them there – not in seconds like a text message, but as long as an owl takes to fly. The further away the other person lives, the longer it takes. Looking forward to it is part of the fun.',
       'On the side, you look after your owls: you buy or borrow them, feed and pet them, earn a little gold every day and can send friends gold or even an owl.',
       'Your letters to other people are encrypted: only you and the other person can read them – not even the people running PostEulen can.',
       'PostEulen is a website that behaves like an app. You can put it on your home screen without any app store – the next section explains how.',
@@ -57,9 +57,9 @@ const SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'sicher',
-    title: 'Game and secure letter box at the same time',
+    title: 'Game and secure letterbox at the same time',
     blocks: [
-      'PostEulen lives on the border between game and messenger. The owls, the gold and the flight times are the game – the encryption is not. Under the parchment surface works hard, serious, up-to-date cryptography. That is why PostEulen is quite suitable as a secure way of communicating when minutes do not matter.',
+      'PostEulen sits on the border between game and messenger. The owls, the gold and the flight times are the game – the encryption is not. Beneath the parchment surface, hard, serious, up-to-date cryptography is at work. That is why PostEulen is quite suitable as a secure way of communicating when minutes do not matter.',
       [
         'Letters between people are encrypted on your device with XChaCha20-Poly1305 and signed with Ed25519. Only sender and recipient get the key for each letter, wrapped according to the HPKE standard (RFC 9180).',
         'Your password never leaves your device. Signing in uses OPAQUE (RFC 9807): the server can neither see your password nor guess it from its database.',
@@ -114,7 +114,7 @@ const SECTIONS: readonly HelpSection[] = [
         '“Key warning”: something is wrong with the keys – do not send anything any more, see Encryption.',
       ],
       'If you remove a contact, you have to pair again. Owls on their way between you turn back immediately. The chat stays, but shows “unknown” as the name until you connect again.',
-      `The Explainer Bear is in the address book from the start. The aunt joins with her first letter, about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up, the uncle a few days later (see Bots).`,
+      `The Explainer Bear is in the address book from the start. The aunt joins with her first letter, about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up, the uncle after ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} days (see Bots).`,
     ],
   },
   {
@@ -135,7 +135,7 @@ const SECTIONS: readonly HelpSection[] = [
       'Under Letters you see a chat for every person, sorted by latest activity and with a counter for unread letters. The system messages are pinned at the top.',
       [
         `Small parchment: up to ${LETTER.SMALL_MAX_CHARS} characters, free.`,
-        `Large parchment: up to ${LETTER.LARGE_MAX_CHARS.toLocaleString('en-GB')} characters, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} extra per sending.`,
+        `Large parchment: up to ${LETTER.LARGE_MAX_CHARS.toLocaleString('en-GB')} characters, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} extra each time you send.`,
       ],
       `How it works: choose the parchment, write the text, add more recipients if you like (at most ${LETTER.MAX_RECIPIENTS} in total), choose an owl and send. With several recipients, PostEulen sorts them so that the owl flies the shortest way – from you to all of them and back home. You can still change the order with the arrows. When you choose an owl, PostEulen shows you for every owl when it arrives at each recipient and when it is back home.`,
       `No owl at home? Then the owl choice offers you the loan owls of the day right away. They are only borrowed and paid for (${gold(GOLD.LOAN_PRICE)}) when you really send – your letter stays as it is.`,
@@ -146,6 +146,7 @@ const SECTIONS: readonly HelpSection[] = [
         '“delivered”: the owl has arrived.',
         '“read”: the other person has seen the letter on their screen.',
         '“not delivered – the owl turned back”: for example because the connection was cut.',
+        '“not readable”: the other person’s device could not confirm the letter as genuine and therefore does not show it.',
       ],
       'When an owl arrives at your place, you see its arrival picture the first time. It closes by itself after a few seconds, with a tap or with the Escape key.',
       'In the chat, letters appear as sheets of parchment with frayed edges: letters to you on light parchment, in German school handwriting and blue-black ink, your own on darker parchment, in flowing quill handwriting and sepia. Links and names are always in print so you can read them safely. If handwriting is too much effort, switch to print in the settings.',
@@ -253,7 +254,7 @@ const SECTIONS: readonly HelpSection[] = [
       `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name. Its sex is random; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
       `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there. The phoenix is never offered.`,
       `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. It can be cared for like any owl, but not renamed or given away. Its motivation is between 0.8 and 1.0.`,
-      `Tip for the start: with ${gold(GOLD.START)} starting gold you borrow an owl for your first letter. For the cheapest owl of your own (Tawny Owl, 6 gold) it is enough after a couple of days – or as soon as the aunt’s gift has arrived.`,
+      `Tip for the start: with ${gold(GOLD.START)} starting gold you borrow an owl for your first letter. For the cheapest owl of your own (${CHEAPEST.nameEn}, ${CHEAPEST.price} gold) you will have enough after a day or two.`,
     ],
   },
   {
@@ -294,7 +295,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Female owls sometimes lay eggs after coming home (about one time in a hundred; the phoenix never does). They then brood for ${OWL.BROODING_DAYS} days; afterwards ${OWL.CHICKS_MIN} to ${OWL.CHICKS_MAX} chicks hatch.`,
       `You name the chicks within ${OWL.CHICK_NAME_DEADLINE_HOURS} hours, otherwise they get random names. With ${OWL.CHICK_GIFT_FROM_COUNT} or more chicks you have to give exactly one to a contact within ${OWL.CHICK_GIFT_DEADLINE_HOURS} hours, with a cover letter if you like. Otherwise lots are drawn among your active contacts. If you have none, you may keep them all.`,
-      `Chicks fly at a leisurely ${FLIGHT.CHICK_SPEED_KMH} km/h, one hour of flying, one hour of rest. They can be petted and fed but do not carry letters. They grow up with you after ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} days, with the recipient of a gift ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} days after arriving.`,
+      `Chicks fly at a leisurely ${FLIGHT.CHICK_SPEED_KMH} km/h, one hour of flying, one hour of rest. They can be cared for like any owl but do not carry letters. They grow up with you after ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} days, with the recipient of a gift ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} days after arriving.`,
     ],
   },
   {
@@ -319,7 +320,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Notifications',
     blocks: [
       'Notifications are the small notes that pop up at the top of your phone screen. PostEulen can use them to let you know when an owl lands with a letter, one of your owls comes home, gold arrives, a gift turns up, eggs are laid, chicks hatch, automatic deletion is near or the admin writes to everyone. Notifications never contain names or content – anyone looking over your shoulder learns nothing.',
-      'It works best if you have put PostEulen on your home screen (see “Getting PostEulen onto your phone”): on Android with Chrome and on the iPhone with Safari. In a normal browser or as a bookmark there are no notifications – your post reaches you anyway, you see it the next time you look in. A real letter box does not ring either.',
+      'It works best if you have put PostEulen on your home screen (see “Getting PostEulen onto your phone”): on Android with Chrome and on the iPhone with Safari. In a normal browser or as a bookmark there are no notifications – your post reaches you anyway, you see it the next time you look in. A real letterbox does not ring either.',
       'You can set them up in the settings under “Notifications”. Tap “Set up notifications” and allow them when your phone asks. PostEulen then sends a test message straight away. If it arrives, it says “active and confirmed”. With “Send a test notification” you can repeat that at any time.',
       'By the way, PostEulen never asks for new letters in the background – that saves your battery. The message comes from the server as soon as something happens.',
       'Notifications are shown in the language of your account.',
@@ -392,7 +393,7 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Why does my letter not arrive immediately?',
     answer:
-      'Owls need time. The flight time depends on distance, species and energy; at night owls save energy, and empty owls sleep for 10 hours. You see the arrival time on the letter.',
+      'Owls need time. The flight time depends on distance, species and energy: at night owls save energy, and an owl that runs out of energy takes a nap on the way. You see the arrival time on the letter.',
   },
   {
     question: 'I cannot find my friend.',
@@ -435,10 +436,10 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Is PostEulen just a game, or can I really write confidentially with it?',
     answer:
-      'Both. The owls are a game; the encryption is meant seriously and state of the art. Nobody but the two of you can read letters between people, not even the operator. Compare your safety number, and you are on the safe side.',
+      'Both. The owls are a game; the encryption is serious and state of the art. Nobody but the two of you can read letters between people, not even the operator. Compare your safety number, and you are on the safe side.',
   },
   {
-    question: 'Can I call back or edit a letter?',
+    question: 'Can I recall or edit a letter?',
     answer:
       'No, sent is sent. But you can delete your chat – the other person then keeps their copy.',
   },

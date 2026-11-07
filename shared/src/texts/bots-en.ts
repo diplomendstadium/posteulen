@@ -29,7 +29,7 @@ Android with Chrome: tap the three dots in the top right corner, then "Add to Ho
 
 iPhone with Safari: tap the share icon (a square with an arrow; on newer iPhones it hides behind the three dots at the bottom right), then "Add to Home Screen".
 
-After that an owl lives on your home screen, and notifications work too. With other browsers it works as a bookmark, just without notifications. A real letter box does not ring either.
+After that an owl lives on your home screen, and notifications work too. With other browsers it works as a bookmark, just without notifications. A real letterbox does not ring either.
 
 Your Explainer Bear`,
     day2: `Hello, today is all about gold!
@@ -70,7 +70,7 @@ Your Explainer Bear`,
   aunt: {
     welcome: `Hello, my dear!
 
-This is your Aunt {aunt} writing. We are distantly related, via a few corners and an old cauldron.
+This is your Aunt {aunt} writing. We are distantly related, through a few branches of the family tree and an old cauldron.
 
 My little cottage is often quiet, and to be honest I am a little bored. If you are looking for someone to chat with: write to me! I am happy to reply.
 

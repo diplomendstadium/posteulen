@@ -36,7 +36,7 @@ export function registerGoldJobs(ctx: Context): void {
     hourUtc: GOLD.DAILY_HOUR_UTC,
     catchUpEveryDay: true,
     run: (_day, logicalAt) => {
-      // Active at the time of the (catch-up) run (ARCHITECTURE 6).
+      // Active at the time of the (catch-up) run (SPEC Anhang L.5).
       const activeSince = utcDay(
         Math.max(ctx.now(), logicalAt) - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY,
       );

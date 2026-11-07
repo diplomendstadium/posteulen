@@ -89,6 +89,14 @@ describe('user names (SPEC 7.1)', () => {
     'Menagerie',
     'Support',
     'Moderator',
+    // v0.6: the bots' names in the English view.
+    'Explainer Bear',
+    'ExplainerBear',
+    'Aunt',
+    'Aunt Emma',
+    'uncle Paul',
+    'System messages',
+    'Unknown',
   ])('rejects the reserved name %s', (name) => {
     expect(isReservedName(name)).toBe(true);
     expect(checkUserName(name)).toBe('reserved');
@@ -96,6 +104,7 @@ describe('user names (SPEC 7.1)', () => {
 
   it('allows names that only contain a reserved word later', () => {
     expect(checkUserName('Emma Tante')).toMatchObject({ display: 'Emma Tante' });
+    expect(checkUserName('Auntie')).toMatchObject({ display: 'Auntie' });
     expect(checkUserName('Rooter')).toMatchObject({ display: 'Rooter' });
   });
 

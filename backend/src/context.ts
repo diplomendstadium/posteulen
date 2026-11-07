@@ -84,7 +84,7 @@ export interface Context {
   random(): number;
 }
 
-/** A prepared transport (letter, gold, gift), valid for 5 minutes (ARCHITECTURE 5.9, 5.10). */
+/** A prepared transport (letter, gold, gift), valid for 5 minutes (SPEC Anhang L.4). */
 export interface TransportToken {
   readonly senderId: string;
   readonly purpose: 'letter' | 'gold' | 'gift';

@@ -40,10 +40,25 @@ export function loadMapData(): Promise<MapData> {
 
 let mask: Promise<Uint8Array> | undefined;
 
-/** The server's check is authoritative (SPEC 12.3). */
+/**
+ * The server's check is authoritative (SPEC 12.3). v0.6: a failed download (offline, or aborted
+ * by leaving the page) is not cached, so the next call tries again.
+ */
 export function landMask(): Promise<Uint8Array> {
   mask ??= fetch(maskUrl)
-    .then((response) => response.arrayBuffer())
-    .then((buffer) => new Uint8Array(buffer));
+    .then((response) => {
+      if (!response.ok) throw new Error(`land mask: ${response.status}`);
+      return response.arrayBuffer();
+    })
+    .then((buffer) => new Uint8Array(buffer))
+    .catch((error: unknown) => {
+      mask = undefined;
+      throw error;
+    });
   return mask;
+}
+
+/** Loads the mask ahead of time; a failure here is harmless (loaded again when needed). */
+export function preloadLandMask(): void {
+  landMask().catch(() => undefined);
 }

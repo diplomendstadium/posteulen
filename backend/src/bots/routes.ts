@@ -1,6 +1,6 @@
 /** Letters to bots (SPEC 10.1): plain text, one recipient, once per 24 hours. */
 import type { FastifyInstance } from 'fastify';
-import { GOLD } from '@posteulen/shared/constants.ts';
+import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { BotLetterSend } from '@posteulen/shared/schemas/letters.ts';
 import { letterTextError } from '@posteulen/shared/text-rules.ts';
 import type { Context } from '../context.ts';
@@ -16,7 +16,7 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.post(
     '/api/bot-letters/send',
-    { preHandler: authenticated, bodyLimit: 128 * 1024 },
+    { preHandler: authenticated, bodyLimit: SECURITY.MAX_BOT_LETTER_REQUEST_BYTES },
     async (request) => {
       if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');

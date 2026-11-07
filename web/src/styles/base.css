@@ -79,6 +79,9 @@ h3 {
   line-height: 1.2;
   color: var(--wood-dark);
   margin: 0 0 0.75rem;
+  /* v0.6: long words in the wide display font ("Benachrichtigungen") wrap at 320 px. */
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 h1 {

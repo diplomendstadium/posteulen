@@ -21,7 +21,7 @@ fail() { printf '\e[31mFehler:\e[0m %s\n' "$*" >&2; exit 1; }
 command -v qemu-system-x86_64 >/dev/null || fail "qemu-system-x86_64 fehlt."
 command -v xorriso >/dev/null || fail "xorriso fehlt."
 [[ -r /dev/kvm && -w /dev/kvm ]] || fail "Kein Zugriff auf /dev/kvm."
-[[ -z $(git -C "$ROOT" status --porcelain -- . ':!docs/screenshots') ]] || echo "Hinweis: Nicht committete Änderungen werden NICHT getestet (nur HEAD)."
+[[ -z $(git -C "$ROOT" status --porcelain -- .) ]] || echo "Hinweis: Nicht committete Änderungen werden NICHT getestet (nur HEAD)."
 
 mkdir -p "$CACHE"
 cd "$CACHE"

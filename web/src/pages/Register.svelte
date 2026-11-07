@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { t, fill, decimal } from '../lib/i18n.svelte.ts';
+  import { t, chosenHome } from '../lib/i18n.svelte.ts';
   import { checkPassword, checkUserName } from '@posteulen/shared/names.ts';
   import { isLand } from '@posteulen/shared/map/landmask.ts';
   import Link from '../components/Link.svelte';
@@ -9,7 +9,7 @@
   import MapView from '../components/MapView.svelte';
   import { api } from '../lib/api.ts';
   import { register } from '../lib/auth.svelte.ts';
-  import { landMask } from '../lib/map/map-data.ts';
+  import { landMask, preloadLandMask } from '../lib/map/map-data.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
@@ -24,7 +24,7 @@
   let homeError = $state<string | null>(null);
   let error = $state<string | null>(null);
   let busy = $state<string | null>(null);
-  const mask = landMask();
+  preloadLandMask();
 
   onMount(() => {
     api<{ mode: 'closed' | 'invite' | 'open' }>('GET', '/api/registration')
@@ -38,7 +38,7 @@
       lon: Math.round(position.lon * 100) / 100,
     };
     // Instant feedback from the land mask; the server checks again (SPEC 12.3).
-    if (!isLand(await mask, rounded.lat, rounded.lon)) {
+    if (!isLand(await landMask(), rounded.lat, rounded.lon)) {
       home = null;
       homeError = t.register.homeWater;
       return;
@@ -144,10 +144,7 @@
         </MapView>
         {#if home}
           <p class="chosen" role="status">
-            {fill(t.register.homeChosen, {
-              lat: decimal(home.lat, 2),
-              lon: decimal(home.lon, 2),
-            })}
+            {chosenHome(home.lat, home.lon)}
           </p>
         {/if}
         <ErrorText message={homeError} />

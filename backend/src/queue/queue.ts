@@ -1,5 +1,5 @@
 /**
- * Event queue (SPEC 4.5, ARCHITECTURE 6): one worker in the server process sleeps until the
+ * Event queue (SPEC 4.5, SPEC Anhang L.5): one worker in the server process sleeps until the
  * next due event (at most one hour), processes due events in time order, each in its own
  * transaction together with deleting the event – idempotent handlers make duplicates harmless.
  * The due time is the logical time ("now") for the handler, also when catching up.

@@ -59,9 +59,15 @@ const RESERVED = [
   'bot',
   'papeterie',
   'menagerie',
+  // v0.6: the bots' names in the English view (8.12), so nobody looks like a bot there either.
+  'explainer bear',
+  'aunt',
+  'uncle',
+  'system messages',
+  'unknown',
 ].map((name) => normalizeName(name).replace(/ /g, ''));
 
-const RESERVED_FIRST_WORDS = ['tante', 'onkel'].map(normalizeName);
+const RESERVED_FIRST_WORDS = ['tante', 'onkel', 'aunt', 'uncle'].map(normalizeName);
 
 function checkCharacters(display: string, min: number, max: number): NameError | null {
   const length = countCodePoints(display);

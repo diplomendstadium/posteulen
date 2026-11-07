@@ -62,7 +62,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
     title: 'One single cookie',
     blocks: [
       'PostEulen sets exactly one cookie: the session cookie, without which signing in does not work. It is technically necessary, readable only by PostEulen and contains a random string; the server only stores a check value of it. There are no tracking cookies, no adverts, no analytics tools and no content from other servers.',
-      'The language you choose before signing in is remembered only in your browser’s local storage, not on the server.',
+      'The language you choose before signing in, and whether you have hidden the note about notifications, is remembered only in your browser’s local storage, not on the server.',
     ],
   },
   {

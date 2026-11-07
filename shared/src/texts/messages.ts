@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.6.0',
+    title: 'Großer Hausputz im Eulenturm: Version 0.6',
+    paragraphs: [
+      'Diesmal gibt es keine neuen Kunststücke. Dafür sind die Eulenmeister mit Staubwedel und Lupe durch jeden Winkel des Turms gezogen und haben einiges geradegerückt:',
+      '• Auf sehr schmalen Handys rutschten Goldstand und Fähnchen manchmal aus dem Bild. Jetzt bekommt „Neue Post!“ dort eine eigene Zeile, und alles bleibt, wo es hingehört.',
+      '• Lange Überschriften wie „Benachrichtigungen“ brechen sauber um, und die Leiste am unteren Rand passt auch aufs kleinste Display.',
+      '• Die Hilfe ist wieder auf dem neuesten Stand. Dort stand zum Beispiel noch, dass müde Eulen stur zehn Stunden schlafen – das tun sie schon seit Version 0.5 nicht mehr.',
+      '• Viele kleine Texte sind poliert, auf Deutsch wie auf Englisch. Wohnorte westlich von Greenwich heißen jetzt richtig „° W“.',
+      '• Niemand kann sich mehr so nennen wie die Bots in der englischen Ansicht („Aunt …“, „Uncle …“, „Explainer Bear“). Verwechslungen ausgeschlossen.',
+      'Viel Freude beim Schreiben – in einem frisch geputzten Turm!',
+    ],
+  },
+  {
     version: '0.5.1',
     title: 'Pssst, hier wird geschlafen: Version 0.5.1',
     paragraphs: [
@@ -161,6 +174,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.6.0',
+    title: 'A big spring clean in the owl tower: version 0.6',
+    paragraphs: [
+      'No new tricks this time. Instead, the owl masters went through every corner of the tower with a feather duster and a magnifying glass and put quite a few things straight:',
+      '• On very narrow phones, your gold and the little flag sometimes slipped off the screen. Now “New post!” gets a line of its own there, and everything stays where it belongs.',
+      '• Long headings wrap neatly, and the bar at the bottom fits even the smallest display.',
+      '• The help is up to date again. It still said, for example, that tired owls stubbornly sleep for ten hours – they have not done that since version 0.5.',
+      '• Lots of small texts have been polished, in English and in German. Homes west of Greenwich are now shown properly with “° W”.',
+      '• Nobody can call themselves like the bots any more (“Aunt …”, “Uncle …”, “Explainer Bear”). No more mix-ups.',
+      'Enjoy writing – in a freshly cleaned tower!',
+    ],
+  },
   {
     version: '0.5.1',
     title: 'Shh, owls asleep: version 0.5.1',

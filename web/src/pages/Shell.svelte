@@ -232,6 +232,23 @@
     }
   }
 
+  /*
+   * v0.6: on narrow phones "Neue Post!" gets a row of its own below the word mark, gold and
+   * flag – otherwise a three-digit gold balance pushed the flag out of the window (320–390 px).
+   */
+  @media (max-width: 26rem) {
+    .topbar {
+      flex-wrap: wrap;
+      row-gap: 0;
+    }
+
+    .topbar :global(.new-post) {
+      order: 3;
+      flex-basis: 100%;
+      justify-content: center;
+    }
+  }
+
   .topbar :global(.brand) {
     font-family: var(--font-display);
     font-weight: 700;
@@ -485,8 +502,10 @@
     min-width: 2.75rem;
     color: var(--ink);
     text-decoration: none;
-    font-size: 0.8rem;
+    /* v0.6: "Briefwechsel" fits the narrowest phones (320 px: five items of 64 px). */
+    font-size: clamp(0.65rem, 3.2vw, 0.8rem);
     font-weight: 700;
+    text-align: center;
   }
 
   .bottom :global(.bottom-item[aria-current='page']) {

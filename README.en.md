@@ -14,7 +14,7 @@
   <img src="docs/readme/gruppenbild.jpg" alt="Seventeen post owls of different species sit side by side on three wooden perches in front of a stone wall" width="520">
 </p>
 
-Remember how lovely it was to find a real letter in the letter box? PostEulen brings that feeling back. Your messages do not dash through the net in milliseconds; they are brought by an owl – and the owl, being an owl, has a mind of its own: depending on distance, time of day and fitness, it is on its way for a few hours. It prefers flying at night (less tiring), it bravely keeps going over the sea, and when it really cannot go on, it takes a nap – just long enough to have the strength for its next destination. You can watch it on the map.
+Remember how lovely it was to find a real letter in the letterbox? PostEulen brings that feeling back. Your messages do not dash through the net in milliseconds; they are brought by an owl – and the owl, being an owl, has a mind of its own: depending on distance, time of day and fitness, it is on its way for a few hours. It prefers flying at night (less tiring), it bravely keeps going over the sea, and when it really cannot go on, it takes a nap – just long enough to have the strength for its next destination. You can watch it on the map.
 
 You buy or borrow owls, name them, give them water, pet them and spoil them with owl biscuits or their favourite snack. Seventeen species live in the Menagerie, from the tiny Elf Owl to Blakiston’s Fish Owl – and lately a phoenix that one morning was simply sitting on the window sill. Each of them tells you a little about its character there. Cared-for owls are motivated and then fly faster and further; well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day. While an owl is on its way, the overview shows it flying – in sunshine or under the stars – and on the map it draws a fine trail behind it, with a “Zzz” at every place it spent the night. When it takes a nap on the way, you see it asleep, and when it comes home, it waits for you on the window sill – by day it likes to doze there too; owls are night birds, after all.
 
@@ -22,7 +22,7 @@ You get gold every day (3 gold pieces during your first 30 days, 2 after that), 
 
 ### Game? Messenger? Both – and seriously secure.
 
-PostEulen deliberately lives on the border between game and messenger. The owls are the game. **The encryption is not.** Under the parchment surface works hard, serious, up-to-date cryptography:
+PostEulen deliberately sits on the border between game and messenger. The owls are the game. **The encryption is not.** Beneath the parchment surface, hard, serious, up-to-date cryptography is at work:
 
 - Letters between people are encrypted **on your device** (XChaCha20-Poly1305) and signed (Ed25519). Only sender and recipient get the key, wrapped according to the HPKE standard (RFC 9180).
 - Your **password never leaves your device.** Signing in uses OPAQUE (RFC 9807) – the server can neither see your password nor guess it from a stolen database.
@@ -56,7 +56,7 @@ You get apps from the app store, right? Usually, yes. PostEulen is deliberately 
 - **iPhone or iPad with Safari:** open [posteulen.de](https://posteulen.de) → share icon (square with an arrow; on newer iPhones behind the three dots ••• at the bottom right) → “Add to Home Screen” → “Add”. After that, always open PostEulen with the new icon.
 - **All other phones, Firefox and computers:** simply add a bookmark to your home screen or use it in the browser as usual. Everything works the same.
 
-The only difference: notifications (“An owl has landed!”) are only available in the app on the home screen of Android/Chrome and iPhone/Safari. In the browser your post arrives anyway – you see it the next time you look in. In real life the letter box does not ring either. 😉
+The only difference: notifications (“An owl has landed!”) are only available in the app on the home screen of Android/Chrome and iPhone/Safari. In the browser your post arrives anyway – you see it the next time you look in. In real life the letterbox does not ring either. 😉
 
 **Special case: Android without Google services** (LineageOS, GrapheneOS, /e/OS …): Chrome and its relatives deliver notifications only via Google services. Without them it works with **IronFox** or **Fennec** (from F-Droid) plus a **UnifiedPush** app such as **Sunup** or **ntfy**: in IronFox go to Settings → IronFox settings → Miscellaneous, turn on “Use UnifiedPush”, restart the browser and allow notifications for PostEulen (Privacy and security → Site settings → Permissions → Notifications → “Ask to allow”). On GrapheneOS, “Sandboxed Google Play” with Chrome is an alternative. The detailed help in the app explains this step by step.
 
@@ -80,7 +80,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.5.1**.
+Version: **0.6.0**.
 
 **In short**
 
@@ -304,4 +304,4 @@ Requirement: Node.js 26 (e.g. from <https://deb.nodesource.com> or <https://node
 | `npm test` | all checks and tests |
 | `npm run test:vm` | installation and update test in a Debian 13 VM (QEMU/KVM) |
 
-Further reading (in German): [SPEC.md](SPEC.md) (full specification), [ARCHITECTURE.md](ARCHITECTURE.md), [DECISIONS.md](DECISIONS.md), [SECURITY-REVIEW.md](SECURITY-REVIEW.md), [CHANGELOG.md](CHANGELOG.md).
+Further reading (in German): [SPEC.md](SPEC.md) (full specification, with technical appendix L and the decision log), [PROMPT.md](PROMPT.md) (build brief for coding agents), [CHANGELOG.md](CHANGELOG.md) (all versions with notes for operators), [DEPENDENCIES.md](DEPENDENCIES.md) (dependencies with licences).

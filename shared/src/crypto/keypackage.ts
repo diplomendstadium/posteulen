@@ -1,5 +1,5 @@
 /**
- * Master key and identity keys (SPEC 5.1–5.4, ARCHITECTURE 2.4).
+ * Master key and identity keys (SPEC 5.1–5.4, SPEC Anhang L.2).
  * - The master key (32 random bytes) never changes; only its wrapping depends on the password.
  * - Wrapping key = HKDF-SHA256(OPAQUE export_key, "PostEulen/master-key-wrap/v1").
  * - Private identity keys are encrypted with HKDF(master key, "PostEulen/identity-keys/v1").

@@ -1,14 +1,14 @@
-# PostEulen.de – Spezifikation v0.5.1
+# PostEulen.de – Spezifikation v0.6.0
 
-> Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Entscheidungen, die sie offenlässt, werden in `DECISIONS.md` dokumentiert.
+> Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Zusammen mit `PROMPT.md` (Bauauftrag) reicht sie aus, um PostEulen auf dem aktuellen Stand neu zu bauen.
 >
-> **Stand: Version 0.5.1.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-161 und die Änderungen der Versionen 0.2 bis 0.5.1 (Übersicht in Anhang F bis K). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
+> **Stand: Version 0.6.0.** Eingearbeitet sind alle Entscheidungen bis D-161 und die Änderungen der Versionen 0.2 bis 0.6.0 (Übersicht in Anhang F bis K und M). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
 
 ---
 
 ## 0. Lesehinweise
 
-- **MUSS** = zwingend. **SOLL** = umsetzen, außer es gibt einen in `DECISIONS.md` dokumentierten guten Grund. **KANN** = optional.
+- **MUSS** = zwingend. **SOLL** = umsetzen, außer es gibt einen im Entscheidungsprotokoll (Anhang N) dokumentierten guten Grund. **KANN** = optional.
 - Prioritäten bei Zielkonflikten: 1. Sicherheit, 2. Korrektheit der Spielregeln, 3. Datensparsamkeit, 4. Ressourcenschonung (Server und Akku), 5. Komfort.
 - Alle Zeitangaben und Tagesgrenzen sind **UTC**. „Tag“ ohne Zusatz = UTC-Kalendertag, „Kalenderjahr“ = UTC-Kalenderjahr. Die Oberfläche zeigt Uhrzeiten in der Ortszeit des Geräts.
 - Gold wird intern als ganze Zahl in Zehnteln gespeichert (1 Goldstück = 10). Angezeigt wird immer eine Nachkommastelle („3,0 Gold“, in der englischen Ansicht „3.0 gold“).
@@ -18,12 +18,12 @@
 
 ## 1. Projekt
 
-- **Name:** PostEulen.de, **Version:** 0.5
+- **Name:** PostEulen.de, **Version:** 0.6
 - **Idee:** Ein moderner, sicherer, Ende-zu-Ende-verschlüsselter Messenger, der liebevoll so tut, als würde man keine schnöden Nachrichten, sondern Briefe per Eule verschicken. Man kauft, leiht und pflegt Eulen; Flugzeiten hängen von Entfernung, Eulenart, Energie und Tag/Nacht ab.
 - **Spiel und sicherer Kommunikationsweg:** PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Spielmechanik ist verspielt, die Kryptografie nicht: Sie ist ernsthaft und auf dem Stand der Zeit (Abschnitt 5). README und Hilfe sagen das ausdrücklich.
 - **Plattform:** primär Smartphone (PWA), außerdem Desktop (Linux, macOS, Windows).
 - **Sprache:** Oberfläche auf **Deutsch (Standard) und Englisch** (britisches Englisch, ab v0.4, Abschnitt 8.12). Alle Texte zentral: je Sprache eine Datei mit denselben Schlüsseln (`shared/src/texts/de.ts`, `en.ts`; die englische ist gegen den Typ der deutschen geprüft, damit kein Text fehlt), dazu Hilfe, Rechtstexte, Bot-Briefe und Systemtexte je Sprache. Das Adminpanel bleibt deutsch. Code, Bezeichner und Kommentare auf Englisch.
-- **Umfang:** v0.5 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
+- **Umfang:** v0.6 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
 - **Bestandteile:** Website für Nutzer (PWA), Website mit Adminpanel, Backend inkl. Datenbank – jeweils in einem eigenen Ordner (4.2).
 
 ---
@@ -77,7 +77,7 @@
   - libsodium (`libsodium-wrappers-sumo`): Ed25519, X25519, XChaCha20-Poly1305, sicherer Zufall, Padding.
   - WebCrypto (`crypto.subtle`, in Browser und Node.js eingebaut): HKDF-SHA256 (die JavaScript-Hülle von libsodium stellt HKDF nicht bereit) und die lokale AES-GCM-Verpackung (5.5).
   - hpke-js (`@hpke/core` und Module): HPKE nach RFC 9180.
-  - `@serenity-kit/opaque`: OPAQUE. Vor Stufe 1 MUSS geprüft und in `DECISIONS.md` festgehalten werden, ob die verwendete Version RFC 9807 (final) umsetzt; falls nicht: Rückfrage.
+  - `@serenity-kit/opaque`: OPAQUE. Die verwendete Version MUSS RFC 9807 (final) umsetzen und den `export_key` liefern (geprüft für 1.1.0); vor einem Versionswechsel wird das erneut geprüft, sonst Rückfrage.
 - **Validierung:** valibot mit strikten Objekten (`strictObject`); Schemas liegen gemeinsam in `shared/`.
 - **Sonnenstand:** SunCalc oder gleichwertig (freie Lizenz).
 - **Web Push:** `web-push` nur für VAPID und Verschlüsselung (`generateRequestDetails`); versendet wird mit eigenem `https.request` und SSRF-Schutz (11.3).
@@ -97,10 +97,14 @@
 /shared      gemeinsame Typen, Schemas, Konstanten, Krypto-Formate, reine Spiellogik
 /deploy      Installations- und Update-Skript (16), Caddyfile, systemd-Units, Setup- und Backup-Skripte
 /images      Originalbilder der Eulen (vom Auftraggeber geliefert, 9.2.6)
-README.md    Projektbeschreibung und Installationsanleitung (Abschnitt 16.4)
+/e2e         Ende-zu-Ende-Tests (Playwright, 17.4)
+/scripts     Start, Entwicklungsmodus, Testbefehl, Abhängigkeitsbericht
 /tools/map   Vorverarbeitung der Kartendaten (nur Entwicklungsrechner, 12.2)
-SPEC.md  DECISIONS.md  ARCHITECTURE.md  DEPENDENCIES.md  PROGRESS.md  CHANGELOG.md
+/docs/readme Bilder für das README (16.4)
+README.md  README.en.md   Projektbeschreibung und Installationsanleitung (16.4)
+SPEC.md  PROMPT.md  CHANGELOG.md  DEPENDENCIES.md
 ```
+- Im Repository liegt nur, was Bau, Betrieb, Tests oder Dokumentation brauchen. Stufenberichte, Screenshots aus der Bauphase und Arbeitsdateien gehören nicht hinein; Screenshots der Tests landen im ignorierten Ordner `test-results/` (v0.6).
 - Spiellogik (Flugplanung, Energie, Wahrscheinlichkeiten, Goldregeln) MUSS als reine, deterministische Funktionen mit injizierbarer Uhr und injizierbarer Zufallsquelle umgesetzt werden. Ausgeführt und maßgeblich ist sie nur auf dem Server; der Browser nutzt dieselben Funktionen nur zur Anzeige (z. B. Positionen auf der Karte).
 
 ### 4.3 Domains
@@ -121,13 +125,13 @@ Ein Setup-Befehl erzeugt die Datei einmalig. Er **überschreibt eine vorhandene 
 - Tabelle `scheduled_events` (fällig_um, Typ, Referenz), indiziert nach Fälligkeit.
 - Ein einziger Worker im Serverprozess schläft bis zum nächsten fälligen Ereignis (und wird bei neuen, früheren Ereignissen geweckt). Er verarbeitet fällige Ereignisse in zeitlicher Reihenfolge, jedes in einer eigenen Datenbank-Transaktion und **idempotent** (doppelte Ausführung bewirkt nichts doppelt).
 - Nach einem Neustart werden überfällige Ereignisse in zeitlicher Reihenfolge nachgeholt. Dabei gilt der Fälligkeitszeitpunkt als logische Zeit (z. B. beginnt die Regeneration einer Eule zum geplanten Ankunftszeitpunkt, nicht beim Nachholen).
-- **Verpasste tägliche Jobs** (z. B. nach längerem Ausfall): Das tägliche Gold wird für jeden verpassten Tag einmal gutgeschrieben (an die beim Nachholen aktiven Konten). Krankheitswurf, Tagesangebot und Inaktivitätsprüfung laufen nur einmal, für den aktuellen Tag.
+- **Verpasste tägliche Jobs** (z. B. nach längerem Ausfall): Das tägliche Gold wird für jeden verpassten Tag einmal gutgeschrieben (an die beim Nachholen aktiven Konten), ebenso sinkt die Motivation einmal je verpasster Nacht (9.3a). Krankheitswurf, Tagesangebot und Inaktivitätsprüfung laufen nur einmal, für den aktuellen Tag.
 - Zufall auf dem Server über `crypto.getRandomValues` (53 Bit je Zahl); in Tests ein fester, injizierbarer Generator.
 - Tägliches Gold beim Nachholen: eine Buchung je verpasstem Tag; geprüft wird die Aktivität zum Zeitpunkt des Nachholens (Idempotenz über eine Tabelle der gelaufenen Tagesjobs).
 - Der Worker schläft höchstens eine Stunde am Stück (`setTimeout` verträgt nur ca. 24,8 Tage; außerdem Schutz bei Uhrsprüngen).
-- Ereignistypen u. a.: Zustellung beim Empfänger, Ankunft zu Hause, Ende einer Krankheitsbehandlung, Schlupf, Küken erwachsen, Küken-Verschenkfrist, Küken-Benennfrist, Ende des Verleihs an die Menagerie, Verfall einer Leiheule, Bot-Antwort fällig, geplanter Bot-Brief, geplante Bot-Goldsendung, Verfall einer Kontaktanfrage, endgültige Kontolöschung, tägliche Jobs.
+- Ereignistypen u. a.: Zustellung beim Empfänger, Ankunft zu Hause, Spendenbitte (8.4), Ende einer Krankheitsbehandlung, Schlupf, Küken erwachsen, Küken-Verschenkfrist, Küken-Benennfrist, Ende des Verleihs an die Menagerie, Verfall einer Leiheule, Bot-Antwort fällig, geplanter Bot-Brief, geplante Bot-Goldsendung, Verfall einer Kontaktanfrage, endgültige Kontolöschung, tägliche Jobs.
 - **Tägliche Jobs (UTC):**
-  - 00:00 – Tagesangebot der Menagerie auswürfeln
+  - 00:00 – Tagesangebot der Menagerie auswürfeln; Motivation aller Eulen von Spielern −0,1 (9.3a)
   - 03:00 – Krankheitswurf
   - 04:00 – Inaktivitätsprüfung (Warnungen, automatische Löschungen) und Aufräumen (abgelaufene Einladungscodes, Namenssperren, Kontaktanfragen, Fehlerprotokoll älter als 30 Tage, Benachrichtigungen älter als 60 Tage, Pflegeverlauf der Eulen älter als 60 Tage, **Briefe und Systemnachrichten nach ihrer Löschfrist**, 8.4.1)
   - 15:00 – tägliches Gold
@@ -237,7 +241,7 @@ Gilt für Briefe zwischen Menschen, einschließlich Begleitbriefen zu Gold-, Eul
 
 ## 6. Web- und Serversicherheit (Mindestanforderungen)
 
-- Jede Eingabe wird serverseitig gegen ein striktes Schema geprüft (Typen, Längen, Wertebereiche, keine unbekannten Felder). Ändernde Endpunkte ohne Nutzdaten lehnen jeden Inhalt außer `{}` ab. Ein Test liest alle Routen aus dem Quelltext: Jede nicht ausdrücklich öffentliche Route muss ohne Sitzung 401 liefern. Maximale Request-Größe 64 KiB; nur der Endpunkt zum Briefversand erlaubt 128 KiB (5 große Briefe ergeben ca. 82 KB Chiffrat, Base64-kodiert ca. 110 KB). Nur JSON.
+- Jede Eingabe wird serverseitig gegen ein striktes Schema geprüft (Typen, Längen, Wertebereiche, keine unbekannten Felder). Ändernde Endpunkte ohne Nutzdaten lehnen jeden Inhalt außer `{}` ab. Ein Test liest alle Routen aus dem Quelltext: Jede nicht ausdrücklich öffentliche Route muss ohne Sitzung 401 liefern. Maximale Request-Größe 64 KiB; nur der Briefversand erlaubt 512 KiB (5 große Briefe ergeben ca. 328 KB Chiffrat, Base64-kodiert ca. 440 KB) und der Brief an einen Bot 128 KiB (Klartext). Die Grenzen stehen als Konstanten in `shared/` (`SECURITY`). Nur JSON.
 - **Autorisierung bei jedem Endpunkt:** Das Objekt gehört dem Nutzer bzw. der Nutzer ist berechtigt (bestätigter Kontakt, aktiv, nicht gelöscht). IDs nach außen sind zufällig, nicht fortlaufend.
 - SQL ausschließlich mit Parametern.
 - **CSRF:** SameSite=Strict-Cookies, Pflicht-Header für alle ändernden Anfragen und Prüfung des Origin-Headers.
@@ -261,7 +265,7 @@ Gilt für Briefe zwischen Menschen, einschließlich Begleitbriefen zu Gold-, Eul
 - 3–20 Zeichen (Unicode-Codepoints; jede Eingabe wird vor allen Prüfungen NFC-normalisiert). Erlaubt sind **abschließend**: lateinische Buchstaben A–Z/a–z, deutsche Umlaute und ß (ohne Großform ẞ), die Akzentbuchstaben à á â ã å æ ç è é ê ë ì í î ï ñ ò ó ô õ ø œ ù ú û und ihre Großformen, Ziffern 0–9, Leerzeichen. Keine Leerzeichen am Anfang oder Ende, keine doppelten Leerzeichen. Andere Schriften (z. B. Kyrillisch) sind nicht erlaubt (Schutz vor Verwechslung).
 - **Eindeutigkeit** über einen normalisierten Vergleichsschlüssel, gebildet in dieser Reihenfolge: Akzente entfernen (NFKD), Kleinschreibung, ß→ss, æ→ae, œ→oe, ø→o (explizite Zuordnung für Zeichen ohne Unicode-Zerlegung), danach **leicht verwechselbare Zeichen gleichsetzen:** 0→o, 1→l, i→l. „René“ = „Rene“, „Straße“ = „STRASSE“, „AIex“ (mit großem i) = „Alex“, „J0nas“ = „Jonas“. Groß- und Kleinschreibung spielen also keine Rolle. Die Normalisierung ist eine einzige Funktion in `shared/` und gilt überall, wo Namen verglichen werden (Registrierung, Login, Kontaktanfrage, Namensänderung, reservierte und gesperrte Namen).
 - Angezeigt wird der Name so, wie der Nutzer ihn geschrieben hat.
-- **Reservierte Namen** (Vergleich über den normalisierten Schlüssel ohne Leerzeichen; die Liste wird mit derselben Funktion normalisiert): administrator, admin, root, moderator, support, system, systemnachrichten, unbekannt, posteulen, posteule, erklärbär, erklaerbaer, tante, onkel, bot, papeterie, menagerie. Außerdem darf das erste Wort eines Namens (normalisiert) nicht „tante“ oder „onkel“ sein (z. B. „Tante Emma“), damit niemand wie einer der Bots heißt.
+- **Reservierte Namen** (Vergleich über den normalisierten Schlüssel ohne Leerzeichen; die Liste wird mit derselben Funktion normalisiert): administrator, admin, root, moderator, support, system, systemnachrichten, unbekannt, posteulen, posteule, erklärbär, erklaerbaer, tante, onkel, bot, papeterie, menagerie, dazu (v0.6) die Namen der englischen Ansicht: explainer bear, aunt, uncle, system messages, unknown. Außerdem darf das erste Wort eines Namens (normalisiert) nicht „tante“, „onkel“, „aunt“ oder „uncle“ sein (z. B. „Tante Emma“, „Aunt Emma“), damit niemand wie einer der Bots heißt – in keiner Sprache.
 - Login und alle internen Bezüge hängen an der unveränderlichen Nutzer-ID, nicht am Namen.
 
 ### 7.2 Passwort
@@ -285,7 +289,7 @@ Gilt für Briefe zwischen Menschen, einschließlich Begleitbriefen zu Gold-, Eul
 
 ### 7.7 Endgültige Löschung
 Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatische Löschung wegen Inaktivität (9.10).
-1. Das Konto wird gesperrt (kein Login mehr). Es verschwindet aus allen Adressbüchern, in Chats erscheint es als „unbekannt“. Alle Kontakte erhalten eine Systemnachricht („[letzter Name] hat sein Konto gelöscht“).
+1. Das Konto wird gesperrt (kein Login mehr). Es verschwindet aus allen Adressbüchern, in Chats erscheint es als „unbekannt“. Alle Kontakte erhalten eine Systemnachricht („Das Konto von [letzter Name] wurde gelöscht.“ – passt für beide Auslöser und ist geschlechtsneutral, v0.6).
 2. Eulen, die zu diesem Konto unterwegs sind, drehen um (9.5).
 3. Lieferungen, die das Konto selbst verschickt hat (Briefe, Gold, Eulen, Küken), kommen noch an, bevor seine Daten gelöscht werden. Eulen des gelöschten Kontos verschwinden nach der letzten Zustellung (kein Rückflug).
    Technisch: Beginn der endgültigen Löschung = Zustand „im Löschzustand“; Kontakte werden entfernt, eigene Flüge verlieren den Heimflug.
@@ -309,7 +313,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ### 8.3 Startseite nach Login
 - Bereiche: Briefwechsel, Eulen, Finanzübersicht, Menagerie, Adressbuch, Karte, Einstellungen, Hilfe – auf dem Handy schnell erreichbar (z. B. Kacheln plus untere Navigationsleiste für die wichtigsten Bereiche).
-- Kopfbereich (braune Statusleiste): Schriftzug „PostEulen“, Goldstand, ganz rechts das Sprachfähnchen (8.12); Hinweis, falls Push nicht bestätigt ist („Benachrichtigungen sind noch nicht eingerichtet – so geht’s“, Link zu den Einstellungen). Dahinter „Ausblenden bis zur nächsten Anmeldung“: Der Hinweis bleibt dann auf diesem Gerät verborgen (lokal gespeichert) und erscheint nach der nächsten Anmeldung oder Registrierung wieder. Auf der Übersicht steht oben rechts klein am Schriftzug die Versionsnummer (kein Link).
+- Kopfbereich (braune Statusleiste): Schriftzug „PostEulen“, Goldstand, ganz rechts das Sprachfähnchen (8.12); Hinweis, falls Push nicht bestätigt ist („Benachrichtigungen sind noch nicht eingerichtet – so geht’s“, Link zu den Einstellungen). Dahinter „Ausblenden bis zur nächsten Anmeldung“: Der Hinweis bleibt dann auf diesem Gerät verborgen (lokal gespeichert) und erscheint nach der nächsten Anmeldung oder Registrierung wieder. Auf der Übersicht steht oben rechts klein am Schriftzug die Versionsnummer (kein Link). **Schmale Handys (v0.6):** Bis 26 rem Breite steht „Neue Post!“ in einer eigenen, zentrierten Zeile unter Schriftzug, Goldstand und Fähnchen, damit nichts aus dem Fenster ragt (vorher schoben ein dreistelliger Goldstand und „Neue Post!“ das Fähnchen bei 320–390 px über den Rand).
 - **Gruppenbild auf der Übersicht:** Ab Desktopbreite (64 rem) steht rechts neben den Kacheln (dann zweispaltig) das Gruppenbild der Eulen; auf Handy und Tablet nicht, damit die Kacheln oben bleiben. v0.4: Kacheln und Bild teilen sich die Breite je zur Hälfte und schließen oben und unten bündig ab – das quadratische Bild gibt die Höhe vor, die vier Kachelreihen strecken sich darauf (Kacheln dort mindestens 6 rem hoch); bräuchten die Kacheln einmal mehr Platz, füllt das Bild die Höhe mit minimalem Beschnitt.
 - **„Neue Post!“:** Solange es ungelesene Briefe oder Systemnachrichten gibt, zeigt die Statusleiste auf allen Seiten den Text „Neue Post!“ als Link zum Briefwechsel. Die Buchstaben hüpfen nacheinander; die Animation läuft bei jeder neuen Post rund 5 Sekunden (3 Durchgänge) und ruht dann (WCAG 2.2.2). Bei `prefers-reduced-motion` ohne Animation. Screenreader hören „Neue Post! [Anzahl] ungelesen“.
 - Nach Login bzw. App-Start: Übersicht „Neuigkeiten“ mit allen Benachrichtigungen, die nicht bestätigt per Push zugestellt wurden (11.5). Sie verschwinden mit der Bestätigung des Service Workers oder beim Anzeigen auf der Übersicht.
@@ -320,7 +324,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Nicht lesbare Briefe (v0.5):** Kann das Gerät des Empfängers einen Brief nicht als echt bestätigen („Echtheit nicht prüfbar“, 5.8), meldet es ihn statt als gelesen als **nicht lesbar** (`POST /api/letters/unreadable`, nur Empfänger, nur zugestellte ungelesene Briefe; gespeichert als `letters.unreadable`). Der Absender sieht dann statt „gelesen“ mit ⚠: „nicht lesbar – der Brief konnte beim Empfänger nicht entschlüsselt werden“. Beim Empfänger zählt der Brief nicht mehr als ungelesen. Gemeldet wird erst, wenn der Kontakt-Tresor geladen ist (ohne ihn fehlen die Schlüssel des Gegenübers).
 - **Öffnen eines Chats (v0.4):** Beim Öffnen eines Chats – auch des Systemchats – springt die Seite sofort zum **neuesten** Brief (die Liste bleibt chronologisch, älteste oben): Der letzte Brief endet knapp über der unteren Navigationsleiste; ist er höher als der sichtbare Bereich, steht stattdessen sein Anfang oben unter der Statusleiste. Vorher wird auf das Laden der Schriften gewartet (Handschriften ändern die Höhe). Nach dem Absenden eines Briefs scrollt die Seite sanft zum neuen Brief. Spätere Aktualisierungen (neue Post, SSE) scrollen nicht.
 - **Begleitbriefe** (9.1.4, 9.2.7, 9.9) erscheinen bei beiden Seiten im Chat wie Briefe, mit dem Zusatz „Begleitbrief zu [Betrag] Gold“, „Begleitbrief zur Eule [Name]“ bzw. „Begleitbrief zum Küken [Name]“, und haben denselben Status und dieselben Lesebestätigungen. Gold-, Eulen- und Kükensendungen ohne Begleitbrief erscheinen nicht im Chat, sondern nur im Systemchat (Gold zusätzlich in der Finanzübersicht).
-- **Status eigener Briefe** (Symbol + Text): „Eule unterwegs – Ankunft ca. [Zeit]“, „zugestellt“, „gelesen“, „nicht zugestellt – die Eule ist umgekehrt“.
+- **Status eigener Briefe** (Symbol + Text): „Eule unterwegs – Ankunft ca. [Zeit]“, „zugestellt“, „gelesen“, „nicht lesbar – …“ (siehe oben), „nicht zugestellt – die Eule ist umgekehrt“.
 - **Lesebestätigungen:** Ein Brief gilt als gelesen, sobald er beim Empfänger im sichtbaren Chatverlauf angezeigt wurde; der Browser meldet das dem Server. Gespeichert wird nur Ja/Nein, kein Zeitpunkt. Briefe an Bots gelten als gelesen, sobald der Bot seine Antwort verfasst hat. Systemnachrichten haben keinen Lesestatus.
 - **Inhalt:** ausschließlich reiner Text; nur http(s)-Links sind anklickbar und öffnen sich im Standardbrowser. Keine Emojis, Weiterleitungen, Anhänge, Reaktionen oder Bearbeitungen.
 - **Neuen Brief schreiben:**
@@ -483,7 +487,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Der Build erzeugt daraus WebP-Dateien in passenden Größen (z. B. 160 px und 480 px, für die Einblendungen und die Heimkehr-Bilder zusätzlich eine größere Variante, z. B. 960 px; Gruppenbild 480 und 960 px) mit Hash im Dateinamen. Fehlt ein Bild, wird ein Platzhalter verwendet; der Build meldet fehlende Bilder als Warnung, nicht als Fehler.
 - **Küken** zeigen bis zum Erwachsensein das Küken-Bild ihrer Art; erwachsen zeigen sie das normale Bild. Beim Füttern und Streicheln eines Kükens erscheinen die Füttern- bzw. Streicheln-Bilder seiner Art. Küken werden nicht krank (9.9) und brauchen daher kein grummeliges Bild.
 - **Grummelig:** Ab der Erkrankung (9.8) bis zur Genesung – also krank und unbehandelt, in eigener Pflege und beim Eulenarzt – zeigt die App überall, wo sonst das normale Bild der Eule erscheint, das grummelige Bild. Die Einblendungen beim Füttern und Streicheln bleiben auch bei kranken Eulen unverändert.
-- **Einblendungen:** In vier Momenten blendet die App das passende Bild der Art ein, mit kurzer Bildunterschrift (z. B. „Waldi fliegt los“):
+- **Einblendungen:** In diesen Momenten blendet die App das passende Bild der Art ein, mit kurzer Bildunterschrift (z. B. „Waldi fliegt los“):
   - **Abflug:** wenn man eine eigene Eule oder Leiheule mit Brief oder Gold losschickt oder eine Eule verschenkt. Beim Verschenken eines Kükens erscheint das Küken-Bild.
   - **Ankunft:** immer, wenn eine Eule beim Nutzer ankommt – mit Brief oder Begleitbrief, mit Gold, als geschenkte Eule oder als Küken, auch von Bots. Das Bild erscheint, sobald der Nutzer die Ankunft zum ersten Mal in der App sieht: bei Briefen und Begleitbriefen im Chatverlauf (beim Öffnen des Chats oder sofort, wenn der Chat bei der Landung schon offen ist), bei Lieferungen ohne Brief beim ersten Anzeigen der zugehörigen Meldung (Systemchat oder „Neuigkeiten“, 8.3) oder sofort, wenn die App bei der Landung sichtbar ist. Eine Lieferung löst höchstens ein Bild aus; Systemnachrichten ohne ankommende Eule (z. B. Rundnachrichten) lösen keines aus. Gezeigt wird das Ankunftsbild der Art der überbringenden Eule (bei einer geschenkten Eule also ihrer eigenen Art), bei einem Küken das Küken-Bild. Sind seit dem letzten Öffnen mehrere Eulen angekommen, erscheint nur ein Bild (das der zuletzt gelandeten Eule). Gespeichert wird nur, ob das Bild schon gezeigt wurde (am Brief bzw. an der Systemnachricht).
   - **Füttern**, **Streicheln**, **Trinken** und **Leckerli** (v0.5): nach jeder erfolgreichen Pflege-Aktion der passenden Art (auch wenn das Streicheln an diesem Tag nicht mehr für die Motivation zählt).
@@ -636,11 +640,11 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Schickt in den ersten Tagen feste Briefe (vom Agenten geschriebene Texte mit Platzhaltern, kleines Pergament, kurz, freundlich, einfach):
   - Tag 0: Willkommen, Navigation, Leiheulen (erklärt, dass man mit 3 Gold startet, in den ersten 30 Tagen täglich 3 Gold und danach 2 Gold bekommt, die erste eigene Eule nach ein paar Tagen kaufen kann und Leiheulen auch direkt beim Briefschreiben bekommt), deutlich die Löschfrist (8.4.1) und dass er auf der Karte erscheint, sobald man ihm geschrieben hat. Dieser Brief liegt bei der Registrierung **schon zugestellt** im Briefkasten (ohne Flug; er gilt als von einer Erklärbär-Eule gebracht), damit neue Nutzer sofort eine Anleitung haben.
   - Tag 1: PostEulen ohne App-Store auf den Startbildschirm holen (Android/Chrome, iPhone/Safari; andere Browser als Lesezeichen, nur ohne Benachrichtigungen) – ohne den Sonderfall Google-freies Android und UnifiedPush
-  - Tag 3: Eulen, Energie, Tag/Nacht, Flug, Flugspur auf der Karte
   - Tag 2: Gold, Finanzen, Menagerie (kaufen, leihen, verleihen); v0.4: Hinweis auf das Sprachfähnchen oben rechts
-  - v0.4: Alle festen Briefe gibt es auch auf Englisch; sie gehen in der Sprache des Kontos zum Zeitpunkt des Versands raus (8.12).
+  - Tag 3: Eulen, Energie, Tag/Nacht, Flug (Schlafpausen nur so lange wie nötig), Flugspur auf der Karte
   - Tag 4: Kontakte, Koppeln, Sicherheitsnummer, Verschlüsselung (ernsthafte Kryptografie, auch für Vertrauliches geeignet), Erinnerung an die Löschfrist
-  - Tag 7: Pflege (Pflegebonus nach 9.3), Krankheit, Küken
+  - Tag 7: Pflege (vier Pflege-Aktionen, Motivation, Pflegebonus nach 9.3), Krankheit, Küken
+  - v0.4: Alle festen Briefe gibt es auch auf Englisch; sie gehen in der Sprache des Kontos zum Zeitpunkt des Versands raus (8.12).
 - Beantwortet per KI nur Fragen, die sich konkret auf PostEulen beziehen. Wissensbasis: der vollständige Hilfetext (8.11) und eine kompakte Regelübersicht (Anhang A), beide im System-Prompt. Andere Fragen lehnt er freundlich ab.
 
 ### 10.3 Tante
@@ -706,7 +710,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
   3. Ohne beides: Briefe kommen an, man sieht sie aber erst beim Öffnen der App.
 - Die Browserlage ändert sich schnell (2026 gab es z. B. IronFox-Versionen, in denen sich UnifiedPush teils nicht einschalten ließ). Der Agent prüft sie vor Stufe 2 und vor Stufe 6 erneut, testet nach Möglichkeit auf einem Gerät oder Emulator und passt die Hilfe an.
 - Optional (README): eigener ntfy-Server als UnifiedPush-Server, damit Push auf Google-freien Geräten keinen fremden Server berührt.
-- Eine native Hülle (WebView-App mit UnifiedPush) ist **nicht** Teil von v0.3.
+- Eine native Hülle (WebView-App mit UnifiedPush) ist **nicht** Teil der App.
 
 ---
 
@@ -764,7 +768,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ## 14. Design und Barrierefreiheit
 
 - Verspielte, mittelalterliche Zauberwelt (Pergament, Siegel, Federkiel, Eulen) – aber übersichtlich und aufgeräumt. Eine eigene Fantasiewelt: keine Namen, Figuren, Orte oder Begriffe aus bekannten geschützten Werken (z. B. Harry Potter).
-- Primär für Smartphones; responsiv von 320 px bis Desktop; Touch-Ziele mindestens 44 px.
+- Primär für Smartphones; responsiv von 320 px bis Desktop; Touch-Ziele mindestens 44 px. Keine Seite scrollt seitlich, und kein Text ragt aus seiner Box – geprüft in Deutsch und Englisch bei 320, 360, 390, 768, 1024, 1280, 1440 und 1920 px (v0.6, 17.4). Überschriften in der Zierschrift trennen lange Wörter (`hyphens: auto`, notfalls Umbruch im Wort); die Beschriftungen der unteren Navigationsleiste werden auf sehr schmalen Handys kleiner (bis 0,65 rem).
 - **Kontrast** mindestens WCAG 2.2 AA (Text 4,5:1, Bedienelemente 3:1). Text hebt sich immer klar vom Hintergrund ab (keine Texte auf unruhigen Texturen; die Pergamentbögen der Briefe sind ruhige, gleichmäßige Texturen, auf denen die Tinte AA-Kontrast hat, 8.4).
 - **Seitenhintergrund:** die bisherige Pergamentfarbe, darauf ganz leicht erkennbar eine Weltkarte wie mit verblasster, klecksiger Tinte als Aquarell auf grobem Büttenpapier gemalt (heller Farbschleier mit dunklerem Trocknungsrand, Papierfasern, feine Körnung). Sie liegt als feste Ebene hinter der Seite (auch auf iOS) und wird reproduzierbar aus Natural Earth erzeugt (`tools/map/background.ts` → `web/assets/world-map.webp`).
 - **Text steht immer in Boxen:** Karten (`.card`) bzw. kleine Papierschilder (`.plate`) für Überschriften, Links und kurze Texte außerhalb von Karten; die Boxen selbst sind unverändert. Ein E2E-Test prüft alle Seiten darauf, dass kein Text direkt auf dem Hintergrund steht.
@@ -850,7 +854,7 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 - Ein Test fängt alle Anfragen des Browsers ab und prüft, dass weder Passwörter noch Brief-Klartexte noch unverschlüsselte private Schlüssel den Server erreichen.
 
 ### 17.2 Spiellogik (reine Funktionen, feste Uhr und fester Zufall)
-- Flug: Verbrauch Tag/Nacht; 10-Stunden-Schlafpause mit voller Energie danach; Wasser-Regel; Start mit 0 Energie; Mehrfachempfänger in Reihenfolge; Rückflug mit Restenergie; Leiheule ohne Rückflug; Neuberechnung bei Umzug (Empfänger/Halter, Hin-/Rückflug, während einer Pause); Umkehren in allen Fällen aus 9.5; Interpolation der Position; Strecken, die den Kartenausschnitt verlassen.
+- Flug: Verbrauch Tag/Nacht; Schlafpause nur so lange wie nötig bis zum nächsten Ziel (höchstens bis voll; alte Pläne: 10 Stunden), Erholung im Schlaf mit Motivation; Wasser-Regel; Start mit 0 Energie; Mehrfachempfänger in Reihenfolge; Rückflug mit Restenergie; Leiheule ohne Rückflug; Neuberechnung bei Umzug (Empfänger/Halter, Hin-/Rückflug, während einer Pause); Umkehren in allen Fällen aus 9.5; Interpolation der Position; Strecken, die den Kartenausschnitt verlassen.
 - Ereignis-Warteschlange: Nachholen nach einem Ausfall in zeitlicher Reihenfolge mit dem Fälligkeitszeitpunkt als logischer Zeit; verpasste tägliche Jobs wie in 4.5.
 - Energie: Regeneration (Faktor 2 ⇒ 5 Stunden), Füttern mit Erholungsfaktor, einmal pro Tag, Deckelung.
 - Wahrscheinlichkeiten statistisch mit festem Seed: Krankheit 1/30 bzw. × 0,3 mit Pflegebonus; Eier 1/100; Küken 1–3.
@@ -861,7 +865,7 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 - Begleitbriefe: Zustellung zusammen mit Gold, geschenkter Eule bzw. Küken; beim Umkehren (eigene Eule, Leiheule, geschenkte Eule, Küken) nicht zugestellt.
 - Goldsendungen der Bots: Tante 4,0 nach 2 Tagen, Onkel 10,0 nach 21 Tagen, jeweils nur einmal (Idempotenz); Zustellung auch an inaktive Konten; entfernter Bot ⇒ keine Sendung bzw. Eule samt Gold verschwindet.
 - Bot-Eulen: Tante und Onkel 30 km/h, Erklärbär 200 km/h; der Tag-0-Brief des Erklärbärs ist bei der Registrierung sofort zugestellt.
-- Menagerie: 3 Arten, jede einmal pro Angebotstag (am nächsten Tag alle neu leihbar), Verfall nach 24 Stunden ohne Erstattung; drei verschiedene Namen je Nutzer und Tag; Leihen beim Absenden aus der Eulenwahl (exakte Vorschau, nichts gebucht ohne Absenden, Ablehnung nicht angebotener oder schon geliehener Arten).
+- Menagerie: 4 Arten (nie der Phönix), jede einmal pro Angebotstag (am nächsten Tag alle neu leihbar), Verfall nach 24 Stunden ohne Erstattung; vier verschiedene Namen je Nutzer und Tag; Leihen beim Absenden aus der Eulenwahl (exakte Vorschau, nichts gebucht ohne Absenden, Ablehnung nicht angebotener oder schon geliehener Arten).
 - Pflegebonus nach 9.3: Reisetage werden übersprungen, Tage mit weniger als einer Stunde zu Hause zählen nicht, genau eine Stunde zählt; nur ab Besitzbeginn; Pflegetage und Abwesenheiten werden beim Füttern/Streicheln bzw. bei Abflug, Eulenarzt, Menagerie und Heimkehr erfasst und nach 60 Tagen gelöscht.
 - Umzüge: drei pro Kalendermonat, der vierte wird abgelehnt, im neuen Monat wieder drei.
 - Löschfrist (8.4.1): nach einem Jahr für alle (auch Bot-Briefe und Systemnachrichten), kürzere eigene Frist löscht nur die eigenen Kopien, Briefe unterwegs bleiben, Ungelesen-Zähler werden angepasst, nur die vier erlaubten Fristen.
@@ -880,7 +884,8 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 - Netzwerkprüfung: Der Browser lädt nichts von fremden Hosts. Jeder E2E-Test schlägt bei CSP-Verstoß, Konsolenfehler oder fremder Anfrage fehl.
 - Barrierefreiheit: axe-core (WCAG 2.2 AA) auf allen Seiten und in jedem Screenshot-Zustand.
 - Version 0.2: Leiheule direkt in der Eulenwahl, „Neue Post!“, Briefe in Handschrift, Löschfrist- und Druckschrift-Einstellung, Versionsnummer auf Start- und Übersichtsseite, Städte und getrennte Landesteile auf der Karte.
-- Version 0.3: kein Text direkt auf dem Hintergrund (alle Seiten), Briefbogen mit Siegel, Ungelesen ohne Neuladen, ausblendbarer Benachrichtigungs-Hinweis, Menagerie-Reihenfolge mit Beschreibungen und passenden langen Namen, getrennte Eulengruppen, Freilassen mit Namen und zweiter Bestätigung, Gruppenbild und Willkommensanleitung.
+- Version 0.3: kein Text direkt auf dem Hintergrund (alle Seiten), Briefe auf Pergament (seit 0.3.2 ohne Siegel), Ungelesen ohne Neuladen, ausblendbarer Benachrichtigungs-Hinweis, Menagerie-Reihenfolge mit Beschreibungen und passenden langen Namen, getrennte Eulengruppen, Freilassen mit Namen und zweiter Bestätigung, Gruppenbild und Willkommensanleitung.
+- Version 0.6: Layout in acht Breiten von 320 bis 1920 px, Deutsch und Englisch, angemeldet mit langen Namen und Eulen in vielen Zuständen (Leiheule, kranke Eule mit allen Knöpfen, Gelege): keine Seite scrollt seitlich, kein Element ragt aus dem Fenster oder aus seiner Box (`e2e/layout.spec.ts`, in Chromium, Firefox und WebKit).
 - Ansichten in vier Profilen: Chromium (Handy und Desktop), Firefox (Desktop), WebKit (Handy).
 - CSP und Sicherheits-Header sind vorhanden.
 
@@ -900,7 +905,7 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 
 Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedback. Jede Stufe ab 0 endet mit einem Git-Tag; ihr Stand lässt sich per Skript auf Debian 13 installieren und – ab Stufe 1 – vom Stand der vorigen Stufe aus aktualisieren (16, 17.6).
 
-- **P – Plan:** `ARCHITECTURE.md` (Komponenten, Datenmodell, API-Übersicht, Krypto-Abläufe als Mermaid-Sequenzdiagramme, Ereignis-Warteschlange, Installations- und Update-Konzept), `DEPENDENCIES.md` (Version, Lizenz, Zweck), Prüfung von OPAQUE auf RFC 9807, Zusammenspiel der Krypto-Bibliotheken, aktueller Stand von 11.7, verfeinerter Stufenplan, offene Fragen.
+- **P – Plan:** Architekturplan im Stufenbericht auf Grundlage von Anhang L (Komponenten, Datenmodell, API-Übersicht, Krypto-Abläufe als Mermaid-Sequenzdiagramme, Ereignis-Warteschlange, Installations- und Update-Konzept), `DEPENDENCIES.md` (Version, Lizenz, Zweck), Prüfung von OPAQUE auf RFC 9807, Zusammenspiel der Krypto-Bibliotheken, aktueller Stand von 11.7, verfeinerter Stufenplan, offene Fragen. Weicht der Plan von Anhang L ab, wird das als Entscheidung in Anhang N festgehalten.
 - **0 – Gerüst:** Ordnerstruktur, Build, Lint, Formatierung, Test-Runner, Start mit einem Befehl, Migrationen, Setup-Befehl für Geheimnisse, Sicherheits-Header/CSP, leere App-Hülle im Grund-Design, erster Entwurf der Installationsanleitung (damals `readme.txt`), Installations- und Update-Skript (erste Fassung, installiert die App-Hülle auf Debian 13).
 - **1 – Konten und Krypto:** Registrierung (inkl. Modi, Einladungscodes, Captcha), Login/Logout, Einzel-Sitzung, Schlüsselpaket, lokale Schlüsselspeicherung, Passwortwechsel, Namensregeln, Wohnort-Pin mit Landmaske; Adminpanel: Login mit Erstpasswort und Pflicht-Passwortwechsel, Reset-Befehl, Registrierungsmodus, Einladungscodes, Fehlerprotokoll.
 - **2 – Kontakte und Briefe:** Koppeln, Kontakt-Tresor, Sicherheitsnummer, Schlüsselwarnung, Briefwechsel inkl. Pergament, Mehrfachempfänger, Lesebestätigungen, Chat löschen, Systemchat, PWA, Push inkl. Verifikation, SSE. Die Zustellung läuft in dieser Stufe vorläufig mit einer Platzhalter-Eule und vereinfachter fester Flugzeit; echte Eulen und Flüge folgen in Stufe 3.
@@ -910,6 +915,8 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 - **6 – Abschluss:** Hilfe, Datenschutzerklärung, Impressum, Design-Feinschliff, Prüfung von Barrierefreiheit und Graustufen, Installationsanleitung final; Installation, Update von Stufe 5, Rückfall und Wiederherstellung aus einem Backup auf einem frischen Debian 13 (VM oder Container) komplett durchgespielt, Sicherheits-Review entlang Abschnitt 6 mit Ergebnisbericht. Ergebnis: Version 0.1.0.
 - **Version 0.2:** Änderungen nach Anhang F, Update von 0.1.0 im VM-Test, Einarbeitung aller Entscheidungen in diese Spezifikation. Ein Release ohne Zwischenstufen; das Tag `v0.2.0` signiert der Auftraggeber.
 - **Version 0.3:** Änderungen nach Anhang G, Update von 0.2.0 im VM-Test, Einarbeitung aller Entscheidungen in diese Spezifikation. Ein Release ohne Zwischenstufen; das Tag `v0.3.0` signiert der Auftraggeber.
+- **Versionen 0.3.1 bis 0.6.0:** je ein Release nach den Anhängen H bis K und M; Ablauf für Folgeversionen siehe `PROMPT.md` (Rückfragen mit Optionen, Umsetzung, Tests, Update-Nachricht, CHANGELOG, SPEC/README/Hilfe/Erklärbär in beiden Sprachen, Signier-Befehle für den Auftraggeber).
+- **Neubau:** Wer PostEulen nach dieser Spezifikation neu baut, durchläuft die Stufen P bis 6 mit dem vollen Umfang des aktuellen Stands (alle Anhänge); die Anhänge F bis K und M beschreiben dann nur die Herkunft einzelner Regeln.
 
 ---
 
@@ -1183,3 +1190,185 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 | Eulenübersicht | „Tagschlaf zuhause“: gesunde Eulen zu Hause dösen bei Tag (50 % je Öffnen), nie nachts, nie 10 Minuten nach einer Pflege-Aktion | 8.5, 9.2.6 |
 | Daten | Migration 0012: `owls.cared_at` (Zeitpunkt der letzten Pflege-Aktion) | 9.3 |
 
+
+---
+
+## Anhang L – Technische Umsetzung (Referenz)
+
+Seit v0.6 Teil der Spezifikation (vorher `ARCHITECTURE.md` und die technischen Einträge von `DECISIONS.md`). Die Regeln stehen in den Abschnitten 1–17; dieser Anhang beschreibt, **wie** der aktuelle Stand sie umsetzt. Ein Neubau SOLL dieser Struktur folgen, damit vorhandene Datenbanken, Geheimnis-Dateien, Schlüsselpakete und Briefe kompatibel bleiben; maßgeblich für Einzelheiten des Schemas sind die Migrationen in `backend/migrations/`.
+
+### L.1 Komponenten
+
+| Komponente | Ordner | Aufgabe |
+|---|---|---|
+| Nutzer-PWA | `web/` | Svelte 5 + Vite (ohne SvelteKit), eigener History-Router; gesamte Client-Kryptografie, Kartenanzeige, Service Worker (`web/src/sw.ts`) |
+| Adminpanel | `admin/` | Svelte 5 + Vite, Oberfläche der Admin-API (13) |
+| Backend | `backend/` | Fastify, ein Node-Prozess mit zwei Listenern (Nutzer-API 127.0.0.1:3001, Admin-API 127.0.0.1:3002, getrennte Router, Cookies und Rate-Limits), `node:sqlite`, Migrationen, Ereignis-Warteschlange, Spielregeln, Bots, Push, CLI (`backend/src/cli.ts`: `setup`, `migrate`, `check`, `admin-init`, `admin-reset`, `caddyfile`, `backup`, `version`, `schema-version`) |
+| Shared | `shared/` | Konstanten (Anhang A), Arten (B), Namen (D, E), Texte je Sprache, Valibot-Schemas, Krypto-Formate, reine Spiellogik (`shared/src/game/`), Karte und Land/Wasser-Maske, Sicherheits-Header, Version |
+| Betrieb | `deploy/` | `install.sh`, `posteulen-update` → `update.sh` + `update-steps.sh` (Schritte der neuen Version), `configure.sh`, `backup.sh`, `posteulen-cli`, systemd-Units, `allowed_signers`, VM-Test (`deploy/test/`) |
+| Werkzeuge | `tools/map/`, `scripts/` | Kartendaten und Hintergrundbild aus Natural Earth (ohne Abhängigkeiten, nur Entwicklungsrechner); `npm start`, `npm run dev`, `npm test`, `npm run deps:report` |
+
+- Das Backend läuft ohne Build-Schritt als TypeScript per Type-Stripping (`erasableSyntaxOnly`, Typprüfung `tsc --noEmit`); gebaut werden nur `web/` und `admin/`. Statische Dateien liefert Caddy direkt aus `current/web/dist` bzw. `current/admin/dist`; Caddy leitet `posteulen.de/api/*` an 3001 und `admin.<domain>/api/*` an 3002.
+- Lokale Vorschau ohne Server (`npm start`, `backend/src/dev/preview.ts`): liefert die gebauten Seiten mit denselben Sicherheits-Headern, Admin-Erstpasswort in `data/admin-erstpasswort.txt`. Nur für automatische Tests gibt es gelockerte Rate-Limits (`POSTEULEN_PREVIEW_RELAXED_LIMITS`) und einen Zeitraffer für Flüge (`POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE`); beides ist auf Servern nie gesetzt.
+
+### L.2 Krypto-Formate
+
+| Zweck | Verfahren | Bibliothek |
+|---|---|---|
+| Anmeldung | OPAQUE (RFC 9807), ristretto255, Argon2id m = 64 MiB, t = 3, p = 4 (`argon2id-custom`) | `@serenity-kit/opaque` 1.1.0 |
+| Schlüsselableitung | HKDF-SHA256, leeres Salt, `info` = Kontext-String | WebCrypto |
+| Symmetrisch | XChaCha20-Poly1305-IETF, 24-Byte-Zufallsnonce vorangestellt | `libsodium-wrappers-sumo` |
+| Signatur | Ed25519 (detached) | libsodium |
+| Brief-Schlüssel verteilen | HPKE Base, DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20-Poly1305 | `@hpke/core`, `@hpke/dhkem-x25519`, `@hpke/chacha20poly1305` |
+| Padding | ISO/IEC 7816-4 | libsodium `pad` |
+| Lokale Verpackung | AES-256-GCM mit nicht exportierbarem `CryptoKey` in IndexedDB | WebCrypto |
+| Server: Hash, HMAC | SHA-256, HMAC-SHA256 | `node:crypto` |
+
+**Kontext-Strings** (`shared/src/crypto/contexts.ts`; bestehende Werte werden nie geändert): `PostEulen/master-key-wrap/v1`, `PostEulen/identity-keys/v1`, `PostEulen/contact-vault/v1`, `PostEulen/letter/v1`, `PostEulen/letter-sig/v1`, `PostEulen/letter-ad/v1`, `PostEulen/letter-key/v1`, `PostEulen/safety-number/v1`, `PostEulen/ad/master-key/v1`, `PostEulen/ad/identity-keys/v1`, `PostEulen/ad/vault/v1`, `PostEulen/ad/request-label/v1`.
+
+**Kanonische Kodierung** (`shared/src/crypto/encoding.ts`): Kontext-String, danach jedes Feld als `u32be(Länge) ‖ Bytes`; Zahlen `u64be`, Texte UTF-8 nach NFC. Damit sind Feldgrenzen eindeutig, ohne JSON-Kanonisierung.
+
+**Formate:**
+```
+Schlüsselpaket (users.wrapped_master_key, users.private_keys, users.key_format):
+  wrapped_master_key = nonce24 ‖ XChaCha20-Poly1305(MK, HKDF(export_key, "…/master-key-wrap/v1"),
+                       ad = enc("PostEulen/ad/master-key/v1", userId, "master-key", fmtVersion))
+  private_keys       = nonce24 ‖ XChaCha20-Poly1305(ed25519_sk ‖ x25519_sk, HKDF(MK, "…/identity-keys/v1"),
+                       ad = enc("PostEulen/ad/identity-keys/v1", userId, "ed25519+x25519", fmtVersion))
+  (Ed25519- und X25519-Paar unabhängig erzeugt, keine Umrechnung)
+Brief:
+  content    = enc("PostEulen/letter/v1", fmtVersion, letterId, senderId, recipientId, sentAt, kind, parchment, text)
+  signature  = Ed25519(enc("PostEulen/letter-sig/v1", content))
+  plaintext  = pad(content ‖ signature, 4096 | 65536)     (große Briefe vor v0.3: 16384)
+  ad         = enc("PostEulen/letter-ad/v1", letterId, senderId, recipientId, kind, parchment)
+  ciphertext = nonce24 ‖ XChaCha20-Poly1305(plaintext, letterKey, ad)  → 4 136 bzw. 65 576 Byte (alt: 16 424)
+  wrap_r/s   = HPKE.seal(x25519_pub, info = enc("PostEulen/letter-key/v1", letterId, "recipient"|"sender"), letterKey)
+  kind ∈ {letter, cover_gold, cover_owl, cover_chick}, parchment ∈ {small, large}
+Tresor-Eintrag:
+  blob = nonce24 ‖ XChaCha20-Poly1305(JSON{contactUserId, keySets[{ed25519Pub, x25519Pub, firstSeen}], compared, separated},
+         HKDF(MK, "…/contact-vault/v1"), ad = enc("PostEulen/ad/vault/v1", ownUserId, contactUserId, entryVersion))
+Sicherheitsnummer:
+  SHA-512(enc("PostEulen/safety-number/v1", idA, edA, xA, idB, edB, xB)), A < B nach Nutzer-ID;
+  60 der 64 Byte als 12 × 5 Byte, je mod 100 000 → 12 Fünfergruppen
+```
+- Offene Kontaktanfragen: Der Server speichert das Ziel nur als HMAC des Vergleichsschlüssels (`contact_requests.target_hmac`); den eingegebenen Namen sieht nur der Anfragende, verschlüsselt mit seinem Tresor-Schlüssel (`label`, AD `PostEulen/ad/request-label/v1`).
+
+**Server-Geheimnisse** (`/etc/posteulen/secrets.json`, `root:posteulen` 0640, einmalig von `posteulen-cli setup`, nie überschrieben): `{ format: 1, opaqueServerSetup, vapid: { publicKey, privateKey }, rootSecret }`. Ableitungen per HKDF-SHA256(rootSecret, info) mit `PostEulen/server/<zweck>/v1` für `openai-key`, `name-lock`, `contact-request`, `loan-name`, `fake-credential`, `invite`, `altcha` und `backup-check` (Prüfsumme in `meta`, mit der Start, Update und Wiederherstellung erkennen, ob Geheimnis-Datei und Datenbank zusammengehören). Neue Schlüssel bekommen neue `info`-Strings; die Datei bleibt unverändert.
+
+### L.3 Datenmodell (SQLite, Schema-Version 12)
+
+`PRAGMA journal_mode = WAL; foreign_keys = ON; secure_delete = ON`; Schema-Version in `PRAGMA user_version`, Migrationen `backend/migrations/NNNN_*.sql` vorwärts, je in einer Transaktion. IDs nach außen: 128 Bit Zufall, base64url. Zeitpunkte: ms seit der Epoche (UTC); Tage: `TEXT 'YYYY-MM-DD'` (UTC); Gold: Zehntel; Koordinaten: Hundertstelgrad; Motivation: Zehntel.
+
+| Bereich | Tabellen (wichtige Felder) |
+|---|---|
+| Konten | `users` (Name und Vergleichsschlüssel, `created_on`, `state` active/deletion_pending/deleting, OPAQUE-Datensatz, öffentliche Schlüssel, Schlüsselpaket **E2E**, Wohnort, Umzüge je Monat, `name_changed_year`, `gold`, `last_active_date`, `inactivity_warned_on`, Kontaktanfragen je Tag, `letter_retention_days`, `letters_print`, `donation_count`, `language`) · `sessions` (nur SHA-256 des Tokens) · `push_subscriptions` · `notifications` (Push-ID = ID, `push_state`) · `name_locks` (HMAC) · `invite_codes` (HMAC + letzte 4 Zeichen) |
+| Kontakte, Briefe | `contact_requests` (HMAC-Ziel, `label` **E2E**) · `contacts` (`user_lo`/`user_hi`, Schlüsselwarnung je Seite) · `vault_entries` (**E2E**, Version steigt nur) · `chats` (Ungelesen-Zähler, Bot-Zusammenfassung im Klartext) · `letters` (Chiffrat und Wraps **E2E**, Klartext nur bei Bot-Briefen, `status` in_flight/delivered/returned, `read`, `unreadable`, `sender_has`/`recipient_has` als „eigene Kopien“, `arrival_seen`, Momentaufnahme `owl_name`/`owl_species`) · `system_messages` (Typ + Parameter, `arrival_image`, `seen`, `arrival_shown`; lange Texte stehen in `shared/src/texts/messages.ts`) |
+| Eulen, Flüge, Gold | `owls` (`kind` own/loan/bot, `state` home/flying/gift_flight/sick/self_care/vet/brooding/menagerie, Energie mit Zeitstempel, Küken- und Gelege-Felder, `owned_since`, Pflege-Tage je Art `fed_on`/`petted_on`/`watered_on`/`snacked_on`, `motivation`, `cared_at`, `pending_sickness`, `loan_expires_at`) · `owl_care_days`, `owl_away` (Pflegebonus, je 60 Tage) · `clutches` · `flights` (Profil, Route mit Status je Halt, Segmentliste als JSON, Gold und `gold_state`) · `transactions` (letzte 20) · `menagerie_offers` · `loan_days` |
+| Bots | `bots` (Art, Vorname, Wohnort, im Adressbuch, letzter Nutzerbrief, gesendete feste Briefe) · `bot_shipments` (Bot-Lieferungen unterwegs) · `bot_jobs` (fällige KI-Antworten) · `ai_usage` |
+| Betrieb | `scheduled_events` (`due_at`, `logical_at`, Typ, Referenz, Versuche) · `daily_job_runs` · `admin`, `admin_sessions` · `settings` (Registrierungsmodus, Löschfrist, OpenAI-Modell, Tageslimit, verschlüsselter Key) · `broadcasts` · `error_log` · `stats_counters`, `stats_daily` · `meta` (`secrets_fingerprint`, `notes_version`) |
+
+Nur im Arbeitsspeicher (gewollt, ein Neustart verwirft sie): Registrierungs-Reservierungen, OPAQUE-Zustände, Re-Authentifizierungs- und Vorbereitungs-Tokens, Fehlversuche je Name und IP bzw. /64, Rate-Limit-Zähler, benutzte ALTCHA-Lösungen, SSE-Verbindungen, Push-Warteschlange (nicht gesendete Pushes werden aus `notifications` bis 24 h lang erneut versucht).
+
+### L.4 API
+
+Nur JSON; je Endpunkt ein strenges Valibot-Schema (`shared/src/schemas/`), ändernde Endpunkte ohne Nutzdaten nur mit `{}`; ändernde Anfragen brauchen `X-PostEulen: 1` und den exakt passenden `Origin`; Fehlerantworten `{ code }` (übersetzt im Browser); jede Antwort trägt die Server-Version, veraltete Clients erhalten `409 client_outdated`. Rate-Limit-Klassen: normal (je Sitzung und IP), teuer (Login, Registrierung, Vorbereitung/Flugvorschau, Kontaktanfragen, Briefversand), Admin streng.
+
+**Nutzer-API** (`/api/…`): `health`, `version`, `session`, `me`, `sync`, `events` (SSE) · `altcha/challenge`, `registration`, `register/start|finish`, `login/start|finish`, `logout`, `reauth/start|finish`, `password/start|finish` · `account/delete`, `account/name|home|letters|language` (PATCH) · `contacts` (GET), `contacts/requests` (POST), `contacts/requests/:id` (DELETE), `contacts/:id` (DELETE, auch Bots), `contacts/:id/keys`, `contacts/:id/key-warning`, `vault` (GET), `vault/:contactId` (PUT) · `chats`, `chats/:peer/letters`, `chats/:peer` (DELETE), `letters/prepare|send|read|unreadable|arrival-seen`, `bot-letters/send`, `flights/preview` · `gold/prepare|send`, `finance` · `owls` (GET), `owls/buy`, `owls/:id/name|water|pet|feed|snack|treat|menagerie|release`, `owls/:id/gift/prepare|send`, `clutches/:id/gift/prepare|send`, `menagerie` (GET), `menagerie/loan` · `map` · `news`, `news/seen`, `system-messages`, `system-messages/seen|arrival-shown` · `push/key`, `push/status`, `push/subscription` (PUT/DELETE), `push/test`, `push/ack` (ohne Sitzung, nur Push-ID; Hintergrundanfrage, zählt nicht als Aktivität).
+
+**Admin-API** (`admin.<domain>/api/…`, Cookie `__Host-pe_admin`): `session`, `login/start|finish`, `logout`, `password/start|finish` (Pflicht beim ersten Login), `stats`, `settings/registration`, `invites` (+ `invites/:id`), `settings/inactivity`, `openai` (+ `openai/key`, `openai/models`, `openai/settings`, `openai/test`), `broadcasts`, `errors` (+ `errors/:id`), `altcha/challenge`.
+
+Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Jede nicht ausdrücklich öffentliche Route liefert ohne Sitzung 401, und ändernde Routen ohne Nutzdaten lehnen jeden anderen Inhalt ab.
+
+### L.5 Ereignis-Warteschlange
+
+- Ein Worker im Serverprozess: nächstes `MIN(due_at)` lesen, höchstens 1 Stunde schlafen, fällige Ereignisse in Reihenfolge (`due_at`, `id`) je in `BEGIN IMMEDIATE … COMMIT` ausführen; Handler und Löschen des Ereignisses in derselben Transaktion, jeder Handler prüft zusätzlich den Zustand (Idempotenz). SSE-Hinweise und Push-Aufträge erst nach dem Commit (`tools.after`). Fehler: Rollback, Versuch +1, späterer Termin bei gleicher logischer Zeit, Eintrag im Fehlerprotokoll.
+- Handler bekommen `logical_at` als Uhr (Nachholen nach Ausfällen). Neue frühere Ereignisse wecken den Worker.
+- Ereignistypen: `flight_stop` (ein Ereignis je Halt eines Flugs), `deliver`, `bot_deliver`, `bot_letter`, `bot_gold`, `bot_reply`, `treatment_end`, `hatch`, `clutch_names`, `clutch_gift`, `clutch_reminder`, `chick_adult`, `menagerie_end`, `loan_expire`, `donation`, `account_delete`, `account_purge`. Tägliche Jobs über `registerDaily` mit `daily_job_runs (job, day)`: `menagerie_offer` und `motivation` (00:00, Motivation mit Nachholen je Tag), `sickness` (03:00), `inactivity` (04:00, inkl. Aufräumen und Löschfristen), `daily_gold` (15:00, mit Nachholen je Tag).
+- Kontinuierliche Werte (Energie, Position) werden beim Lesen berechnet; KI-Aufrufe laufen außerhalb der Transaktionen (`bot_jobs` + Hintergrund-Läufer).
+
+### L.6 Frontend
+
+- Texte über den Proxy `t` aus `web/src/lib/i18n.svelte.ts` (Sprache vor dem Login aus `localStorage` `posteulen.language`, danach aus dem Konto); `App.svelte` rendert beim Sprachwechsel neu. Fehlertexte über `errorMessage()` aus den Fehlercodes des Servers.
+- CSP-Verträglichkeit: Svelte setzt Styles über das CSSOM; statische `style`-Attribute und `{@html}` verbietet Lint. Trusted Types mit den Policies `svelte-trusted-html` und `posteulen-sw` (nur `/sw.js`). Dynamische Größen (Balken, Karte) per CSSOM bzw. SVG-Attributen.
+- Service Worker selbst geschrieben: cacht die App-Hülle (versioniert), Navigation „network first“, verarbeitet Push (Nutzlast `{id, type, lang}`, sichtbare Texte beider Sprachen beim Build eingesetzt) und bestätigt jeden Push per `push/ack`.
+- Bilder: `web/scripts/build-images.ts` (`sharp`) erzeugt WebP 160/480 px, für Einblendungen und Heimkehr zusätzlich 960 px, mit Hash im Namen; fehlende Originale → Platzhalter und Warnung. Kartendaten (`europe.json`, Land/Wasser-Maske) als eigener Chunk, geladen erst mit einer Karte.
+- Hilfe, Datenschutz, Impressum als strukturierte Daten (`help.ts`, `help-en.ts`, `legal.ts`, `legal-en.ts`), dargestellt von `TextPage.svelte`; `helpAsText(language)` ist die Wissensbasis des Erklärbärs.
+
+### L.7 Betrieb auf Debian 13
+
+| Pfad | Inhalt | Von Updates |
+|---|---|---|
+| `/opt/posteulen/repo` | partieller Bare-Klon (`--filter=blob:none`) des Repositorys | `git fetch --tags` |
+| `/opt/posteulen/releases/<version>` | per `git archive` ausgepackt und gebaut | neu; die letzten 3 bleiben |
+| `/opt/posteulen/current` | Symlink auf das aktive Release | umgeschaltet |
+| `/opt/posteulen/state` | Zustand der Skripte (z. B. vorige Version für `--rollback`) | aktualisiert |
+| `/var/lib/posteulen/posteulen.sqlite` | Datenbank (0700, Dienstbenutzer `posteulen`) | nur Migrationen |
+| `/var/lib/posteulen/snapshots` | unverschlüsselte Momentaufnahme vor Updates (für Rückfall), 7 Tage | neu je Update |
+| `/var/backups/posteulen` | `*.sqlite.age` täglich und vor Updates, 7 Tage | nie überschrieben |
+| `/etc/posteulen/secrets.json`, `backup.pub` | Geheimnisse, öffentlicher age-Schlüssel | nie (Ausnahme 4.4) |
+| `/etc/posteulen/posteulen.conf`, `service.env`, `local/` | Domain, Repository, Testmodus; lokale Anpassungen (z. B. Admin-Freigabeliste) | nur ergänzt bzw. nie |
+| `/etc/caddy/Caddyfile`, systemd-Units, `/usr/local/sbin/posteulen-update`, `posteulen-cli` | erzeugt aus dem Release | neu erzeugt |
+
+- Paketquellen: NodeSource `node_26.x` und Caddy (Cloudsmith), beide `signed-by` mit geprüftem Fingerabdruck (`deploy/lib.sh`); `unattended-upgrades` auch für diese Quellen.
+- Update (`update.sh`): Tag holen (mit `--verify-tags` Signatur gegen `deploy/allowed_signers`) → `deploy/update-steps.sh` der neuen Version → `npm ci --ignore-scripts` und Build, während der alte Stand läuft → Sicherung (`VACUUM INTO` → age) und Momentaufnahme → Dienst stoppen → Migrationen → `current` umschalten, Units und Caddyfile neu → Start und Funktionsprüfung → bei Fehler automatischer Rückfall. Neueste Version nach SemVer (Vorabversionen vor der Version).
+- Der Server startet nicht mit einem neueren Schema als seinem eigenen und nicht, wenn die Prüfsumme der Geheimnis-Datei nicht zur Datenbank passt (`posteulen-cli check`).
+- VM-Test (`npm run test:vm`, `deploy/test/`): offizielles Debian-13-Cloud-Image mit QEMU/KVM (Images unter `~/.cache/posteulen-vm`, nicht im Repository); Installation des vorigen Tags mit Testkonto und Brief, Update, zweiter Lauf, kaputtes Update mit Rückfall, `--rollback`, Wiederherstellung auf demselben Server und nach Totalausfall.
+
+### L.8 Tests
+
+- `npm test`: Lint (ESLint, Prettier), Typen (`tsc`, `svelte-check`), Vitest mit Abdeckung (je Datei in `shared/src` ≥ 90 % Zeilen), `npm audit` (Laufzeit: 0 Funde; Entwicklung: ab „hoch“ blockierend), `shellcheck` (nur SC1111 abgeschaltet: deutsche Anführungszeichen in Meldungen), Build, Playwright. `npm test -- --quick` ohne Build und E2E.
+- Playwright startet zwei Vorschau-Instanzen (offen und geschlossen registrierbar) und läuft in vier Profilen. Jeder Test schlägt bei fremder Anfrage, Konsolenfehler oder CSP-Verstoß fehl; ignoriert werden nur zwei bekannte Browser-Meldungen über abgebrochene gleiche-Origin-Anfragen (WebKit „access control checks“, Firefox „ServiceWorker intercepted …“ für `/assets/`).
+- Web Push ist automatisch nur gegen einen nachgebildeten Push-Dienst geprüft; echte Zustellung (Mozilla, Google, Apple, UnifiedPush) wird auf Geräten geprüft.
+
+### L.9 Bedrohungen und Maßnahmen
+
+| Bedrohung | Maßnahmen |
+|---|---|
+| Datenbankdiebstahl | Briefe nur als Chiffrat; Schlüsselpaket hängt am `export_key`, der ohne OPRF-Schlüssel nicht berechenbar ist; Sitzungen nur als Hash; Einladungen, Namenssperren und Kontaktanfragen als HMAC; OpenAI-Key verschlüsselt; Backups mit age, privater Schlüssel nicht auf dem Server |
+| Neugieriger Admin | keine Nutzerliste, keine Briefe, keine Änderungsfunktionen; kein Login in Nutzerkonten; nur aggregierte Statistik |
+| Passwort-Raten, Konto-Aufzählung | OPAQUE + Argon2id auf dem Gerät; Wartezeiten und ALTCHA je Name und IP/64 im Arbeitsspeicher; deterministische Fake-Credential-IDs; gleiche Antworten bei Kontaktanfragen |
+| Sitzungsdiebstahl, CSRF | `__Host-`-Cookies (HttpOnly, Secure, SameSite=Strict), Einzel-Sitzung, Pflicht-Header, exakte Origin-Prüfung, kein CORS, getrennte Listener |
+| XSS, Injection | strikte CSP mit Trusted Types, kein `{@html}`, Text nur als Text, nur http(s)-Links; strenge Schemas, parametrisierte SQL-Anweisungen, Größenlimits |
+| SSRF | ausgehend nur OpenAI (feste URL) und Push-Endpunkte (HTTPS:443, eigener Präfixvergleich gegen private/reservierte IPv4/IPv6-Bereiche inkl. IPv4-mapped, Verbindung an die geprüfte IP, keine Weiterleitungen, Timeout, Größenlimit) |
+| Spielmanipulation | Server autoritativ, Vorbereitungs-Tokens einmalig, Buchungen atomar mit Deckungsprüfung |
+| Täuschung | Signatur über Absender, Empfänger, Brief-ID, Art und Pergament; Tresor-Bindung, Sicherheitsnummer, Versandsperre bei Schlüsselwechsel; abschließender Zeichensatz, Verwechslungsregeln und reservierte Namen in beiden Sprachen |
+| Lieferkette | exakte Versionen im Lockfile, neue Versionen erst ab 14 Tagen Alter, `npm ci --ignore-scripts`, `npm audit`, signierte APT-Quellen und signierte Release-Tags |
+
+### L.10 Festlegungen für Entwicklung und Veröffentlichung
+
+- Der Code-Agent hat Push-Zugang nur über einen Deploy-Key für genau dieses Repository; **Tags signiert ausschließlich der Auftraggeber** mit seinem SSH-Schlüssel (öffentlicher Schlüssel in `deploy/allowed_signers`). Der Agent bereitet die Befehle vor und signiert nie selbst.
+- Das Repository liegt auf dem Entwicklungsrechner im Nextcloud-Ordner; große erzeugte Ordner (`node_modules`, `dist`, `coverage`, `test-results`, VM-Images) gehören nicht ins Repository (`.gitignore`) und VM-Images nicht in den synchronisierten Ordner.
+- Node.js und shellcheck für die Entwicklung liegen unter `~/.cache/posteulen-tools` (aus signierten Quellen).
+
+---
+
+## Anhang M – Änderungen in Version 0.6.0
+
+Wartungsversion ohne neue Funktionen: gründliche Prüfung der App gegen diese Spezifikation, Korrekturlesen aller Texte, Prüfung der Spielmechanik und des Layouts, Aufräumen des Repositorys.
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Statusleiste | Auf Handys bis 26 rem steht „Neue Post!“ in einer eigenen Zeile; vorher schoben ein dreistelliger Goldstand und „Neue Post!“ Goldanzeige und Fähnchen bei 320–390 px aus dem Fenster | 8.3 |
+| Layout | Lange Überschriften (Zierschrift) brechen um; Beschriftungen der unteren Leiste passen auf 320 px; neuer E2E-Test für acht Breiten in beiden Sprachen | 14, 17.4 |
+| Namen | Englische Bot-Namen reserviert (explainer bear, aunt, uncle, system messages, unknown; „Aunt …“/„Uncle …“ als erstes Wort) | 7.1 |
+| Systemnachricht | „Das Konto von [Name] wurde gelöscht.“ statt „[Name] hat sein Konto gelöscht.“ (gilt auch bei automatischer Löschung, geschlechtsneutral) | 7.7 |
+| Texte | Wohnort mit N/S und O/W statt Minuszeichen; Karte nennt „alle 5 Minuten“ (vorher fälschlich 10); Fehlermeldung „alle vier Leiheulen“ (vorher „drei“); „wieder fit ab …“/„erwachsen ab …“; Leckerli-Knopf mit Großbuchstaben; Hilfe ohne veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“, Onkel nach 14 Tagen, Sprache in den Einstellungen; Datenschutz nennt den ausgeblendeten Benachrichtigungs-Hinweis im lokalen Speicher; viele kleine Korrekturen de/en | 8, 8.11 |
+| Karte | Schlug das Laden der Land/Wasser-Maske einmal fehl (offline oder Seitenwechsel), blieb der Fehler bis zum Neuladen gespeichert; jetzt wird beim nächsten Tippen neu geladen | 12.3, 12.4 |
+| Technik | Request-Größen als Konstanten (`SECURITY.MAX_LETTER_REQUEST_BYTES` 512 KiB, `MAX_BOT_LETTER_REQUEST_BYTES` 128 KiB); SPEC-Text 6 korrigiert (stand dort noch 128 KiB) | 6, Anhang A |
+| Repository | Entfernt: Stufen-Screenshots (`docs/screenshots/`), `PROGRESS.md`, `SECURITY-REVIEW.md`, `ARCHITECTURE.md`, `DECISIONS.md` (Inhalt in Anhang L und N), Messseite `/messung`; `PROMPT.md` ist jetzt der Bauauftrag für den aktuellen Stand | 4.2, Anhang L |
+
+---
+
+## Anhang N – Entscheidungsprotokoll ab v0.6
+
+Neue Entscheidungen, die diese Spezifikation offenlässt, stehen hier (Nummer, Datum, Entscheidung, Begründung, verworfene Alternativen). Die Einträge D-01 bis D-161 bis v0.5.1 sind in die Abschnitte und in Anhang L eingearbeitet; das vollständige alte Protokoll liegt in der Git-Historie (`DECISIONS.md` am Tag `v0.5.1`).
+
+| Nr. | Datum | Entscheidung | Begründung | Verworfen |
+|---|---|---|---|---|
+| D-162 | 2026-11-07 | Doku im Repository auf `SPEC.md`, `PROMPT.md`, `README.md`/`README.en.md`, `CHANGELOG.md`, `DEPENDENCIES.md` beschränkt; Architektur und Entscheidungen in die SPEC (Anhang L, N) | Wunsch des Auftraggebers: nur Nötiges im öffentlichen Repository, eine Quelle der Wahrheit | Doku-Dateien behalten |
+| D-163 | 2026-11-07 | Git-Historie nicht umgeschrieben; gelöschte Dateien bleiben in alten Commits | signierte Tags v0.1.0–v0.5.1 und Server-Klone bleiben gültig; Server klonen ohnehin partiell | Historie bereinigen (alle Tags neu signieren, Force-Push) |
+| D-164 | 2026-11-07 | Eulenbilder bleiben als Originale (1 254 px PNG) in `images/` | Quelle für den Build; Verkleinern würde das Repository insgesamt vergrößern | auf 960 px verkleinern |
+| D-165 | 2026-11-07 | Englische Bot-Namen reserviert, bestehende Konten mit solchen Namen bleiben unverändert | Schutz vor Täuschung in der englischen Ansicht (3, 7.1); Umbenennen fremder Konten wäre ein Eingriff | Bestandskonten umbenennen |
+| D-166 | 2026-11-07 | „Neue Post!“ bis 26 rem in eigener Zeile statt kleinerer Schrift | einziger Weg, der bei 320 px mit dreistelligem Goldstand ohne Überlauf auskommt; Touch-Ziel bleibt 44 px | Version ausblenden, Schrift verkleinern |
+| D-167 | 2026-11-07 | Transferprüfung (Rest > 10,0) ohne die Leihgebühr einer erst beim Absenden geliehenen Eule | 9.1.4 spricht von der Überweisung; die Leihgebühr ist eine eigene Buchung mit eigener Deckungsprüfung | Leihgebühr in die Restprüfung einrechnen |
+| D-168 | 2026-11-07 | Der E2E-Wächter ignoriert in WebKit die Meldung „… due to access control checks“ jetzt auch für eigene `/assets/`-Dateien (vorher nur `/api/`) | gleiche Ursache wie bei der API: WebKit meldet beim Seitenwechsel abgebrochene gleiche-Origin-Downloads so; gleiche-Origin-Anfragen können CORS nicht verletzen | Test gezielt verlangsamen |

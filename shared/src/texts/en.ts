@@ -60,7 +60,11 @@ export const en: Texts = {
     inviteCode: 'Invitation code',
     home: 'Fictional home',
     homeHint: 'Tap the map. Please do not choose your real address.',
-    homeChosen: 'Chosen: {lat}° N, {lon}° E',
+    homeChosen: 'Chosen: {lat}° {ns}, {lon}° {ew}',
+    north: 'N',
+    south: 'S',
+    east: 'E',
+    west: 'W',
     homeWater: 'That is water. Owls prefer to live on land.',
     homeMissing: 'Please choose a home on the map.',
     warning:
@@ -100,7 +104,7 @@ export const en: Texts = {
     pushTitle: 'And the notifications?',
     push1:
       'The only difference: as an app on your home screen (Android with Chrome or iPhone with Safari), PostEulen can let you know when an owl lands at your place. In a normal browser your post arrives just the same – you simply see it the next time you look in.',
-    push2: 'In real life, the letter box does not ring when post arrives either. ;-)',
+    push2: 'In real life, the letterbox does not ring when post arrives either. ;-)',
     push3:
       'Would you like notifications? Then tap “Set up notifications” below and allow them when your phone asks. PostEulen will send you a test message straight away, so you can see that everything works. On the iPhone this only works once you have opened PostEulen with the new icon on your home screen.',
     helpLink: 'Any questions? The help explains everything at leisure',
@@ -143,7 +147,7 @@ export const en: Texts = {
     homeTitle: 'Change home',
     homeIntro:
       'Possible up to 3 times per calendar month. Tap the map (land only). Please do not choose your real address. Owls on their way to you change course.',
-    homeLeft: 'Possible {count} more times this month.',
+    homeLeft: 'Moves left this month: {count}.',
     homeBlocked: 'You have already moved 3 times this month. Possible again from {date}.',
     homeSave: 'Use this home',
     homeChanged: 'Your new home has been saved.',
@@ -173,7 +177,7 @@ export const en: Texts = {
     keyWarningLong:
       'The keys of {name} have changed. For your safety you can no longer send anything to {name}. Remove the contact and pair again after you have talked to each other outside the app.',
     keysChanged:
-      'Attention: {name} has different keys than before after pairing again. Please compare the safety number outside the app.',
+      'Attention: after pairing again, {name} has different keys than before. Please compare the safety number outside the app.',
     safetyTitle: 'Safety number with {name}',
     safetyIntro:
       'Compare this number outside the app, for example on the phone or in person. If it matches, nobody is reading along in between.',
@@ -253,7 +257,7 @@ export const en: Texts = {
     contact_confirmed: '{name} and you are now connected.',
     contact_removed: '{name} has cut the connection.',
     contact_renamed: '{old} is now called {name}.',
-    contact_deleted: '{name} has deleted their account.',
+    contact_deleted: 'The account of {name} has been deleted.',
     key_warning: 'Key warning for {name}: letters to this contact are blocked.',
     letter_returned: 'A letter to {name} was not delivered – the owl turned back.',
     letter_returned_gold: 'Gold for {name} was not delivered – the owl turned back.',
@@ -269,9 +273,9 @@ export const en: Texts = {
     owl_sick: '{owl} has fallen ill. Nurse it yourself or take it to the owl vet.',
     owl_healthy: '{owl} is healthy again.',
     eggs_laid: '{owl} has laid eggs and is now brooding for 7 days.',
-    chicks_hatched: '{count} chick has hatched at {owl}’s. Give it a name!',
+    chicks_hatched: '{owl} has hatched a chick. Give it a name!',
     chicks_hatched_gift:
-      '{count} chicks have hatched at {owl}’s. Give them names and give one of them away within 24 hours.',
+      '{owl} has hatched {count} chicks. Give them names and give one of them away within 24 hours.',
     clutch_reminder:
       'Reminder: a chick must be given away within a few hours, or lots will be drawn.',
     clutch_lot: 'The lot has decided: the chick {owl} is flying to {name}.',
@@ -370,12 +374,12 @@ export const en: Texts = {
     flyingHome: 'Is flying home.',
     flyingGift: 'Is flying to {names} as a gift.',
     stateSick: 'Ill – needs care or the owl vet.',
-    stateSelfCare: 'Being nursed at home – fit again on {until}.',
+    stateSelfCare: 'Being nursed at home – fit again from {until}.',
     stateVet: 'At the owl vet until {until}.',
     stateBrooding: 'Brooding until {until}.',
     stateMenagerie: 'In the Menagerie until {until}.',
     loanUntil: 'Loan owl – must take off by {until}.',
-    chick: 'Chick – grown up on {until}.',
+    chick: 'Chick – grown up from {until}.',
     treatSelf: 'Nurse it yourself (0.2 gold, 7 days)',
     treatVet: 'To the owl vet (1.0 gold, 24 h)',
     menagerie: 'Lend to the Menagerie (7 days)',
@@ -383,7 +387,7 @@ export const en: Texts = {
     chickNameTitle: 'What should your chick be called?',
     clutchTitle: 'Give a chick away',
     clutchIntro:
-      'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with a break every hour.',
+      'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
     clutchChick: 'Which chick?',
     clutchNameFirst: 'Please give the chick a name first.',
     backIn: 'Expected back in {hours} h.',
@@ -499,7 +503,7 @@ export const en: Texts = {
     legendOwl: 'Your owls on their way',
     legendTrack: 'Route flown so far',
     legendSleep: 'An owl spent the night here',
-    legendNight: 'Night (sun more than 6° below the horizon)',
+    legendNight: 'Night (sun 6° or more below the horizon)',
     flightsTitle: 'Your owls on their way',
     flightsNone: 'None of your owls is on its way right now.',
     flightLine: '{owl}: {purpose} – {where}',
@@ -509,20 +513,12 @@ export const en: Texts = {
     nextStop: 'next stop {name} around {time}',
     homeAt: 'back around {time}',
     sleeping: 'sleeping right now',
-    updated: 'As of {time} – recalculated every 10 minutes.',
+    updated: 'As of {time} – recalculated every {minutes} minutes.',
     loading: 'Loading map …',
     label: 'Map of Western Europe',
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
     reset: 'Whole map',
-  },
-  measure: {
-    title: 'Measurement: password hardening',
-    intro:
-      'Measures how long the password hardening (Argon2id, 64 MiB, 3 passes) takes on this device. Nothing is sent.',
-    start: 'Start measurement',
-    running: 'Measuring …',
-    result: 'Duration: {ms} ms (average of {runs} runs)',
   },
   nav: {
     main: 'Main navigation',
@@ -605,9 +601,10 @@ export const en: Texts = {
     owl_name_too_long: 'The name is too long (at most 20 characters).',
     owl_name_invalid_characters: 'The name contains characters that are not allowed.',
     owl_name_invalid_spaces: 'No spaces at the beginning or end and no double spaces.',
-    transfer_amount: 'Please 0.1 to 20.0 gold.',
+    transfer_amount: 'Please enter 0.1 to 20.0 gold.',
     loan_not_offered: 'This owl species cannot be borrowed today.',
-    loan_limit: 'You have already borrowed three loan owls today. There will be new ones tomorrow.',
+    loan_limit:
+      'You have already borrowed all four loan owls today. There will be new ones tomorrow.',
     loan_species: 'You have already borrowed this loan owl today.',
     owl_not_sick: 'This owl is not ill.',
     owl_unnamed: 'Please give the chick a name first.',

@@ -68,7 +68,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     title: 'Ein einziges Cookie',
     blocks: [
       'PostEulen setzt genau ein Cookie: das Sitzungs-Cookie, ohne das die Anmeldung nicht funktioniert. Es ist technisch notwendig, nur für PostEulen lesbar und enthält eine zufällige Zeichenfolge; der Server speichert davon nur einen Prüfwert. Es gibt keine Tracking-Cookies, keine Werbung, keine Analyse-Werkzeuge und keine Inhalte von fremden Servern.',
-      'Die Sprache, die du vor der Anmeldung wählst, merkt sich nur dein Browser in seinem lokalen Speicher, nicht der Server.',
+      'Die Sprache, die du vor der Anmeldung wählst, und ob du den Hinweis zu Benachrichtigungen ausgeblendet hast, merkt sich nur dein Browser in seinem lokalen Speicher, nicht der Server.',
     ],
   },
   {
@@ -89,7 +89,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     id: 'loeschung',
     title: 'Löschung',
     blocks: [
-      `Du kannst dein Konto jederzeit in den Einstellungen löschen. Nach ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden (falls du dich nicht wieder anmeldest) und nachdem deine letzten Eulen zugestellt haben, werden alle Daten deines Kontos gelöscht: Profil, Anmeldedaten, Schlüssel, Tresor, Sitzungen, Push-Abo, Benachrichtigungen, deine Briefkopien, Bots samt Chats, Eulen, Buchungen und Kontakte. Was andere von dir empfangen haben, bleibt bei ihnen.`,
+      `Du kannst dein Konto jederzeit in den Einstellungen löschen. Nach ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden (falls du dich nicht wieder anmeldest) und sobald deine letzten Eulen alles zugestellt haben, werden alle Daten deines Kontos gelöscht: Profil, Anmeldedaten, Schlüssel, Tresor, Sitzungen, Push-Abo, Benachrichtigungen, deine Briefkopien, Bots samt Chats, Eulen, Buchungen und Kontakte. Was andere von dir empfangen haben, bleibt bei ihnen.`,
       `Automatische Löschung: Konten ohne Aktivität werden nach einer vom Betreiber festgelegten Frist gelöscht (mindestens ${ACCOUNT.AUTO_DELETE_MIN_DAYS}, üblich ${ACCOUNT.AUTO_DELETE_DEFAULT_DAYS} Tage). ${ACCOUNT.AUTO_DELETE_WARNING_DAYS} Tage vorher bekommst du eine Warnung.`,
       `Briefe und Systemnachrichten werden spätestens ${LETTER.RETENTION_MAX_DAYS} Tage nach ihrer Zustellung automatisch und unwiderruflich gelöscht, bei allen Beteiligten. In den Einstellungen kannst du deine eigenen Kopien schon nach 30, 90 oder 180 Tagen löschen lassen.`,
       'Chats löschst du selbst; ein Brief verschwindet aus der Datenbank, sobald ihn weder Absender noch Empfänger mehr haben.',

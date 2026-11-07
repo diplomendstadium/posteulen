@@ -81,6 +81,10 @@ describe('constants (SPEC Anhang A)', () => {
     expect(LETTER.LARGE_PADDED_BYTES).toBe(65536);
     expect(LETTER.LEGACY_LARGE_PADDED_BYTES).toBe(16384);
     expect(SECURITY.MAX_REQUEST_BYTES).toBe(65536);
+    // v0.6: five large letters (padded, plus tag and both wrapped keys) fit as Base64 (SPEC 6).
+    const perLetter = Math.ceil(((LETTER.LARGE_PADDED_BYTES + 16 + 2 * 128) * 4) / 3) + 200;
+    expect(LETTER.MAX_RECIPIENTS * perLetter).toBeLessThan(SECURITY.MAX_LETTER_REQUEST_BYTES);
+    expect(SECURITY.MAX_BOT_LETTER_REQUEST_BYTES).toBeGreaterThan(LETTER.LARGE_MAX_CHARS * 4 * 2);
     expect(SECURITY.ARGON2_MEMORY_KIB).toBe(65536);
   });
 

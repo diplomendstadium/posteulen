@@ -1,4 +1,4 @@
-/** Domain-separation strings (ARCHITECTURE 2.2). Never change existing values. */
+/** Domain-separation strings (SPEC Anhang L.2). Never change existing values. */
 export const CONTEXTS = {
   MASTER_KEY_WRAP: 'PostEulen/master-key-wrap/v1',
   IDENTITY_KEYS: 'PostEulen/identity-keys/v1',
@@ -14,7 +14,7 @@ export const CONTEXTS = {
   AD_REQUEST_LABEL: 'PostEulen/ad/request-label/v1',
 } as const;
 
-/** Server-side derivations from the root secret (ARCHITECTURE 2.5). */
+/** Server-side derivations from the root secret (SPEC Anhang L.2). */
 export const SERVER_CONTEXTS = {
   OPENAI_KEY: 'PostEulen/server/openai-key/v1',
   NAME_LOCK: 'PostEulen/server/name-lock/v1',

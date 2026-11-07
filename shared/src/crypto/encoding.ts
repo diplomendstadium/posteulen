@@ -1,6 +1,6 @@
 /**
- * Canonical, unambiguous binary encoding for signed data and associated data (ARCHITECTURE
- * 2.3, D-14): context string, then every field as u32be(length) ‖ bytes. Strings are NFC UTF-8,
+ * Canonical, unambiguous binary encoding for signed data and associated data (SPEC Anhang L.2,
+ * D-14): context string, then every field as u32be(length) ‖ bytes. Strings are NFC UTF-8,
  * numbers are u64be. This is a data format, not a cryptographic primitive.
  */
 const encoder = new TextEncoder();

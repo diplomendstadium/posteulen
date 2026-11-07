@@ -170,7 +170,10 @@ export const SECURITY = {
   ARGON2_ITERATIONS: 3,
   ARGON2_PARALLELISM: 4,
   MAX_REQUEST_BYTES: 64 * 1024,
-  MAX_LETTER_REQUEST_BYTES: 128 * 1024,
+  /** Sending letters: 5 large letters (64 KiB padded each) as Base64 need about 440 KB. */
+  MAX_LETTER_REQUEST_BYTES: 512 * 1024,
+  /** Letters to bots: plain text, one recipient. */
+  MAX_BOT_LETTER_REQUEST_BYTES: 128 * 1024,
   PUSH_VERIFY_SECONDS: 60,
 } as const;
 

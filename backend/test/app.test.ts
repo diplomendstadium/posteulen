@@ -22,7 +22,7 @@ async function setup(env: 'production' | 'test' = 'test') {
   return { dir, secretsFile, config };
 }
 
-describe('startup checks (SPEC 16.3, ARCHITECTURE 10.3)', () => {
+describe('startup checks (SPEC 16.3, SPEC Anhang L.7)', () => {
   it('refuses to start in production with pending migrations', async () => {
     const { config } = await setup('production');
     await expect(createApp(config)).rejects.toThrow(/posteulen-cli migrate/);

@@ -6,15 +6,11 @@ import { VERSION } from '../shared/src/version.ts';
 import { settle } from './fixtures.ts';
 import { expectAccessible } from './a11y-helpers.ts';
 
-/** Screenshots for the stage report (SPEC 14, 17.4): phone, desktop, some in grayscale. */
-const STAGE = /-stufe\.(\d+)$/.exec(VERSION)?.[1];
 /**
- * Stage versions keep their screenshots in the repository for the stage report. Release
- * versions (e.g. 0.1.0) write them to the ignored test-results folder: no duplicate copies.
+ * Screenshots (SPEC 14, 17.4): phone, desktop, some in grayscale. They go to the ignored
+ * test-results folder; the repository keeps only the README pictures (docs/readme/).
  */
-export const SCREENSHOT_DIR = STAGE
-  ? path.resolve('docs/screenshots', `stufe-${STAGE}`)
-  : path.resolve('test-results/screenshots', VERSION);
+export const SCREENSHOT_DIR = path.resolve('test-results/screenshots', VERSION);
 
 export async function shoot(
   page: Page,

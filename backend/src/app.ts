@@ -40,7 +40,7 @@ export interface App {
 
 export class StartupError extends Error {}
 
-/** Checks that database and secrets file belong together (ARCHITECTURE 10.3). */
+/** Checks that database and secrets file belong together (SPEC Anhang L.7). */
 export async function verifySecretsFingerprint(db: Database, secrets: Secrets): Promise<void> {
   const expected = await secretsFingerprint(secrets);
   const row = db.get<{ value: string }>("SELECT value FROM meta WHERE key = 'secrets_fingerprint'");

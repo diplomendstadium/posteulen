@@ -1,4 +1,4 @@
-/** Minimal History-API router (ARCHITECTURE 9): no dependency, no hash URLs. */
+/** Minimal History-API router (SPEC Anhang L.6): no dependency, no hash URLs. */
 export const route = $state({ path: normalize(location.pathname) });
 
 function normalize(path: string): string {

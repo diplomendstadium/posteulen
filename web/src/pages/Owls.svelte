@@ -114,6 +114,11 @@
     });
 
   const snackOf = (owl: Owl): string => speciesSnack(owl.species, i18n.lang);
+  /** "Getrocknete Mango geben (0,2 Gold)": the button starts with a capital letter (v0.6). */
+  function snackButton(owl: Owl): string {
+    const text = fill(t.owls.snack, { snack: snackOf(owl) });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
 
   /** Speed (km/h) and recovery (% per hour) of the species, as on the Menagerie (v0.5). */
   function speedOf(owl: Owl): string {
@@ -395,9 +400,7 @@
             type="button"
             disabled={busy || owl.snackedToday || !status.online}
             onclick={() => void snack(owl)}
-            >{owl.snackedToday
-              ? t.owls.snackedToday
-              : fill(t.owls.snack, { snack: snackOf(owl) })}</button
+            >{owl.snackedToday ? t.owls.snackedToday : snackButton(owl)}</button
           >
         {/if}
         {#if owl.actions.treat}

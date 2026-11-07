@@ -3,7 +3,7 @@
 # Wird per „source“ eingebunden, nie direkt ausgeführt.
 # shellcheck disable=SC2034 # Die Konstanten werden von den einbindenden Skripten genutzt.
 
-# Pfade (ARCHITECTURE 10.1)
+# Pfade (SPEC Anhang L.7)
 readonly PE_OPT=/opt/posteulen
 readonly PE_REPO=$PE_OPT/repo
 readonly PE_RELEASES=$PE_OPT/releases

@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Name, home and deletion (SPEC 7.3–7.5, 8.10). */
-  import { t, fill, locale, decimal } from '../lib/i18n.svelte.ts';
+  import { t, fill, locale, chosenHome } from '../lib/i18n.svelte.ts';
   import { isLand } from '@posteulen/shared/map/landmask.ts';
   import ErrorText from './ErrorText.svelte';
   import MapView from './MapView.svelte';
@@ -159,10 +159,7 @@
     </MapView>
     {#if home}
       <p role="status">
-        {fill(t.register.homeChosen, {
-          lat: decimal(home.lat, 2),
-          lon: decimal(home.lon, 2),
-        })}
+        {chosenHome(home.lat, home.lon)}
       </p>
     {/if}
     <ErrorText message={homeError} />

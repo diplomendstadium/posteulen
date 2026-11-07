@@ -263,7 +263,9 @@
       {/each}
     </ul>
   {/if}
-  <p class="hint">{fill(t.map.updated, { time: time(now) })}</p>
+  <p class="hint">
+    {fill(t.map.updated, { time: time(now), minutes: MAP.CLIENT_REFRESH_MINUTES })}
+  </p>
 </section>
 
 <style>

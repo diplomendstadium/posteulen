@@ -96,7 +96,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick');
     await other.goto('/app/eulen');
     await expect(other.getByRole('heading', { name: 'Daune', exact: true })).toBeVisible();
-    await expect(other.getByText(/Küken – erwachsen am/)).toBeVisible();
+    await expect(other.getByText(/Küken – erwachsen ab/)).toBeVisible();
     await otherContext.close();
   });
 

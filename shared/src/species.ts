@@ -40,6 +40,9 @@ export const SPECIES: readonly Species[] = [
   { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45 },
 ];
 
+/** The cheapest species to buy (tip in the help, v0.6). */
+export const CHEAPEST_SPECIES: Species = SPECIES.reduce((a, b) => (b.price < a.price ? b : a));
+
 /**
  * The image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image.
  * v0.3: in flight by day/night (owl list) and back home by day/night (system message).

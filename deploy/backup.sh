@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Konsistente, verschlüsselte Sicherung der Datenbank (SPEC 16.4 Punkt 5, ARCHITECTURE 10.4).
+# Konsistente, verschlüsselte Sicherung der Datenbank (SPEC 16.4 Punkt 5, SPEC Anhang L.7).
 # Aufruf: backup.sh [--reason taeglich|update|manuell]
 # Bei --reason update bleibt zusätzlich eine unverschlüsselte Momentaufnahme in
 # /var/lib/posteulen/snapshots (nur für den automatischen Rückfall, D-29); auch sie wird nach

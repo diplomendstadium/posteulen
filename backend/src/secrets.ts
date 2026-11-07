@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import { hkdfSha256 } from '@posteulen/shared/crypto/hkdf.ts';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
 
-/** Contents of the secrets file (SPEC 4.4, ARCHITECTURE 2.5). Never stored in the database. */
+/** Contents of the secrets file (SPEC 4.4, SPEC Anhang L.2). Never stored in the database. */
 export interface Secrets {
   readonly format: 1;
   readonly opaqueServerSetup: string;
@@ -120,7 +120,7 @@ export function deriveServerKey(
 
 /**
  * Fingerprint stored in the database so that restore and update notice when the secrets file
- * does not belong to the database (ARCHITECTURE 10.3). Reveals nothing about the secrets.
+ * does not belong to the database (SPEC Anhang L.7). Reveals nothing about the secrets.
  */
 export async function secretsFingerprint(secrets: Secrets): Promise<string> {
   const key = await deriveServerKey(secrets, SERVER_CONTEXTS.BACKUP_CHECK);

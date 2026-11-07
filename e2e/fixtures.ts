@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 export const ADMIN_URL = 'http://localhost:18081';
-/** Second instance for admin tests (ARCHITECTURE: E2E). */
+/** Second instance for admin tests (SPEC Anhang L.8). */
 export const ISOLATED_WEB_URL = 'http://localhost:18090';
 export const ISOLATED_ADMIN_URL = 'http://localhost:18091';
 const ALLOWED_HOSTS = new Set([
@@ -32,10 +32,10 @@ export const test = base.extend<{ guard: Guard }>({
       });
       // WebKit reports same-origin fetches that are aborted by a navigation (e.g. logout) as
       // "access control" failures, as console error or page error. Same-origin requests cannot
-      // fail CORS, so this is noise (D-62).
+      // fail CORS, so this is noise (D-62; v0.6 also for /assets/, SPEC Anhang N D-168).
       const abortedInWebkit = (text: string): boolean =>
         browserName === 'webkit' &&
-        /localhost:180\d\d\/api\/\S* due to access control checks/.test(text);
+        /localhost:180\d\d\/(api|assets)\/\S* due to access control checks/.test(text);
       // Firefox reports a same-origin asset request that a navigation aborts while the service
       // worker answers it as "intercepted … unexpected error" (D-75). Only for /assets/.
       const abortedInFirefox = (text: string): boolean =>
