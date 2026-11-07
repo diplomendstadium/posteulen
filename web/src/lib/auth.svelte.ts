@@ -75,9 +75,33 @@ async function cryptoModules() {
 /** Lets the browser paint a "please wait" before the Argon2id work blocks it. */
 const paint = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 30));
 
+/**
+ * State in memory that belongs to the signed-in account (contact vault, lists). v0.6.1: it is
+ * dropped together with the keys – before, the decrypted vault of the previous account stayed
+ * in memory after logging out and was used again by the next login in the same tab.
+ */
+// Plain bookkeeping, not state the page shows.
+// eslint-disable-next-line svelte/prefer-svelte-reactivity
+const signOutListeners = new Set<() => void>();
+let generation = 0;
+
+export function onSignOut(listener: () => void): void {
+  signOutListeners.add(listener);
+}
+
+/**
+ * Changes with every sign-out. Code that awaits the server checks it before storing the
+ * answer, so a request still running for the previous account cannot refill the state.
+ */
+export function accountGeneration(): number {
+  return generation;
+}
+
 async function forget(): Promise<void> {
+  generation++;
   account.profile = null;
   account.keys = null;
+  for (const listener of signOutListeners) listener();
   await clearKeys().catch(() => undefined);
 }
 

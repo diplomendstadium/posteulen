@@ -17,35 +17,4 @@ export function dateTime(ms: number): string {
   ).format(date);
 }
 
-export interface TextPart {
-  readonly text: string;
-  readonly href?: string;
-}
-
-/**
- * Splits text into plain parts and http(s) links (SPEC 6: only http/https are clickable, the
- * full URL is shown). Rendering is always as text, never as HTML.
- */
-export function linkify(text: string): TextPart[] {
-  const parts: TextPart[] = [];
-  const pattern = /\bhttps?:\/\/[^\s<>"]+/gi;
-  let last = 0;
-  for (const match of text.matchAll(pattern)) {
-    let url = match[0];
-    // Trailing punctuation usually ends the sentence, not the URL.
-    while (/[.,;:!?)\]]$/.test(url)) url = url.slice(0, -1);
-    const start = match.index;
-    if (start > last) parts.push({ text: text.slice(last, start) });
-    let valid: boolean;
-    try {
-      const parsed = new URL(url);
-      valid = parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      valid = false;
-    }
-    parts.push(valid ? { text: url, href: url } : { text: url });
-    last = start + url.length;
-  }
-  if (last < text.length) parts.push({ text: text.slice(last) });
-  return parts;
-}
+export { linkify, type TextPart } from '@posteulen/shared/links.ts';

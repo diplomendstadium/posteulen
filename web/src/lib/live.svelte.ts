@@ -6,7 +6,7 @@
  */
 import { OPERATIONS } from '@posteulen/shared/constants.ts';
 import { api } from './api.ts';
-import { account } from './auth.svelte.ts';
+import { account, accountGeneration, onSignOut } from './auth.svelte.ts';
 import { syncVault } from './vault.svelte.ts';
 import { showOwlImage } from './overlay.svelte.ts';
 import { t, fill } from './i18n.svelte.ts';
@@ -70,6 +70,17 @@ export const live = $state<{
   mapVersion: 0,
 });
 
+// v0.6.1: lists of the previous account must not show up for the next one in the same tab.
+onSignOut(() => {
+  live.chats = [];
+  live.systemUnread = 0;
+  live.contacts = [];
+  live.bots = [];
+  live.requests = [];
+  live.news = [];
+  live.pushState = 'none';
+});
+
 type Topic =
   'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push' | 'owls' | 'finance' | 'map';
 
@@ -105,11 +116,15 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
 
 async function refresh(topics: readonly Topic[]): Promise<void> {
   if (!account.profile) return;
+  const generation = accountGeneration();
+  /** Answers for an account that has signed out in the meantime are dropped (v0.6.1). */
+  const current = (): boolean => generation === accountGeneration();
   const tasks: Promise<void>[] = [];
   if (topics.includes('chats') || topics.includes('system')) {
     tasks.push(
       api<{ chats: ChatSummary[]; system: { unread: number } }>('GET', '/api/chats').then(
         (result) => {
+          if (!current()) return;
           live.chats = result.chats;
           live.systemUnread = result.system.unread;
           live.chatVersion++;
@@ -124,6 +139,7 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
         bots: BotContact[];
         requests: { id: string; label: string; expiresAt: number }[];
       }>('GET', '/api/contacts').then(async (result) => {
+        if (!current()) return;
         live.contacts = result.contacts;
         live.bots = result.bots;
         live.requests = result.requests;
@@ -134,14 +150,14 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   if (topics.includes('news')) {
     tasks.push(
       api<{ news: NewsItem[] }>('GET', '/api/news').then((result) => {
-        live.news = result.news;
+        if (current()) live.news = result.news;
       }),
     );
   }
   if (topics.includes('profile')) {
     tasks.push(
       api<{ profile: typeof account.profile }>('GET', '/api/sync').then((result) => {
-        if (result.profile) account.profile = result.profile;
+        if (result.profile && current()) account.profile = result.profile;
       }),
     );
   }
@@ -151,7 +167,7 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   if (topics.includes('push')) {
     tasks.push(
       api<{ state: string }>('GET', '/api/push/status').then((result) => {
-        live.pushState = result.state;
+        if (current()) live.pushState = result.state;
       }),
     );
   }

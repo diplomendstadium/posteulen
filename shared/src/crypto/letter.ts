@@ -165,7 +165,10 @@ export type OpenResult =
  * sender's signing key come from the local account and the contact vault (SPEC 5.8).
  */
 export async function openLetter(input: {
-  readonly server: Pick<LetterMeta, 'letterId' | 'senderId' | 'recipientId' | 'kind' | 'parchment'>;
+  readonly server: Pick<
+    LetterMeta,
+    'letterId' | 'senderId' | 'recipientId' | 'sentAt' | 'kind' | 'parchment'
+  >;
   readonly role: LetterRole;
   readonly ownUserId: string;
   readonly ownX25519Secret: Uint8Array;
@@ -223,9 +226,11 @@ export async function openLetter(input: {
       fields.map((f, i) => (i === 1 || i === 5 ? fieldNumber(f) : fieldText(f)));
     if (context !== CONTEXTS.LETTER || format !== LETTER_FORMAT) return fail('format');
     // The signed content must match what the server says (no forwarding, no relabelling).
+    // v0.6.1: the send time, too – the server assigns it and the sender signs exactly that.
     if (
       letterId !== server.letterId ||
       senderId !== server.senderId ||
+      sentAt !== server.sentAt ||
       kind !== server.kind ||
       parchment !== server.parchment
     ) {

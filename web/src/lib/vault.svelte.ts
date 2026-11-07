@@ -4,7 +4,7 @@
  */
 import type { KeySet, VaultEntry } from '@posteulen/shared/crypto/vault.ts';
 import { api } from './api.ts';
-import { account } from './auth.svelte.ts';
+import { account, accountGeneration, onSignOut } from './auth.svelte.ts';
 
 export interface StoredEntry {
   readonly entry: VaultEntry;
@@ -21,6 +21,18 @@ export const vault = $state<{
   changedKeys: [],
 });
 
+/** Contacts whose keys were compared with the server on display in this visit (SPEC 5.7). */
+// eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping, not shown anywhere
+const checkedOnDisplay = new Set<string>();
+
+// v0.6.1: the decrypted vault belongs to the account – it goes with logout and every 401.
+onSignOut(() => {
+  vault.entries = {};
+  vault.loaded = false;
+  vault.changedKeys = [];
+  checkedOnDisplay.clear();
+});
+
 const crypto = () => import('@posteulen/shared/crypto/vault.ts');
 
 function keys(): { userId: string; vaultKey: Uint8Array } {
@@ -30,6 +42,7 @@ function keys(): { userId: string; vaultKey: Uint8Array } {
 
 export async function loadVault(): Promise<void> {
   const { userId, vaultKey } = keys();
+  const generation = accountGeneration();
   const { openVaultEntry } = await crypto();
   const { entries } = await api<{
     entries: { contactId: string; version: number; blob: string }[];
@@ -45,17 +58,20 @@ export async function loadVault(): Promise<void> {
       // A swapped or foreign entry is ignored – letters of this contact cannot be verified.
     }
   }
+  if (generation !== accountGeneration()) return;
   vault.entries = result;
   vault.loaded = true;
 }
 
 async function store(contactId: string, entry: VaultEntry, version: number): Promise<void> {
   const { userId, vaultKey } = keys();
+  const generation = accountGeneration();
   const { sealVaultEntry } = await crypto();
   await api('PUT', `/api/vault/${contactId}`, {
     version,
     blob: await sealVaultEntry(vaultKey, userId, version, entry),
   });
+  if (generation !== accountGeneration()) return;
   vault.entries = { ...vault.entries, [contactId]: { entry, version } };
 }
 
@@ -105,6 +121,27 @@ export async function keysMatch(
   if (bound.ed25519 === serverKeys.ed25519 && bound.x25519 === serverKeys.x25519) return true;
   await api('POST', `/api/contacts/${contactId}/key-warning`, {}).catch(() => undefined);
   return false;
+}
+
+/**
+ * SPEC 5.7: keys are compared "before sending and when showing received letters". Opening a
+ * conversation with a bound contact compares the keys the server currently delivers once per
+ * visit; a deviation is reported (warning and sending block) like before sending (v0.6.1).
+ */
+export async function checkKeysOnDisplay(contactId: string): Promise<void> {
+  const stored = vault.entries[contactId];
+  if (!stored || stored.entry.separated || checkedOnDisplay.has(contactId)) return;
+  checkedOnDisplay.add(contactId);
+  try {
+    const serverKeys = await api<{ ed25519: string; x25519: string }>(
+      'GET',
+      `/api/contacts/${contactId}/keys`,
+    );
+    await keysMatch(contactId, serverKeys);
+  } catch {
+    // Not a contact any more or offline: checked again on the next visit.
+    checkedOnDisplay.delete(contactId);
+  }
 }
 
 export async function markCompared(contactId: string): Promise<void> {

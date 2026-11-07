@@ -2,7 +2,7 @@
 import { sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
 import { api, ApiError } from './api.ts';
 import { account } from './auth.svelte.ts';
-import { keysMatch, vault } from './vault.svelte.ts';
+import { checkKeysOnDisplay, keysMatch, vault } from './vault.svelte.ts';
 
 export interface ApiLetter {
   readonly id: string;
@@ -134,11 +134,19 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
     import('@posteulen/shared/crypto/encoding.ts'),
   ]);
   const { letters } = await api<{ letters: ApiLetter[] }>('GET', `/api/chats/${peerId}/letters`);
+  // SPEC 5.7: when showing received letters, the server's keys are compared with the vault.
+  void checkKeysOnDisplay(peerId);
   const peerKeys = (vault.entries[peerId]?.entry.keySets ?? []).map((set) =>
     fromBase64Url(set.ed25519),
   );
   return Promise.all(
     letters.map(async (letter): Promise<ShownLetter> => {
+      // v0.6.1: only letters between me and this peer belong here.
+      const between =
+        letter.role === 'sender'
+          ? letter.senderId === me && letter.recipientId === peerId
+          : letter.senderId === peerId && letter.recipientId === me;
+      if (!between) return { ...letter, text: null };
       // Bot letters are plain text; the same text rules apply on display (SPEC 10.5).
       if (letter.plaintext !== null) {
         return { ...letter, text: sanitizeLetterText(letter.plaintext).text };
@@ -150,6 +158,7 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
           letterId: letter.id,
           senderId: letter.senderId,
           recipientId: letter.recipientId,
+          sentAt: letter.sentAt,
           kind: letter.kind,
           parchment: letter.parchment,
         },
