@@ -190,6 +190,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       wrap_sender: Uint8Array | null;
       status: string;
       read: number;
+      unreadable: number;
       arrival_seen: number;
       owl_name: string;
       owl_species: string;
@@ -218,6 +219,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           arrivesAt: row.arrives_at,
           status: row.status,
           read: row.read === 1,
+          // v0.5: the recipient could not verify the letter (instead of "read" for the sender).
+          unreadable: row.unreadable === 1,
           arrivalSeen: row.arrival_seen === 1,
           owl: { name: row.owl_name, species: row.owl_species },
           // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl.
@@ -238,20 +241,25 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     };
   });
 
-  /** Read receipts: only yes/no, no time (SPEC 8.4). */
-  app.post('/api/letters/read', { preHandler: authenticated }, async (request) => {
-    const body = parse(IdList, request.body);
-    const me = userOf(request).id;
+  /**
+   * Read receipts: only yes/no, no time (SPEC 8.4). v0.5: a letter the recipient's device could
+   * not verify is reported as unreadable instead – the sender sees that rather than "read".
+   */
+  const markRead = (me: string, ids: readonly string[], unreadable: boolean): void => {
     const senders = new Set<string>();
     ctx.db.transaction(() => {
-      for (const id of body.ids) {
+      for (const id of ids) {
         const letter = ctx.db.get<{ sender_id: string }>(
           "SELECT sender_id FROM letters WHERE id = ? AND recipient_id = ? AND status = 'delivered' AND read = 0",
           id,
           me,
         );
         if (!letter) continue;
-        ctx.db.run('UPDATE letters SET read = 1 WHERE id = ?', id);
+        ctx.db.run(
+          'UPDATE letters SET read = 1, unreadable = ? WHERE id = ?',
+          unreadable ? 1 : 0,
+          id,
+        );
         senders.add(letter.sender_id);
       }
       for (const sender of senders) {
@@ -267,6 +275,15 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       }
     });
     for (const sender of senders) ctx.hub.notify(sender, 'chats');
+  };
+
+  app.post('/api/letters/read', { preHandler: authenticated }, async (request) => {
+    markRead(userOf(request).id, parse(IdList, request.body).ids, false);
+    return { ok: true };
+  });
+
+  app.post('/api/letters/unreadable', { preHandler: authenticated }, async (request) => {
+    markRead(userOf(request).id, parse(IdList, request.body).ids, true);
     return { ok: true };
   });
 

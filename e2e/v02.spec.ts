@@ -36,11 +36,11 @@ test.describe('Version 0.2', () => {
     const offers = page
       .getByRole('group', { name: 'Welche Eule soll fliegen?' })
       .getByRole('radio');
-    await expect(offers).toHaveCount(3);
+    await expect(offers).toHaveCount(4);
     // Nothing is preselected – borrowing costs gold.
     for (const offer of await offers.all()) await expect(offer).not.toBeChecked();
     await expect(page.getByText('Leiheule des Tages: 0,1 Gold, erst beim Abschicken.')).toHaveCount(
-      3,
+      4,
     );
     await offers.first().check();
     await page.getByRole('button', { name: 'Absenden' }).click();

@@ -53,11 +53,16 @@
         await scrollToLatest(list, smooth);
       }
       // A letter counts as read once it is shown in the visible conversation (SPEC 8.4).
-      const unread = letters
-        .filter((l) => l.role === 'recipient' && l.status === 'delivered' && !l.read)
-        .map((l) => l.id);
+      // v0.5: one that could not be verified is reported as unreadable instead.
+      const unread = letters.filter(
+        (l) => l.role === 'recipient' && l.status === 'delivered' && !l.read,
+      );
       if (unread.length > 0 && document.visibilityState === 'visible') {
-        await api('POST', '/api/letters/read', { ids: unread });
+        const valid = unread.filter((l) => l.text !== null).map((l) => l.id);
+        // Only with the contact vault loaded: without the contact's keys nothing can be verified.
+        const invalid = vault.loaded ? unread.filter((l) => l.text === null).map((l) => l.id) : [];
+        if (valid.length > 0) await api('POST', '/api/letters/read', { ids: valid });
+        if (invalid.length > 0) await api('POST', '/api/letters/unreadable', { ids: invalid });
         markChatRead(peerId);
       }
       const unseen = letters.filter(
@@ -100,6 +105,7 @@
     if (letter.status === 'returned') return t.letters.returned;
     if (letter.status === 'in_flight')
       return fill(t.letters.inFlight, { time: dateTime(letter.arrivesAt) });
+    if (letter.unreadable) return t.letters.unreadable;
     return letter.read ? t.letters.read : t.letters.delivered;
   }
 
@@ -161,9 +167,11 @@
                 ? '↩'
                 : letter.status === 'in_flight'
                   ? '🦉'
-                  : letter.read
-                    ? '✔✔'
-                    : '✔'}</span
+                  : letter.unreadable
+                    ? '⚠'
+                    : letter.read
+                      ? '✔✔'
+                      : '✔'}</span
             >
             {statusText(letter)}
           </p>

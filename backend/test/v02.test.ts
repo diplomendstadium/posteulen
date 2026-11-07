@@ -207,7 +207,7 @@ describe('migration 0007 (v0.2)', () => {
       "INSERT INTO scheduled_events (type, ref, due_at, logical_at) VALUES ('papeterie_end', 'o1', 5000, 5000)",
     );
 
-    expect(migrate(db, migrations)).toEqual([7, 8, 9, 10]);
+    expect(migrate(db, migrations)).toEqual([7, 8, 9, 10, 11]);
     expect(db.all('SELECT id, state FROM owls ORDER BY id')).toEqual([
       { id: 'o1', state: 'menagerie' },
       { id: 'o2', state: 'flying' },

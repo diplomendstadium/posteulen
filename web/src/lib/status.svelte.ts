@@ -38,8 +38,18 @@ export async function registerServiceWorker(): Promise<void> {
     return;
   }
   if (!registration) return;
+  // v0.5: a page that has just been loaded already runs the new version (pages always come
+  // from the network). If a new service worker is still waiting – e.g. because an installed
+  // Android app never closes all its windows – it is activated at once, without reloading;
+  // before, the "please reload" banner came back after every reload.
+  let silent = false;
+  if (registration.waiting && navigator.serviceWorker.controller) {
+    silent = true;
+    registration.waiting.postMessage({ type: 'skip-waiting' });
+  }
   const markWaiting = (): void => {
-    if (registration.waiting && navigator.serviceWorker.controller) status.updateReady = true;
+    if (registration.waiting && navigator.serviceWorker.controller && !silent)
+      status.updateReady = true;
   };
   markWaiting();
   registration.addEventListener('updatefound', () => {
@@ -50,6 +60,10 @@ export async function registerServiceWorker(): Promise<void> {
   const hadController = navigator.serviceWorker.controller !== null;
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (silent) {
+      silent = false;
+      return;
+    }
     if (reloading || !hadController) return;
     reloading = true;
     location.reload();
@@ -59,7 +73,19 @@ export async function registerServiceWorker(): Promise<void> {
   });
 }
 
+/**
+ * "Reload" in the banner: activates a waiting service worker (the page reloads on the change
+ * of controller). v0.5: if none is waiting – the banner can also come from the server ("app
+ * outdated") – or the change does not happen within a few seconds, the page simply reloads.
+ */
 export async function applyUpdate(): Promise<void> {
-  const registration = await navigator.serviceWorker.getRegistration();
-  registration?.waiting?.postMessage({ type: 'skip-waiting' });
+  const registration =
+    'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
+  const waiting = registration?.waiting;
+  if (!waiting) {
+    location.reload();
+    return;
+  }
+  waiting.postMessage({ type: 'skip-waiting' });
+  setTimeout(() => location.reload(), 3000);
 }

@@ -14,6 +14,8 @@ export interface ApiLetter {
   readonly arrivesAt: number;
   readonly status: 'in_flight' | 'delivered' | 'returned';
   readonly read: boolean;
+  /** v0.5: the recipient could not verify the letter. */
+  readonly unreadable?: boolean;
   readonly arrivalSeen: boolean;
   readonly owl: { readonly name: string; readonly species: string };
   /** Cover letter to gold: the amount in tenths. */

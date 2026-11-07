@@ -3,7 +3,7 @@
  * are plain text (the exception of SPEC 3), they travel with bot owls (not shown on the map)
  * and always arrive, also at inactive accounts.
  */
-import { BOTS, GOLD, MAP, TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, GOLD, MAP, OWL, TIME } from '@posteulen/shared/constants.ts';
 import { simulate, type FlightProfile } from '@posteulen/shared/game/flight.ts';
 import { AUNT_NAMES, owlNames, UNCLE_NAMES } from '@posteulen/shared/names-data.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
@@ -20,6 +20,9 @@ import { flightEnvironment, routeOf, turnBack, type FlightRow } from '../flights
 import type { BotType } from './prompts.ts';
 
 type After = (work: () => void) => void;
+
+/** Species of bot owls: never the phoenix (v0.5). */
+const BOT_OWL_SPECIES = SPECIES.filter((species) => !species.mythical);
 
 export interface BotRow {
   readonly id: string;
@@ -105,6 +108,8 @@ function profileOf(ctx: Context, type: BotType): FlightProfile {
     : {
         speedKmh: BOTS.AUNT_UNCLE_SPEED_KMH,
         maxEnergy: BOTS.AUNT_UNCLE_ENERGY,
+        // v0.5: sleeping on the way like every owl, 10 % per hour (no species factor).
+        recoveryPerHour: BOTS.AUNT_UNCLE_ENERGY * OWL.REGEN_SHARE_PER_HOUR,
         mode: 'adult',
         ...scale,
       };
@@ -136,7 +141,7 @@ export function dispatchBotLetter(
   /** Fixed landing time instead of the simulated flight (the aunt's welcome letter, v0.3). */
   fixedArrival?: number,
 ): { letterId: string; arrivesAt: number } {
-  const species = pick(ctx, SPECIES).id;
+  const species = pick(ctx, BOT_OWL_SPECIES).id;
   const owlName = pick(ctx, owlNames(languageOf(ctx, bot.owner_id)));
   const profile = profileOf(ctx, bot.type);
   const simulation = simulate(
@@ -245,7 +250,7 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     now,
     letters.explainer.day0,
     pick(ctx, owlNames(language)),
-    pick(ctx, SPECIES).id,
+    pick(ctx, BOT_OWL_SPECIES).id,
   );
   upsertBotChat(ctx, userId, explainer.id, now, 1);
   for (const day of BOTS.EXPLAINER_LETTER_DAYS.filter((day) => day > 0)) {

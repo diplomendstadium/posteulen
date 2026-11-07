@@ -2,7 +2,7 @@
  * Random game events (SPEC 9.6–9.9): sickness, eggs, chicks, the daily menagerie offer and
  * loan owl names. Pure functions: the random numbers (in [0, 1)) or HMAC bytes are passed in.
  */
-import { MENAGERIE, OWL } from '../constants.ts';
+import { MENAGERIE, MOTIVATION, OWL } from '../constants.ts';
 import { OWL_NAMES } from '../names-data.ts';
 import { SPECIES } from '../species.ts';
 import { daysBetween } from './energy.ts';
@@ -47,7 +47,8 @@ export function randomOwlName(random: number, names: readonly string[] = OWL_NAM
 
 /** Three different species for the daily offer (9.6); `random` is called once per pick. */
 export function pickOffer(random: () => number): string[] {
-  const pool = SPECIES.map((species) => species.id);
+  // v0.5: mythical species (the phoenix) are never offered.
+  const pool = SPECIES.filter((species) => !species.mythical).map((species) => species.id);
   const picked: string[] = [];
   while (picked.length < MENAGERIE.OFFER_SPECIES_COUNT && pool.length > 0) {
     const index = Math.min(pool.length - 1, Math.floor(random() * pool.length));
@@ -62,6 +63,8 @@ export interface LoanIdentity {
   readonly sex: 'f' | 'm';
   /** Share of the start energy range (60–100 %, 9.3), in [0, 1). */
   readonly energyShare: number;
+  /** v0.5: motivation in tenths, 8, 9 or 10. */
+  readonly motivation: number;
 }
 
 /**
@@ -75,6 +78,8 @@ export function loanIdentity(hmac: Uint8Array, names: readonly string[] = OWL_NA
     name: names[value % names.length] ?? 'Momo',
     sex: ((hmac[3] ?? 0) & 1) === 0 ? 'f' : 'm',
     energyShare: (((hmac[4] ?? 0) << 8) | (hmac[5] ?? 0)) / 65536,
+    motivation:
+      MOTIVATION.LOAN_MIN + ((hmac[6] ?? 0) % (MOTIVATION.LOAN_MAX - MOTIVATION.LOAN_MIN + 1)),
   };
 }
 

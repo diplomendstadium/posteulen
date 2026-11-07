@@ -3,7 +3,7 @@
  * menagerie, sickness and treatment, eggs, hatching, naming and gift deadlines of chicks,
  * growing up. All handlers run in the event queue and are idempotent (SPEC 4.5).
  */
-import { ACCOUNT, GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, GOLD, MENAGERIE, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   chickCount,
   giftRequired,
@@ -18,7 +18,7 @@ import {
   speciesPrice,
 } from '@posteulen/shared/game/chance.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
-import { randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
+import { isMythical, randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
 import { languageOf } from '../accounts/language.ts';
 import type { Context } from '../context.ts';
@@ -28,7 +28,7 @@ import { HttpError } from '../http/errors.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { isActiveDate } from '../contacts/model.ts';
 import { currentEnergy, type OwlRow } from './model.ts';
-import { backHome, careBonusOf } from './care.ts';
+import { backHome, careBonusOf, motivationNight } from './care.ts';
 
 type After = (work: () => void) => void;
 
@@ -137,8 +137,8 @@ export function loanOwl(ctx: Context, userId: string, species: string, now: numb
   const id = randomId();
   ctx.db.run(
     `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at,
-                       loan_expires_at)
-     VALUES (?, ?, 'loan', ?, ?, ?, ?, ?, ?, ?, ?)`,
+                       loan_expires_at, motivation)
+     VALUES (?, ?, 'loan', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     userId,
     species,
@@ -149,6 +149,7 @@ export function loanOwl(ctx: Context, userId: string, species: string, now: numb
     day,
     now,
     now + MENAGERIE.LOAN_EXPIRY_HOURS * TIME.HOUR,
+    identity.motivation,
   );
   ctx.queue.schedule('loan_expire', id, now + MENAGERIE.LOAN_EXPIRY_HOURS * TIME.HOUR);
   const owl = loadOwl(ctx, id);
@@ -162,7 +163,8 @@ export function loanOwl(ctx: Context, userId: string, species: string, now: numb
 export function afterReturnHome(ctx: Context, owlId: string, at: number, after: After): void {
   const owl = loadOwl(ctx, owlId);
   if (!owl || owl.kind !== 'own' || owl.is_chick === 1) return;
-  if (owl.sex === 'f' && laysEggs(ctx.random())) {
+  // The phoenix never lays eggs (v0.5).
+  if (owl.sex === 'f' && !isMythical(owl.species) && laysEggs(ctx.random())) {
     // Brooding wins over a sickness rolled during the flight (9.8).
     ctx.db.run(
       "UPDATE owls SET state = 'brooding', state_until = ?, pending_sickness = 0 WHERE id = ?",
@@ -449,6 +451,13 @@ export function registerLifecycleHandlers(ctx: Context): void {
   ctx.queue.on('chick_adult', (event, tools) =>
     chickAdult(ctx, event.ref, event.logicalAt, tools.after),
   );
+  // v0.5: motivation −0.1 every night, also for owls on the way or in the Menagerie.
+  ctx.queue.registerDaily({
+    name: 'motivation',
+    hourUtc: MOTIVATION.DECAY_HOUR_UTC,
+    catchUpEveryDay: true,
+    run: () => motivationNight(ctx),
+  });
   ctx.queue.registerDaily({
     name: 'menagerie_offer',
     hourUtc: MENAGERIE.OFFER_HOUR_UTC,

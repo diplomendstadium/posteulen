@@ -15,6 +15,11 @@ export interface Owl {
   readonly maxEnergy: number;
   readonly fedToday: boolean;
   readonly pettedToday: boolean;
+  /** v0.5 */
+  readonly wateredToday: boolean;
+  readonly snackedToday: boolean;
+  /** v0.5: motivation in tenths (8–12). */
+  readonly motivation: number;
   readonly ready: boolean;
   readonly stateUntil: number | null;
   readonly loanExpiresAt: number | null;
@@ -92,6 +97,14 @@ export function nameOwl(id: string, name: string): Promise<{ owl: Owl }> {
 
 export function feedOwl(id: string): Promise<{ owl: Owl }> {
   return api('POST', `/api/owls/${id}/feed`, {});
+}
+
+export function waterOwl(id: string): Promise<{ owl: Owl }> {
+  return api('POST', `/api/owls/${id}/water`, {});
+}
+
+export function snackOwl(id: string): Promise<{ owl: Owl }> {
+  return api('POST', `/api/owls/${id}/snack`, {});
 }
 
 export function petOwl(id: string): Promise<{ owl: Owl }> {

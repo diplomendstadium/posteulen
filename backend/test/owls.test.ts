@@ -255,13 +255,13 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     expect((await owls(anna))[0]?.energy).toBe(540);
     for (let i = 0; i < 3; i++)
       expect((await anna.agent.json('POST', `/api/owls/${id}/pet`, {})).status).toBe(200);
-    // Two care days (feeding yesterday, feeding and petting today), each counted once.
+    // v0.5: a care day needs two different interactions – only today (biscuit and petting).
     expect(
       app.db.all<{ day: string }>(
         'SELECT day FROM owl_care_days WHERE owl_id = ? ORDER BY day',
         id,
       ),
-    ).toEqual([{ day: utcDay(app.clock.now - TIME.DAY) }, { day: utcDay(app.clock.now) }]);
+    ).toEqual([{ day: utcDay(app.clock.now) }]);
     expect(gold(anna)).toBe(38);
   });
 
@@ -370,8 +370,10 @@ describe('flights with own owls (SPEC 9.4)', () => {
     const route = JSON.parse(flight!.route) as { arrivesAt: number; lat: number }[];
     expect(route[0]!.lat).toBe(50);
     expect(route[0]!.arrivesAt).toBeLessThan(before);
-    // The running pause continues until its old end.
-    expect(sleepsOf(flight!.plan)[0]).toMatchObject({ t0: app.clock.now, t1: oldPause.t1 });
+    // v0.5: the running sleep is cut; from its energy so far the new plan decides anew.
+    const kept = sleepsOf(flight!.plan)[0]!;
+    expect(kept.t0).toBe(oldPause.t0);
+    expect(kept.t1).toBe(app.clock.now);
     advanceTo(app, route[0]!.arrivesAt);
     expect(gold(clara)).toBe(35);
   });

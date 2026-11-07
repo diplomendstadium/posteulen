@@ -151,7 +151,7 @@ test.describe('Version 0.3', () => {
       (a, b) => a.price - b.price || a.name.localeCompare(b.name, 'de'),
     );
     await expect(cards.locator('h3')).toHaveText(byPrice.map((species) => species.name));
-    await expect(cards.first().locator('.description')).toContainText('Haselnusstaler');
+    await expect(cards.first().locator('.description')).toContainText('Haselnüsse');
     // Loan owls carry no description.
     await expect(page.getByTestId('loan-offer').locator('.description')).toHaveCount(0);
     // The picture stays as wide as the card; the long name stays inside it.

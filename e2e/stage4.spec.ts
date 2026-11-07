@@ -33,9 +33,9 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
   test('Leiheule: im Angebot leihen, sie wartet 24 Stunden', async ({ page }) => {
     await registerViaUi(page);
     await page.goto('/app/menagerie');
-    await expect(page.getByTestId('loan-offer')).toHaveCount(3);
+    await expect(page.getByTestId('loan-offer')).toHaveCount(4);
     const name = await borrowViaUi(page);
-    await expect(page.getByText(/^Heute geliehen: 1 von 3\./)).toBeVisible();
+    await expect(page.getByText(/^Heute geliehen: 1 von 4\./)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Schon geliehen' })).toBeDisabled();
     await page.goto('/app/eulen');
     const card = page.getByTestId('owl-card');

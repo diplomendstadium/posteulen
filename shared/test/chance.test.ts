@@ -68,14 +68,15 @@ describe('protection period (SPEC 9.8)', () => {
 });
 
 describe('menagerie (SPEC 9.6, 9.7)', () => {
-  it('offers three different species', () => {
+  it('offers four different species, never the phoenix (v0.5)', () => {
     for (let seed = 1; seed < 200; seed++) {
       const offer = pickOffer(seeded(seed));
-      expect(offer).toHaveLength(3);
-      expect(new Set(offer).size).toBe(3);
+      expect(offer).toHaveLength(4);
+      expect(new Set(offer).size).toBe(4);
+      expect(offer).not.toContain('phoenix');
       for (const id of offer) expect(SPECIES.some((species) => species.id === id)).toBe(true);
     }
-    expect(pickOffer(() => 0.9999999)).toHaveLength(3);
+    expect(pickOffer(() => 0.9999999)).toHaveLength(4);
   });
 
   it('derives name and sex of loan owls from HMAC bytes', () => {

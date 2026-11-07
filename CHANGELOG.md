@@ -3,6 +3,39 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.5.0 – Motivation und ein Phönix
+
+- **Motivation:** Jede Eule hat neben der Energie einen Motivationsbalken (0,8–1,2). Er sinkt jede
+  Nacht um 0,1 und steigt durch Pflege. Beim Abflug gilt er für die ganze Reise: Energie,
+  Geschwindigkeit und Erholung unterwegs ändern sich entsprechend (1,2 = +20 %). Die
+  Eulenübersicht zeigt Geschwindigkeit (km/h) und Erholung (%/h) mit ±x %.
+- **Mehr Pflege:** Wasser geben (kostenlos, einmal am Tag) und Lieblingsleckerli der Art (0,2 Gold,
+  einmal am Tag, +20 % Energie), neben Streicheln und Eulenkeks; neue Bilder dazu. Gegen
+  Krankheit zählt ein Tag mit zwei verschiedenen Pflege-Aktionen.
+- **Schlaf unterwegs:** Eine leere Eule schläft nur so lange, wie sie bis zum nächsten Ziel braucht,
+  und erholt sich dabei wie zu Hause (statt immer 10 Stunden).
+- **Phönix:** neue Art für 100 Gold (2 000 Energie, 100 km/h, 20 %/h); nie Leiheule, keine Eier,
+  kein Verleih an die Menagerie.
+- **4 Leiheulen** am Tag, alle leihbar.
+- **Menagerie:** neue Beschreibungen, Werte in km/h und %/h.
+- **Nicht lesbare Briefe:** Der Absender sieht „nicht lesbar“ statt „gelesen“, wenn der Empfänger
+  einen Brief nicht prüfen konnte.
+- **Update-Hinweis** bleibt nach dem Neuladen nicht mehr hängen (installierte App auf Android).
+- Hilfe, Erklärbär, README (de/en) und SPEC (Abschnitt 9.3a, Anhang J) auf Stand v0.5.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0011** (läuft beim Update automatisch): neue Spalten `owls.motivation`
+  (alle vorhandenen Eulen starten mit 1,0), `owls.watered_on`, `owls.snacked_on`,
+  `letters.unreadable`.
+- Neuer täglicher Job um 00:00 UTC (Motivation −0,1).
+- Neue Bilder in `images/` (Trinken und Leckerli je Art, 12 Phönix-Bilder, zusammen 235); der
+  Build dauert beim ersten Mal etwas länger.
+- Eulen, die beim Update unterwegs sind, schlafen nach ihrem alten Plan; neue Flüge nutzen die
+  neue Schlafregel.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.5.
+- Update: `sudo posteulen-update`.
+
 ## v0.4.0 – PostEulen spricht Englisch
 
 - **Englische Ansicht:** Oben rechts auf jeder Seite ein kleines britisches Fähnchen; ein Tipp stellt

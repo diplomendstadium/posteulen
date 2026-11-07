@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   /**
    * Menagerie (SPEC 8.7): the loan owls of the day on top, then all 17 species for sale by
    * price, each with picture, values and a description (v0.3).
    */
-  import { t, fill, i18n, speciesName, locale, goldText } from '../lib/i18n.svelte.ts';
+  import { t, fill, i18n, speciesName, locale, goldText, decimal } from '../lib/i18n.svelte.ts';
   import { SPECIES } from '@posteulen/shared/species.ts';
   import { speciesDescription } from '@posteulen/shared/texts/species.ts';
   import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
@@ -11,7 +12,7 @@
   import ErrorText from '../components/ErrorText.svelte';
   import { account } from '../lib/auth.svelte.ts';
   import { borrow, buyOwl, listOwls, menagerie, type Offer } from '../lib/owls.ts';
-  import { GOLD } from '@posteulen/shared/constants.ts';
+  import { GOLD, OWL } from '@posteulen/shared/constants.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { refreshTopics } from '../lib/live.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -138,10 +139,12 @@
         <p class="stats">
           {fill(t.menagerie.stats, {
             energy: number(species.maxEnergy),
-            speed: number(species.speedFactor),
-            recovery: number(species.recoveryFactor),
+            // v0.5: absolute values of the species instead of factors.
+            speed: decimal(owlSpeedKmh(species.speedFactor), 1),
+            recovery: decimal(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor, 1),
           })}
         </p>
+        {#if species.mythical}<p class="hint">{t.menagerie.mythical}</p>{/if}
         {#if speciesDescription(species.id, i18n.lang)}<p class="description">
             {speciesDescription(species.id, i18n.lang)}
           </p>{/if}
@@ -219,5 +222,10 @@
   .stats {
     margin: 0;
     color: var(--ink-soft);
+  }
+
+  .hint {
+    color: var(--ink-soft);
+    font-style: italic;
   }
 </style>

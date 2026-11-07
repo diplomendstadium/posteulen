@@ -179,7 +179,7 @@ Nur im Arbeitsspeicher (bewusst nicht in der DB): Registrierungs-Reservierungen 
 | `contacts` | `user_lo`, `user_hi` (sortiert) PK · `since` · `warn_lo`, `warn_hi` (Schlüsselwarnung gemeldet von) | lesbar (Metadaten, 3) |
 | `vault_entries` | `owner_id`, `contact_id` PK · `version` · `blob` | **E2E** |
 | `chats` | `owner_id`, `peer_id` PK · `peer_kind` (`user`/`bot`/`system`) · `last_activity_at` · `unread` · `bot_summary` (nur Bots) | lesbar; `bot_summary` Klartext (Bot-Ausnahme, 3) |
-| `letters` | `id` PK · `sender_id` · `recipient_id` · `kind` · `parchment` · `sent_at` · `ciphertext` (Mensch↔Mensch) · `wrap_recipient` · `wrap_sender` · `plaintext` (nur Bot-Briefe) · `flight_id` · `status` (`in_flight`/`delivered`/`returned`) · `read` · `sender_has` · `recipient_has` · `arrival_seen` · `owl_name`, `owl_species` (Momentaufnahme für „Gebracht von …“) | `ciphertext`, `wrap_*`: **E2E**; Bot-Brieftexte lesbar (Ausnahme, 3); Metadaten lesbar |
+| `letters` | `id` PK · `sender_id` · `recipient_id` · `kind` · `parchment` · `sent_at` · `ciphertext` (Mensch↔Mensch) · `wrap_recipient` · `wrap_sender` · `plaintext` (nur Bot-Briefe) · `flight_id` · `status` (`in_flight`/`delivered`/`returned`) · `read` · `unreadable` (v0.5: Empfänger konnte nicht prüfen) · `sender_has` · `recipient_has` · `arrival_seen` · `owl_name`, `owl_species` (Momentaufnahme für „Gebracht von …“) | `ciphertext`, `wrap_*`: **E2E**; Bot-Brieftexte lesbar (Ausnahme, 3); Metadaten lesbar |
 | `system_messages` | `id` · `user_id` · `type` · `params` · `created_at` · `arrival_image` (Art, für die Einblendung) · `seen` · `arrival_shown`. v0.3: `owl_home` mit `{owl, species}` (Heimkehr-Bild), `donation` mit `{text}` (0–2), `update_notes` mit `{version}`; die langen Texte stehen in `shared/texts/messages.ts`, nicht in der DB | lesbar |
 | `loan_days` | `user_id`, `day`, `species` PK (v0.3.2: heute geliehene Arten; Grenze je Angebotstag) | lesbar |
 | `meta` | `key` PK · `value`: `secrets_fingerprint`, `notes_version` (zuletzt angekündigte Version, v0.3) | lesbar |
@@ -190,7 +190,7 @@ Ein Brief existiert physisch einmal je Empfänger (5.8). `sender_has`/`recipient
 
 | Tabelle | Felder |
 |---|---|
-| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`menagerie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `pending_sickness` · `loan_expires_at` |
+| `owls` | `id` · `owner_id` (Mensch oder Bot) · `kind` (`own`/`loan`/`bot`) · `species` · `sex` · `name` · `energy` (REAL) · `energy_at` · `state` (`home`/`flying`/`sick`/`self_care`/`vet`/`brooding`/`menagerie`/`gift_flight`) · `state_until` · `is_chick` · `adult_at` · `owned_since` (Tag, 9.8) · `renamed_year` · `fed_on` · `petted_on` · `watered_on`, `snacked_on` (v0.5) · `motivation` (v0.5, Zehntel 8–12) · `pending_sickness` · `loan_expires_at` |
 | `owl_care_days` · `owl_away` | v0.2 (D-103): Pflegetage (`owl_id`, `day`) und Zeiten fort von zu Hause (`owl_id`, `since_at`, `until_at`), je höchstens 60 Tage |
 | `clutches` | `id` · `mother_id` · `owner_id` · `hatch_at` · `chick_ids` · `name_deadline` · `gift_deadline` · `gift_required` |
 | `flights` | `id` · `holder_id` · `owl_id` · `cargo` (JSON: Brief-IDs, Goldbetrag, Geschenk-Eule/Küken, Begleitbrief-ID) · `route` (JSON: Wegpunkte mit Nutzer-IDs) · `plan` (BLOB, Segmentliste) · `started_at` · `state` · `next_stop` |
@@ -244,6 +244,8 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `PATCH /account/name`, `/account/home` | Namens- bzw. Wohnortwechsel | Sitzung | N |
 | `PATCH /account/letters` | Löschfrist und Druckschrift (v0.2, sofortige Löschung bei kürzerer Frist) | Sitzung | N |
 | `PATCH /account/language` | Sprache des Kontos `de`/`en` (v0.4: Fähnchen und Einstellungen) | Sitzung | N |
+| `POST /owls/:id/water`, `/snack` | Pflege v0.5: Wasser (kostenlos), Lieblingsleckerli (0,2 Gold); wie `/pet` und `/feed` je einmal am Tag Motivation +0,1 | Sitzung | N |
+| `POST /letters/unreadable` | Empfänger meldet nicht prüfbare Briefe (v0.5, statt gelesen) | Sitzung | N |
 | `GET /sync` | vollständiger Abgleich (Profil, Chatliste, Eulen, Neuigkeiten, Versionen) | Sitzung | N |
 | `GET /events` | SSE-Hinweise („Chat X geändert“), keine Inhalte | Sitzung | N |
 | `GET /chats/:peer/letters` | Verlauf (Chiffrate und Metadaten; nur zugestellte bzw. eigene) | Sitzung, eigener Chat | N |

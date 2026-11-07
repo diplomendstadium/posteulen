@@ -12,9 +12,9 @@
   <img src="docs/readme/gruppenbild.jpg" alt="Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand" width="520">
 </p>
 
-Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie zehn Stunden Nickerchen. Auf der Karte kannst du ihr dabei zusehen.
+Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie ein Nickerchen – genau so lange, bis die Kraft bis zum nächsten Ziel reicht. Auf der Karte kannst du ihr dabei zusehen.
 
-Du kaufst oder leihst dir Eulen, gibst ihnen Namen, fütterst und streichelst sie. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu, und jede erzählt dort ein bisschen über ihren Charakter. Gut umsorgte Eulen werden seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Kommt sie heim, wartet sie auf dem Fensterbrett.
+Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen dann schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Kommt sie heim, wartet sie auf dem Fensterbrett.
 
 Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
 
@@ -76,7 +76,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.4.0**.
+Stand: **Version 0.5.0**.
 
 **Kurzfassung**
 

@@ -11,6 +11,11 @@ export interface Species {
   readonly maxEnergy: number;
   readonly speedFactor: number;
   readonly recoveryFactor: number;
+  /**
+   * v0.5: a mythical creature (the phoenix): never offered as a loan owl, lays no eggs, is never
+   * lent to the Menagerie, never carries bot letters and has no chick picture.
+   */
+  readonly mythical?: true;
 }
 
 // prettier-ignore
@@ -31,12 +36,14 @@ export const SPECIES: readonly Species[] = [
   { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 16, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4 },
   { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65 },
   { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25 },
+  { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 100, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true },
   { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45 },
 ];
 
 /**
- * The eleven image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image.
+ * The image kinds per species (SPEC 9.2.6, Anhang B). Empty suffix = normal image.
  * v0.3: in flight by day/night (owl list) and back home by day/night (system message).
+ * v0.5: drinking water and the favourite treat (13 kinds; the phoenix has no chick picture).
  */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
@@ -50,7 +57,18 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'flyingNight', suffix: 'Nachtflug' },
   { kind: 'homeDay', suffix: 'Heimkehr-Tag' },
   { kind: 'homeNight', suffix: 'Heimkehr-Nacht' },
+  { kind: 'drinking', suffix: 'Trinken' },
+  { kind: 'snack', suffix: 'Leckerli' },
 ] as const;
+
+/** The image kinds a species has (v0.5: no chick picture for mythical species). */
+export function imageKindsOf(species: Pick<Species, 'mythical'>): readonly OwlImageKindEntry[] {
+  return species.mythical
+    ? OWL_IMAGE_KINDS.filter((entry) => entry.kind !== 'chick')
+    : OWL_IMAGE_KINDS;
+}
+
+type OwlImageKindEntry = (typeof OWL_IMAGE_KINDS)[number];
 
 /** Pictures without a species (SPEC Anhang B): empty perch and the group picture. */
 export const SCENE_IMAGES = [

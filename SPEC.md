@@ -1,8 +1,8 @@
-# PostEulen.de – Spezifikation v0.4
+# PostEulen.de – Spezifikation v0.5
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Entscheidungen, die sie offenlässt, werden in `DECISIONS.md` dokumentiert.
 >
-> **Stand: Version 0.4.0.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-145 und die Änderungen der Versionen 0.2, 0.3, 0.3.1, 0.3.2 und 0.4 (Übersicht in Anhang F, G, H und I). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
+> **Stand: Version 0.5.0.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-157 und die Änderungen der Versionen 0.2, 0.3, 0.3.1, 0.3.2, 0.4 und 0.5 (Übersicht in Anhang F bis J). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
 
 ---
 
@@ -18,12 +18,12 @@
 
 ## 1. Projekt
 
-- **Name:** PostEulen.de, **Version:** 0.4
+- **Name:** PostEulen.de, **Version:** 0.5
 - **Idee:** Ein moderner, sicherer, Ende-zu-Ende-verschlüsselter Messenger, der liebevoll so tut, als würde man keine schnöden Nachrichten, sondern Briefe per Eule verschicken. Man kauft, leiht und pflegt Eulen; Flugzeiten hängen von Entfernung, Eulenart, Energie und Tag/Nacht ab.
 - **Spiel und sicherer Kommunikationsweg:** PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Spielmechanik ist verspielt, die Kryptografie nicht: Sie ist ernsthaft und auf dem Stand der Zeit (Abschnitt 5). README und Hilfe sagen das ausdrücklich.
 - **Plattform:** primär Smartphone (PWA), außerdem Desktop (Linux, macOS, Windows).
 - **Sprache:** Oberfläche auf **Deutsch (Standard) und Englisch** (britisches Englisch, ab v0.4, Abschnitt 8.12). Alle Texte zentral: je Sprache eine Datei mit denselben Schlüsseln (`shared/src/texts/de.ts`, `en.ts`; die englische ist gegen den Typ der deutschen geprüft, damit kein Text fehlt), dazu Hilfe, Rechtstexte, Bot-Briefe und Systemtexte je Sprache. Das Adminpanel bleibt deutsch. Code, Bezeichner und Kommentare auf Englisch.
-- **Umfang:** v0.4 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
+- **Umfang:** v0.5 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
 - **Bestandteile:** Website für Nutzer (PWA), Website mit Adminpanel, Backend inkl. Datenbank – jeweils in einem eigenen Ordner (4.2).
 
 ---
@@ -317,6 +317,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ### 8.4 Briefwechsel
 - **Chatliste** wie in klassischen Messengern: ein Chat pro Gegenüber, sortiert nach letzter Aktivität, mit Ungelesen-Zähler. Sobald Briefe oder Systemnachrichten als gelesen gemeldet sind, gehen Zähler und „Neue Post!“ sofort zurück, ohne Neuladen und auch beim Wechsel über die Navigationsleiste. Angezeigt wird stets der **aktuelle** Name des Gegenübers; nach Kontakttrennung oder Kontolöschung „unbekannt“. Bot-Chats sind optisch deutlich unterscheidbar (Symbol und Text „Bot“, nicht nur Farbe). Der Chat „Systemnachrichten“ ist oben angeheftet.
 - **Chatverlauf:** soll nach echten Briefen aussehen, nicht nach Messenger. Jeder Brief ist ein **Pergamentbogen** mit ausgefranstem Rand (eine von sechs festen Randformen, je Brief aus seiner ID gewählt, also bei jedem Anzeigen gleich), leicht schräg, ohne Siegel. Briefe an den Nutzer stehen auf **hellem**, eigene auf **dunklerem Pergament** (Texturen vom Auftraggeber, `web/assets/parchment-light.webp` und `parchment-dark.webp`); auf dem dunklen Pergament steht auch die Kleinschrift in der dunkelsten Tinte (Kontrast AA). Eigene Briefe rechts, die des Gegenübers links, in **zwei verschiedenen Handschriften und Tinten** (eigene: Dancing Script in Sepia; Gegenüber: Playwrite DE Grund, eine deutsche Schulschrift, in Blauschwarz; beide OFL, selbst gehostet). Links, Namen, Zeit, Pergamentart, Status und Begleitbrief-Zusatz stehen immer in der gut lesbaren Druckschrift (Schutz vor Verwechslung, 6, 7.1). Einstellung „Briefe in Druckschrift anzeigen“ (8.10). Je Brief: Zeit, Pergamentart; beim Empfänger „Gebracht von [Eulenname] ([Art])“. Über dem Verlauf ein Hinweis auf die Löschfrist (8.4.1). Sieht der Empfänger einen neu angekommenen Brief zum ersten Mal, wird das Ankunftsbild der Eule eingeblendet (9.2.6).
+- **Nicht lesbare Briefe (v0.5):** Kann das Gerät des Empfängers einen Brief nicht als echt bestätigen („Echtheit nicht prüfbar“, 5.8), meldet es ihn statt als gelesen als **nicht lesbar** (`POST /api/letters/unreadable`, nur Empfänger, nur zugestellte ungelesene Briefe; gespeichert als `letters.unreadable`). Der Absender sieht dann statt „gelesen“ mit ⚠: „nicht lesbar – der Brief konnte beim Empfänger nicht entschlüsselt werden“. Beim Empfänger zählt der Brief nicht mehr als ungelesen. Gemeldet wird erst, wenn der Kontakt-Tresor geladen ist (ohne ihn fehlen die Schlüssel des Gegenübers).
 - **Öffnen eines Chats (v0.4):** Beim Öffnen eines Chats – auch des Systemchats – springt die Seite sofort zum **neuesten** Brief (die Liste bleibt chronologisch, älteste oben): Der letzte Brief endet knapp über der unteren Navigationsleiste; ist er höher als der sichtbare Bereich, steht stattdessen sein Anfang oben unter der Statusleiste. Vorher wird auf das Laden der Schriften gewartet (Handschriften ändern die Höhe). Nach dem Absenden eines Briefs scrollt die Seite sanft zum neuen Brief. Spätere Aktualisierungen (neue Post, SSE) scrollen nicht.
 - **Begleitbriefe** (9.1.4, 9.2.7, 9.9) erscheinen bei beiden Seiten im Chat wie Briefe, mit dem Zusatz „Begleitbrief zu [Betrag] Gold“, „Begleitbrief zur Eule [Name]“ bzw. „Begleitbrief zum Küken [Name]“, und haben denselben Status und dieselben Lesebestätigungen. Gold-, Eulen- und Kükensendungen ohne Begleitbrief erscheinen nicht im Chat, sondern nur im Systemchat (Gold zusätzlich in der Finanzübersicht).
 - **Status eigener Briefe** (Symbol + Text): „Eule unterwegs – Ankunft ca. [Zeit]“, „zugestellt“, „gelesen“, „nicht zugestellt – die Eule ist umgekehrt“.
@@ -346,18 +347,18 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Hilfe, Hilfebriefe des Erklärbärs (10.2), Datenschutzerklärung und der Chatverlauf weisen deutlich darauf hin.
 
 ### 8.5 Eulen
-- Übersicht aller eigenen Eulen, Küken und Leiheulen unter zwei Überschriften: oben **„Leiheulen“**, darunter **„Deine Eulen“** (eigene Eulen und Küken); eine Überschrift erscheint nur, wenn es dazu Eulen gibt. Je Eule: Bild, Name, Art, Geschlecht, Energie (Zahl + Balken), Zustand.
+- Übersicht aller eigenen Eulen, Küken und Leiheulen unter zwei Überschriften: oben **„Leiheulen“**, darunter **„Deine Eulen“** (eigene Eulen und Küken); eine Überschrift erscheint nur, wenn es dazu Eulen gibt. Je Eule: Bild, Name, Art, Geschlecht, Energie (Zahl + Balken), Motivation (Zahl + Balken, v0.5, 9.3a), Zustand. Beide Balken haben einen Farbverlauf von Rot (leer) nach Grün (voll); beim Motivationsbalken ist 0,8 leer und 1,2 voll. Darunter die festen Werte der Art: Geschwindigkeit in km/h (25 km/h × Faktor) und Erholung in Prozent pro Stunde (10 % × Faktor). Ist die Motivation nicht 1,0, steht hinter beiden Werten grün „+10 %“/„+20 %“ bzw. rot „−10 %“/„−20 %“ (mit Vorzeichen, also auch in Graustufen lesbar); die angezeigten Werte selbst ändern sich nicht. Über der Liste erklärt ein kurzer Hinweis die Motivation.
 - **Bild je Zustand (9.2.6):** normal; bei kranken Eulen das grummelige Bild; bei Küken das Küken-Bild; **solange die Eule fliegt** (Brief zustellen oder Rückweg) das Flugbild ihrer Art – „Tagflug“, wenn an ihrer aktuellen Position gerade Tag ist (Sonne > −6°), sonst „Nachtflug“ (vom Server beim Abruf der Liste berechnet); **solange sie an die Menagerie verliehen ist** das Bild der leeren Stange.
 - Abwesende Eulen sind als abwesend markiert, mit Grund und Zeit, z. B. „Fliegt gerade einen Brief zu Peter. Voraussichtlich zurück in 5 Std.“, „In der Menagerie bis Fr., 14:00“, „Beim Eulenarzt bis morgen 09:12“, „Brütet bis …“.
-- Aktionen je nach Zustand (9.2.5): streicheln und füttern (jeweils mit eingeblendetem Bild, 9.2.6), umbenennen, Krankheit behandeln, an die Menagerie verleihen, an einen Kontakt verschenken (optional mit Begleitbrief, 9.2.7), in die Freiheit entlassen (mit eingetipptem Namen und zweiter Bestätigung, 9.2.8).
+- Aktionen je nach Zustand (9.2.5): Wasser geben, streicheln, Eulenkeks, Lieblingsleckerli (v0.5, 9.3; jeweils mit eingeblendetem Bild, 9.2.6; der Knopf nennt das Leckerli der Art, z. B. „Haselnüsse geben (0,2 Gold)“), umbenennen, Krankheit behandeln, an die Menagerie verleihen, an einen Kontakt verschenken (optional mit Begleitbrief, 9.2.7), in die Freiheit entlassen (mit eingetipptem Namen und zweiter Bestätigung, 9.2.8).
 
 ### 8.6 Finanzübersicht
 - Aktueller Goldstand und die letzten 20 Transaktionen (Datum, Art, Betrag, ggf. Gegenüber).
 - Gold per Eule an einen Kontakt schicken (9.1.4), optional mit Begleitbrief.
 
 ### 8.7 Menagerie
-- **Leihen** (oben): das Tagesangebot (3 Arten) mit den für diesen Nutzer gewürfelten, untereinander verschiedenen Namen (9.6). Leihen geht auch direkt in der Eulenwahl (8.4). Leiheulen haben keine Beschreibung.
-- **Kaufen** (darunter): alle 17 Eulenarten (Anhang B), immer verfügbar, **nach Kaufpreis sortiert** (günstigste zuerst, gleicher Preis nach Name), mit großem Bild, Preis, Werten und einer **Beschreibung** in Fließtext (Herkunft, Größe, Charakter als Posteule, Lieblingsleckerei; Texte in `shared/src/texts/species.ts`, vom Auftraggeber geliefert). Die Bilder bleiben so breit wie die Karte (mindestens etwa 18 rem breite Karten, auf dem Handy volle Breite); lange Namen wie „Südliche Weißgesichtseule“ werden mit Trennstrich umbrochen (`hyphens: auto`, notfalls an beliebiger Stelle) und sprengen ihren Rahmen auf keiner Bildschirmbreite.
+- **Leihen** (oben): das Tagesangebot (4 Arten, v0.5) mit den für diesen Nutzer gewürfelten, untereinander verschiedenen Namen (9.6). Leihen geht auch direkt in der Eulenwahl (8.4). Leiheulen haben keine Beschreibung.
+- **Kaufen** (darunter): alle 18 Arten (Anhang B, v0.5 mit dem Phönix), immer verfügbar, **nach Kaufpreis sortiert** (günstigste zuerst, gleicher Preis nach Name), mit großem Bild, Preis, Werten (Energie, Geschwindigkeit in km/h, Erholung in Prozent pro Stunde – v0.5: absolute Werte statt Faktoren) und einer **Beschreibung** in Fließtext (Herkunft, Größe, Charakter als Posteule, Lieblingsleckerli; Texte in `shared/src/texts/species.ts`, vom Auftraggeber geliefert, v0.5 neu gefasst und ins Englische übertragen). Beim Phönix steht zusätzlich, dass er nie verliehen wird, keine Eier legt und nicht in der Menagerie aushilft. Die Bilder bleiben so breit wie die Karte (mindestens etwa 18 rem breite Karten, auf dem Handy volle Breite); lange Namen wie „Südliche Weißgesichtseule“ werden mit Trennstrich umbrochen (`hyphens: auto`, notfalls an beliebiger Stelle) und sprengen ihren Rahmen auf keiner Bildschirmbreite.
 - **Verleihen:** Eigene Eulen können an die Menagerie verliehen werden (9.7). Der Ort heißt in der ganzen App nur „Menagerie“ (früher teils „Papeterie“).
 
 ### 8.8 Adressbuch
@@ -427,12 +428,13 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ### 9.2 Eulen
 
 #### 9.2.1 Eigenschaften
-- Art, Preis (6–50), maximale Energiepunkte (100–1 200), Fluggeschwindigkeitsfaktor (0,5–2), Erholungsfaktor (0,5–2), Geschlecht (zufällig beim Kauf bzw. Schlupf), Name, Bilder (die sieben Bilder ihrer Art, 9.2.6), Besitzbeginn (Datum, 9.8).
+- Art, Preis (6–50; Phönix 100), maximale Energiepunkte (100–1 200; Phönix 2 000), Fluggeschwindigkeitsfaktor (0,5–2; Phönix 4), Erholungsfaktor (0,5–2), Geschlecht (zufällig beim Kauf bzw. Schlupf), Name, Bilder ihrer Art (9.2.6), Besitzbeginn (Datum, 9.8), **Motivation** (0,8–1,2, v0.5, 9.3a).
 - Energie wird intern mit Nachkommastellen geführt und immer ganzzahlig gerundet angezeigt.
 - Eulen werden unendlich alt und sterben nicht.
 
 #### 9.2.2 Arten
 - Siehe Anhang B.
+- **Phönix (v0.5):** eine Fabelart neben den 17 Eulen (`mythical` in `shared/species.ts`): wird nie als Leiheule angeboten, legt nie Eier (also keine Küken und kein Kükenbild), kann nicht an die Menagerie verliehen werden und fliegt nie für Bots. Krank werden kann er wie jede Eule. In Hilfe und App heißt er trotzdem einfach „Eule“, wo alle gemeint sind.
 
 #### 9.2.3 Kauf
 - Alle Arten sind immer verfügbar. Voraussetzungen: Guthaben ≥ Preis und weniger als 50 eigene Eulen (Küken zählen mit, Leiheulen nicht; Schlupf und empfangene Geschenke dürfen das Limit überschreiten, Kaufen ist dann gesperrt).
@@ -445,9 +447,9 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 #### 9.2.5 Zustände und erlaubte Aktionen
 
-| Zustand | Brief/Gold/Geschenk/Verleih an die Menagerie | streicheln/füttern | kann krank werden | freilassen |
+| Zustand | Brief/Gold/Geschenk/Verleih an die Menagerie | pflegen (Wasser, streicheln, Keks, Leckerli) | kann krank werden | freilassen |
 |---|---|---|---|---|
-| zu Hause, gesund, erwachsen | ja | ja | ja (nicht in den ersten 28 Tagen beim Besitzer, 9.8) | ja |
+| zu Hause, gesund, erwachsen | ja (Verleih an die Menagerie nicht für den Phönix) | ja | ja (nicht in den ersten 28 Tagen beim Besitzer, 9.8) | ja |
 | unterwegs (inkl. Schlafpause) | nein | nein | Wurf wirkt bei Rückkehr (9.8) | nein |
 | krank, unbehandelt | nein | ja | – | ja |
 | in eigener Pflege | nein | ja | nein | ja |
@@ -458,14 +460,16 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 | Leiheule vor dem Abflug | Brief an bis zu 5 Empfänger, Gold an 1 | ja | nein | nein |
 
 #### 9.2.6 Bilder
-- Der Auftraggeber liefert für jede Art elf Bilder im Ordner `/images/` (Dateinamen: Anhang B), dazu zwei Bilder ohne Art: die leere Stange und das Gruppenbild. Alle Eulen einer Art – gekaufte, geschenkte, Leih- und Bot-Eulen – zeigen dieselben Bilder; Küken zeigen statt des normalen Bilds das Küken-Bild:
+- Der Auftraggeber liefert für jede Art dreizehn Bilder im Ordner `/images/` (Dateinamen: Anhang B; der Phönix zwölf, ohne Küken), dazu zwei Bilder ohne Art: die leere Stange und das Gruppenbild. Alle Eulen einer Art – gekaufte, geschenkte, Leih- und Bot-Eulen – zeigen dieselben Bilder; Küken zeigen statt des normalen Bilds das Küken-Bild:
 
 | Bild | Verwendung |
 |---|---|
 | Normal | Standardbild der Eule (Eulenübersicht, Kauf, Leihangebot, Auswahl beim Versand usw.) |
 | Abflug | Einblendung beim Absenden eines Briefs, beim Losschicken mit Gold und beim Verschenken |
 | Ankunft | Einblendung beim Empfänger, wenn eine Eule bei ihm ankommt (mit Brief, mit Gold oder als Geschenk) |
-| Füttern | Einblendung beim Füttern |
+| Füttern | Einblendung beim Eulenkeks |
+| Trinken (v0.5) | Einblendung beim Wassergeben |
+| Leckerli (v0.5) | Einblendung beim Lieblingsleckerli |
 | Streicheln | Einblendung beim Streicheln |
 | Grummelig | ersetzt das normale Bild, solange die Eule krank ist |
 | Küken | Küken dieser Art bis zum Erwachsensein, auch als Abflug- und Ankunftsbild eines Kükens |
@@ -480,7 +484,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Einblendungen:** In vier Momenten blendet die App das passende Bild der Art ein, mit kurzer Bildunterschrift (z. B. „Waldi fliegt los“):
   - **Abflug:** wenn man eine eigene Eule oder Leiheule mit Brief oder Gold losschickt oder eine Eule verschenkt. Beim Verschenken eines Kükens erscheint das Küken-Bild.
   - **Ankunft:** immer, wenn eine Eule beim Nutzer ankommt – mit Brief oder Begleitbrief, mit Gold, als geschenkte Eule oder als Küken, auch von Bots. Das Bild erscheint, sobald der Nutzer die Ankunft zum ersten Mal in der App sieht: bei Briefen und Begleitbriefen im Chatverlauf (beim Öffnen des Chats oder sofort, wenn der Chat bei der Landung schon offen ist), bei Lieferungen ohne Brief beim ersten Anzeigen der zugehörigen Meldung (Systemchat oder „Neuigkeiten“, 8.3) oder sofort, wenn die App bei der Landung sichtbar ist. Eine Lieferung löst höchstens ein Bild aus; Systemnachrichten ohne ankommende Eule (z. B. Rundnachrichten) lösen keines aus. Gezeigt wird das Ankunftsbild der Art der überbringenden Eule (bei einer geschenkten Eule also ihrer eigenen Art), bei einem Küken das Küken-Bild. Sind seit dem letzten Öffnen mehrere Eulen angekommen, erscheint nur ein Bild (das der zuletzt gelandeten Eule). Gespeichert wird nur, ob das Bild schon gezeigt wurde (am Brief bzw. an der Systemnachricht).
-  - **Füttern** und **Streicheln:** nach jedem erfolgreichen Füttern bzw. Streicheln (auch wenn das Streicheln an diesem Tag nicht mehr für den Pflegebonus zählt).
+  - **Füttern**, **Streicheln**, **Trinken** und **Leckerli** (v0.5): nach jeder erfolgreichen Pflege-Aktion der passenden Art (auch wenn das Streicheln an diesem Tag nicht mehr für die Motivation zählt).
 - Eine Einblendung blockiert die Bedienung nicht, schließt sich per Tippen, Klick oder Escape-Taste sowie nach wenigen Sekunden von selbst, hat einen Alternativtext und kommt ohne Animation aus, wenn `prefers-reduced-motion` gesetzt ist. Die Bilder für Einblendungen werden erst bei Bedarf geladen, nicht vorab.
 - Logo und App-Icons erstellt der Agent als einfache, austauschbare SVG-Platzhalter im Stil der App.
 
@@ -495,13 +499,25 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 #### 9.2.8 Freilassen
 - „In die Freiheit entlassen“ löscht die Eule endgültig. Ein Dialog verlangt, den Namen der Eule fehlerfrei einzutippen (exakt, auch in Groß- und Kleinschreibung); erst dann geht es weiter, und eine zweite Rückfrage („Bist du ganz sicher? … Das lässt sich nicht rückgängig machen.“) muss ausdrücklich bestätigt werden. Der Server prüft den Namen erneut (`owl_name_mismatch`); fremde Eulen bleiben unsichtbar (404). Erlaubte Zustände: 9.2.5.
 
-### 9.3 Energie, Streicheln, Füttern
-- **Regeneration** nur zu Hause (auch krank, in Pflege, brütend): pro Stunde 10 % des Maximums × Erholungsfaktor, linear, gedeckelt beim Maximum. (Faktor 2 ⇒ von 0 auf voll in 5 Stunden.) Berechnung beim Lesen aus Zeitstempeln.
-- **Füttern:** höchstens einmal pro Tag je Eule, kostet 0,1 Gold, gibt sofort 10 % des Maximums × Erholungsfaktor (gedeckelt). Nur wenn die Eule zu Hause ist (9.2.5).
-- **Streicheln:** kostenlos, beliebig oft, zählt aber höchstens einmal pro Tag.
-- **Pflegebonus:** Betrachtet werden die letzten **14 Tage vor dem Krankheitswurf, an denen die Eule mindestens eine Stunde zu Hause war** (zu Hause = nicht unterwegs, nicht beim Eulenarzt, nicht an die Menagerie verliehen; krank, in eigener Pflege oder brütend zählt als zu Hause). Wurde sie an mindestens 10 dieser Tage gestreichelt oder gefüttert, sinkt ihre Krankheitswahrscheinlichkeit um 70 % (× 0,3). Ganze Reisetage zählen also weder für noch gegen den Bonus.
+### 9.3 Energie und Pflege
+- **Regeneration** zu Hause (auch krank, in Pflege, brütend): pro Stunde 10 % des Maximums × Erholungsfaktor, linear, gedeckelt beim Maximum. (Faktor 2 ⇒ von 0 auf voll in 5 Stunden.) Berechnung beim Lesen aus Zeitstempeln. Unterwegs regeneriert sie nur im Schlaf (9.4.2).
+- **Vier Pflege-Aktionen** (v0.5), nur wenn die Eule zu Hause ist (9.2.5), auch für Leiheulen und Küken; jede mit eigener Einblendung (9.2.6):
+  - **Wasser geben:** kostenlos, einmal pro Tag (`watered_on`).
+  - **Streicheln:** kostenlos, beliebig oft.
+  - **Eulenkeks** (bisher „Füttern“): einmal pro Tag, 0,1 Gold, sofort +10 % des Maximums × Erholungsfaktor (gedeckelt).
+  - **Lieblingsleckerli:** einmal pro Tag, 0,2 Gold, sofort +20 % des Maximums × Erholungsfaktor (gedeckelt). Jede Art hat ihr eigenes Leckerli aus ihrer Beschreibung (z. B. Waldkauz Haselnüsse, Riesenfischuhu Räucherfisch, Phönix Silberblatt; `speciesSnack` in `shared/src/texts/species.ts`); der Knopf nennt es.
+- **Gepflegter Tag** (v0.5): ein Tag, an dem die Eule **zwei verschiedene** dieser vier Aktionen bekommen hat (egal welche; zweimal Streicheln zählt als eine).
+- **Pflegebonus:** Betrachtet werden die letzten **14 Tage vor dem Krankheitswurf, an denen die Eule mindestens eine Stunde zu Hause war** (zu Hause = nicht unterwegs, nicht beim Eulenarzt, nicht an die Menagerie verliehen; krank, in eigener Pflege oder brütend zählt als zu Hause). War sie an mindestens 10 dieser Tage gepflegt (siehe oben), sinkt ihre Krankheitswahrscheinlichkeit um 70 % (× 0,3). Ganze Reisetage zählen also weder für noch gegen den Bonus.
   - Zurückgeschaut wird höchstens 60 Tage und nur bis zum Besitzbeginn; gibt es weniger als 14 solche Tage, genügen trotzdem 10 gepflegte.
-  - Gespeichert werden je Eule nur die Pflegetage (Datum) und die Zeiten, in denen sie fort war (Beginn/Ende), jeweils höchstens 60 Tage lang (Aufräumen 04:00).
+  - Gespeichert werden je Eule nur die Pflegetage (Datum) und die Zeiten, in denen sie fort war (Beginn/Ende), jeweils höchstens 60 Tage lang (Aufräumen 04:00). Pflegetage aus der Zeit vor v0.5 (damals genügte eine Aktion) bleiben gültig.
+
+### 9.3a Motivation (v0.5)
+- Jede Eule eines Spielers (eigene Eulen, Küken, Leiheulen; nicht Bot-Eulen) hat eine **Motivation** zwischen **0,8 und 1,2**, gespeichert in Zehnteln (`owls.motivation`, 8–12).
+- **Start:** gekaufte Eulen und frisch geschlüpfte Küken 1,0; Leiheulen 0,8, 0,9 oder 1,0, wie Name und Energie per HMAC je Nutzer, Tag und Art abgeleitet (9.6). Beim Update auf v0.5 bekommen alle vorhandenen Eulen 1,0. Verschenkte Eulen behalten ihre Motivation.
+- **Jede Nacht um 00:00 UTC** sinkt sie um 0,1 (nicht unter 0,8), auch wenn die Eule unterwegs, an die Menagerie verliehen oder beim Eulenarzt ist (täglicher Job, verpasste Nächte werden nachgeholt).
+- Jede der vier Pflege-Aktionen (9.3) hebt sie **einmal pro Tag** um 0,1 (nicht über 1,2). Mehrfaches Streicheln zählt einmal.
+- **Wirkung:** Beim Abflug zu einer Reise (Brief, Gold, Geschenk) wird der Faktor *m* der aktuellen Motivation für die ganze Reise festgehalten (Hin- und Rückflug, auch bei Neuplanung, 9.4.6, 9.5): Geschwindigkeit × *m*, maximale Energie × *m*, aktuelle Energie beim Abflug × *m* (gleicher Füllstand in Prozent) und Erholung im Schlaf 10 % × Erholungsfaktor × *m* des so vergrößerten Maximums pro Stunde (zur vollen Energie braucht sie also 10 h ÷ (Faktor × *m*)). Nach der Ankunft wird die Energie wieder durch *m* geteilt und auf das normale Maximum begrenzt. Zu Hause gelten die normalen Werte der Art. Kükenflüge (9.9) und Bot-Eulen bleiben ohne Motivation.
+- Die Vorschau der Eulenwahl (8.4) rechnet mit der aktuellen Motivation (bei Leiheulen des Tages mit der abgeleiteten).
 
 ### 9.4 Eulenflug
 
@@ -513,10 +529,11 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 #### 9.4.2 Ablauf
 - **Route:** Zuhause → Empfänger 1 → … → Empfänger n → Zuhause. Die Zustellung erfolgt bei Ankunft am Wohnort des Empfängers; der Weiter- bzw. Rückflug beginnt sofort mit der Restenergie. Der Rückflug folgt denselben Regeln wie der Hinflug.
 - **Ohne Rückflug:** Leiheulen verschwinden nach der letzten Zustellung. Geschenkte Eulen und Küken bleiben beim Empfänger.
-- **Energie leer:**
-  - über Land: 10 Stunden Schlafpause an Ort und Stelle, danach volle Energie (Maximum), Weiterflug;
-  - über Wasser: Die Eule fliegt ohne Energieverbrauch weiter, bis sie wieder über Land ist, und macht dort die 10-Stunden-Pause.
-- Man kann auch fast leere Eulen losschicken, sogar mit 0 Energie (dann beginnt der Flug mit der Schlafpause).
+- **Energie leer (v0.5):**
+  - über Land: Schlafpause an Ort und Stelle. Im Schlaf regeneriert die Eule wie zu Hause: pro Stunde 10 % des Maximums × Erholungsfaktor (× Motivation, 9.3a). Sie schläft nur **so lange wie nötig, um das nächste Ziel zu erreichen** (nächster Empfänger bzw. Zuhause): die kürzeste Dauer, nach der sie es ohne weitere Pause erreicht – berechnet mit derselben Simulation (Tag/Nacht-Verbrauch, Wasser), auf 5 Minuten genau. Reicht selbst volle Energie nicht, schläft sie, bis sie voll ist, und fliegt dann weiter (dann folgt später eine weitere Pause). Am Ziel kommt sie also meist fast leer an; die nächste Etappe beginnt dann mit einer neuen Pause.
+  - über Wasser: Die Eule fliegt ohne Energieverbrauch weiter, bis sie wieder über Land ist, und schläft dort nach derselben Regel.
+- Man kann auch fast leere Eulen losschicken, sogar mit 0 Energie (dann beginnt der Flug mit einer Schlafpause).
+- Flugpläne von vor v0.5 (ohne Erholungswert) wachen wie früher nach 10 Stunden voll auf. Wird eine schlafende Eule neu geplant (Umzug, Umkehren), endet ihr Schlaf an diesem Zeitpunkt mit der bis dahin gewonnenen Energie, und die neue Planung entscheidet neu, wie lange sie noch schläft.
 
 #### 9.4.3 Berechnung
 - Der gesamte Flugplan wird beim Abflug serverseitig vollständig vorausberechnet (gespeichert als JSON-Segmentliste und als Route mit Status und erwarteter Ankunft je Halt; Koordinaten auf 1e-4° und Energie auf 0,01 gerundet; weniger als 1 m vor dem Ziel gilt als angekommen): schrittweise Simulation (Schrittweite höchstens 2 km bzw. 5 Minuten; Wechsel von Tag/Nacht und Land/Wasser werden innerhalb eines Schritts ausreichend genau behandelt). Gespeichert wird eine kompakte Segmentliste (Startzeit, Endzeit, Start-/Endpunkt, Art: Flug/Schlaf/Zustellung) – nur Phasenwechsel und Stützpunkte etwa alle 25 km, nicht jeder Schritt.
@@ -545,10 +562,10 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Absenderkonto gelöscht** ⇒ Lieferungen kommen trotzdem an (7.7).
 
 ### 9.6 Leiheulen (Menagerie)
-- Täglich um 00:00 UTC werden 3 verschiedene Eulenarten zufällig ausgewürfelt, die an diesem Tag für alle Spieler zum Leihen verfügbar sind.
-- Für jeden Spieler erhält jede Angebotsart einen für ihn zufällig gewürfelten Namen aus Anhang D, ein Geschlecht und ihre Start-Energie. Alle Werte werden deterministisch per HMAC (Server-Geheimnis, Nutzer-ID, Datum, Art) abgeleitet, damit nichts gespeichert werden muss, die Anzeige stabil bleibt und die Eulenwahl eine exakte Vorschau zeigen kann (8.4).
-- **Die drei Leiheulen eines Tages haben für jeden Spieler verschiedene Namen.** Bei einer Doppelung wird für die spätere Art mit einem Zähler neu abgeleitet (`…|Art|1`, `…|Art|2`, …), notfalls der nächste freie Name der Liste genommen.
-- **Leihen:** 0,1 Gold, in der Menagerie oder direkt beim Absenden aus der Eulenwahl (8.4). **Pro Angebotstag** (00:00 UTC, mit dem neuen Angebot) kann jede angebotene Art einmal geliehen werden, also bis zu 3 am Tag – unabhängig davon, wie viele Leiheulen vom Vortag noch warten. Eine Obergrenze für gleichzeitig vorhandene Leiheulen gibt es nicht (gespeichert in `loan_days`).
+- Täglich um 00:00 UTC werden 4 (v0.5; vorher 3) verschiedene Eulenarten zufällig ausgewürfelt (nie der Phönix), die an diesem Tag für alle Spieler zum Leihen verfügbar sind.
+- Für jeden Spieler erhält jede Angebotsart einen für ihn zufällig gewürfelten Namen aus Anhang D, ein Geschlecht, ihre Start-Energie und (v0.5) ihre Motivation 0,8–1,0. Alle Werte werden deterministisch per HMAC (Server-Geheimnis, Nutzer-ID, Datum, Art) abgeleitet, damit nichts gespeichert werden muss, die Anzeige stabil bleibt und die Eulenwahl eine exakte Vorschau zeigen kann (8.4).
+- **Die vier Leiheulen eines Tages haben für jeden Spieler verschiedene Namen.** Bei einer Doppelung wird für die spätere Art mit einem Zähler neu abgeleitet (`…|Art|1`, `…|Art|2`, …), notfalls der nächste freie Name der Liste genommen.
+- **Leihen:** 0,1 Gold, in der Menagerie oder direkt beim Absenden aus der Eulenwahl (8.4). **Pro Angebotstag** (00:00 UTC, mit dem neuen Angebot) kann jede angebotene Art einmal geliehen werden, also bis zu 4 am Tag – unabhängig davon, wie viele Leiheulen vom Vortag noch warten. Eine Obergrenze für gleichzeitig vorhandene Leiheulen gibt es nicht (gespeichert in `loan_days`).
 - Start-Energie 60–100 % (per HMAC, s. o.); Werte ihrer Art.
 - Sie muss innerhalb von 24 Stunden nach dem Leihen losgeschickt werden, sonst verschwindet sie aus der Eulenübersicht; das Gold wird nicht erstattet (Systemnachricht).
 - Sie kann gefüttert und gestreichelt, aber nicht umbenannt, verschenkt oder an die Menagerie verliehen werden. Sie wird nie krank und legt keine Eier.
@@ -557,8 +574,8 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Es gibt unbegrenzt viele Leiheulen. Von Spielern an die Menagerie verliehene Eulen erscheinen nicht im Angebot.
 
 ### 9.7 Eulenverleih an die Menagerie
-- Eigene erwachsene, gesunde, nicht brütende Eulen, die zu Hause sind, können an die Menagerie verliehen werden – beliebig viele, beliebig oft, auch direkt nach Kauf oder Erhalt.
-- Dauer 7 Tage. Währenddessen ist die Eule nicht verfügbar, nicht streichel-/fütterbar und wird nicht krank.
+- Eigene erwachsene, gesunde, nicht brütende Eulen, die zu Hause sind, können an die Menagerie verliehen werden (nie der Phönix, v0.5) – beliebig viele, beliebig oft, auch direkt nach Kauf oder Erhalt.
+- Dauer 7 Tage. Währenddessen ist die Eule nicht verfügbar, nicht pflegbar und wird nicht krank; ihre Motivation sinkt weiter (9.3a).
 - Am Ende: Gutschrift von 10 % des Artpreises (Systemnachricht). Die Eule kehrt mit voller Energie zurück. Weibliche Eulen: Eier-Wurf (9.9).
 - Bei jeder Rückkehr nach Hause (Flug oder Menagerie) wird erst der Eier-Wurf gemacht; nur ohne Eier wird eine unterwegs gewürfelte Krankheit wirksam. Beim Eulenarzt ist die Eule abwesend und regeneriert nicht; in eigener Pflege ist sie zu Hause und regeneriert.
 
@@ -764,6 +781,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 - Web-App-Manifest (Name, Icons inkl. maskable und Apple-Touch-Icon, `display: standalone`, Theme-Farbe).
 - Service Worker (selbst geschrieben, versioniert): cacht nur die App-Hülle (statische Dateien), verarbeitet Push und Push-Bestätigungen. Keine Brief-Inhalte im Cache. Beim ersten Installieren lädt er die Seite nicht neu, nur bei einem echten Versionswechsel; veraltete Clients bekommen `409 client_outdated` und die Aufforderung „Bitte neu laden“.
+- **Update-Hinweis (v0.5):** Seiten kommen immer vom Netz (Navigation „network first“), eine frisch geladene Seite ist also schon die neue Version. Wartet beim Laden noch ein neuer Service Worker (installierte Apps auf Android schließen ihre Fenster praktisch nie, daher kam der Hinweis nach jedem Neuladen wieder), aktiviert die Seite ihn sofort selbst, ohne Hinweis und ohne erneutes Neuladen. Der Knopf „Neu laden“ aktiviert einen wartenden Service Worker und lädt sonst – oder wenn der Wechsel nicht binnen 3 Sekunden geschieht – die Seite einfach neu.
 - **Offline:** deutlicher Hinweis („Keine Verbindung – Eulen brauchen Netz“); alle Aktionen sind gesperrt.
 - Installationsanleitungen: 8.2 und Hilfe (8.11).
 
@@ -907,16 +925,20 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Padding klein / groß | 4 096 / 65 536 Byte (große Briefe vor v0.3: 16 384 Byte, weiter lesbar) |
 | Empfänger pro Brief | max. 5, auch mit Leiheule (seit v0.4); Gold an 1; keine Bots im Mehrfachversand |
 | Überweisung | 0,1–20,0 Gold; Restguthaben danach > 10,0 |
-| Leiheule | 0,1 Gold pauschal (auch bei mehreren Empfängern); jede Angebotsart 1× pro Angebotstag (bis 3 am Tag, keine Grenze für gleichzeitig vorhandene); Verfall nach 24 h; 3 verschiedene Namen je Nutzer und Tag |
-| Tagesangebot Menagerie | 3 Arten, 00:00 UTC |
+| Leiheule | 0,1 Gold pauschal (auch bei mehreren Empfängern); jede Angebotsart 1× pro Angebotstag (bis 4 am Tag, keine Grenze für gleichzeitig vorhandene); Verfall nach 24 h; 4 verschiedene Namen je Nutzer und Tag; Motivation 0,8–1,0 |
+| Tagesangebot Menagerie | 4 Arten (nie der Phönix), 00:00 UTC |
 | Start-Energie bei Kauf/Leihe | 60–100 % zufällig (Leihe: per HMAC je Nutzer, Tag und Art) |
 | Fluggeschwindigkeit | 25 km/h × Fluggeschwindigkeitsfaktor |
 | Energieverbrauch | Nacht 1 / km, Tag 1,5 / km |
 | Tag-Definition | Sonnenhöhe > −6° |
-| Schlafpause bei leerer Energie | 10 h, danach volle Energie |
+| Schlafpause bei leerer Energie | so lange wie nötig bis zum nächsten Ziel (5 min genau), höchstens bis voll; Erholung wie zu Hause (× Motivation) |
 | Regeneration zu Hause | 10 % des Maximums pro Stunde × Erholungsfaktor |
-| Füttern | 0,1 Gold, 1× pro Tag, +10 % × Erholungsfaktor |
-| Pflegebonus | an ≥ 10 der letzten 14 Tage mit ≥ 1 h zu Hause gestreichelt/gefüttert ⇒ Krankheitsrisiko × 0,3; Rückblick höchstens 60 Tage |
+| Eulenkeks (Füttern) | 0,1 Gold, 1× pro Tag, +10 % × Erholungsfaktor |
+| Wasser | kostenlos, 1× pro Tag |
+| Lieblingsleckerli | 0,2 Gold, 1× pro Tag, +20 % × Erholungsfaktor |
+| Gepflegter Tag | 2 verschiedene Pflege-Aktionen am selben Tag |
+| Pflegebonus | an ≥ 10 der letzten 14 Tage mit ≥ 1 h zu Hause gepflegt ⇒ Krankheitsrisiko × 0,3; Rückblick höchstens 60 Tage |
+| Motivation | 0,8–1,2 (Zehntel); Start 1,0 (Leiheule 0,8–1,0); −0,1 jede Nacht 00:00 UTC; +0,1 je Pflege-Art und Tag; wirkt ab Abflug auf Tempo, Energie und Erholung der Reise |
 | Krankheit | 1/30 pro Tag, Wurf 03:00 UTC |
 | Schutzfrist vor Krankheit | 28 Tage ab Besitzbeginn (Kauf, Schlupf, Ankunft als Geschenk) |
 | Eigene Pflege | 0,2 Gold, 7 Tage |
@@ -927,7 +949,7 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Kükenflug | 10 km/h, 1 h Flug / 1 h Pause |
 | Küken erwachsen | 14 Tage nach Schlupf / 7 Tage nach Ankunft beim Beschenkten |
 | Max. eigene Eulen | 50 |
-| Eulenbilder | 11 je Art (normal, Abflug, Ankunft, Füttern, Streicheln, grummelig, Küken, Tagflug, Nachtflug, Heimkehr Tag, Heimkehr Nacht) + leere Stange + Gruppenbild |
+| Eulenbilder | 13 je Art (normal, Abflug, Ankunft, Füttern, Streicheln, grummelig, Küken, Tagflug, Nachtflug, Heimkehr Tag, Heimkehr Nacht, Trinken, Leckerli; Phönix ohne Küken) + leere Stange + Gruppenbild |
 | Eulenname | 2–20 Zeichen; Umbenennen 1× pro Kalenderjahr |
 | Nutzername | 3–20 Zeichen; Umbenennen 1× pro Kalenderjahr |
 | Namenssperre | 90 Tage |
@@ -973,7 +995,7 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 
 ## Anhang B – Eulenarten
 
-Es gibt 17 Arten – genau die, für die Bilder vorliegen (Absprache vom 2026-11-05).
+Es gibt 17 Eulenarten – genau die, für die Bilder vorliegen (Absprache vom 2026-11-05) – und seit v0.5 den Phönix (9.2.2).
 
 | Art | Bildname (Dateien) | Preis | Energiepunkte | Fluggeschwindigkeitsfaktor | Erholungsfaktor |
 |---|---|---|---|---|---|
@@ -994,8 +1016,9 @@ Es gibt 17 Arten – genau die, für die Bilder vorliegen (Absprache vom 2026-11
 | Südliche Weißgesichtseule | Suedliche-Weissgesichtseule | 32 | 300 | 1,30 | 1,65 |
 | Waldkauz | Waldkauz | 6 | 540 | 1,10 | 1,25 |
 | Waldohreule | Waldohreule | 8 | 410 | 1,35 | 1,45 |
+| Phönix (v0.5) | Phoenix | 100 | 2000 | 4,00 | 2,00 |
 
-**Bilddateien:** elf je Art im Ordner `/images/`, dazu `Leere-Stange.png` und `Gruppenbild.png`, zusammen 189 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
+**Bilddateien:** dreizehn je Art im Ordner `/images/` (der Phönix zwölf, ohne Küken), dazu `Leere-Stange.png` und `Gruppenbild.png`, zusammen 235 Dateien. Der Dateiname besteht aus dem Bildnamen der Art, beim normalen Bild ohne Zusatz, sonst gefolgt von einem Bindestrich und der Bildkennung, und der Endung `.png` (je Bild genau eine Datei):
 
 | Bild | Dateiname | Beispiel Waldkauz |
 |---|---|---|
@@ -1010,6 +1033,8 @@ Es gibt 17 Arten – genau die, für die Bilder vorliegen (Absprache vom 2026-11
 | Nachtflug | `<Bildname>-Nachtflug.png` | `Waldkauz-Nachtflug.png` |
 | Heimkehr Tag | `<Bildname>-Heimkehr-Tag.png` | `Waldkauz-Heimkehr-Tag.png` |
 | Heimkehr Nacht | `<Bildname>-Heimkehr-Nacht.png` | `Waldkauz-Heimkehr-Nacht.png` |
+| Trinken (v0.5) | `<Bildname>-Trinken.png` | `Waldkauz-Trinken.png` |
+| Leckerli (v0.5) | `<Bildname>-Leckerli.png` | `Waldkauz-Leckerli.png` |
 
 Bildnamen und Bildkennungen beginnen mit einem Großbuchstaben, enthalten keine Umlaute und keine Leerzeichen (ä → ae, ö → oe, ü → ue, ß → ss, Leerzeichen → Bindestrich), genau wie die Bildnamen in der Tabelle oben. Der Build sucht die Dateien anhand dieser Tabelle (nicht durch Zerlegen der Dateinamen am Bindestrich), vergleicht Groß- und Kleinschreibung nicht und ignoriert Leerzeichen; findet er eine Datei nur auf diese tolerante Weise, meldet er eine Warnung. Die Originale sind quadratisch (derzeit 1 254 × 1 254 px).
 
@@ -1123,4 +1148,21 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 | Karte | Immer quadratisch, passt ins Fenster; Ausschnitt quadratisch und nie über den Kartenrand hinaus | 8.9, 12.1 |
 | Sprache | Englische Ansicht mit Fähnchen oben rechts auf allen Seiten; Deutsch Standard; Wahl vor dem Login auf dem Gerät gespeichert, Kontosprache nach dem Login; Einstellung „Sprache“; Bots, Push, Systemnachrichten, Hilfe, Rechtstexte, Karte, Leiheulen- und Kükennamen in der Sprache (Migration 0010) | 1, 8.12, 8.10, 10.5, Anhang D |
 | README, Hilfe, Erklärbär | Neue Abschnitte zu Sprache und Spenden; neue Goldregel und Leiheulen in Hilfe, Bot-Briefen und Wissensbasis; englische README `README.en.md` | 8.11, 10.2, 16.4 |
+
+---
+
+## Anhang J – Änderungen in Version 0.5
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Chatverlauf | Nicht prüfbare Briefe meldet der Empfänger als „nicht lesbar“; der Absender sieht das statt „gelesen“ | 8.4 |
+| Leiheulen | 4 statt 3 Arten am Tag, alle 4 leihbar; Motivation 0,8–1,0 | 9.6, Anhang A |
+| Menagerie | Neue Beschreibungen (Lieblingsleckerli statt Kekse), englisch übertragen; Werte in km/h und %/h | 8.7 |
+| Flug | Schlaf unterwegs: Erholung wie zu Hause, nur so lange wie nötig bis zum nächsten Ziel | 9.4.2, Anhang A |
+| Phönix | Neue Art: 100 Gold, 2 000 Energie, Faktor 4 / 2; nie Leiheule, keine Eier, kein Menagerie-Verleih, keine Bot-Eule, kein Kükenbild | 9.2.2, Anhang B |
+| Pflege | Wasser (kostenlos, 1× am Tag) und Lieblingsleckerli (0,2 Gold, 1× am Tag, +20 % Energie) neben Streicheln und Eulenkeks; neue Bilder Trinken und Leckerli | 9.3, 9.2.6 |
+| Krankheit | Gepflegter Tag = zwei verschiedene Pflege-Aktionen | 9.3, 9.8 |
+| Motivation | Neuer Wert 0,8–1,2 je Eule mit Balken; −0,1 jede Nacht, +0,1 je Pflege-Art und Tag; wirkt ab Abflug auf Energie, Tempo und Erholung der Reise; Anzeige von km/h und %/h mit ±x % | 9.3a, 8.5 |
+| PWA | Update-Hinweis bleibt nach dem Neuladen nicht mehr hängen (wartender Service Worker wird aktiviert; „Neu laden“ lädt notfalls direkt) | 15 |
+| Daten | Migration 0011: `owls.motivation`, `owls.watered_on`, `owls.snacked_on`, `letters.unreadable` | 4.6 |
 

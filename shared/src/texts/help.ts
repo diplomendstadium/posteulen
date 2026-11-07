@@ -40,6 +40,9 @@ export interface HelpQuestion {
 
 const gold = (tenths: number): string => `${formatGold(tenths)} Gold`;
 const percent = (share: number): string => `${Math.round(share * 100)} %`;
+/** One decimal with a comma, rounded half up (v0.5). */
+const decimalDe = (value: number): string =>
+  (Math.round(value * 10 + 1e-9) / 10).toFixed(1).replace('.', ',');
 const dailyGoldTime = `${GOLD.DAILY_HOUR_UTC}:00 Uhr UTC (in Deutschland ${GOLD.DAILY_HOUR_UTC + 1}:00 Uhr, im Sommer ${GOLD.DAILY_HOUR_UTC + 2}:00 Uhr)`;
 
 export const HELP_INTRO =
@@ -191,7 +194,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Deine Eulen',
     blocks: [
-      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter“ oder „In der Menagerie bis Fr., 14:00“.',
+      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie, Motivation und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter“ oder „In der Menagerie bis Fr., 14:00“.',
       'Das Bild zeigt, was die Eule gerade tut: Ist sie unterwegs, siehst du sie fliegen – im Sonnenschein oder unter Sternen, je nachdem, ob es dort, wo sie gerade ist, hell oder dunkel ist. Hilft sie in der Menagerie aus, siehst du ihre leere Stange.',
       'Jede Art hat einen Preis, eine maximale Energie, einen Geschwindigkeitsfaktor und einen Erholungsfaktor. Eulen werden nicht alt und sterben nicht.',
       [
@@ -205,12 +208,27 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'energie',
-    title: 'Energie, Füttern und Streicheln',
+    title: 'Energie und Pflege: Wasser, Streicheln, Eulenkeks, Lieblingsleckerli',
     blocks: [
-      `Zu Hause erholt sich eine Eule: pro Stunde ${percent(OWL.REGEN_SHARE_PER_HOUR)} ihrer maximalen Energie mal Erholungsfaktor. Mit Faktor 2 ist sie also in 5 Stunden wieder voll.`,
-      `Füttern kostet ${gold(GOLD.FEED_PRICE)}, geht einmal pro Tag je Eule und gibt sofort ${percent(OWL.FEED_SHARE)} Energie mal Erholungsfaktor.`,
-      'Streicheln ist kostenlos und so oft möglich, wie du magst. Es zählt aber nur einmal pro Tag für die Pflege.',
-      `Pflegebonus: Gezählt werden die letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage, an denen die Eule mindestens ${OWL.CARE_BONUS_MIN_HOME_HOURS} Stunde zu Hause war. Wurde sie an mindestens ${OWL.CARE_BONUS_MIN_DAYS} davon gestreichelt oder gefüttert, wird sie viel seltener krank. Ganze Reisetage zählen also nicht – eine fleißige Brief-Eule verliert ihren Bonus nicht, nur weil sie unterwegs war.`,
+      `Zu Hause erholt sich eine Eule: pro Stunde ${percent(OWL.REGEN_SHARE_PER_HOUR)} ihrer maximalen Energie mal Erholungsfaktor. Mit Faktor 2 ist sie also in 5 Stunden wieder voll. Unterwegs erholt sie sich beim Schlafen genauso (siehe So fliegt eine Eule).`,
+      'Es gibt vier Arten, dich um deine Eule zu kümmern – solange sie zu Hause ist, auch wenn sie krank ist oder brütet:',
+      [
+        'Wasser geben: kostenlos, einmal am Tag.',
+        'Streicheln: kostenlos und so oft du magst.',
+        `Eulenkeks: ${gold(GOLD.FEED_PRICE)}, einmal am Tag, gibt sofort ${percent(OWL.FEED_SHARE)} Energie mal Erholungsfaktor.`,
+        `Lieblingsleckerli: ${gold(GOLD.SNACK_PRICE)}, einmal am Tag, gibt sofort ${percent(OWL.SNACK_SHARE)} Energie mal Erholungsfaktor. Jede Art hat ihr eigenes – der Waldkauz liebt Haselnüsse, der Riesenfischuhu Räucherfisch; was genau, steht in der Menagerie bei der Beschreibung.`,
+      ],
+      `Jede dieser vier Arten der Pflege hebt einmal am Tag die Motivation (siehe Motivation). Pflegebonus gegen Krankheit: Ein Tag zählt als gepflegt, wenn die Eule an diesem Tag ${OWL.CARE_DAY_INTERACTIONS} verschiedene Arten von Pflege bekommen hat – zum Beispiel Wasser und Streicheln. Gezählt werden die letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage, an denen sie mindestens ${OWL.CARE_BONUS_MIN_HOME_HOURS} Stunde zu Hause war. War sie an mindestens ${OWL.CARE_BONUS_MIN_DAYS} davon gepflegt, wird sie viel seltener krank. Ganze Reisetage zählen also nicht – eine fleißige Brief-Eule verliert ihren Bonus nicht, nur weil sie unterwegs war.`,
+    ],
+  },
+  {
+    id: 'motivation',
+    title: 'Motivation',
+    blocks: [
+      'Jede deiner Eulen hat neben der Energie einen zweiten Balken: die Motivation. Sie liegt immer zwischen 0,8 und 1,2. Gekaufte Eulen kommen mit 1,0 zu dir, Leiheulen mit 0,8 bis 1,0.',
+      'Jede Nacht um Mitternacht (UTC) sinkt sie um 0,1 – auch wenn die Eule gerade unterwegs ist oder in der Menagerie aushilft. Wasser, Streicheln, Eulenkeks und Lieblingsleckerli heben sie jeweils einmal am Tag um 0,1. Wer sich jeden Tag ein bisschen kümmert, hat also bald eine hoch motivierte Eule.',
+      'Beim Abflug zählt die Motivation für die ganze Reise, hin und zurück: Mit 1,2 hat die Eule unterwegs 20 % mehr Energie, ist 20 % schneller und erholt sich im Schlaf 20 % schneller; mit 0,8 entsprechend 20 % weniger. Zu Hause gelten wieder die normalen Werte der Art.',
+      'In der Eulenübersicht stehen unter den Balken die Geschwindigkeit in km/h und die Erholung in Prozent pro Stunde für die Art. Ist die Motivation nicht 1,0, steht dahinter grün „+10 %“ oder rot „−20 %“ – so viel ändert sich auf der nächsten Reise.',
     ],
   },
   {
@@ -219,7 +237,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Grundgeschwindigkeit ${FLIGHT.BASE_SPEED_KMH} km/h mal Geschwindigkeitsfaktor der Art – bei Tag und Nacht gleich schnell.`,
       `Energie: nachts ${FLIGHT.ENERGY_PER_KM_NIGHT} Punkt pro Kilometer, tagsüber ${String(FLIGHT.ENERGY_PER_KM_DAY).replace('.', ',')} Punkte. Die Dämmerung zählt als Tag. Eulen sind eben Nachtvögel.`,
-      `Ist die Energie leer, schläft die Eule ${FLIGHT.SLEEP_HOURS} Stunden an Ort und Stelle und fliegt dann mit voller Energie weiter. Über Wasser schläft sie nicht: Sie gleitet ohne Energie weiter bis zur nächsten Küste und ruht dort. Du kannst auch fast leere Eulen losschicken; dann beginnt der Flug eben mit einem Schläfchen.`,
+      `Ist die Energie leer, schläft die Eule an Ort und Stelle. Dabei erholt sie sich wie zu Hause: pro Stunde ${percent(OWL.REGEN_SHARE_PER_HOUR)} ihrer maximalen Energie mal Erholungsfaktor. Sie schläft aber nur so lange, bis die Energie für den Weg zum nächsten Ziel reicht – dem nächsten Empfänger oder ihrem Zuhause –, höchstens bis sie voll ist. Über Wasser schläft sie nicht: Sie gleitet ohne Energie weiter bis zur nächsten Küste und ruht dort. Du kannst auch fast leere Eulen losschicken; dann beginnt der Flug eben mit einem Schläfchen.`,
       'Nach der letzten Zustellung fliegt die Eule nach denselben Regeln heim. Leiheulen fliegen nicht zurück, geschenkte Eulen und Küken bleiben beim Empfänger.',
       'Zieht ein Empfänger oder du selbst um, passt die Eule ihren Kurs sofort an. Wird die Verbindung gekappt oder löscht der Empfänger sein Konto, kehrt sie um; bei mehreren Empfängern lässt sie den Betroffenen aus.',
     ],
@@ -240,7 +258,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Gold und Finanzen',
     blocks: [
       `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Die Tante schenkt dir nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen ${gold(GOLD.AUNT_GIFT)}, der Onkel nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ${gold(GOLD.UNCLE_INHERITANCE)}.`,
-      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Füttern ${gold(GOLD.FEED_PRICE)}, großes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
+      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, großes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
       `Die Finanzübersicht zeigt deinen Goldstand und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
       `Gold verschicken: ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} per Eule an einen Kontakt, gern mit kurzem Begleitbrief. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
     ],
@@ -251,8 +269,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Oben stehen die Leiheulen des Tages, darunter alle Eulen zum Kaufen – nach Preis sortiert, die günstigste zuerst. Zu jeder Kaufeule erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist.',
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen. Ihr Geschlecht ist zufällig, ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Sobald um Mitternacht neue Eulen angeboten werden, kannst du sie alle leihen. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist.`,
-      `Eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen Empfänger und ist nach dem letzten weg – zurück fliegt sie nicht. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich füttern und streicheln, aber nicht umbenennen oder verschenken.`,
+      `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Sobald um Mitternacht neue Eulen angeboten werden, kannst du sie alle leihen. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist. Den Phönix gibt es nie zum Leihen.`,
+      `Eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen Empfänger und ist nach dem letzten weg – zurück fliegt sie nicht. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich pflegen wie jede Eule, aber nicht umbenennen oder verschenken. Ihre Motivation liegt zwischen 0,8 und 1,0.`,
       `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (Waldkauz, 6 Gold) reicht es nach ein paar Tagen – oder sobald das Geschenk der Tante da ist.`,
     ],
   },
@@ -260,26 +278,27 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'arten',
     title: 'Eulenarten im Überblick',
     blocks: [
-      'Preis in Gold, maximale Energie, Geschwindigkeitsfaktor (mal 25 km/h) und Erholungsfaktor:',
+      'Preis in Gold, maximale Energie, Geschwindigkeit und Erholung pro Stunde (bei Motivation 1,0):',
       SPECIES.map(
         (species) =>
-          `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, Tempo ${String(species.speedFactor).replace('.', ',')}, Erholung ${String(species.recoveryFactor).replace('.', ',')}`,
+          `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde`,
       ),
+      `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.mythical)?.price ?? 100} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
     ],
   },
   {
     id: 'verleih',
     title: 'Eulen an die Menagerie verleihen',
     blocks: [
-      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen. Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
+      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen (den Phönix nicht). Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
     ],
   },
   {
     id: 'krankheit',
     title: 'Krankheiten',
     blocks: [
-      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus (siehe Energie, Füttern und Streicheln) deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken und Bot-Eulen werden nie krank, Eulen inaktiver Konten auch nicht.`,
-      'Eine kranke Eule schaut grummelig und kann nicht fliegen, bis sie geheilt ist. Streicheln und füttern geht weiter.',
+      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus (siehe Energie und Pflege) deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken und Bot-Eulen werden nie krank, Eulen inaktiver Konten auch nicht.`,
+      'Eine kranke Eule schaut grummelig und kann nicht fliegen, bis sie geheilt ist. Pflegen geht weiter.',
       [
         `Selbst gesund pflegen: ${gold(GOLD.SELF_CARE_PRICE)} für spezielles Futter, nach ${OWL.SELF_CARE_DAYS} Tagen ist sie gesund.`,
         `Eulenarzt: ${gold(GOLD.VET_PRICE)}, nach ${OWL.VET_HOURS} Stunden ist sie gesund.`,
@@ -291,7 +310,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'kueken',
     title: 'Eier und Küken',
     blocks: [
-      `Weibliche Eulen legen nach einer Heimkehr manchmal Eier (etwa jedes hundertste Mal). Sie brüten dann ${OWL.BROODING_DAYS} Tage; danach schlüpfen ${OWL.CHICKS_MIN} bis ${OWL.CHICKS_MAX} Küken.`,
+      `Weibliche Eulen legen nach einer Heimkehr manchmal Eier (etwa jedes hundertste Mal; der Phönix nie). Sie brüten dann ${OWL.BROODING_DAYS} Tage; danach schlüpfen ${OWL.CHICKS_MIN} bis ${OWL.CHICKS_MAX} Küken.`,
       `Du benennst die Küken binnen ${OWL.CHICK_NAME_DEADLINE_HOURS} Stunden, sonst bekommen sie Zufallsnamen. Bei ${OWL.CHICK_GIFT_FROM_COUNT} oder mehr Küken musst du binnen ${OWL.CHICK_GIFT_DEADLINE_HOURS} Stunden genau eines an einen Kontakt verschenken, gern mit Begleitbrief. Sonst entscheidet das Los unter deinen aktiven Kontakten. Hast du keine, darfst du alle behalten.`,
       `Küken fliegen gemütlich mit ${FLIGHT.CHICK_SPEED_KMH} km/h, eine Stunde Flug, eine Stunde Pause. Sie können gestreichelt und gefüttert werden, tragen aber keine Briefe. Erwachsen werden sie bei dir nach ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} Tagen, beim Beschenkten ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} Tage nach der Ankunft.`,
     ],
@@ -411,7 +430,12 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'Mir ist das Gold ausgegangen.',
-    answer: `Jeden Tag gibt es Gold, solange du aktiv bist: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen ${gold(GOLD.DAILY)}, danach ${gold(GOLD.DAILY_LATER)}. Kleine Briefe sind kostenlos; nur Eulen, Leihen, Füttern, großes Pergament und Behandlungen kosten Gold.`,
+    answer: `Jeden Tag gibt es Gold, solange du aktiv bist: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen ${gold(GOLD.DAILY)}, danach ${gold(GOLD.DAILY_LATER)}. Kleine Briefe sind kostenlos; nur Eulen, Leihen, Eulenkeks, Lieblingsleckerli, großes Pergament und Behandlungen kosten Gold.`,
+  },
+  {
+    question: 'Warum ist meine Eule diesmal langsamer (oder schneller) als sonst?',
+    answer:
+      'Das macht die Motivation: Sie sinkt jede Nacht ein wenig und steigt, wenn du deiner Eule Wasser gibst, sie streichelst, ihr einen Eulenkeks oder ihr Lieblingsleckerli gibst – jede Art einmal am Tag. Beim Abflug wird sie für die ganze Reise festgehalten. Mit 1,2 fliegt die Eule 20 % schneller und weiter, mit 0,8 entsprechend langsamer.',
   },
   {
     question: 'Kann der Betreiber meine Briefe lesen?',

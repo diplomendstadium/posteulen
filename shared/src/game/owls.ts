@@ -11,10 +11,17 @@ export interface OwlFacts {
   readonly state: OwlState;
   readonly kind: OwlKind;
   readonly isChick: boolean;
+  /** v0.5: species is mythical (the phoenix, see Species.mythical). */
+  readonly mythical?: boolean;
 }
 
 export function speciesById(id: string): Species | undefined {
   return SPECIES.find((species) => species.id === id);
+}
+
+/** v0.5: the phoenix – no loan offer, no eggs, no Menagerie, no bot owl. */
+export function isMythical(speciesId: string): boolean {
+  return speciesById(speciesId)?.mythical === true;
 }
 
 /** Letter, gold, gift and menagerie: only adult owls at home and healthy (or a loan owl). */
@@ -36,9 +43,9 @@ export function canCare(owl: OwlFacts): boolean {
   return ['home', 'sick', 'self_care', 'brooding'].includes(owl.state);
 }
 
-/** Menagerie: own adult healthy owls at home, not brooding (9.7). */
+/** Menagerie: own adult healthy owls at home, not brooding, never a phoenix (9.7, v0.5). */
 export function canLendToMenagerie(owl: OwlFacts): boolean {
-  return owl.kind === 'own' && !owl.isChick && owl.state === 'home';
+  return owl.kind === 'own' && !owl.isChick && owl.state === 'home' && owl.mythical !== true;
 }
 
 export function canRelease(owl: OwlFacts): boolean {

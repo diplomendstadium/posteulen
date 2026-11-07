@@ -20,7 +20,7 @@ import { isLand } from '../src/map/landmask.ts';
 const T0 = Date.parse('2026-03-01T00:00:00Z');
 const night: FlightEnvironment = { isLand: () => true, isDay: () => false };
 const day: FlightEnvironment = { isLand: () => true, isDay: () => true };
-const owl: FlightProfile = { speedKmh: 25, maxEnergy: 100, mode: 'adult' };
+const owl: FlightProfile = { speedKmh: 25, maxEnergy: 100, mode: 'adult', recoveryPerHour: 10 };
 
 // Points on the equator: 1° of longitude = 111.19 km.
 const KM_PER_DEG = distanceKm({ lat: 0, lon: 0 }, { lat: 0, lon: 1 });
@@ -71,7 +71,7 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
     expect(flights.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('sleeps 10 hours over land when empty and continues with full energy', () => {
+  it('sleeps only as long as it needs for the next stop (v0.5)', () => {
     const result = simulate(
       owl,
       { at: T0, position: home, energy: 100 },
@@ -81,12 +81,52 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
     const pauses = sleeps(result.segments);
     expect(pauses).toHaveLength(1);
     const pause = pauses[0];
-    expect((pause?.t1 ?? 0) - (pause?.t0 ?? 0)).toBe(FLIGHT.SLEEP_HOURS * TIME.HOUR);
-    expect(pause?.e1).toBe(100);
-    // 100 km, sleep, 50 km: 6 h of flight + 10 h of sleep; 50 energy left.
-    expect(result.arrivals[0]?.at).toBe(T0 + 16 * TIME.HOUR);
-    expect(result.arrivals[0]?.energy).toBeCloseTo(50, 1);
+    // 50 km left at night need 50 energy: 5 hours at 10 per hour (5 minutes precise).
+    const slept = (pause?.t1 ?? 0) - (pause?.t0 ?? 0);
+    expect(slept).toBeGreaterThanOrEqual(5 * TIME.HOUR - 1000);
+    expect(slept).toBeLessThanOrEqual(5 * TIME.HOUR + 5 * TIME.MINUTE);
+    expect(pause?.e1).toBeGreaterThanOrEqual(49.9);
+    expect(pause?.e1).toBeLessThan(51);
+    expect(result.arrivals[0]?.energy).toBeLessThan(1);
     if (pause?.kind === 'sleep') expect(pause.at.lon * KM_PER_DEG).toBeCloseTo(100, 0);
+    // The energy rises evenly while it sleeps.
+    const middle = positionAt(result.segments, (pause?.t0 ?? 0) + 2.5 * TIME.HOUR);
+    expect(middle?.phase).toBe('sleep');
+    expect(middle?.energy).toBeCloseTo(25, 0);
+  });
+
+  it('sleeps until full when even full energy is not enough, then only as needed (v0.5)', () => {
+    const result = simulate(
+      owl,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(350) }],
+      night,
+    );
+    const pauses = sleeps(result.segments);
+    expect(pauses).toHaveLength(3);
+    expect((pauses[0]?.t1 ?? 0) - (pauses[0]?.t0 ?? 0)).toBe(10 * TIME.HOUR);
+    expect(pauses[0]?.e1).toBe(100);
+    expect((pauses[1]?.t1 ?? 0) - (pauses[1]?.t0 ?? 0)).toBe(10 * TIME.HOUR);
+    const last = (pauses[2]?.t1 ?? 0) - (pauses[2]?.t0 ?? 0);
+    expect(last).toBeGreaterThanOrEqual(5 * TIME.HOUR - 1000);
+    expect(last).toBeLessThanOrEqual(5 * TIME.HOUR + 5 * TIME.MINUTE);
+  });
+
+  it('recovers with the profile rate; plans before v0.5 are full after 10 hours', () => {
+    const fast = simulate(
+      { ...owl, recoveryPerHour: 20 },
+      { at: T0, position: home, energy: 0 },
+      [{ index: 0, point: east(100) }],
+      night,
+    );
+    expect((sleeps(fast.segments)[0]?.t1 ?? 0) - T0).toBe(5 * TIME.HOUR);
+    const legacy = simulate(
+      { speedKmh: 25, maxEnergy: 100, mode: 'adult' },
+      { at: T0, position: home, energy: 0 },
+      [{ index: 0, point: east(100) }],
+      night,
+    );
+    expect((sleeps(legacy.segments)[0]?.t1 ?? 0) - T0).toBe(10 * TIME.HOUR);
   });
 
   it('flies on over water without using energy and sleeps on the next land (9.4.2)', () => {
@@ -107,9 +147,11 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
       expect(pause.at.lon * KM_PER_DEG).toBeGreaterThan(129.9);
       expect(pause.at.lon * KM_PER_DEG).toBeLessThan(133);
     }
-    // 200 km in 8 h plus 10 h sleep; after the sleep about 70 km at night.
-    expect(result.arrivals[0]?.at).toBeGreaterThan(T0 + 17.9 * TIME.HOUR);
-    expect(result.arrivals[0]?.energy).toBeCloseTo(100 - (200 - 130), 0);
+    // 200 km in 8 h; after the coast at 130 km it sleeps just enough for the last 70 km (v0.5).
+    if (pause) expect(pause.t1 - pause.t0).toBeGreaterThan(6.9 * TIME.HOUR);
+    if (pause) expect(pause.t1 - pause.t0).toBeLessThan(7.2 * TIME.HOUR);
+    expect(result.arrivals[0]?.at).toBeGreaterThan(T0 + 14.9 * TIME.HOUR);
+    expect(result.arrivals[0]?.energy).toBeLessThan(1);
   });
 
   it('starts with the sleep pause when sent with 0 energy', () => {
@@ -121,8 +163,10 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
     );
     expect(result.segments[0]?.kind).toBe('sleep');
     expect(result.segments[0]?.t0).toBe(T0);
-    expect(result.arrivals[0]?.at).toBe(T0 + 11 * TIME.HOUR);
-    expect(result.arrivals[0]?.energy).toBeCloseTo(75, 1);
+    // 25 km need 25 energy: 2.5 h of sleep (5 minutes precise), then 1 h of flight.
+    expect(result.arrivals[0]?.at).toBeGreaterThanOrEqual(T0 + 3.5 * TIME.HOUR - 1000);
+    expect(result.arrivals[0]?.at).toBeLessThanOrEqual(T0 + 3.5 * TIME.HOUR + 5 * TIME.MINUTE);
+    expect(result.arrivals[0]?.energy).toBeLessThan(1);
   });
 
   it('visits several recipients in order and flies home with the remaining energy', () => {
@@ -184,9 +228,10 @@ describe('flight simulation (SPEC 9.4, 17.2)', () => {
       [{ index: 0, point: east(150) }],
       night,
     );
-    // 6 h of flight and 10 h of sleep become 16 seconds.
-    expectTime(result.arrivals[0]?.at, T0 + 16_000);
-    expect(result.arrivals[0]?.energy).toBeCloseTo(50, 1);
+    // 6 h of flight and 5 h of sleep become 11 seconds.
+    expect(result.arrivals[0]?.at).toBeGreaterThanOrEqual(T0 + 11_000 - 10);
+    expect(result.arrivals[0]?.at).toBeLessThanOrEqual(T0 + 11_100);
+    expect(result.arrivals[0]?.energy).toBeLessThan(1);
   });
 
   it('two recipients at the same place are reached at the same time', () => {
@@ -269,9 +314,10 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
         stops.slice(hours > 16 ? 1 : 0),
         night,
       );
+      // A re-plan during a sleep recalculates it (v0.5): equal up to its 5-minute precision.
       expect(
         Math.abs((again.arrivals.at(-1)?.at ?? 0) - (original.arrivals.at(-1)?.at ?? 0)),
-      ).toBeLessThan(2 * TIME.MINUTE);
+      ).toBeLessThan(10 * TIME.MINUTE);
     }
   });
 
@@ -319,14 +365,18 @@ describe('position and re-planning (SPEC 9.4.3, 9.4.6, 9.5)', () => {
     expectTime(moved.arrivals[0]?.at, at + 1.2 * TIME.HOUR);
   });
 
-  it('a move during a sleep pause keeps the pause running', () => {
+  it('a move during a sleep: the sleep is recalculated for the new goal (v0.5)', () => {
     const original = simulate(owl, start, [{ index: 0, point: east(150) }], night);
-    const at = T0 + 5 * TIME.HOUR; // asleep since 4 h, until 14 h
+    const at = T0 + 5 * TIME.HOUR; // asleep since 4 h with 10 energy so far
     const state = stateAt(original.segments, at);
-    expect(state?.pausedUntil).toBe(T0 + 14 * TIME.HOUR);
+    expect(state?.pausedUntil).toBeUndefined();
+    expect(state?.energy).toBeCloseTo(10, 1);
     const moved = replan(owl, original.segments, at, [{ index: 0, point: east(125) }], night);
-    expectTime(moved.arrivals[0]?.at, T0 + 15 * TIME.HOUR);
-    expect(moved.arrivals[0]?.energy).toBeCloseTo(75, 1);
+    // 10 km with the energy so far, 1.5 h of sleep for the last 15 km, then 0.6 h of flight.
+    const expected = at + (0.4 + 1.5 + 0.6) * TIME.HOUR;
+    expect(moved.arrivals[0]?.at).toBeGreaterThanOrEqual(expected - 5000);
+    expect(moved.arrivals[0]?.at).toBeLessThanOrEqual(expected + 5 * TIME.MINUTE + 5000);
+    expect(moved.arrivals[0]?.energy).toBeLessThan(1);
   });
 
   it('turning back: the owl flies home from where it is', () => {
@@ -400,7 +450,7 @@ describe('with the real land mask and sun (SPEC 12.3, 17.2)', () => {
     const berlin = { lat: 52.52, lon: 13.4 };
     const lisbon = { lat: 38.72, lon: -9.14 };
     const result = simulate(
-      { speedKmh: owlSpeedKmh(1.1), maxEnergy: 540, mode: 'adult' },
+      { speedKmh: owlSpeedKmh(1.1), maxEnergy: 540, mode: 'adult', recoveryPerHour: 67.5 },
       { at: Date.parse('2026-11-05T12:00:00Z'), position: berlin, energy: 540 },
       [
         { index: 0, point: lisbon },
@@ -414,7 +464,9 @@ describe('with the real land mask and sun (SPEC 12.3, 17.2)', () => {
     expect(pauses).toBeGreaterThanOrEqual(Math.floor(km / (540 * 1)) - 1);
     expect(pauses).toBeLessThanOrEqual(Math.ceil(km / (540 / 1.5)));
     const total = ((result.arrivals[1]?.at ?? 0) - Date.parse('2026-11-05T12:00:00Z')) / TIME.HOUR;
-    expect(total).toBeCloseTo(flightHours + pauses * 10, 0);
+    // Full after 8 hours (10 % × 1.25 per hour); the last sleep before each stop is shorter.
+    expect(total).toBeGreaterThan(flightHours + (pauses - 2) * 8 - 0.1);
+    expect(total).toBeLessThan(flightHours + pauses * 8 + 0.1);
     expect(JSON.stringify(result.segments).length).toBeLessThan(40_000);
   });
 });

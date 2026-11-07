@@ -121,13 +121,14 @@ async function reauthToken(who: Person, purpose: 'delete' | 'password'): Promise
 }
 
 describe('loan owls (SPEC 9.6)', () => {
-  it('three species a day with stable names; 0.1 gold; one per species, at most three', async () => {
+  it('four species a day (v0.5) with stable names; 0.1 gold; one per species, at most four', async () => {
     const menagerie = await anna.agent.json<{
       offer: { species: string; name: string; sex: string; loaned: boolean }[];
       maxLoans: number;
     }>('GET', '/api/menagerie');
-    expect(menagerie.body.offer).toHaveLength(3);
-    expect(new Set(menagerie.body.offer.map((o) => o.species)).size).toBe(3);
+    expect(menagerie.body.offer).toHaveLength(4);
+    expect(new Set(menagerie.body.offer.map((o) => o.species)).size).toBe(4);
+    expect(menagerie.body.offer.map((o) => o.species)).not.toContain('phoenix');
     expect((await anna.agent.json('GET', '/api/menagerie')).body).toEqual(menagerie.body);
     // Ben sees the same species, but with his own names.
     const forBen = await ben.agent.json<{ offer: { species: string }[] }>('GET', '/api/menagerie');
@@ -153,7 +154,8 @@ describe('loan owls (SPEC 9.6)', () => {
     ).toMatchObject({ code: 'loan_species' });
     await borrowOwl(anna);
     await borrowOwl(anna);
-    const notOffered = ['waldkauz', 'bartkauz', 'elfenkauz', 'schleiereule'].find(
+    await borrowOwl(anna);
+    const notOffered = ['waldkauz', 'bartkauz', 'elfenkauz', 'schleiereule', 'milchuhu'].find(
       (id) => !menagerie.body.offer.some((o) => o.species === id),
     )!;
     expect(
@@ -169,14 +171,14 @@ describe('loan owls (SPEC 9.6)', () => {
     expect((await anna.agent.json('POST', `/api/owls/${first}/menagerie`, {})).status).toBe(400);
   });
 
-  it('v0.3.2: three a day – the next offer can all be borrowed, whatever still waits', async () => {
-    for (let i = 0; i < 3; i++) await borrowOwl(anna);
+  it('v0.3.2: all of a day (v0.5: four) – the next offer can all be borrowed, whatever still waits', async () => {
+    for (let i = 0; i < 4; i++) await borrowOwl(anna);
     const today = await anna.agent.json<{ loans: number; maxLoans: number }>(
       'GET',
       '/api/menagerie',
     );
-    expect(today.body).toMatchObject({ loans: 3, maxLoans: 3 });
-    // Half past midnight UTC: yesterday's three still wait, the new offer is free to borrow.
+    expect(today.body).toMatchObject({ loans: 4, maxLoans: 4 });
+    // Half past midnight UTC: yesterday's four still wait, the new offer is free to borrow.
     const midnight = Date.UTC(2026, 10, 6, 0, 30);
     advanceTo(app, midnight);
     const tomorrow = await anna.agent.json<{ loans: number; offer: { loaned: boolean }[] }>(
@@ -185,9 +187,9 @@ describe('loan owls (SPEC 9.6)', () => {
     );
     expect(tomorrow.body.loans).toBe(0);
     expect(tomorrow.body.offer.every((o) => !o.loaned)).toBe(true);
-    for (let i = 0; i < 3; i++) await borrowOwl(anna);
+    for (let i = 0; i < 4; i++) await borrowOwl(anna);
     const waiting = (await owls(anna)).owls.filter((owl) => owl.kind === 'loan');
-    expect(waiting).toHaveLength(6);
+    expect(waiting).toHaveLength(8);
   });
 
   it('expires after 24 hours without refund', async () => {
@@ -274,7 +276,7 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     await couple(anna, carla);
     setGold(app, anna, 200);
     const several = await preview(anna, [ben.id, carla.id]);
-    expect(several).toHaveLength(3);
+    expect(several).toHaveLength(4);
     expect(several.every((choice) => choice.offer)).toBe(true);
     setGold(app, anna, 0);
     expect(await preview(anna, [ben.id])).toEqual([]);
@@ -309,11 +311,12 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     });
   });
 
-  it('the three loan owls of a day never share a name', () => {
+  it('the four loan owls of a day never share a name; motivation 0.8–1.0 (v0.5)', () => {
     const day = utcDay(app.clock.now);
     for (let i = 0; i < 2000; i++) {
-      const names = [...loanIdentitiesFor(app.ctx, `nutzer-${i}`, day).values()].map((o) => o.name);
-      expect(new Set(names).size).toBe(3);
+      const identities = [...loanIdentitiesFor(app.ctx, `nutzer-${i}`, day).values()];
+      expect(new Set(identities.map((o) => o.name)).size).toBe(4);
+      for (const identity of identities) expect([8, 9, 10]).toContain(identity.motivation);
     }
   });
 });
@@ -407,6 +410,11 @@ describe('sickness (SPEC 9.8, 17.2)', () => {
     const id = await owlAged(60);
     await anna.agent.json('POST', `/api/owls/${id}/pet`, {});
     await anna.agent.json('POST', `/api/owls/${id}/pet`, {});
+    // v0.5: petting twice is one kind of care – not yet a cared-for day.
+    expect(
+      app.db.all<{ day: string }>('SELECT day FROM owl_care_days WHERE owl_id = ?', id),
+    ).toEqual([]);
+    await anna.agent.json('POST', `/api/owls/${id}/water`, {});
     expect(
       app.db.all<{ day: string }>('SELECT day FROM owl_care_days WHERE owl_id = ?', id),
     ).toEqual([{ day: utcDay(app.clock.now) }]);

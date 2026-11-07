@@ -21,6 +21,8 @@ import type { Help, HelpQuestion, HelpSection } from './help.ts';
 
 const gold = (tenths: number): string => `${formatGold(tenths, '.')} gold`;
 const percent = (share: number): string => `${Math.round(share * 100)} %`;
+/** One decimal, rounded half up (v0.5). */
+const decimalEn = (value: number): string => (Math.round(value * 10 + 1e-9) / 10).toFixed(1);
 const dailyGoldTime = `${GOLD.DAILY_HOUR_UTC}:00 UTC (${GOLD.DAILY_HOUR_UTC}:00 in the UK in winter, ${GOLD.DAILY_HOUR_UTC + 1}:00 in summer)`;
 
 const INTRO =
@@ -173,7 +175,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Your owls',
     blocks: [
-      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter” or “In the Menagerie until Fri, 14:00”.',
+      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter” or “In the Menagerie until Fri, 14:00”.',
       'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is helping out in the Menagerie, you see its empty perch.',
       'Each species has a price, a maximum energy, a speed factor and a recovery factor. Owls do not grow old and do not die.',
       [
@@ -187,12 +189,27 @@ const SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'energie',
-    title: 'Energy, feeding and petting',
+    title: 'Energy and care: water, petting, owl biscuit, favourite snack',
     blocks: [
-      `At home an owl recovers: per hour ${percent(OWL.REGEN_SHARE_PER_HOUR)} of its maximum energy times its recovery factor. With factor 2 it is full again in 5 hours.`,
-      `Feeding costs ${gold(GOLD.FEED_PRICE)}, works once a day per owl and gives ${percent(OWL.FEED_SHARE)} energy times the recovery factor at once.`,
-      'Petting is free and possible as often as you like. But it only counts once a day for care.',
-      `Care bonus: the last ${OWL.CARE_BONUS_WINDOW_DAYS} days on which the owl was at home for at least ${OWL.CARE_BONUS_MIN_HOME_HOURS} hour are counted. If it was petted or fed on at least ${OWL.CARE_BONUS_MIN_DAYS} of them, it falls ill much less often. Whole travel days do not count – a busy letter owl does not lose its bonus just because it was away.`,
+      `At home an owl recovers: per hour ${percent(OWL.REGEN_SHARE_PER_HOUR)} of its maximum energy times its recovery factor. With factor 2 it is full again in 5 hours. On the way it recovers in the same way while it sleeps (see How an owl flies).`,
+      'There are four ways to look after your owl – as long as it is at home, also while it is ill or brooding:',
+      [
+        'Give water: free, once a day.',
+        'Petting: free and as often as you like.',
+        `Owl biscuit: ${gold(GOLD.FEED_PRICE)}, once a day, gives ${percent(OWL.FEED_SHARE)} energy times the recovery factor at once.`,
+        `Favourite snack: ${gold(GOLD.SNACK_PRICE)}, once a day, gives ${percent(OWL.SNACK_SHARE)} energy times the recovery factor at once. Every species has its own – the Tawny Owl loves hazelnuts, Blakiston’s Fish Owl smoked fish; the Menagerie description tells you which.`,
+      ],
+      `Each of these four kinds of care raises the motivation once a day (see Motivation). Care bonus against illness: a day counts as cared for if the owl got ${OWL.CARE_DAY_INTERACTIONS} different kinds of care that day – for example water and petting. The last ${OWL.CARE_BONUS_WINDOW_DAYS} days on which it was at home for at least ${OWL.CARE_BONUS_MIN_HOME_HOURS} hour are counted. If it was cared for on at least ${OWL.CARE_BONUS_MIN_DAYS} of them, it falls ill much less often. Whole travel days do not count – a busy letter owl does not lose its bonus just because it was away.`,
+    ],
+  },
+  {
+    id: 'motivation',
+    title: 'Motivation',
+    blocks: [
+      'Besides its energy, each of your owls has a second bar: motivation. It is always between 0.8 and 1.2. Owls you buy come to you with 1.0, loan owls with 0.8 to 1.0.',
+      'Every night at midnight (UTC) it drops by 0.1 – even while the owl is on its way or helping out in the Menagerie. Water, petting, an owl biscuit and the favourite snack each raise it by 0.1 once a day. So if you care a little every day, you will soon have a highly motivated owl.',
+      'At take-off the motivation counts for the whole trip, there and back: with 1.2 the owl has 20 % more energy on the way, is 20 % faster and recovers 20 % faster while sleeping; with 0.8 it has 20 % less. At home the normal values of the species apply again.',
+      'In the owl overview, the speed in km/h and the recovery in percent per hour of the species are shown below the bars. If the motivation is not 1.0, a green “+10 %” or a red “−20 %” follows – that is how much changes on the next trip.',
     ],
   },
   {
@@ -201,7 +218,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Base speed ${FLIGHT.BASE_SPEED_KMH} km/h times the speed factor of the species – just as fast by day and by night.`,
       `Energy: at night ${FLIGHT.ENERGY_PER_KM_NIGHT} point per kilometre, by day ${FLIGHT.ENERGY_PER_KM_DAY} points. Twilight counts as day. Owls are night birds, after all.`,
-      `When its energy is empty, the owl sleeps ${FLIGHT.SLEEP_HOURS} hours on the spot and then flies on with full energy. Over water it does not sleep: it glides on without energy to the next coast and rests there. You can send off nearly empty owls too; the flight then simply starts with a nap.`,
+      `When its energy is empty, the owl sleeps on the spot. It recovers just as at home: ${percent(OWL.REGEN_SHARE_PER_HOUR)} of its maximum energy times its recovery factor per hour. But it only sleeps until it has enough energy for the way to its next destination – the next recipient or its home – at most until it is full. Over water it does not sleep: it glides on without energy to the next coast and rests there. You can send off nearly empty owls too; the flight then simply starts with a nap.`,
       'After the last delivery the owl flies home by the same rules. Loan owls do not fly back; owls and chicks given as gifts stay with the recipient.',
       'If a recipient or you yourself move, the owl changes course at once. If the connection is cut or the recipient deletes their account, it turns back; with several recipients it leaves out the one affected.',
     ],
@@ -222,7 +239,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Gold and finances',
     blocks: [
       `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. The aunt gives you ${gold(GOLD.AUNT_GIFT)} after ${GOLD.AUNT_GIFT_AFTER_DAYS} days, the uncle ${gold(GOLD.UNCLE_INHERITANCE)} after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
-      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, feeding ${gold(GOLD.FEED_PRICE)}, large parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
+      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}, large parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
       `The finances show how much gold you have and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
       `Sending gold: ${gold(GOLD.TRANSFER_MIN)} to ${gold(GOLD.TRANSFER_MAX)} by owl to a contact, with a short cover letter if you like. Afterwards you must have more than ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} left. The gold is debited when the owl takes off and arrives with the owl. If it turns back, you get it back as soon as it is home again. You cannot send gold to bots.`,
     ],
@@ -233,8 +250,8 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       'At the top are the loan owls of the day, below them all owls for sale – sorted by price, the cheapest first. A short description of every owl for sale tells you where it comes from and what kind of character it is.',
       `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name. Its sex is random; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there.`,
-      `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. It can be fed and petted, but not renamed or given away.`,
+      `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there. The phoenix is never offered.`,
+      `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. It can be cared for like any owl, but not renamed or given away. Its motivation is between 0.8 and 1.0.`,
       `Tip for the start: with ${gold(GOLD.START)} starting gold you borrow an owl for your first letter. For the cheapest owl of your own (Tawny Owl, 6 gold) it is enough after a couple of days – or as soon as the aunt’s gift has arrived.`,
     ],
   },
@@ -242,26 +259,27 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'arten',
     title: 'Owl species at a glance',
     blocks: [
-      'Price in gold, maximum energy, speed factor (times 25 km/h) and recovery factor:',
+      'Price in gold, maximum energy, speed and recovery per hour (with motivation 1.0):',
       SPECIES.map(
         (species) =>
-          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, speed ${species.speedFactor}, recovery ${species.recoveryFactor}`,
+          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % per hour`,
       ),
+      `The phoenix is no ordinary owl: it costs ${SPECIES.find((species) => species.mythical)?.price ?? 100} gold, flies four times as fast as an owl with factor 1, is never lent out, does not help out in the Menagerie and lays no eggs.`,
     ],
   },
   {
     id: 'verleih',
     title: 'Lending owls to the Menagerie',
     blocks: [
-      `Healthy adult owls that are at home can be lent to the Menagerie for ${OWL.MENAGERIE_DAYS} days. Afterwards you get ${percent(GOLD.MENAGERIE_WAGE_SHARE)} of the species price as a wage, and the owl comes back with full energy. Meanwhile it is not available and does not fall ill.`,
+      `Healthy adult owls that are at home can be lent to the Menagerie for ${OWL.MENAGERIE_DAYS} days (not the phoenix). Afterwards you get ${percent(GOLD.MENAGERIE_WAGE_SHARE)} of the species price as a wage, and the owl comes back with full energy. Meanwhile it is not available and does not fall ill.`,
     ],
   },
   {
     id: 'krankheit',
     title: 'Illnesses',
     blocks: [
-      `Every night an adult owl can fall ill with a probability of 1 in 30 – with the care bonus (see Energy, feeding and petting) much less often. During its first ${OWL.SICKNESS_GRACE_DAYS} days with you it never falls ill. Loan owls, chicks and bot owls never fall ill, and neither do the owls of inactive accounts.`,
-      'An ill owl looks grumpy and cannot fly until it has been cured. Petting and feeding still work.',
+      `Every night an adult owl can fall ill with a probability of 1 in 30 – with the care bonus (see Energy and care) much less often. During its first ${OWL.SICKNESS_GRACE_DAYS} days with you it never falls ill. Loan owls, chicks and bot owls never fall ill, and neither do the owls of inactive accounts.`,
+      'An ill owl looks grumpy and cannot fly until it has been cured. Care still works.',
       [
         `Nurse it yourself: ${gold(GOLD.SELF_CARE_PRICE)} for special food, after ${OWL.SELF_CARE_DAYS} days it is healthy.`,
         `Owl vet: ${gold(GOLD.VET_PRICE)}, after ${OWL.VET_HOURS} hours it is healthy.`,
@@ -273,7 +291,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'kueken',
     title: 'Eggs and chicks',
     blocks: [
-      `Female owls sometimes lay eggs after coming home (about one time in a hundred). They then brood for ${OWL.BROODING_DAYS} days; afterwards ${OWL.CHICKS_MIN} to ${OWL.CHICKS_MAX} chicks hatch.`,
+      `Female owls sometimes lay eggs after coming home (about one time in a hundred; the phoenix never does). They then brood for ${OWL.BROODING_DAYS} days; afterwards ${OWL.CHICKS_MIN} to ${OWL.CHICKS_MAX} chicks hatch.`,
       `You name the chicks within ${OWL.CHICK_NAME_DEADLINE_HOURS} hours, otherwise they get random names. With ${OWL.CHICK_GIFT_FROM_COUNT} or more chicks you have to give exactly one to a contact within ${OWL.CHICK_GIFT_DEADLINE_HOURS} hours, with a cover letter if you like. Otherwise lots are drawn among your active contacts. If you have none, you may keep them all.`,
       `Chicks fly at a leisurely ${FLIGHT.CHICK_SPEED_KMH} km/h, one hour of flying, one hour of rest. They can be petted and fed but do not carry letters. They grow up with you after ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} days, with the recipient of a gift ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} days after arriving.`,
     ],
@@ -396,7 +414,12 @@ const FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'I have run out of gold.',
-    answer: `You get gold every day as long as you are active: ${gold(GOLD.DAILY)} during the first ${GOLD.DAILY_HIGH_DAYS} days, then ${gold(GOLD.DAILY_LATER)}. Small letters are free; only owls, borrowing, feeding, large parchment and treatments cost gold.`,
+    answer: `You get gold every day as long as you are active: ${gold(GOLD.DAILY)} during the first ${GOLD.DAILY_HIGH_DAYS} days, then ${gold(GOLD.DAILY_LATER)}. Small letters are free; only owls, borrowing, owl biscuits, favourite snacks, large parchment and treatments cost gold.`,
+  },
+  {
+    question: 'Why is my owl slower (or faster) than usual this time?',
+    answer:
+      'That is its motivation: it drops a little every night and rises when you give your owl water, pet it, give it an owl biscuit or its favourite snack – each kind once a day. At take-off it is fixed for the whole trip. With 1.2 the owl flies 20 % faster and further, with 0.8 correspondingly slower.',
   },
   {
     question: 'Can the operator read my letters?',

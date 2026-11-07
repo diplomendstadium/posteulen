@@ -5,14 +5,24 @@ import { OWL_NAMES, AUNT_NAMES, UNCLE_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
-  it('has 17 species with unique ids and image names', () => {
-    expect(SPECIES).toHaveLength(17);
-    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(17);
-    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(17);
+  it('has 18 species (v0.5: with the phoenix) with unique ids and image names', () => {
+    expect(SPECIES).toHaveLength(18);
+    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(18);
+    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(18);
+    const phoenix = SPECIES.filter((s) => s.mythical);
+    expect(phoenix).toEqual([
+      expect.objectContaining({
+        id: 'phoenix',
+        price: 100,
+        maxEnergy: 2000,
+        speedFactor: 4,
+        recoveryFactor: 2,
+      }),
+    ]);
   });
 
   it('keeps all values inside the ranges of SPEC 9.2.1', () => {
-    for (const s of SPECIES) {
+    for (const s of SPECIES.filter((species) => !species.mythical)) {
       expect(s.price).toBeGreaterThanOrEqual(6);
       expect(s.price).toBeLessThanOrEqual(50);
       expect(s.maxEnergy).toBeGreaterThanOrEqual(100);
@@ -29,7 +39,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(11);
+    expect(OWL_IMAGE_KINDS).toHaveLength(13);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -45,6 +55,8 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Nachtflug.png',
       'Schleiereule-Heimkehr-Tag.png',
       'Schleiereule-Heimkehr-Nacht.png',
+      'Schleiereule-Trinken.png',
+      'Schleiereule-Leckerli.png',
     ]);
   });
 });

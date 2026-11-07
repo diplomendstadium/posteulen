@@ -8,6 +8,7 @@ import {
   canRenameInYear,
   canLendToMenagerie,
   canTransport,
+  isMythical,
   regenerates,
   speciesById,
   type OwlKind,
@@ -35,6 +36,11 @@ export interface OwlRow {
   readonly renamed_year: number | null;
   readonly fed_on: string | null;
   readonly petted_on: string | null;
+  /** v0.5: water and favourite snack (UTC day of the last time). */
+  readonly watered_on: string | null;
+  readonly snacked_on: string | null;
+  /** v0.5: motivation in tenths, 8–12. */
+  readonly motivation: number;
   readonly pending_sickness: number;
   readonly loan_expires_at: number | null;
   readonly adult_at: number | null;
@@ -43,8 +49,18 @@ export interface OwlRow {
   readonly created_at: number;
 }
 
-export function facts(owl: OwlRow): { state: OwlState; kind: OwlKind; isChick: boolean } {
-  return { state: owl.state, kind: owl.kind, isChick: owl.is_chick === 1 };
+export function facts(owl: OwlRow): {
+  state: OwlState;
+  kind: OwlKind;
+  isChick: boolean;
+  mythical: boolean;
+} {
+  return {
+    state: owl.state,
+    kind: owl.kind,
+    isChick: owl.is_chick === 1,
+    mythical: isMythical(owl.species),
+  };
 }
 
 /** The caller's own owl (never one on a gift flight – it no longer belongs to them). */
@@ -108,6 +124,10 @@ export interface OwlView {
   readonly maxEnergy: number;
   readonly fedToday: boolean;
   readonly pettedToday: boolean;
+  /** v0.5: water and favourite snack today; motivation in tenths (8–12). */
+  readonly wateredToday: boolean;
+  readonly snackedToday: boolean;
+  readonly motivation: number;
   readonly ready: boolean;
   /** End of brooding, treatment or menagerie. */
   readonly stateUntil: number | null;
@@ -164,6 +184,9 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
     maxEnergy: species?.maxEnergy ?? 0,
     fedToday: owl.fed_on === today,
     pettedToday: owl.petted_on === today,
+    wateredToday: owl.watered_on === today,
+    snackedToday: owl.snacked_on === today,
+    motivation: owl.motivation,
     ready: isReady(owl),
     stateUntil: owl.state_until,
     loanExpiresAt: owl.loan_expires_at,

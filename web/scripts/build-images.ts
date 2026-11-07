@@ -10,7 +10,7 @@ import crypto from 'node:crypto';
 import sharp from 'sharp';
 import {
   SPECIES,
-  OWL_IMAGE_KINDS,
+  imageKindsOf,
   SCENE_IMAGES,
   owlImageFileName,
 } from '@posteulen/shared/species.ts';
@@ -30,6 +30,8 @@ const OVERLAY_KINDS = new Set([
   'chick',
   'homeDay',
   'homeNight',
+  'drinking',
+  'snack',
 ]);
 const SIZES = [160, 480] as const;
 const LARGE = 960;
@@ -96,7 +98,7 @@ async function buildOwlImages(): Promise<void> {
   for (const species of SPECIES) {
     const entry: Record<string, Record<string, string>> = {};
     manifest[species.id] = entry;
-    for (const { kind, suffix } of OWL_IMAGE_KINDS) {
+    for (const { kind, suffix } of imageKindsOf(species)) {
       const expected = owlImageFileName(species.imageName, suffix);
       let source: string | undefined;
       if (exact.has(expected)) source = expected;
@@ -178,7 +180,7 @@ async function buildOwlImages(): Promise<void> {
   for (const warning of warnings) console.warn(`Warnung Eulenbild: ${warning}`);
   if (missing.length > 0) {
     console.warn(
-      `Warnung: ${missing.length} von ${SPECIES.length * OWL_IMAGE_KINDS.length + SCENE_IMAGES.length} Bildern fehlen – Platzhalter werden verwendet (Liste: web/src/generated/owl-images/missing.json).`,
+      `Warnung: ${missing.length} von ${SPECIES.reduce((sum, species) => sum + imageKindsOf(species).length, 0) + SCENE_IMAGES.length} Bildern fehlen – Platzhalter werden verwendet (Liste: web/src/generated/owl-images/missing.json).`,
     );
   }
 }

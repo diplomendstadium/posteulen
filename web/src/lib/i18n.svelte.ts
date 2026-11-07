@@ -67,6 +67,8 @@ export function goldText(tenths: number): string {
 
 /** A decimal number with fixed digits in the notation of the language ("52,38" / "52.38"). */
 export function decimal(value: number, digits: number): string {
-  const text = value.toFixed(digits);
+  // Round half up in decimal (28.75 → 28.8), not in binary floating point.
+  const scale = 10 ** digits;
+  const text = (Math.round(value * scale + 1e-9) / scale).toFixed(digits);
   return i18n.lang === 'en' ? text : text.replace('.', ',');
 }

@@ -20,6 +20,8 @@ export const GOLD = {
   LARGE_PARCHMENT_SURCHARGE: 1,
   LOAN_PRICE: 1,
   FEED_PRICE: 1,
+  /** Favourite snack (v0.5), once a day. */
+  SNACK_PRICE: 2,
   SELF_CARE_PRICE: 2,
   VET_PRICE: 10,
   AUNT_GIFT: 40,
@@ -57,7 +59,6 @@ export const FLIGHT = {
   ENERGY_PER_KM_DAY: 1.5,
   /** Sun altitude in degrees above which it counts as day (twilight = day). */
   DAY_SUN_ALTITUDE_DEG: -6,
-  SLEEP_HOURS: 10,
   EARTH_RADIUS_KM: 6371,
   MAX_STEP_KM: 2,
   MAX_STEP_MINUTES: 5,
@@ -70,8 +71,13 @@ export const FLIGHT = {
 export const OWL = {
   START_ENERGY_MIN_SHARE: 0.6,
   START_ENERGY_MAX_SHARE: 1.0,
+  /** Regeneration per hour at home and (v0.5) while sleeping on a flight, × recovery factor. */
   REGEN_SHARE_PER_HOUR: 0.1,
   FEED_SHARE: 0.1,
+  /** Favourite snack (v0.5): +20 % of the maximum × recovery factor. */
+  SNACK_SHARE: 0.2,
+  /** v0.5: a day counts as cared for with this many different interactions. */
+  CARE_DAY_INTERACTIONS: 2,
   MAX_OWN_OWLS: 50,
   NAME_MIN_CHARS: 2,
   NAME_MAX_CHARS: 20,
@@ -99,11 +105,27 @@ export const OWL = {
   CHICK_ADULT_AT_RECIPIENT_DAYS: 7,
 } as const;
 
+/**
+ * Motivation of an owl (v0.5), stored in tenths: 0.8–1.2. It sinks by 0.1 every night at 00:00
+ * UTC and rises by 0.1 for each kind of interaction once a day. At departure it multiplies
+ * energy, speed and recovery for the whole trip.
+ */
+export const MOTIVATION = {
+  MIN: 8,
+  MAX: 12,
+  START: 10,
+  STEP: 1,
+  /** Loan owls come with 0.8, 0.9 or 1.0 (derived per user, day and species). */
+  LOAN_MIN: 8,
+  LOAN_MAX: 10,
+  DECAY_HOUR_UTC: 0,
+} as const;
+
 export const MENAGERIE = {
-  OFFER_SPECIES_COUNT: 3,
+  OFFER_SPECIES_COUNT: 4,
   OFFER_HOUR_UTC: 0,
-  /** Loan owls per offer day (00:00 UTC), one per offered species (v0.3.2). */
-  LOANS_PER_DAY: 3,
+  /** Loan owls per offer day (00:00 UTC), one per offered species (v0.3.2; 4 since v0.5). */
+  LOANS_PER_DAY: 4,
   MAX_LOANS_PER_SPECIES: 1,
   LOAN_EXPIRY_HOURS: 24,
 } as const;

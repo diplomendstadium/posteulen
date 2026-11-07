@@ -2,9 +2,14 @@
  * Owls (SPEC 8.5, 8.7, 9.2, 9.3): list, buy, name, feed, pet, release, give away – and the
  * flight preview for choosing an owl (8.4 step 4).
  */
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
-import { energyAfterFeeding, startEnergy } from '@posteulen/shared/game/energy.ts';
+import {
+  energyAfterFeeding,
+  energyAfterSnack,
+  startEnergy,
+} from '@posteulen/shared/game/energy.ts';
+import type { Interaction } from '@posteulen/shared/game/motivation.ts';
 import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
 import {
   canBuyMore,
@@ -30,7 +35,7 @@ import {
   OwlRelease,
   OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
-import { leftHome, markCareDay } from './care.ts';
+import { interact, leftHome } from './care.ts';
 import { borrow, loanedOn, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
@@ -142,7 +147,12 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
-  app.post('/api/owls/:id/feed', { preHandler: [authenticated, emptyBody] }, async (request) => {
+  /**
+   * The four interactions (v0.5, 9.3): water (free, once a day), petting (free, unlimited),
+   * the owl biscuit (0.1 gold, once a day, +10 % energy) and the favourite snack (0.2 gold,
+   * once a day, +20 % energy). Each kind raises the motivation once a day.
+   */
+  const interaction = (kind: Interaction) => async (request: FastifyRequest) => {
     const id = owlIdParam(request.params);
     const me = userOf(request).id;
     const now = ctx.now();
@@ -151,35 +161,34 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       const owl = ownOwl(ctx, me, id);
       const species = speciesById(owl.species);
       if (!species || !canCare(facts(owl))) throw new HttpError(400, 'owl_not_home');
-      if (owl.fed_on === today) throw new HttpError(400, 'owl_fed_today');
-      debit(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
-      ctx.db.run(
-        'UPDATE owls SET energy = ?, energy_at = ?, fed_on = ? WHERE id = ?',
-        energyAfterFeeding(currentEnergy(ctx, owl, now), species),
-        now,
+      if (kind === 'feed' && owl.fed_on === today) throw new HttpError(400, 'owl_fed_today');
+      if (kind === 'water' && owl.watered_on === today)
+        throw new HttpError(400, 'owl_watered_today');
+      if (kind === 'snack' && owl.snacked_on === today)
+        throw new HttpError(400, 'owl_snacked_today');
+      if (kind === 'feed') debit(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
+      if (kind === 'snack') debit(ctx.db, me, 'snack', GOLD.SNACK_PRICE, now);
+      const energy =
+        kind === 'feed'
+          ? energyAfterFeeding(currentEnergy(ctx, owl, now), species)
+          : kind === 'snack'
+            ? energyAfterSnack(currentEnergy(ctx, owl, now), species)
+            : undefined;
+      interact(
+        ctx,
+        owl,
+        kind,
         today,
-        id,
+        energy === undefined ? undefined : { value: energy, at: now },
       );
-      markCareDay(ctx, id, today);
     });
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
-  });
-
-  /** Petting is free and unlimited, but counts for the care bonus once per day (9.3). */
-  app.post('/api/owls/:id/pet', { preHandler: [authenticated, emptyBody] }, async (request) => {
-    const id = owlIdParam(request.params);
-    const me = userOf(request).id;
-    const now = ctx.now();
-    const today = utcDay(now);
-    const owl = ownOwl(ctx, me, id);
-    if (!canCare(facts(owl))) throw new HttpError(400, 'owl_not_home');
-    ctx.db.transaction(() => {
-      ctx.db.run('UPDATE owls SET petted_on = ? WHERE id = ?', today, id);
-      markCareDay(ctx, id, today);
-    });
-    return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
-  });
+  };
+  app.post('/api/owls/:id/water', { preHandler: [authenticated, emptyBody] }, interaction('water'));
+  app.post('/api/owls/:id/pet', { preHandler: [authenticated, emptyBody] }, interaction('pet'));
+  app.post('/api/owls/:id/feed', { preHandler: [authenticated, emptyBody] }, interaction('feed'));
+  app.post('/api/owls/:id/snack', { preHandler: [authenticated, emptyBody] }, interaction('snack'));
 
   app.post('/api/owls/:id/release', { preHandler: authenticated }, async (request) => {
     const id = owlIdParam(request.params);

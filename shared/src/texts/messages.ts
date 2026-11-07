@@ -48,6 +48,22 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.5.0',
+    title: 'Ein Phönix auf der Fensterbank: Version 0.5',
+    paragraphs: [
+      'In der Eulerei ist einiges passiert – und eines Morgens saß da plötzlich ein Phönix. Das ist neu:',
+      '• Motivation: Jede Eule hat jetzt einen zweiten Balken. Er sinkt jede Nacht ein wenig und steigt, wenn du dich kümmerst. Eine motivierte Eule fliegt auf der nächsten Reise schneller und weiter und erholt sich unterwegs flotter; eine lustlose eben etwas langsamer.',
+      '• Mehr Pflege: Neben Streicheln und Eulenkeks kannst du deiner Eule einmal am Tag Wasser geben (kostenlos) und ihr Lieblingsleckerli (0,2 Gold) – der Waldkauz schwärmt für Haselnüsse, der Riesenfischuhu für Räucherfisch. Zwei verschiedene Arten von Pflege an einem Tag halten sie gesund.',
+      '• Klügere Nickerchen: Unterwegs schläft eine müde Eule nicht mehr stur zehn Stunden, sondern nur so lange, bis die Kraft fürs nächste Ziel reicht. Dabei erholt sie sich wie zu Hause.',
+      '• Der Phönix: unglaublich schnell, ausdauernd und mit 100 Gold kein Schnäppchen. Er hilft nicht in der Menagerie aus, legt keine Eier und lässt sich nicht leihen.',
+      '• Vier statt drei Leiheulen am Tag – und alle vier darfst du leihen.',
+      '• Die Menagerie nennt Tempo und Erholung jetzt in km/h und Prozent pro Stunde, die Beschreibungen der Eulen sind aufgefrischt.',
+      '• Kann jemand deinen Brief nicht entschlüsseln, siehst du das jetzt, statt „gelesen“.',
+      '• Der Hinweis „Bitte neu laden“ bleibt nach dem Neuladen nicht mehr hängen.',
+      'Viel Freude mit deinen motivierten Eulen!',
+    ],
+  },
+  {
     version: '0.4.0',
     title: 'Ein Turm voller Neuigkeiten: Version 0.4',
     paragraphs: [
@@ -134,6 +150,22 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.5.0',
+    title: 'A phoenix on the window sill: version 0.5',
+    paragraphs: [
+      'Quite a lot has happened in the owlery – and one morning a phoenix was suddenly sitting there. Here is what is new:',
+      '• Motivation: every owl now has a second bar. It drops a little every night and rises when you look after your owl. A motivated owl flies faster and further on its next trip and recovers more quickly on the way; a listless one is a bit slower.',
+      '• More care: besides petting and the owl biscuit, you can give your owl water once a day (free) and its favourite snack (0.2 gold) – the Tawny Owl adores hazelnuts, Blakiston’s Fish Owl smoked fish. Two different kinds of care on one day keep it healthy.',
+      '• Smarter naps: a tired owl on its way no longer sleeps a stubborn ten hours, but only until it has the strength for its next destination. It recovers just as at home.',
+      '• The phoenix: incredibly fast, with great stamina – and at 100 gold no bargain. It does not help out in the Menagerie, lays no eggs and cannot be borrowed.',
+      '• Four loan owls a day instead of three – and you may borrow all four.',
+      '• The Menagerie now gives speed and recovery in km/h and percent per hour, and the owls’ descriptions have been refreshed.',
+      '• If somebody cannot decrypt your letter, you now see that instead of “read”.',
+      '• The “please reload” note no longer sticks around after reloading.',
+      'Enjoy your motivated owls!',
+    ],
+  },
   {
     version: '0.4.0',
     title: 'A tower full of news: version 0.4',

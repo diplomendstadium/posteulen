@@ -11,6 +11,7 @@ export type TransactionType =
   | 'daily'
   | 'owl_purchase'
   | 'feed'
+  | 'snack'
   | 'large_parchment'
   | 'transfer_out'
   | 'transfer_in'

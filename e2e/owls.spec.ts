@@ -28,7 +28,7 @@ async function buyAndName(page: Page, species: string, name: string): Promise<vo
   await page.getByRole('button', { name: `${species} kaufen` }).click();
   await expect(page).toHaveURL(/\/app\/eulen$/);
   await expect(
-    page.getByRole('heading', { name: new RegExp(`neue ${species} heißen`) }),
+    page.getByRole('heading', { name: new RegExp(`Neuzugang heißen\\? \\(${species}\\)`) }),
   ).toBeVisible();
   await page.getByLabel('Name (2–20 Zeichen)').fill(name);
   await page.getByRole('button', { name: 'Speichern' }).click();
@@ -57,12 +57,25 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await page.keyboard.press('Escape');
     await expect(overlay).toBeHidden();
 
-    await card.getByRole('button', { name: 'Füttern (0,1 Gold)' }).click();
+    await card.getByRole('button', { name: 'Eulenkeks (0,1 Gold)' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'feeding');
     await overlay.getByRole('button', { name: 'Bild schließen' }).click();
     await expect(overlay).toBeHidden();
     await expect(card.getByRole('button', { name: 'Heute schon gefüttert' })).toBeDisabled();
     await expect(page.locator('.gold')).toContainText('3,9 Gold');
+
+    // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
+    await expect(card.getByTestId('owl-motivation')).toContainText('Motivation 1,2');
+    await expect(card).toContainText('Geschwindigkeit 27,5 km/h +20 %');
+    await card.getByRole('button', { name: 'Wasser geben' }).click();
+    await expect(overlay).toHaveAttribute('data-kind', 'drinking');
+    await page.keyboard.press('Escape');
+    await expect(card.getByRole('button', { name: 'Heute schon getrunken' })).toBeDisabled();
+    await card.getByRole('button', { name: 'Haselnüsse geben (0,2 Gold)' }).click();
+    await expect(overlay).toHaveAttribute('data-kind', 'snack');
+    await page.keyboard.press('Escape');
+    await expect(card.getByRole('button', { name: 'Heute schon genascht' })).toBeDisabled();
+    await expect(page.locator('.gold')).toContainText('3,7 Gold');
 
     await page.goto('/app/finanzen');
     await expect(page.getByRole('cell', { name: 'Eulenkauf' })).toBeVisible();

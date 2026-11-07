@@ -15,6 +15,17 @@ export interface FlightProfile {
   /** Bot owl of the Erklärbär: never tired (Anhang A). */
   readonly unlimitedEnergy?: boolean;
   /**
+   * v0.5: energy regained per hour of sleep on the way (adult), in the units of `maxEnergy`.
+   * Plans from before v0.5 have none: then the owl is full after 10 hours as before.
+   */
+  readonly recoveryPerHour?: number;
+  /**
+   * v0.5: motivation at departure (factor 0.8–1.2). Speed, maximum, start energy and recovery
+   * of this profile are already multiplied with it; energies of the plan are divided by it to
+   * get back to the owl's own energy. Missing = 1.
+   */
+  readonly motivation?: number;
+  /**
    * Only for automated local tests: all durations are divided by this factor (the owl flies
    * faster and sleeps shorter), the energy rules stay the same. Never set on servers.
    */
@@ -82,6 +93,11 @@ export interface Simulation {
   readonly end: { readonly at: number; readonly energy: number; readonly position: Point };
 }
 
+/** Before v0.5 an empty owl slept 10 hours and was full again (old plans without recovery). */
+const LEGACY_SLEEP_HOURS = 10;
+/** Precision of the sleep duration (v0.5): the owl sleeps at most this much longer than needed. */
+const SLEEP_PRECISION_MS = 5 * TIME.MINUTE;
+
 /** Closer than 1 m counts as arrived (avoids a sleep pause metres before the goal). */
 const EPS_KM = 1e-3;
 const EPS_ENERGY = 1e-9;
@@ -111,6 +127,10 @@ function roundEnergy(value: number): number {
  * Simulates the flight from `start` through all `stops` in order. Step width at most 2 km
  * and 5 minutes; day/night is evaluated in the middle of each step; when the energy runs out
  * inside a step, the step is shortened to exactly that point (9.4.3).
+ *
+ * v0.5: an empty owl sleeps on land only as long as it needs to reach the next stop (the
+ * shortest sleep after which it arrives there without sleeping again, 5 minutes precise),
+ * regaining `recoveryPerHour`; if even full energy is not enough, it sleeps until it is full.
  */
 export function simulate(
   profile: FlightProfile,
@@ -118,12 +138,27 @@ export function simulate(
   stops: readonly PlannedStop[],
   env: FlightEnvironment,
 ): Simulation {
+  const result = run(profile, start, stops, env, false);
+  if (!result) throw new Error('simulation stopped');
+  return result;
+}
+
+/** `probe`: only checks whether the owl reaches the stops without sleeping (null if not). */
+function run(
+  profile: FlightProfile,
+  start: FlightState,
+  stops: readonly PlannedStop[],
+  env: FlightEnvironment,
+  probe: boolean,
+): Simulation | null {
   const segments: Segment[] = [];
   const arrivals: Arrival[] = [];
   const scale = profile.timeScale ?? 1;
   const speed = profile.speedKmh * scale;
   const kmPerMs = speed / TIME.HOUR;
-  const SLEEP_MS = (FLIGHT.SLEEP_HOURS * TIME.HOUR) / scale;
+  const recoveryPerHour = profile.recoveryPerHour ?? profile.maxEnergy / LEGACY_SLEEP_HOURS;
+  const regenPerMs = (recoveryPerHour * scale) / TIME.HOUR;
+  const precisionMs = SLEEP_PRECISION_MS / scale;
   const CHICK_FLY_MS = (FLIGHT.CHICK_FLY_HOURS * TIME.HOUR) / scale;
   const CHICK_REST_MS = (FLIGHT.CHICK_REST_HOURS * TIME.HOUR) / scale;
   const adult = profile.mode === 'adult';
@@ -149,8 +184,34 @@ export function simulate(
     chickFlown = 0;
   };
 
+  /** Shortest sleep at `here` after which the owl reaches `stop` without another sleep. */
+  const sleepNeeded = (here: Point, stop: PlannedStop): number => {
+    const fullMs = Math.max(0, (profile.maxEnergy - energy) / regenPerMs);
+    const reaches = (ms: number): boolean =>
+      run(
+        profile,
+        {
+          at: t + ms,
+          position: here,
+          energy: Math.min(profile.maxEnergy, energy + regenPerMs * ms),
+        },
+        [stop],
+        env,
+        true,
+      ) !== null;
+    if (!reaches(fullMs)) return fullMs;
+    let lo = 0;
+    let hi = fullMs;
+    while (hi - lo > precisionMs) {
+      const mid = (lo + hi) / 2;
+      if (reaches(mid)) hi = mid;
+      else lo = mid;
+    }
+    return hi;
+  };
+
   if (start.pausedUntil !== undefined && start.pausedUntil > t) {
-    pause(start.pausedUntil, position, adult ? profile.maxEnergy : energy);
+    pause(start.pausedUntil, position, energy);
   }
 
   for (const stop of stops) {
@@ -184,8 +245,10 @@ export function simulate(
       if (adult && !unlimited && energy <= EPS_ENERGY) {
         energy = 0;
         if (env.isLand(here.lat, here.lon)) {
+          if (probe) return null;
           close();
-          pause(t + SLEEP_MS, here, profile.maxEnergy);
+          const sleepMs = sleepNeeded(here, stop);
+          pause(t + sleepMs, here, Math.min(profile.maxEnergy, energy + regenPerMs * sleepMs));
           continue;
         }
         // Over water the owl flies on without using energy until it is over land (9.4.2).
@@ -280,7 +343,10 @@ export interface PositionInfo {
   readonly phase: 'before' | 'fly' | 'sleep' | 'stop' | 'done';
 }
 
-/** Position and energy at time `at`, interpolated along the great circle (9.4.3). */
+/**
+ * Position and energy at time `at`, interpolated along the great circle (9.4.3); during a sleep
+ * the energy rises evenly (v0.5).
+ */
 export function positionAt(segments: readonly Segment[], at: number): PositionInfo | undefined {
   const first = segments[0];
   const last = segments[segments.length - 1];
@@ -309,7 +375,14 @@ export function positionAt(segments: readonly Segment[], at: number): PositionIn
       phase: 'fly',
     };
   }
-  if (segment.kind === 'sleep') return { position: segment.at, energy: segment.e0, phase: 'sleep' };
+  if (segment.kind === 'sleep') {
+    const fraction = segment.t1 > segment.t0 ? (at - segment.t0) / (segment.t1 - segment.t0) : 1;
+    return {
+      position: segment.at,
+      energy: segment.e0 + (segment.e1 - segment.e0) * fraction,
+      phase: 'sleep',
+    };
+  }
   return { position: segment.at, energy: segment.e0, phase: 'stop' };
 }
 
@@ -320,7 +393,10 @@ export function stateAt(segments: readonly Segment[], at: number): FlightState |
   const index = findSegment(segments, at);
   const segment = segments[index];
   let pausedUntil: number | undefined;
-  if (segment && segment.kind === 'sleep' && at < segment.t1) pausedUntil = segment.t1;
+  // A chick's rest continues (its energy does not change). An adult's sleep is cut: from its
+  // energy so far the re-plan decides anew how long it still has to sleep (v0.5).
+  if (segment && segment.kind === 'sleep' && at < segment.t1 && segment.e1 === segment.e0)
+    pausedUntil = segment.t1;
   // Chick: sum of flight time since the last rest (9.9).
   let chickFlownMs = 0;
   for (let i = index; i >= 0; i--) {
@@ -356,7 +432,11 @@ export function segmentsUntil(segments: readonly Segment[], at: number): Segment
         e1: roundEnergy(info.energy),
       });
     }
-    // A running sleep pause is continued by the re-plan (pausedUntil).
+    // v0.5: an adult's running sleep is cut at `at` (the re-plan decides anew how long it
+    // still sleeps); a chick's rest is continued by the re-plan (pausedUntil).
+    if (segment.kind === 'sleep' && segment.e1 !== segment.e0) {
+      kept.push({ ...segment, t1: Math.round(at), e1: roundEnergy(info.energy) });
+    }
     break;
   }
   return kept;

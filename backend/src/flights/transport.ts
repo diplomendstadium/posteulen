@@ -53,6 +53,7 @@ export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: num
       name: identity.name,
       species,
       energy: loanStartEnergy(identity, species),
+      motivation: identity.motivation,
       maxRecipients: LETTER.MAX_RECIPIENTS,
       returnsHome: false,
     };
@@ -70,6 +71,7 @@ export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: num
     name: owl.name ?? '',
     species: owl.species,
     energy: currentEnergy(ctx, owl, now),
+    motivation: owl.motivation,
     maxRecipients: maxRecipients({ state: owl.state, kind: owl.kind, isChick: false }),
     returnsHome: owl.kind === 'own',
   };
@@ -181,6 +183,7 @@ export function chooseChick(ctx: Context, userId: string, chickId: string, now: 
     name: chick.name ?? '',
     species: chick.species,
     energy: currentEnergy(ctx, chick, now),
+    motivation: chick.motivation,
     maxRecipients: 1,
     returnsHome: false,
   };

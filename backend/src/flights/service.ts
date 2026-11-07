@@ -3,7 +3,7 @@
  * (shared/game/flight.ts), stored as a segment list and executed through the event queue –
  * one event per stop. Re-planning happens only on a move (9.4.6) and when turning back (9.5).
  */
-import { FLIGHT, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { FLIGHT, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   owlSpeedKmh,
   positionAt,
@@ -81,16 +81,40 @@ export function homeOf(ctx: Context, userId: string): Point {
   return { lat: row.home_lat / 100, lon: row.home_lon / 100 };
 }
 
-export function profileFor(ctx: Context, speciesId: string, chick = false): FlightProfile {
+/**
+ * Flight profile of an owl (9.4, v0.5): the motivation at departure (tenths, 8–12) multiplies
+ * speed, maximum energy and recovery for the whole trip; the owl recovers 10 % × recovery
+ * factor × motivation of this maximum per hour of sleep. Chicks fly without motivation.
+ */
+export function profileFor(
+  ctx: Context,
+  speciesId: string,
+  chick = false,
+  motivation: number = MOTIVATION.START,
+): FlightProfile {
   const species = speciesById(speciesId);
   if (!species) throw new Error(`unknown species ${speciesId}`);
+  const factor = chick ? 1 : motivation / 10;
+  const maxEnergy = species.maxEnergy * factor;
   return {
     // Chicks: 10 km/h, 1 hour of flight and 1 hour of rest, independent of energy (9.9).
-    speedKmh: chick ? FLIGHT.CHICK_SPEED_KMH : owlSpeedKmh(species.speedFactor),
-    maxEnergy: species.maxEnergy,
+    speedKmh: chick ? FLIGHT.CHICK_SPEED_KMH : owlSpeedKmh(species.speedFactor) * factor,
+    maxEnergy,
     mode: chick ? 'chick' : 'adult',
+    recoveryPerHour: maxEnergy * OWL.REGEN_SHARE_PER_HOUR * species.recoveryFactor * factor,
+    motivation: factor,
     ...(ctx.flightTimeScale !== 1 ? { timeScale: ctx.flightTimeScale } : {}),
   };
+}
+
+/** Energy of the plan (motivated units) back to the owl's own energy, capped at its maximum. */
+export function ownEnergy(
+  flight: Pick<FlightRow, 'profile' | 'owl_species'>,
+  energy: number,
+): number {
+  const factor = (JSON.parse(flight.profile) as FlightProfile).motivation ?? 1;
+  const max = speciesById(flight.owl_species)?.maxEnergy ?? Infinity;
+  return Math.max(0, Math.min(max, energy / factor));
 }
 
 function isChickFlight(flight: FlightRow): boolean {
@@ -103,6 +127,8 @@ export interface FlightOwl {
   readonly name: string;
   readonly species: string;
   readonly energy: number;
+  /** v0.5: motivation in tenths (8–12) at departure. */
+  readonly motivation: number;
 }
 
 export interface PlanRequest {
@@ -124,7 +150,12 @@ export interface PlannedFlight {
 
 /** Plans a flight without storing anything (preview, SPEC 8.4 step 4 and 9.4.3). */
 export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
-  const profile = profileFor(ctx, request.owl.species, request.chick === true);
+  const profile = profileFor(
+    ctx,
+    request.owl.species,
+    request.chick === true,
+    request.owl.motivation,
+  );
   const home = homeOf(ctx, request.holderId);
   const route: RouteStop[] = request.recipients.map((userId) => ({
     userId,
@@ -146,7 +177,8 @@ export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
   }
   const simulation = simulate(
     profile,
-    { at: request.now, position: home, energy: request.owl.energy },
+    // The owl's energy in the units of the motivated profile (v0.5).
+    { at: request.now, position: home, energy: request.owl.energy * (profile.motivation ?? 1) },
     route.map((stop, index) => ({ index, point: { lat: stop.lat, lon: stop.lon } })),
     flightEnvironment(ctx),
   );
@@ -224,9 +256,10 @@ export function planOf(flight: FlightRow): Segment[] {
   return JSON.parse(flight.plan) as Segment[];
 }
 
-/** Current position and energy of a flying owl. */
+/** Current position and energy of a flying owl (energy as its own, without motivation). */
 export function flightPosition(flight: FlightRow, now: number): ReturnType<typeof positionAt> {
-  return positionAt(planOf(flight), now);
+  const info = positionAt(planOf(flight), now);
+  return info ? { ...info, energy: ownEnergy(flight, info.energy) } : info;
 }
 
 function saveRoute(
@@ -300,7 +333,7 @@ function arriveHome(
   if (flight.owl_id) {
     ctx.db.run(
       "UPDATE owls SET state = 'home', energy = ?, energy_at = ?, owner_id = ? WHERE id = ?",
-      stop.energy,
+      ownEnergy(flight, stop.energy),
       at,
       flight.holder_id,
       flight.owl_id,
@@ -414,7 +447,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
     ctx.db.run(
       "UPDATE owls SET owner_id = ?, state = 'home', energy = ?, energy_at = ?, owned_since = ? WHERE id = ?",
       recipient,
-      stop.energy,
+      ownEnergy(flight, stop.energy),
       at,
       utcDay(at),
       flight.owl_id,

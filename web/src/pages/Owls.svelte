@@ -1,6 +1,19 @@
 <script lang="ts">
-  /** Own owls (SPEC 8.5): picture, name, species, sex, energy, state and actions. */
-  import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
+  /**
+   * Own owls (SPEC 8.5): picture, name, species, sex, energy, state and actions. v0.5: energy
+   * and motivation bars, speed and recovery of the species, water and favourite snack.
+   */
+  import { t, fill, speciesName, goldText, decimal, i18n } from '../lib/i18n.svelte.ts';
+  import { OWL } from '@posteulen/shared/constants.ts';
+  import { speciesById } from '@posteulen/shared/game/owls.ts';
+  import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
+  import {
+    motivationFactor,
+    motivationPercent,
+    motivationShare,
+  } from '@posteulen/shared/game/motivation.ts';
+  import { speciesSnack } from '@posteulen/shared/texts/species.ts';
+  import GaugeBar from '../components/GaugeBar.svelte';
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
   import { TIME } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
@@ -15,7 +28,9 @@
     listOwls,
     nameOwl,
     petOwl,
+    snackOwl,
     treatOwl,
+    waterOwl,
     type Clutch,
     type Owl,
   } from '../lib/owls.ts';
@@ -77,6 +92,40 @@
       replace((await petOwl(owl.id)).owl);
       showOwlImage(owl.species, 'petting', fill(t.owls.petting, { name: owl.name ?? '' }));
     });
+
+  const water = (owl: Owl) =>
+    act(async () => {
+      replace((await waterOwl(owl.id)).owl);
+      showOwlImage(owl.species, 'drinking', fill(t.owls.drinking, { name: owl.name ?? '' }));
+    });
+
+  const snack = (owl: Owl) =>
+    act(async () => {
+      replace((await snackOwl(owl.id)).owl);
+      showOwlImage(
+        owl.species,
+        'snack',
+        fill(t.owls.snacking, { name: owl.name ?? '', snack: snackOf(owl) }),
+      );
+      void refreshTopics('profile');
+    });
+
+  const snackOf = (owl: Owl): string => speciesSnack(owl.species, i18n.lang);
+
+  /** Speed (km/h) and recovery (% per hour) of the species, as on the Menagerie (v0.5). */
+  function speedOf(owl: Owl): string {
+    return decimal(owlSpeedKmh(speciesById(owl.species)?.speedFactor ?? 1), 1);
+  }
+  function recoveryOf(owl: Owl): string {
+    const factor = speciesById(owl.species)?.recoveryFactor ?? 1;
+    return decimal(OWL.REGEN_SHARE_PER_HOUR * 100 * factor, 1);
+  }
+  /** "+10 %" or "−20 %" behind the values while the motivation is not 1.0. */
+  function effectOf(owl: Owl): string {
+    const percent = motivationPercent(owl.motivation);
+    // Begins with a no-break space: it stands right behind the value.
+    return `\u00a0${percent > 0 ? '+' : '−'}${Math.abs(percent)}\u00a0%`;
+  }
 
   const feed = (owl: Owl) =>
     act(async () => {
@@ -216,6 +265,10 @@
   />
 {/each}
 
+{#if loaded && owls.length > 0}
+  <p class="hint plate motivation-hint">{t.owls.motivationHint}</p>
+{/if}
+
 {#if loaded && owls.length === 0}
   <p class="notice">
     <span aria-hidden="true">ℹ</span><span>{t.owls.none}</span>
@@ -240,7 +293,35 @@
       </p>
       <p class="energy">
         <span>{fill(t.owls.energy, { energy: owl.energy, max: owl.maxEnergy })}</span>
-        <meter min="0" max={owl.maxEnergy} value={owl.energy} aria-hidden="true"></meter>
+        <GaugeBar share={owl.maxEnergy > 0 ? owl.energy / owl.maxEnergy : 0} />
+      </p>
+      <p class="energy" data-testid="owl-motivation">
+        <span
+          >{fill(t.owls.motivation, {
+            value: decimal(motivationFactor(owl.motivation), 1),
+          })}</span
+        >
+        <GaugeBar share={motivationShare(owl.motivation)} />
+      </p>
+      <p class="values">
+        <span
+          >{fill(t.owls.speed, {
+            speed: speedOf(owl),
+          })}{#if motivationPercent(owl.motivation) !== 0}<span
+              class="effect"
+              class:up={motivationPercent(owl.motivation) > 0}
+              class:down={motivationPercent(owl.motivation) < 0}>{effectOf(owl)}</span
+            >{/if}</span
+        >
+        <span
+          >{fill(t.owls.recovery, {
+            recovery: recoveryOf(owl),
+          })}{#if motivationPercent(owl.motivation) !== 0}<span
+              class="effect"
+              class:up={motivationPercent(owl.motivation) > 0}
+              class:down={motivationPercent(owl.motivation) < 0}>{effectOf(owl)}</span
+            >{/if}</span
+        >
       </p>
       <p class="state" class:away={owl.state !== 'home'}>
         <span aria-hidden="true"
@@ -253,6 +334,13 @@
           <button
             class="button secondary"
             type="button"
+            disabled={busy || owl.wateredToday || !status.online}
+            onclick={() => void water(owl)}
+            >{owl.wateredToday ? t.owls.wateredToday : t.owls.water}</button
+          >
+          <button
+            class="button secondary"
+            type="button"
             disabled={busy || !status.online}
             onclick={() => void pet(owl)}>{t.owls.pet}</button
           >
@@ -261,6 +349,15 @@
             type="button"
             disabled={busy || owl.fedToday || !status.online}
             onclick={() => void feed(owl)}>{owl.fedToday ? t.owls.fedToday : t.owls.feed}</button
+          >
+          <button
+            class="button secondary"
+            type="button"
+            disabled={busy || owl.snackedToday || !status.online}
+            onclick={() => void snack(owl)}
+            >{owl.snackedToday
+              ? t.owls.snackedToday
+              : fill(t.owls.snack, { snack: snackOf(owl) })}</button
           >
         {/if}
         {#if owl.actions.treat}
@@ -426,10 +523,28 @@
     margin: 0.5rem 0;
   }
 
-  meter {
-    width: 100%;
-    max-width: 16rem;
-    height: 1rem;
+  .values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  /* +10 % in green, −20 % in red; the sign makes it readable in greyscale too (14). */
+  .effect {
+    font-weight: 700;
+  }
+
+  .effect.up {
+    color: #1d6b2a;
+  }
+
+  .effect.down {
+    color: #a3221b;
+  }
+
+  .motivation-hint {
+    margin: 0 0 1rem;
   }
 
   .state.away {

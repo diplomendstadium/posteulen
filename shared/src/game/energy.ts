@@ -41,6 +41,14 @@ export function energyAfterFeeding(current: number, species: Species): number {
   );
 }
 
+/** Energy after the favourite snack (v0.5): +20 % of the maximum × recovery factor, capped. */
+export function energyAfterSnack(current: number, species: Species): number {
+  return Math.min(
+    species.maxEnergy,
+    current + species.maxEnergy * OWL.SNACK_SHARE * species.recoveryFactor,
+  );
+}
+
 /** Random start energy 60–100 % of the maximum (9.2.3); `random` in [0, 1). */
 export function startEnergy(species: Species, random: number): number {
   const share =
