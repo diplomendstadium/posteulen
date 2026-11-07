@@ -5,6 +5,8 @@
  * UnifiedPush are explained only here (and in the README), not in onboarding or bot letters.
  * The same text is the knowledge base of the Erklärbär (SPEC 10.2, D-88) – `helpAsText()`
  * turns it into plain text for his system prompt. All numbers come from the constants.
+ * v0.4: the English help lives in help-en.ts with the same section ids; `helpOf()` picks
+ * by language.
  */
 import {
   ACCOUNT,
@@ -20,6 +22,7 @@ import {
 import { formatGold } from '../game/gold.ts';
 import { SPECIES } from '../species.ts';
 import { de } from './de.ts';
+import { HELP_EN } from './help-en.ts';
 
 /** A paragraph (string) or a bullet list (array of strings). */
 export type HelpBlock = string | readonly string[];
@@ -101,6 +104,17 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Oben in der braunen Leiste siehst du deinen Goldstand. Ist neue Post da, hüpft dort „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
       'Was du schon gelesen hast, gilt sofort als gelesen – die Zähler in der Übersicht und in der Leiste gehen ohne Neuladen zurück.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
+      'Oben rechts sitzt auf jeder Seite ein kleines Fähnchen. Ein Tipp auf die britische Flagge stellt PostEulen auf Englisch um, die deutsche Flagge stellt wieder zurück (siehe Sprache).',
+    ],
+  },
+  {
+    id: 'sprache',
+    title: 'Sprache: Deutsch oder Englisch',
+    blocks: [
+      'PostEulen gibt es auf Deutsch und auf Englisch. Deutsch ist immer der Standard. Mit dem Fähnchen oben rechts schaltest du jederzeit um: die britische Flagge für Englisch, die deutsche für Deutsch.',
+      'Bist du nicht angemeldet, merkt sich dein Gerät deine Wahl. Erstellst du ein Konto in der englischen Ansicht, gilt Englisch auch für dein Konto. Nach jeder Anmeldung zeigt PostEulen dann die Sprache deines Kontos, auf jedem Gerät.',
+      'Angemeldet speichert das Fähnchen die Sprache gleich im Konto. Du findest sie auch in den Einstellungen unter „Sprache“.',
+      'Die Sprache gilt für alles, was PostEulen selbst schreibt: Menüs, Hilfe, Systemnachrichten, Benachrichtigungen und die Briefe von Erklärbär, Tante und Onkel. Leiheulen und Küken bekommen dann englische Namen. Briefe von Menschen bleiben natürlich, wie sie geschrieben wurden, und Bot-Briefe, die schon angekommen sind, ebenfalls.',
     ],
   },
   {
@@ -141,7 +155,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       ],
       `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}), Eule wählen und absenden. Bei mehreren Empfängern sortiert PostEulen sie so, dass die Eule den kürzesten Weg fliegt – von dir zu allen und wieder nach Hause. Mit den Pfeilen kannst du die Reihenfolge trotzdem ändern. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
       `Keine Eule zu Hause? Dann bietet dir die Eulenwahl direkt die Leiheulen des Tages an. Geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
-      'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Leiheulen tragen nur einen Brief an einen Empfänger; Bots sind nie bei mehreren Empfängern dabei.',
+      'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Das geht mit eigenen Eulen und mit Leiheulen; eine Leiheule verschwindet nach dem letzten Empfänger. Bots sind nie bei mehreren Empfängern dabei.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst.',
       [
         '„Eule unterwegs – Ankunft ca. …“: der Brief ist auf dem Weg.',
@@ -151,6 +165,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       ],
       'Kommt eine Eule bei dir an, siehst du beim ersten Anzeigen ihr Ankunftsbild. Es schließt sich nach ein paar Sekunden von selbst, per Tippen oder mit der Escape-Taste.',
       'Im Chat erscheinen Briefe als Pergamentbögen mit ausgefranstem Rand: Briefe an dich auf hellem Pergament, in deutscher Schulschrift und blauschwarzer Tinte, deine eigenen auf dunklerem Pergament, in geschwungener Federschrift und Sepia. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
+      'Öffnest du einen Chat, springt er gleich nach unten zum neuesten Brief. Ältere Briefe findest du darüber.',
       'Chat löschen entfernt deine Kopien aller Briefe dieses Chats endgültig. Dein Gegenüber behält seine.',
     ],
   },
@@ -217,14 +232,14 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Hinter jeder deiner Eulen zieht sich eine dünne dunkelbraune Linie: der Weg, den sie schon geflogen ist. Wo sie übernachtet hat, steht ein kleines „Zzz“. Den Weg, der noch vor ihr liegt, zeigt die Karte nicht – Eulen lassen sich nicht gern in die Karten schauen.',
       'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch alle deine Orte und Eulen zu sehen sind. Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       `Die dunkle Fläche ist die Nacht. Positionen, Flugspuren und Nachtgrenze rechnet dein Gerät alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu aus, ohne den Server zu fragen.`,
-      'Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus).',
+      'Die Karte ist immer quadratisch und so groß, dass sie ganz ins Fenster passt. Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus) – über den Kartenrand hinaus geht es nicht.',
     ],
   },
   {
     id: 'gold',
     title: 'Gold und Finanzen',
     blocks: [
-      `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto ${gold(GOLD.DAILY)}. Die Tante schenkt dir nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen ${gold(GOLD.AUNT_GIFT)}, der Onkel nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ${gold(GOLD.UNCLE_INHERITANCE)}.`,
+      `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Die Tante schenkt dir nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen ${gold(GOLD.AUNT_GIFT)}, der Onkel nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ${gold(GOLD.UNCLE_INHERITANCE)}.`,
       `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Füttern ${gold(GOLD.FEED_PRICE)}, großes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
       `Die Finanzübersicht zeigt deinen Goldstand und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
       `Gold verschicken: ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} per Eule an einen Kontakt, gern mit kurzem Begleitbrief. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
@@ -237,7 +252,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Oben stehen die Leiheulen des Tages, darunter alle Eulen zum Kaufen – nach Preis sortiert, die günstigste zuerst. Zu jeder Kaufeule erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist.',
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen. Ihr Geschlecht ist zufällig, ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
       `Leihen: Jeden Tag um Mitternacht (UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Sobald um Mitternacht neue Eulen angeboten werden, kannst du sie alle leihen. Du kannst hier leihen oder direkt beim Briefschreiben, wenn keine eigene Eule da ist.`,
-      `Eine Leiheule trägt genau einen Brief oder Gold an einen Empfänger und ist danach weg. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich füttern und streicheln, aber nicht umbenennen oder verschenken.`,
+      `Eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen Empfänger und ist nach dem letzten weg – zurück fliegt sie nicht. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Sie lässt sich füttern und streicheln, aber nicht umbenennen oder verschenken.`,
       `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (Waldkauz, 6 Gold) reicht es nach ein paar Tagen – oder sobald das Geschenk der Tante da ist.`,
     ],
   },
@@ -363,7 +378,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'Was kostet PostEulen?',
-    answer: `Nichts. PostEulen ist kostenlos, ohne Werbung und ohne Bezahlschranke – und das bleibt so. Server und Entwicklung kosten trotzdem Geld. Deshalb bitten wir alle fünf Wochen freundlich um eine freiwillige Spende über ${DONATION.URL.replace('https://', '')}. Niemand muss etwas geben.`,
+    answer: `Nichts. PostEulen ist kostenlos, ohne Werbung und ohne Bezahlschranke – und das bleibt so. Server und Entwicklung kosten trotzdem Geld. Deshalb bitten wir alle fünf Wochen freundlich um eine freiwillige Spende über ${DONATION.URL.replace('https://', '')}; den Link findest du auch unten auf der Startseite unter „Spenden“. Niemand muss etwas geben.`,
   },
   {
     question: 'Ich habe mein Passwort vergessen. Was nun?',
@@ -396,7 +411,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'Mir ist das Gold ausgegangen.',
-    answer: `Jeden Tag gibt es ${gold(GOLD.DAILY)}, solange du aktiv bist. Kleine Briefe sind kostenlos; nur Eulen, Leihen, Füttern, großes Pergament und Behandlungen kosten Gold.`,
+    answer: `Jeden Tag gibt es Gold, solange du aktiv bist: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen ${gold(GOLD.DAILY)}, danach ${gold(GOLD.DAILY_LATER)}. Kleine Briefe sind kostenlos; nur Eulen, Leihen, Füttern, großes Pergament und Behandlungen kosten Gold.`,
   },
   {
     question: 'Kann der Betreiber meine Briefe lesen?',
@@ -419,15 +434,38 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
 ];
 
+export interface Help {
+  readonly intro: string;
+  readonly sections: readonly HelpSection[];
+  readonly faq: readonly HelpQuestion[];
+  /** Words for the plain-text form: heading of the FAQ, "question", "answer". */
+  readonly words: { readonly faq: string; readonly question: string; readonly answer: string };
+}
+
+const HELP_DE: Help = {
+  intro: HELP_INTRO,
+  sections: HELP_SECTIONS,
+  faq: HELP_FAQ,
+  words: { faq: 'Häufige Fragen', question: 'Frage', answer: 'Antwort' },
+};
+
+/** The help in a language (v0.4). */
+export function helpOf(language: 'de' | 'en'): Help {
+  return language === 'en' ? HELP_EN : HELP_DE;
+}
+
 function blockText(block: HelpBlock): string {
   return typeof block === 'string' ? block : block.map((item) => `- ${item}`).join('\n');
 }
 
 /** The help text as plain text, e.g. as the Erklärbär's knowledge base. */
-export function helpAsText(): string {
-  const sections = HELP_SECTIONS.map(
+export function helpAsText(language: 'de' | 'en' = 'de'): string {
+  const help = helpOf(language);
+  const sections = help.sections.map(
     (section) => `${section.title}\n${section.blocks.map(blockText).join('\n')}`,
   );
-  const faq = HELP_FAQ.map((item) => `Frage: ${item.question}\nAntwort: ${item.answer}`);
-  return [HELP_INTRO, ...sections, `Häufige Fragen\n${faq.join('\n')}`].join('\n\n');
+  const faq = help.faq.map(
+    (item) => `${help.words.question}: ${item.question}\n${help.words.answer}: ${item.answer}`,
+  );
+  return [help.intro, ...sections, `${help.words.faq}\n${faq.join('\n')}`].join('\n\n');
 }

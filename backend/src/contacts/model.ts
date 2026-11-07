@@ -4,7 +4,8 @@ import type { Context } from '../context.ts';
 import type { Database } from '../db/database.ts';
 import { utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
-import { BOT_TITLES } from '@posteulen/shared/texts/bots.ts';
+import { botLetters } from '@posteulen/shared/texts/bots.ts';
+import { isLanguage } from '@posteulen/shared/i18n.ts';
 import { fill } from '@posteulen/shared/texts/de.ts';
 import { turnBackBetween } from '../flights/service.ts';
 
@@ -41,11 +42,19 @@ export function displayName(db: Database, userId: string): string | null {
     userId,
   );
   if (user) return user.name_display;
-  const bot = db.get<{ type: 'explainer' | 'aunt' | 'uncle'; first_name: string | null }>(
-    'SELECT type, first_name FROM bots WHERE id = ?',
+  // A bot is named in the language of its owner (v0.4).
+  const bot = db.get<{
+    type: 'explainer' | 'aunt' | 'uncle';
+    first_name: string | null;
+    language: string | null;
+  }>(
+    `SELECT bots.type, bots.first_name, users.language FROM bots
+       LEFT JOIN users ON users.id = bots.owner_id WHERE bots.id = ?`,
     userId,
   );
-  return bot ? fill(BOT_TITLES[bot.type], { name: bot.first_name ?? '' }) : null;
+  if (!bot) return null;
+  const titles = botLetters(isLanguage(bot.language) ? bot.language : 'de').titles;
+  return fill(titles[bot.type], { name: bot.first_name ?? '' });
 }
 
 /**

@@ -3,6 +3,37 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.4.0 – PostEulen spricht Englisch
+
+- **Englische Ansicht:** Oben rechts auf jeder Seite ein kleines britisches Fähnchen; ein Tipp stellt
+  die ganze App auf Englisch um, das deutsche Fähnchen wieder zurück. Deutsch bleibt Standard. Vor
+  der Anmeldung merkt sich das Gerät die Wahl; ein Konto, das in der englischen Ansicht erstellt
+  wird, ist englisch, und nach der Anmeldung gilt immer die Sprache des Kontos. Neue Einstellung
+  „Sprache“. Übersetzt sind Oberfläche, Hilfe, Datenschutz, Impressum, Systemnachrichten,
+  Benachrichtigungen, Karte (Länder und Städte), Eulenarten und ihre Beschreibungen; Erklärbär
+  („Explainer Bear“), Tante und Onkel schreiben und antworten in der Kontosprache, Leiheulen und
+  Küken bekommen englische Namen.
+- **Mehr Gold:** In den ersten 30 Tagen nach der Kontoerstellung gibt es täglich 3,0 Gold, danach
+  2,0 Gold (bisher 1,0).
+- **Leiheulen** fliegen jetzt auch zu bis zu 5 Empfängern nacheinander (Leihpreis weiter 0,1 Gold).
+- **Chats** öffnen sich beim neuesten Brief statt beim ältesten.
+- **Übersicht am Desktop:** Gruppenbild und Kacheln gleich hoch, je halbe Breite.
+- **Karte** immer quadratisch, passt ins Fenster, kein Blick mehr über den Kartenrand.
+- Link „Spenden“ (ko-fi.com/posteulen) unten auf der Startseite.
+- README auch auf Englisch (`README.en.md`); SPEC auf Stand v0.4 (Abschnitt 8.12, Anhang I).
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration 0010** (läuft beim Update automatisch): neue Spalte `users.language`
+  (Standard Deutsch). Bestehende Konten bleiben deutsch, bis ihre Nutzer umstellen.
+- Das tägliche Gold ändert sich ab dem ersten Lauf nach dem Update (15:00 UTC): Konten, die jünger
+  als 30 Tage sind, bekommen 3,0, alle anderen 2,0 Gold.
+- Benachrichtigungen enthalten jetzt zusätzlich die Sprache des Kontos (`lang`), weiterhin ohne
+  Namen oder Inhalte.
+- Wer eigene Rechtstexte pflegt: Die englischen Fassungen liegen in `shared/src/texts/legal-en.ts`.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.4.
+- Update: `sudo posteulen-update`.
+
 ## v0.3.2 – Pergament und kurze Wege
 
 - **Leihen pro Tag:** Jede angebotene Leiheule kann einmal am Tag geliehen werden – sobald um

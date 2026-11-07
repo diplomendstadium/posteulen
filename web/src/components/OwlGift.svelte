@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Give an owl to a contact, optionally with a cover letter (SPEC 9.2.7). */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import CoverInput from './CoverInput.svelte';
   import ErrorText from './ErrorText.svelte';
   import { giftOwl, type Owl } from '../lib/owls.ts';
@@ -20,7 +20,7 @@
   let done = $state<string | null>(null);
   const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
   const nameOf = (id: string): string =>
-    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
+    live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
 
   async function send(): Promise<void> {
     if (!recipient || busy) return;
@@ -28,16 +28,16 @@
     error = null;
     try {
       const result = await giftOwl(owl.id, recipient, cover);
-      showOwlImage(owl.species, 'departure', fill(de.owls.departs, { name: owl.name ?? '' }));
-      done = `${fill(de.owls.giftSent, { name: owl.name ?? '', recipient: nameOf(recipient) })} ${fill(
-        de.owls.giftArrival,
+      showOwlImage(owl.species, 'departure', fill(t.owls.departs, { name: owl.name ?? '' }));
+      done = `${fill(t.owls.giftSent, { name: owl.name ?? '', recipient: nameOf(recipient) })} ${fill(
+        t.owls.giftArrival,
         { name: nameOf(recipient), time: time(result.arrivesAt) },
       )}`;
       setTimeout(ondone, 1500);
     } catch (caught) {
       error =
         caught instanceof KeyMismatchError
-          ? fill(de.contacts.keyWarningLong, { name: nameOf(caught.message) })
+          ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
           : errorMessage(caught);
     } finally {
       busy = false;
@@ -52,11 +52,11 @@
     void send();
   }}
 >
-  <h3 class="name">{fill(de.owls.giftTitle, { name: owl.name ?? '' })}</h3>
-  <p>{de.owls.giftIntro}</p>
-  <label for={`gift-to-${owl.id}`}>{de.owls.giftTo}</label>
+  <h3 class="name">{fill(t.owls.giftTitle, { name: owl.name ?? '' })}</h3>
+  <p>{t.owls.giftIntro}</p>
+  <label for={`gift-to-${owl.id}`}>{t.owls.giftTo}</label>
   <select id={`gift-to-${owl.id}`} bind:value={recipient} required>
-    <option value="">{de.letters.choose}</option>
+    <option value="">{t.letters.choose}</option>
     {#each contacts as contact (contact.userId)}<option value={contact.userId}
         >{contact.name}</option
       >{/each}
@@ -69,7 +69,7 @@
   <button
     class="button"
     type="submit"
-    disabled={busy || !recipient || !status.online || done !== null}>{de.owls.giftSend}</button
+    disabled={busy || !recipient || !status.online || done !== null}>{t.owls.giftSend}</button
   >
 </form>
 

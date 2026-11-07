@@ -4,7 +4,7 @@ import { formatGold } from '../src/game/gold.ts';
 import { SPECIES } from '../src/species.ts';
 import { sanitizeLetterText } from '../src/text-rules.ts';
 import { de } from '../src/texts/de.ts';
-import { EXPLAINER_LETTERS } from '../src/texts/bots.ts';
+import { botLetters, EXPLAINER_LETTERS } from '../src/texts/bots.ts';
 import {
   HELP_FAQ,
   HELP_INTRO,
@@ -122,6 +122,14 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
     expect(onboarding).not.toMatch(/UnifiedPush|IronFox|Fennec|GrapheneOS|Google-Dienste/);
     for (const letter of Object.values(EXPLAINER_LETTERS))
       expect([...letter].length).toBeLessThanOrEqual(LETTER.SMALL_MAX_CHARS);
+    // v0.4: the English letters fit on small parchment as well.
+    const english = botLetters('en');
+    for (const letter of [
+      ...Object.values(english.explainer),
+      ...Object.values(english.aunt),
+      ...Object.values(english.uncle),
+    ])
+      expect([...letter].length).toBeLessThanOrEqual(LETTER.SMALL_MAX_CHARS);
   });
 
   it('die Datenschutzerklärung ist vollständig, ohne Entwurfshinweis und Platzhalter (v0.2)', () => {
@@ -176,5 +184,69 @@ describe('Hilfe zu Version 0.2', () => {
     expect(text).toContain('Leiheulen des Tages');
     expect(text).toContain('harte, seriöse Kryptografie');
     expect(text).not.toMatch(/Papeterie/i);
+  });
+});
+
+describe('English view (v0.4)', () => {
+  it('has the same help sections, questions and legal sections as the German one', async () => {
+    const { helpOf, helpAsText } = await import('../src/texts/help.ts');
+    const { legalOf } = await import('../src/texts/legal.ts');
+    const german = helpOf('de');
+    const english = helpOf('en');
+    expect(english.sections.map((section) => section.id)).toEqual(
+      german.sections.map((section) => section.id),
+    );
+    expect(english.faq.length).toBeGreaterThanOrEqual(german.faq.length);
+    for (const part of ['privacy', 'imprint'] as const)
+      expect(legalOf('en')[part].map((section) => section.id)).toEqual(
+        legalOf('de')[part].map((section) => section.id),
+      );
+    const text = helpAsText('en');
+    expect(text).toContain('Explainer Bear');
+    expect(text).toContain(`${formatGold(GOLD.DAILY, '.')} gold`);
+    expect(text).not.toMatch(/[äöü]/);
+  });
+
+  it('translates species, descriptions, donation requests and update notes', async () => {
+    const { SPECIES_DESCRIPTIONS, SPECIES_DESCRIPTIONS_EN } =
+      await import('../src/texts/species.ts');
+    const messages = await import('../src/texts/messages.ts');
+    expect(Object.keys(SPECIES_DESCRIPTIONS_EN).sort()).toEqual(
+      Object.keys(SPECIES_DESCRIPTIONS).sort(),
+    );
+    expect(new Set(SPECIES.map((species) => species.nameEn)).size).toBe(SPECIES.length);
+    expect(messages.DONATION_TEXTS_EN).toHaveLength(messages.DONATION_TEXTS.length);
+    expect(messages.UPDATE_NOTES_EN.map((note) => note.version)).toEqual(
+      messages.UPDATE_NOTES.map((note) => note.version),
+    );
+    expect(messages.updateNote('0.4.0', 'en')?.title).toMatch(/version 0\.4/);
+    expect(messages.donationText(2, 'en')?.paragraphs.join(' ')).toContain('{link}');
+  });
+});
+
+describe('language helpers (v0.4)', () => {
+  it('picks texts, locale and gold format by language', async () => {
+    const { isLanguage, localeOf } = await import('../src/i18n.ts');
+    const { en, textsOf } = await import('../src/texts/en.ts');
+    expect(isLanguage('en')).toBe(true);
+    expect(isLanguage('fr')).toBe(false);
+    expect(localeOf('en')).toBe('en-GB');
+    expect(localeOf('de')).toBe('de-DE');
+    expect(textsOf('en')).toBe(en);
+    expect(textsOf('de')).toBe(de);
+    expect(en.units.gold(25)).toBe('2.5 gold');
+    expect(de.units.gold(25)).toBe('2,5 Gold');
+    expect(Object.keys(en).sort()).toEqual(Object.keys(de).sort());
+  });
+
+  it('names and describes species in both languages', async () => {
+    const { speciesName } = await import('../src/species.ts');
+    const { speciesDescription } = await import('../src/texts/species.ts');
+    expect(speciesName('waldkauz')).toBe('Waldkauz');
+    expect(speciesName('waldkauz', 'en')).toBe('Tawny Owl');
+    expect(speciesName('unbekannt', 'en')).toBe('unbekannt');
+    expect(speciesDescription('waldkauz')).toContain('Waldkauz');
+    expect(speciesDescription('waldkauz', 'en')).toContain('Tawny Owl');
+    expect(speciesDescription('unbekannt', 'en')).toBeUndefined();
   });
 });

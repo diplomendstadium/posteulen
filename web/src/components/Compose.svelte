@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Writing a letter (SPEC 8.4): parchment, text with counter, recipients, preview, send. */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill, locale } from '../lib/i18n.svelte.ts';
   import { countCodePoints } from '@posteulen/shared/names.ts';
   import { LETTER } from '@posteulen/shared/constants.ts';
   import { maxChars, sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
@@ -38,7 +38,7 @@
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ??
     live.bots.find((b) => b.userId === id)?.name ??
-    de.letters.unknown;
+    t.letters.unknown;
   const candidates = $derived(
     live.contacts.filter((c) => c.active && !c.keyWarning && !recipients.includes(c.userId)),
   );
@@ -98,8 +98,8 @@
 
   async function showPreview(): Promise<void> {
     error = null;
-    if (text.trim() === '') return void (error = de.letters.empty);
-    if (count > max) return void (error = de.letters.tooLong);
+    if (text.trim() === '') return void (error = t.letters.empty);
+    if (count > max) return void (error = t.letters.tooLong);
     busy = true;
     try {
       prepared = await previewFlights(recipients);
@@ -123,7 +123,7 @@
       showOwlImage(
         result.owl.species,
         'departure',
-        fill(de.owls.departs, { name: result.owl.name }),
+        fill(t.owls.departs, { name: result.owl.name }),
       );
       void refreshTopics('profile');
       text = '';
@@ -134,7 +134,7 @@
     } catch (caught) {
       error =
         caught instanceof KeyMismatchError
-          ? fill(de.contacts.keyWarningLong, { name: nameOf(caught.message) })
+          ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
           : errorMessage(caught);
       prepared = null;
     } finally {
@@ -144,9 +144,9 @@
 </script>
 
 <section class="card compose" aria-labelledby="compose-title">
-  <h2 id="compose-title">{de.letters.compose}</h2>
+  <h2 id="compose-title">{t.letters.compose}</h2>
   <fieldset>
-    <legend>{de.letters.parchment}</legend>
+    <legend>{t.letters.parchment}</legend>
     <label class="option"
       ><input
         type="radio"
@@ -155,7 +155,7 @@
         bind:group={parchment}
         onchange={() => (prepared = null)}
       />
-      {de.letters.smallOption}</label
+      {t.letters.smallOption}</label
     >
     <label class="option"
       ><input
@@ -165,23 +165,23 @@
         bind:group={parchment}
         onchange={() => (prepared = null)}
       />
-      {de.letters.largeOption}</label
+      {t.letters.largeOption}</label
     >
   </fieldset>
 
-  <label for="letter-text">{de.letters.text}</label>
+  <label for="letter-text">{t.letters.text}</label>
   <textarea id="letter-text" rows="6" value={text} oninput={input} aria-describedby="letter-count"
   ></textarea>
   <p id="letter-count" class:over={count > max} class="counter">
-    {fill(de.letters.counter, { count, max: max.toLocaleString('de-DE') })}
+    {fill(t.letters.counter, { count, max: max.toLocaleString(locale()) })}
   </p>
   {#if smileyHint}<p class="notice" role="status">
-      <span aria-hidden="true">✒</span><span>{de.letters.noSmileys}</span>
+      <span aria-hidden="true">✒</span><span>{t.letters.noSmileys}</span>
     </p>{/if}
 
   {#if !bot}
     <fieldset>
-      <legend>{de.letters.recipients}</legend>
+      <legend>{t.letters.recipients}</legend>
       <ol class="recipients">
         {#each recipients as id, index (id)}
           <li>
@@ -190,30 +190,30 @@
               <button
                 type="button"
                 class="button secondary small"
-                aria-label={de.letters.up}
+                aria-label={t.letters.up}
                 disabled={index === 0}
                 onclick={() => move(index, -1)}>↑</button
               >
               <button
                 type="button"
                 class="button secondary small"
-                aria-label={de.letters.down}
+                aria-label={t.letters.down}
                 disabled={index === recipients.length - 1}
                 onclick={() => move(index, 1)}>↓</button
               >
               <button
                 type="button"
                 class="button secondary small"
-                aria-label={de.letters.removeRecipient}
+                aria-label={t.letters.removeRecipient}
                 onclick={() => void setRecipients(recipients.filter((r) => r !== id))}>✕</button
               >
             {/if}
           </li>
         {/each}
       </ol>
-      {#if recipients.length > 1}<p class="hint">{de.letters.routeHint}</p>{/if}
+      {#if recipients.length > 1}<p class="hint">{t.letters.routeHint}</p>{/if}
       {#if recipients.length < LETTER.MAX_RECIPIENTS && candidates.length > 0}
-        <label for="extra">{de.letters.addRecipient}</label>
+        <label for="extra">{t.letters.addRecipient}</label>
         <select
           id="extra"
           bind:value={extra}
@@ -224,7 +224,7 @@
             }
           }}
         >
-          <option value="">{de.letters.choose}</option>
+          <option value="">{t.letters.choose}</option>
           {#each candidates as contact (contact.userId)}<option value={contact.userId}
               >{contact.name}</option
             >{/each}
@@ -240,18 +240,18 @@
       class="button"
       type="button"
       disabled={busy || !status.online || !owlId}
-      onclick={() => void send()}>{de.letters.send}</button
+      onclick={() => void send()}>{t.letters.send}</button
     >
   {:else}
     <button
       class="button"
       type="button"
       disabled={busy || !status.online}
-      onclick={() => void showPreview()}>{de.letters.preview}</button
+      onclick={() => void showPreview()}>{t.letters.preview}</button
     >
   {/if}
   {#if sentNotice}<p class="notice" role="status">
-      <span aria-hidden="true">🦉</span><span>{de.letters.sent}</span>
+      <span aria-hidden="true">🦉</span><span>{t.letters.sent}</span>
     </p>{/if}
 </section>
 

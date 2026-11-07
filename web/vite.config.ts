@@ -3,7 +3,7 @@ import path from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VERSION } from '@posteulen/shared/version.ts';
-import { de } from '@posteulen/shared/texts/de.ts';
+import { textsOf } from '@posteulen/shared/texts/en.ts';
 
 /**
  * Injects the list of app-shell files and a build id into the service worker (D-08).
@@ -64,19 +64,30 @@ export default defineConfig({
   plugins: [svelte(), serviceWorkerManifest()],
   define: {
     __POSTEULEN_VERSION__: JSON.stringify(VERSION),
-    __POSTEULEN_PUSH_TEXTS__: JSON.stringify({
-      testBody: de.push.testBody,
-      letterBody: de.push.letterBody,
-      goldBody: de.push.goldBody,
-      giftBody: de.push.giftBody,
-      chickBody: de.push.chickBody,
-      eggsBody: de.push.eggsBody,
-      hatchedBody: de.push.hatchedBody,
-      deletionBody: de.push.deletionBody,
-      broadcastBody: de.push.broadcastBody,
-      homeBody: de.push.homeBody,
-      newsBody: de.push.newsBody,
-    }),
+    // v0.4: both languages; the push carries the account's language.
+    __POSTEULEN_PUSH_TEXTS__: JSON.stringify(
+      Object.fromEntries(
+        (['de', 'en'] as const).map((language) => {
+          const push = textsOf(language).push;
+          return [
+            language,
+            {
+              testBody: push.testBody,
+              letterBody: push.letterBody,
+              goldBody: push.goldBody,
+              giftBody: push.giftBody,
+              chickBody: push.chickBody,
+              eggsBody: push.eggsBody,
+              hatchedBody: push.hatchedBody,
+              deletionBody: push.deletionBody,
+              broadcastBody: push.broadcastBody,
+              homeBody: push.homeBody,
+              newsBody: push.newsBody,
+            },
+          ];
+        }),
+      ),
+    ),
   },
   build: {
     target: 'es2022',

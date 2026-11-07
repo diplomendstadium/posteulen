@@ -4,17 +4,17 @@
    * handwriting or plain font for letters.
    */
   import { LETTER } from '@posteulen/shared/constants.ts';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import ErrorText from './ErrorText.svelte';
   import { account, changeLetterSettings } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { status } from '../lib/status.svelte.ts';
 
   const labels: Record<number, string> = {
-    30: de.settings.retention30,
-    90: de.settings.retention90,
-    180: de.settings.retention180,
-    365: de.settings.retention365,
+    30: t.settings.retention30,
+    90: t.settings.retention90,
+    180: t.settings.retention180,
+    365: t.settings.retention365,
   };
 
   let retentionDays = $state(account.profile?.letterRetentionDays ?? LETTER.RETENTION_MAX_DAYS);
@@ -29,7 +29,7 @@
     const before = account.profile?.letterRetentionDays ?? LETTER.RETENTION_MAX_DAYS;
     if (
       retentionDays < before &&
-      !confirm(fill(de.settings.retentionConfirm, { days: retentionDays }))
+      !confirm(fill(t.settings.retentionConfirm, { days: retentionDays }))
     )
       return;
     busy = true;
@@ -47,11 +47,11 @@
 </script>
 
 <section class="card" aria-labelledby="letters-title">
-  <h2 id="letters-title">{de.settings.lettersTitle}</h2>
+  <h2 id="letters-title">{t.settings.lettersTitle}</h2>
   <form onsubmit={save} novalidate>
-    <p>{de.settings.retentionIntro}</p>
+    <p>{t.settings.retentionIntro}</p>
     <fieldset>
-      <legend>{de.settings.retentionLegend}</legend>
+      <legend>{t.settings.retentionLegend}</legend>
       {#each LETTER.RETENTION_CHOICES as days (days)}
         <label class="option"
           ><input
@@ -67,15 +67,15 @@
     </fieldset>
     <label class="option"
       ><input type="checkbox" bind:checked={print} onchange={() => (saved = false)} />
-      {de.settings.printLabel}</label
+      {t.settings.printLabel}</label
     >
-    <p class="hint">{de.settings.printHint}</p>
+    <p class="hint">{t.settings.printHint}</p>
     <ErrorText message={error} />
     {#if saved}<p class="notice" role="status">
-        <span aria-hidden="true">✔</span><span>{de.settings.lettersSaved}</span>
+        <span aria-hidden="true">✔</span><span>{t.settings.lettersSaved}</span>
       </p>{/if}
     <button class="button" type="submit" disabled={busy || !status.online}
-      >{de.settings.lettersSave}</button
+      >{t.settings.lettersSave}</button
     >
   </form>
 </section>

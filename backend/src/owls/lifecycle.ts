@@ -19,6 +19,8 @@ import {
 } from '@posteulen/shared/game/chance.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
 import { randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
+import { owlNames } from '@posteulen/shared/names-data.ts';
+import { languageOf } from '../accounts/language.ts';
 import type { Context } from '../context.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { credit, debit } from '../gold/ledger.ts';
@@ -70,8 +72,12 @@ export function loanIdentitiesFor(
   day: string,
 ): Map<string, LoanIdentity> {
   const offer = offerOf(ctx, day);
-  const identities = loanIdentities(offer, (species, attempt) =>
-    hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
+  // v0.4: same derivation, names from the list of the account's language.
+  const identities = loanIdentities(
+    offer,
+    (species, attempt) =>
+      hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
+    owlNames(languageOf(ctx, userId)),
   );
   return new Map(offer.map((species, index) => [species, identities[index] as LoanIdentity]));
 }
@@ -241,7 +247,12 @@ function nameDeadline(ctx: Context, clutchId: string, after: After): void {
     clutchId,
   );
   for (const chick of chicks) {
-    ctx.db.run('UPDATE owls SET name = ? WHERE id = ?', randomOwlName(ctx.random()), chick.id);
+    const names = owlNames(languageOf(ctx, chick.owner_id));
+    ctx.db.run(
+      'UPDATE owls SET name = ? WHERE id = ?',
+      randomOwlName(ctx.random(), names),
+      chick.id,
+    );
     after(() => ctx.hub.notify(chick.owner_id, 'owls'));
   }
 }

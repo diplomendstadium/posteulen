@@ -5,7 +5,7 @@
    * recomputed every 5 minutes from the flight plans – no server request.
    */
   import { onDestroy } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { MAP, TIME } from '@posteulen/shared/constants.ts';
   import { positionAt, segmentsUntil } from '@posteulen/shared/game/flight.ts';
   import { distanceKm, interpolate, type Point } from '@posteulen/shared/game/geo.ts';
@@ -98,7 +98,7 @@
     const contacts = map.contacts.map((contact) => ({
       contact,
       p: toSvg(contact.lat, contact.lon),
-      text: `${contact.name ?? de.letters.unknown}${contact.bot ? ` (${de.bots.label})` : ''}`,
+      text: `${contact.name ?? t.letters.unknown}${contact.bot ? ` (${t.bots.label})` : ''}`,
     }));
     const requests: LabelRequest[] = [
       {
@@ -106,7 +106,7 @@
         x: home.x,
         y: home.y,
         radius: SIZE.home * scale,
-        text: de.map.legendHome,
+        text: t.map.legendHome,
         fontSize: SIZE.font * scale,
       },
       ...flying.map(({ flight, p }) => ({
@@ -141,24 +141,24 @@
 
   const purposeText = (flight: MapFlight): string =>
     flight.purpose === 'gold'
-      ? de.map.purposeGold
+      ? t.map.purposeGold
       : flight.purpose === 'gift'
-        ? de.map.purposeGift
-        : de.map.purposeLetter;
+        ? t.map.purposeGift
+        : t.map.purposeLetter;
 
   function whereText(flight: MapFlight, phase: string | undefined): string {
     const next = flight.stops.find((stop) => stop.status === 'pending');
     const parts: string[] = [];
-    if (phase === 'sleep') parts.push(de.map.sleeping);
+    if (phase === 'sleep') parts.push(t.map.sleeping);
     if (next?.type === 'deliver') {
       parts.push(
-        fill(de.map.nextStop, {
-          name: next.name ?? de.letters.unknown,
+        fill(t.map.nextStop, {
+          name: next.name ?? t.letters.unknown,
           time: dateTime(next.arrivesAt),
         }),
       );
     } else if (next) {
-      parts.push(fill(de.map.homeAt, { time: dateTime(next.arrivesAt) }));
+      parts.push(fill(t.map.homeAt, { time: dateTime(next.arrivesAt) }));
     }
     return parts.join(', ');
   }
@@ -216,7 +216,7 @@
           stroke-width={2 * scale}
         />
         <text x={view.homeLabel.x} y={view.homeLabel.y} font-size={SIZE.font * scale}
-          >{de.map.legendHome}</text
+          >{t.map.legendHome}</text
         >
       </g>
       {#each view.flying as { flight, p } (flight.id)}
@@ -237,24 +237,24 @@
 </MapView>
 
 <ul class="legend card">
-  <li><span class="key home-key" aria-hidden="true"></span>{de.map.legendHome}</li>
-  <li><span class="key contact-key" aria-hidden="true"></span>{de.map.legendContact}</li>
-  <li><span class="key bot-key" aria-hidden="true"></span>{de.map.legendBot}</li>
-  <li><span class="key owl-key" aria-hidden="true"></span>{de.map.legendOwl}</li>
-  <li><span class="key track-key" aria-hidden="true"></span>{de.map.legendTrack}</li>
-  <li><span class="zzz-key" aria-hidden="true">Zzz</span>{de.map.legendSleep}</li>
-  <li><span class="key night-key" aria-hidden="true"></span>{de.map.legendNight}</li>
+  <li><span class="key home-key" aria-hidden="true"></span>{t.map.legendHome}</li>
+  <li><span class="key contact-key" aria-hidden="true"></span>{t.map.legendContact}</li>
+  <li><span class="key bot-key" aria-hidden="true"></span>{t.map.legendBot}</li>
+  <li><span class="key owl-key" aria-hidden="true"></span>{t.map.legendOwl}</li>
+  <li><span class="key track-key" aria-hidden="true"></span>{t.map.legendTrack}</li>
+  <li><span class="zzz-key" aria-hidden="true">Zzz</span>{t.map.legendSleep}</li>
+  <li><span class="key night-key" aria-hidden="true"></span>{t.map.legendNight}</li>
 </ul>
 
 <section class="card" aria-labelledby="flights-title">
-  <h2 id="flights-title">{de.map.flightsTitle}</h2>
+  <h2 id="flights-title">{t.map.flightsTitle}</h2>
   {#if owls.length === 0}
-    <p>{de.map.flightsNone}</p>
+    <p>{t.map.flightsNone}</p>
   {:else}
     <ul class="flights">
       {#each owls as { flight, at } (flight.id)}
         <li>
-          {fill(de.map.flightLine, {
+          {fill(t.map.flightLine, {
             owl: flight.owl.name,
             purpose: purposeText(flight),
             where: whereText(flight, at?.phase),
@@ -263,7 +263,7 @@
       {/each}
     </ul>
   {/if}
-  <p class="hint">{fill(de.map.updated, { time: time(now) })}</p>
+  <p class="hint">{fill(t.map.updated, { time: time(now) })}</p>
 </section>
 
 <style>

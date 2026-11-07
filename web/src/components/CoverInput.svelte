@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Optional cover letter: small parchment, free (SPEC 9.1.4, 9.2.7). */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { countCodePoints } from '@posteulen/shared/names.ts';
   import { maxChars, sanitizeLetterText } from '@posteulen/shared/text-rules.ts';
 
@@ -23,12 +23,12 @@
   }
 </script>
 
-<label class="check"><input type="checkbox" bind:checked={enabled} /> {de.owls.withCover}</label>
+<label class="check"><input type="checkbox" bind:checked={enabled} /> {t.owls.withCover}</label>
 {#if enabled}
-  <label for={id}>{de.owls.coverText}</label>
+  <label for={id}>{t.owls.coverText}</label>
   <textarea {id} rows="4" value={text} oninput={input} aria-describedby={`${id}-count`}></textarea>
   <p id={`${id}-count`} class="counter" class:over={count > max}>
-    {fill(de.letters.counter, { count, max })}
+    {fill(t.letters.counter, { count, max })}
   </p>
 {/if}
 

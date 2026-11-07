@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
-  import { SPECIES } from '@posteulen/shared/species.ts';
+  import { onMount, tick } from 'svelte';
+  import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
   import Compose from '../components/Compose.svelte';
   import LetterText from '../components/LetterText.svelte';
   import { api } from '../lib/api.ts';
@@ -12,32 +11,34 @@
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
-  import { formatGold } from '@posteulen/shared/game/gold.ts';
   import { deckleClass } from '../lib/deckle.ts';
+  import { scrollToLatest } from '../lib/scroll.ts';
 
   let { peerId }: { peerId: string } = $props();
 
   let letters = $state<ShownLetter[]>([]);
   let loading = $state(true);
+  let list = $state<HTMLOListElement>();
+  /** The first load jumps to the latest letter, a sent letter scrolls to it (v0.4). */
+  let jump: 'instant' | 'smooth' | null = 'instant';
 
   const chat = $derived(live.chats.find((c) => c.peerId === peerId));
   const contact = $derived(live.contacts.find((c) => c.userId === peerId));
   const bot = $derived(live.bots.find((b) => b.userId === peerId));
-  const name = $derived(contact?.name ?? bot?.name ?? chat?.name ?? de.letters.unknown);
+  const name = $derived(contact?.name ?? bot?.name ?? chat?.name ?? t.letters.unknown);
   const writableFrom = $derived(
     bot?.writableFrom !== null && bot?.writableFrom !== undefined && bot.writableFrom > Date.now()
       ? bot.writableFrom
       : null,
   );
-  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
   /** Letters in handwriting unless the user prefers the plain font (settings, v0.2). */
   const print = $derived(account.profile?.lettersPrint ?? false);
   const retention = $derived(
-    fill(de.letters.retentionHint, {
+    fill(t.letters.retentionHint, {
       period:
         (account.profile?.letterRetentionDays ?? 365) >= 365
-          ? de.letters.retentionYear
-          : fill(de.letters.retentionDays, { days: account.profile?.letterRetentionDays ?? 365 }),
+          ? t.letters.retentionYear
+          : fill(t.letters.retentionDays, { days: account.profile?.letterRetentionDays ?? 365 }),
     }),
   );
 
@@ -45,6 +46,12 @@
     try {
       letters = await loadConversation(peerId);
       loading = false;
+      if (jump !== null && letters.length > 0) {
+        const smooth = jump === 'smooth';
+        jump = null;
+        await tick();
+        await scrollToLatest(list, smooth);
+      }
       // A letter counts as read once it is shown in the visible conversation (SPEC 8.4).
       const unread = letters
         .filter((l) => l.role === 'recipient' && l.status === 'delivered' && !l.read)
@@ -62,7 +69,7 @@
         showOwlImage(
           latest.owl.species,
           latest.kind === 'cover_chick' ? 'chick' : 'arrival',
-          fill(de.owls.arrives, { name: latest.owl.name }),
+          fill(t.owls.arrives, { name: latest.owl.name }),
         );
         await api('POST', '/api/letters/arrival-seen', { ids: unseen.map((l) => l.id) });
       }
@@ -83,21 +90,21 @@
 
   function coverText(letter: ShownLetter): string | null {
     if (letter.kind === 'cover_gold')
-      return fill(de.letters.coverGold, { amount: `${formatGold(letter.coverGold ?? 0)} Gold` });
-    if (letter.kind === 'cover_owl') return fill(de.letters.coverOwl, { owl: letter.owl.name });
-    if (letter.kind === 'cover_chick') return fill(de.letters.coverChick, { owl: letter.owl.name });
+      return fill(t.letters.coverGold, { amount: goldText(letter.coverGold ?? 0) });
+    if (letter.kind === 'cover_owl') return fill(t.letters.coverOwl, { owl: letter.owl.name });
+    if (letter.kind === 'cover_chick') return fill(t.letters.coverChick, { owl: letter.owl.name });
     return null;
   }
 
   function statusText(letter: ShownLetter): string {
-    if (letter.status === 'returned') return de.letters.returned;
+    if (letter.status === 'returned') return t.letters.returned;
     if (letter.status === 'in_flight')
-      return fill(de.letters.inFlight, { time: dateTime(letter.arrivesAt) });
-    return letter.read ? de.letters.read : de.letters.delivered;
+      return fill(t.letters.inFlight, { time: dateTime(letter.arrivesAt) });
+    return letter.read ? t.letters.read : t.letters.delivered;
   }
 
   async function deleteChat(): Promise<void> {
-    if (!confirm(de.letters.deleteConfirm)) return;
+    if (!confirm(t.letters.deleteConfirm)) return;
     await api('DELETE', `/api/chats/${peerId}`);
     navigate('/app/briefe');
   }
@@ -105,36 +112,36 @@
 
 <p class="partner plate">
   <span class="name">{name}</span>
-  {#if bot}<span class="bot-label"><span aria-hidden="true">🤖</span> {de.bots.label}</span>{/if}
+  {#if bot}<span class="bot-label"><span aria-hidden="true">🤖</span> {t.bots.label}</span>{/if}
 </p>
 {#if bot}
   <p class="notice bot-notice" data-testid="bot-notice">
-    <span aria-hidden="true">🔓</span><span>{de.bots.notice}</span>
+    <span aria-hidden="true">🔓</span><span>{t.bots.notice}</span>
   </p>
-  <p class="hint crisis plate">{de.bots.crisis}</p>
+  <p class="hint crisis plate">{t.bots.crisis}</p>
 {/if}
 {#if contact?.keyWarning}
   <p class="warning" role="alert">
-    <span aria-hidden="true">⚠</span><span>{fill(de.contacts.keyWarningLong, { name })}</span>
+    <span aria-hidden="true">⚠</span><span>{fill(t.contacts.keyWarningLong, { name })}</span>
   </p>
 {/if}
 {#if !contact && !bot && !loading}<p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{de.letters.notContact}</span>
+    <span aria-hidden="true">ℹ</span><span>{t.letters.notContact}</span>
   </p>{/if}
 
 <p class="hint retention plate">{retention}</p>
 
-<ol class="letters" class:print aria-live="polite">
+<ol class="letters" class:print aria-live="polite" bind:this={list}>
   {#each letters as letter (letter.id)}
     <li class="letter" class:mine={letter.role === 'sender'}>
       <article class={`sheet ${deckleClass(letter.id)}`}>
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         <p class="meta">
           {dateTime(letter.sentAt)} · {letter.parchment === 'large'
-            ? de.letters.large
-            : de.letters.small}
+            ? t.letters.large
+            : t.letters.small}
           {#if letter.role === 'recipient'}
-            · {fill(de.letters.from, {
+            · {fill(t.letters.from, {
               owl: letter.owl.name,
               species: speciesName(letter.owl.species),
             })}{/if}
@@ -143,7 +150,7 @@
           <LetterText text={letter.text} />
         {:else}
           <p class="invalid">
-            <span aria-hidden="true">⚠</span> <strong>{de.letters.invalid}</strong> – {de.letters
+            <span aria-hidden="true">⚠</span> <strong>{t.letters.invalid}</strong> – {t.letters
               .invalidLong}
           </p>
         {/if}
@@ -167,12 +174,18 @@
 </ol>
 
 {#if contact && contact.active && !contact.keyWarning}
-  <Compose {peerId} onsent={() => void load()} />
+  <Compose
+    {peerId}
+    onsent={() => {
+      jump = 'smooth';
+      void load();
+    }}
+  />
 {:else if bot}
   {#if writableFrom !== null}
     <p class="notice">
       <span aria-hidden="true">⏳</span><span
-        >{fill(de.bots.writableFrom, { time: dateTime(writableFrom) })}</span
+        >{fill(t.bots.writableFrom, { time: dateTime(writableFrom) })}</span
       >
     </p>
   {:else}
@@ -180,6 +193,7 @@
       {peerId}
       bot
       onsent={() => {
+        jump = 'smooth';
         void load();
         void refreshTopics('contacts');
       }}
@@ -189,7 +203,7 @@
 
 <p class="danger">
   <button class="button secondary" type="button" onclick={() => void deleteChat()}
-    >{de.letters.deleteChat}</button
+    >{t.letters.deleteChat}</button
   >
 </p>
 

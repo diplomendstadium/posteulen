@@ -5,8 +5,11 @@
 /** Replaced at build time by the posteulen-sw-manifest plugin. */
 declare const __POSTEULEN_SHELL__: string;
 
-/** Push texts from texts/de.ts, inlined at build time (a classic service worker cannot import). */
-declare const __POSTEULEN_PUSH_TEXTS__: {
+/**
+ * Push texts from texts/de.ts and texts/en.ts, inlined at build time (a classic service worker
+ * cannot import). v0.4: one set per language; the push names the account's language.
+ */
+interface PushTexts {
   testBody: string;
   letterBody: string;
   goldBody: string;
@@ -18,8 +21,8 @@ declare const __POSTEULEN_PUSH_TEXTS__: {
   broadcastBody: string;
   homeBody: string;
   newsBody: string;
-};
-const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__;
+}
+declare const __POSTEULEN_PUSH_TEXTS__: { de: PushTexts; en: PushTexts };
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 const BUILD = '__POSTEULEN_BUILD__';
@@ -106,12 +109,14 @@ sw.addEventListener('fetch', (event) => {
  * then confirms its ID to the server (background request, no session needed).
  */
 sw.addEventListener('push', (event) => {
-  let data: { id?: unknown; type?: unknown };
+  let data: { id?: unknown; type?: unknown; lang?: unknown };
   try {
-    data = (event.data?.json() ?? {}) as { id?: unknown; type?: unknown };
+    data = (event.data?.json() ?? {}) as { id?: unknown; type?: unknown; lang?: unknown };
   } catch {
     data = {};
   }
+  const lang = data.lang === 'en' ? 'en' : 'de';
+  const PUSH_TEXTS = __POSTEULEN_PUSH_TEXTS__[lang];
   const bodies: Record<string, string> = {
     push_test: PUSH_TEXTS.testBody,
     letter_arrived: PUSH_TEXTS.letterBody,
@@ -137,7 +142,7 @@ sw.addEventListener('push', (event) => {
         body,
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
-        lang: 'de',
+        lang,
         ...(id ? { tag: id } : {}),
       }),
       id

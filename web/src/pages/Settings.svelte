@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { checkPassword } from '@posteulen/shared/names.ts';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
   import PushSettings from '../components/PushSettings.svelte';
   import AccountSettings from '../components/AccountSettings.svelte';
   import LetterSettings from '../components/LetterSettings.svelte';
+  import LanguageSettings from '../components/LanguageSettings.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -25,23 +26,23 @@
     const lengthError = checkPassword(newPassword);
     error =
       lengthError === 'too_short'
-        ? de.register.tooShort
+        ? t.register.tooShort
         : lengthError === 'too_long'
-          ? de.register.tooLong
+          ? t.register.tooLong
           : newPassword !== repeat
-            ? de.register.mismatch
+            ? t.register.mismatch
             : null;
     if (error) return;
-    busy = de.settings.stepOld;
+    busy = t.settings.stepOld;
     try {
       const outcome = await changePassword(oldPassword, newPassword, (step) => {
-        busy = step === 'old' ? de.settings.stepOld : de.settings.stepNew;
+        busy = step === 'old' ? t.settings.stepOld : t.settings.stepNew;
       });
       if (outcome === 'ok') {
         done = true;
         oldPassword = newPassword = repeat = '';
-      } else if (outcome === 'wrong') error = de.settings.wrongOld;
-      else error = fill(de.start.wait, { seconds: outcome.wait });
+      } else if (outcome === 'wrong') error = t.settings.wrongOld;
+      else error = fill(t.start.wait, { seconds: outcome.wait });
     } catch (caught) {
       error = errorMessage(caught);
     } finally {
@@ -59,34 +60,36 @@
 
 <LetterSettings />
 
+<LanguageSettings />
+
 <section class="card" aria-labelledby="pw-title">
-  <h2 id="pw-title">{de.settings.passwordTitle}</h2>
+  <h2 id="pw-title">{t.settings.passwordTitle}</h2>
   <form onsubmit={submit} novalidate>
     <PasswordInput
       id="old-password"
-      label={de.settings.oldPassword}
+      label={t.settings.oldPassword}
       autocomplete="current-password"
       bind:value={oldPassword}
     />
     <PasswordInput
       id="new-password"
-      label={de.settings.newPassword}
+      label={t.settings.newPassword}
       autocomplete="new-password"
-      hint={de.register.passwordHint}
+      hint={t.register.passwordHint}
       bind:value={newPassword}
     />
     <PasswordInput
       id="new-repeat"
-      label={de.settings.newPasswordRepeat}
+      label={t.settings.newPasswordRepeat}
       autocomplete="new-password"
       bind:value={repeat}
     />
     <ErrorText message={error} />
     {#if done}<p class="notice" role="status">
-        <span aria-hidden="true">✔</span><span>{de.settings.changed}</span>
+        <span aria-hidden="true">✔</span><span>{t.settings.changed}</span>
       </p>{/if}
     <button class="button" type="submit" disabled={busy !== null || !status.online}
-      >{de.settings.change}</button
+      >{t.settings.change}</button
     >
     {#if busy}<p class="notice" role="status">
         <span aria-hidden="true">⏳</span><span>{busy}</span>
@@ -97,10 +100,10 @@
 <AccountSettings />
 
 <section class="card" aria-labelledby="logout-title">
-  <h2 id="logout-title">{de.settings.logoutTitle}</h2>
-  <p>{de.settings.logoutHint}</p>
+  <h2 id="logout-title">{t.settings.logoutTitle}</h2>
+  <p>{t.settings.logoutHint}</p>
   <button class="button secondary" type="button" onclick={() => void signOut()}
-    >{de.settings.logout}</button
+    >{t.settings.logout}</button
   >
 </section>
 

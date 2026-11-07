@@ -4,6 +4,7 @@
  */
 import * as v from 'valibot';
 import { LETTER } from '../constants.ts';
+import { LANGUAGES } from '../i18n.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
 
 // Sizes for ristretto255 OPAQUE as produced by @serenity-kit/opaque (base64url, unpadded).
@@ -58,6 +59,8 @@ export const RegisterFinish = v.strictObject({
   x25519Public: Base64Url(43, 43),
   keyPackage: KeyPackageSchema,
   home: Home,
+  /** v0.4: the view the account was created in; older clients send nothing (German). */
+  language: v.optional(v.picklist(LANGUAGES)),
 });
 
 export const LoginStart = v.strictObject({
@@ -134,6 +137,11 @@ export const HomeChange = v.strictObject({ home: Home });
 export const LetterSettings = v.strictObject({
   retentionDays: v.picklist(LETTER.RETENTION_CHOICES),
   print: v.boolean(),
+});
+
+/** Preferred language of the account (v0.4, settings and flag). */
+export const LanguageSetting = v.strictObject({
+  language: v.picklist(LANGUAGES),
 });
 
 export const InactivityUpdate = v.strictObject({

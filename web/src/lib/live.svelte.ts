@@ -9,7 +9,7 @@ import { api } from './api.ts';
 import { account } from './auth.svelte.ts';
 import { syncVault } from './vault.svelte.ts';
 import { showOwlImage } from './overlay.svelte.ts';
-import { de, fill } from '@posteulen/shared/texts/de.ts';
+import { t, fill } from './i18n.svelte.ts';
 
 export interface ChatSummary {
   readonly peerId: string;
@@ -98,7 +98,7 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
   showOwlImage(
     species,
     variant === 'chick' ? 'chick' : 'arrival',
-    fill(de.owls.arrives, { name: String(latest.params['owl'] ?? '') }),
+    fill(t.owls.arrives, { name: String(latest.params['owl'] ?? '') }),
   );
   await api('POST', '/api/system-messages/arrival-shown', { ids: pending.map((m) => m.id) });
 }

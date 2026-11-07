@@ -40,9 +40,9 @@ export function giftRequired(count: number): boolean {
   return count >= OWL.CHICK_GIFT_FROM_COUNT;
 }
 
-/** Random name from Anhang D (chicks without a name after 24 hours). */
-export function randomOwlName(random: number): string {
-  return OWL_NAMES[Math.min(OWL_NAMES.length - 1, Math.floor(random * OWL_NAMES.length))] ?? 'Momo';
+/** Random name from Anhang D (chicks without a name after 24 hours); English list since v0.4. */
+export function randomOwlName(random: number, names: readonly string[] = OWL_NAMES): string {
+  return names[Math.min(names.length - 1, Math.floor(random * names.length))] ?? 'Momo';
 }
 
 /** Three different species for the daily offer (9.6); `random` is called once per pick. */
@@ -69,10 +69,10 @@ export interface LoanIdentity {
  * bytes (9.6: deterministic, nothing stored). The energy is known in advance, so the letter
  * preview can offer the loan owls of the day with an exact flight plan (8.4 step 4).
  */
-export function loanIdentity(hmac: Uint8Array): LoanIdentity {
+export function loanIdentity(hmac: Uint8Array, names: readonly string[] = OWL_NAMES): LoanIdentity {
   const value = (((hmac[0] ?? 0) << 16) | ((hmac[1] ?? 0) << 8) | (hmac[2] ?? 0)) >>> 0;
   return {
-    name: OWL_NAMES[value % OWL_NAMES.length] ?? 'Momo',
+    name: names[value % names.length] ?? 'Momo',
     sex: ((hmac[3] ?? 0) & 1) === 0 ? 'f' : 'm',
     energyShare: (((hmac[4] ?? 0) << 8) | (hmac[5] ?? 0)) / 65536,
   };
@@ -88,16 +88,17 @@ const NAME_ATTEMPTS = 16;
 export function loanIdentities(
   offer: readonly string[],
   derive: (species: string, attempt: number) => Uint8Array,
+  names: readonly string[] = OWL_NAMES,
 ): LoanIdentity[] {
   const taken = new Set<string>();
   return offer.map((species) => {
-    let identity = loanIdentity(derive(species, 0));
+    let identity = loanIdentity(derive(species, 0), names);
     for (let attempt = 1; taken.has(identity.name) && attempt < NAME_ATTEMPTS; attempt++) {
-      identity = loanIdentity(derive(species, attempt));
+      identity = loanIdentity(derive(species, attempt), names);
     }
-    const start = OWL_NAMES.indexOf(identity.name);
-    for (let step = 1; taken.has(identity.name) && step < OWL_NAMES.length; step++) {
-      const name = OWL_NAMES[(start + step) % OWL_NAMES.length];
+    const start = names.indexOf(identity.name);
+    for (let step = 1; taken.has(identity.name) && step < names.length; step++) {
+      const name = names[(start + step) % names.length];
       if (name !== undefined && !taken.has(name)) identity = { ...identity, name };
     }
     taken.add(identity.name);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import ErrorText from '../components/ErrorText.svelte';
   import Link from '../components/Link.svelte';
   import { api } from '../lib/api.ts';
@@ -38,7 +38,7 @@
     error = notice = null;
     try {
       await api('POST', '/api/contacts/requests', { name, label: await requestLabel(name) });
-      notice = fill(de.contacts.requestSaved, { name });
+      notice = fill(t.contacts.requestSaved, { name });
       name = '';
       await refreshTopics('contacts');
     } catch (caught) {
@@ -57,7 +57,7 @@
   }
 
   async function remove(userId: string, contactName: string, isBot = false): Promise<void> {
-    const question = isBot ? de.bots.removeConfirm : de.contacts.removeConfirm;
+    const question = isBot ? t.bots.removeConfirm : t.contacts.removeConfirm;
     if (!confirm(fill(question, { name: contactName }))) return;
     await api('DELETE', `/api/contacts/${userId}`).catch(
       (caught: unknown) => (error = errorMessage(caught)),
@@ -69,14 +69,14 @@
 </script>
 
 <section class="card" aria-labelledby="add-title">
-  <h2 id="add-title">{de.contacts.addTitle}</h2>
-  <p>{de.contacts.addIntro}</p>
+  <h2 id="add-title">{t.contacts.addTitle}</h2>
+  <p>{t.contacts.addIntro}</p>
   <form onsubmit={add} novalidate>
-    <label for="contact-name">{de.contacts.name}</label>
+    <label for="contact-name">{t.contacts.name}</label>
     <input id="contact-name" type="text" autocomplete="off" maxlength="100" bind:value={name} />
     <p class="actions">
       <button class="button" type="submit" disabled={busy || !status.online}
-        >{de.contacts.add}</button
+        >{t.contacts.add}</button
       >
     </p>
   </form>
@@ -88,7 +88,7 @@
 
 {#each vault.changedKeys as changed (changed)}
   <p class="warning" role="alert">
-    ⚠ {fill(de.contacts.keysChanged, {
+    ⚠ {fill(t.contacts.keysChanged, {
       name: live.contacts.find((c) => c.userId === changed)?.name ?? '',
     })}
   </p>
@@ -96,22 +96,22 @@
 
 {#if live.bots.length > 0}
   <section aria-labelledby="bots-title">
-    <h2 id="bots-title" class="plate">{de.bots.title}</h2>
+    <h2 id="bots-title" class="plate">{t.bots.title}</h2>
     <ul class="contacts">
       {#each live.bots as bot (bot.userId)}
         <li class="contact" data-testid="bot-contact">
           <span class="name"
             ><span aria-hidden="true">🤖</span>
             {bot.name}
-            <span class="bot-label">{de.bots.label}</span></span
+            <span class="bot-label">{t.bots.label}</span></span
           >
-          <span class="state">{(de.bots as Record<string, string>)[`type_${bot.type}`]}</span>
+          <span class="state">{(t.bots as Record<string, string>)[`type_${bot.type}`]}</span>
           <div class="buttons">
-            <Link href={`/app/briefe/${bot.userId}`} class="button">{de.contacts.write}</Link>
+            <Link href={`/app/briefe/${bot.userId}`} class="button">{t.contacts.write}</Link>
             <button
               class="button secondary"
               type="button"
-              onclick={() => void remove(bot.userId, bot.name, true)}>{de.contacts.remove}</button
+              onclick={() => void remove(bot.userId, bot.name, true)}>{t.contacts.remove}</button
             >
           </div>
         </li>
@@ -126,7 +126,7 @@
       <span class="name">{labels[request.id] ?? '…'}</span>
       <span class="state"
         ><span aria-hidden="true">⏳</span>
-        {fill(de.contacts.pending, { hours: hoursLeft(request.expiresAt) })}</span
+        {fill(t.contacts.pending, { hours: hoursLeft(request.expiresAt) })}</span
       >
       <button
         class="button secondary"
@@ -135,7 +135,7 @@
           void api('DELETE', `/api/contacts/requests/${request.id}`).then(
             () => (live.requests = live.requests.filter((r) => r.id !== request.id)),
             (caught: unknown) => (error = errorMessage(caught)),
-          )}>{de.contacts.cancel}</button
+          )}>{t.contacts.cancel}</button
       >
     </li>
   {/each}
@@ -145,17 +145,17 @@
       <span class="name">{contact.name}</span>
       <span class="state">
         {#if contact.keyWarning}<span class="bad"
-            ><span aria-hidden="true">⚠</span> {de.contacts.keyWarning}</span
+            ><span aria-hidden="true">⚠</span> {t.contacts.keyWarning}</span
           >{/if}
-        {#if !contact.active}<span><span aria-hidden="true">💤</span> {de.contacts.inactive}</span
+        {#if !contact.active}<span><span aria-hidden="true">💤</span> {t.contacts.inactive}</span
           >{/if}
-        {#if compared}<span><span aria-hidden="true">✔</span> {de.contacts.compared}</span
-          >{:else}<span><span aria-hidden="true">?</span> {de.contacts.notCompared}</span>{/if}
+        {#if compared}<span><span aria-hidden="true">✔</span> {t.contacts.compared}</span
+          >{:else}<span><span aria-hidden="true">?</span> {t.contacts.notCompared}</span>{/if}
       </span>
       <div class="buttons">
         {#if contact.active && !contact.keyWarning}<Link
             href={`/app/briefe/${contact.userId}`}
-            class="button">{de.contacts.write}</Link
+            class="button">{t.contacts.write}</Link
           >{/if}
         <button
           class="button secondary"
@@ -163,32 +163,32 @@
           aria-expanded={shown[contact.userId] !== undefined}
           onclick={() => void toggleSafety(contact.userId)}
         >
-          {shown[contact.userId] ? de.contacts.hide : de.contacts.show}
+          {shown[contact.userId] ? t.contacts.hide : t.contacts.show}
         </button>
         <button
           class="button secondary"
           type="button"
-          onclick={() => void remove(contact.userId, contact.name)}>{de.contacts.remove}</button
+          onclick={() => void remove(contact.userId, contact.name)}>{t.contacts.remove}</button
         >
       </div>
       {#if shown[contact.userId]}
         <div class="safety">
-          <h3 class="name">{fill(de.contacts.safetyTitle, { name: contact.name })}</h3>
-          <p>{de.contacts.safetyIntro}</p>
+          <h3 class="name">{fill(t.contacts.safetyTitle, { name: contact.name })}</h3>
+          <p>{t.contacts.safetyIntro}</p>
           <p class="number" data-testid="safety-number">{shown[contact.userId]}</p>
           {#if !compared}
             <button class="button" type="button" onclick={() => void markCompared(contact.userId)}
-              >{fill(de.contacts.safetyConfirm, { name: contact.name })}</button
+              >{fill(t.contacts.safetyConfirm, { name: contact.name })}</button
             >
           {/if}
-          <p class="hint">{de.contacts.safetyNote}</p>
+          <p class="hint">{t.contacts.safetyNote}</p>
         </div>
       {/if}
     </li>
   {/each}
 </ul>
 {#if live.contacts.length === 0 && live.requests.length === 0}<p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{de.contacts.none}</span>
+    <span aria-hidden="true">ℹ</span><span>{t.contacts.none}</span>
   </p>{/if}
 
 <style>

@@ -2,7 +2,7 @@
  * Common steps of every transport (letter, gold, gift): choosing the owl, preparing letter
  * IDs and keys, checking the encrypted letters, and the departure itself.
  */
-import { BOTS, TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, LETTER, TIME } from '@posteulen/shared/constants.ts';
 import { ownBot } from '../bots/service.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
@@ -53,7 +53,7 @@ export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: num
       name: identity.name,
       species,
       energy: loanStartEnergy(identity, species),
-      maxRecipients: 1,
+      maxRecipients: LETTER.MAX_RECIPIENTS,
       returnsHome: false,
     };
   }

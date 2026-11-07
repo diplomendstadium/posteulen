@@ -1,7 +1,7 @@
 <script lang="ts">
   /** Own owls (SPEC 8.5): picture, name, species, sex, energy, state and actions. */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
-  import { SPECIES, type OwlImageKind } from '@posteulen/shared/species.ts';
+  import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
+  import type { OwlImageKind } from '@posteulen/shared/species.ts';
   import { TIME } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
   import OwlPicture from '../components/OwlPicture.svelte';
@@ -20,7 +20,6 @@
     type Owl,
   } from '../lib/owls.ts';
   import { dateTime } from '../lib/format.ts';
-  import { formatGold } from '@posteulen/shared/game/gold.ts';
   import { menagerieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
@@ -38,7 +37,6 @@
   let released = $state<string | null>(null);
   let newName = $state('');
 
-  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
   const unnamed = $derived(owls.find((owl) => owl.name === null));
 
   async function load(): Promise<void> {
@@ -77,13 +75,13 @@
   const pet = (owl: Owl) =>
     act(async () => {
       replace((await petOwl(owl.id)).owl);
-      showOwlImage(owl.species, 'petting', fill(de.owls.petting, { name: owl.name ?? '' }));
+      showOwlImage(owl.species, 'petting', fill(t.owls.petting, { name: owl.name ?? '' }));
     });
 
   const feed = (owl: Owl) =>
     act(async () => {
       replace((await feedOwl(owl.id)).owl);
-      showOwlImage(owl.species, 'feeding', fill(de.owls.feeding, { name: owl.name ?? '' }));
+      showOwlImage(owl.species, 'feeding', fill(t.owls.feeding, { name: owl.name ?? '' }));
       void refreshTopics('profile');
     });
 
@@ -102,8 +100,8 @@
 
   const menagerie = (owl: Owl) =>
     act(async () => {
-      const wage = `${formatGold(menagerieWage(speciesPrice(owl.species)))} Gold`;
-      if (!confirm(fill(de.owls.menagerieConfirm, { name: owl.name ?? '', amount: wage }))) return;
+      const wage = goldText(menagerieWage(speciesPrice(owl.species)));
+      if (!confirm(fill(t.owls.menagerieConfirm, { name: owl.name ?? '', amount: wage }))) return;
       replace((await lendToMenagerie(owl.id)).owl);
     });
 
@@ -120,9 +118,9 @@
 
   function pictureAlt(owl: Owl): string {
     const name = owl.name ?? '';
-    if (owl.state === 'menagerie') return fill(de.owls.perchAlt, { name });
+    if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
     if (owl.state === 'flying' && owl.absence)
-      return `${fill(owl.absence.daylight ? de.owls.flyingDayAlt : de.owls.flyingNightAlt, { name })}, ${speciesName(owl.species)}`;
+      return `${fill(owl.absence.daylight ? t.owls.flyingDayAlt : t.owls.flyingNightAlt, { name })}, ${speciesName(owl.species)}`;
     return `${name}, ${speciesName(owl.species)}`;
   }
 
@@ -130,8 +128,8 @@
   const named = $derived(owls.filter((owl) => owl.name !== null));
   const groups = $derived(
     [
-      { id: 'loan-owls', title: de.owls.loanGroup, list: named.filter((o) => o.kind === 'loan') },
-      { id: 'own-owls', title: de.owls.ownGroup, list: named.filter((o) => o.kind !== 'loan') },
+      { id: 'loan-owls', title: t.owls.loanGroup, list: named.filter((o) => o.kind === 'loan') },
+      { id: 'own-owls', title: t.owls.ownGroup, list: named.filter((o) => o.kind !== 'loan') },
     ].filter((group) => group.list.length > 0),
   );
 
@@ -139,43 +137,43 @@
     const until = owl.stateUntil === null ? '' : dateTime(owl.stateUntil);
     switch (owl.state) {
       case 'sick':
-        return de.owls.stateSick;
+        return t.owls.stateSick;
       case 'self_care':
-        return fill(de.owls.stateSelfCare, { until });
+        return fill(t.owls.stateSelfCare, { until });
       case 'vet':
-        return fill(de.owls.stateVet, { until });
+        return fill(t.owls.stateVet, { until });
       case 'brooding':
-        return fill(de.owls.stateBrooding, { until });
+        return fill(t.owls.stateBrooding, { until });
       case 'menagerie':
-        return fill(de.owls.stateMenagerie, { until });
+        return fill(t.owls.stateMenagerie, { until });
       case 'flying':
         return absenceText(owl);
     }
     if (owl.kind === 'loan' && owl.loanExpiresAt !== null)
-      return fill(de.owls.loanUntil, { until: dateTime(owl.loanExpiresAt) });
+      return fill(t.owls.loanUntil, { until: dateTime(owl.loanExpiresAt) });
     if (owl.isChick && owl.adultAt !== null)
-      return fill(de.owls.chick, { until: dateTime(owl.adultAt) });
-    return de.owls.stateHome;
+      return fill(t.owls.chick, { until: dateTime(owl.adultAt) });
+    return t.owls.stateHome;
   }
 
   function absenceText(owl: Owl): string {
     const absence = owl.absence;
-    if (!absence) return de.owls.stateFlying;
-    const names = absence.recipients.map((name) => name ?? de.letters.unknown).join(de.owls.and);
+    if (!absence) return t.owls.stateFlying;
+    const names = absence.recipients.map((name) => name ?? t.letters.unknown).join(t.owls.and);
     const what =
       absence.recipients.length === 0
-        ? de.owls.flyingHome
+        ? t.owls.flyingHome
         : fill(
             absence.purpose === 'gold'
-              ? de.owls.flyingGold
+              ? t.owls.flyingGold
               : absence.purpose === 'gift'
-                ? de.owls.flyingGift
-                : de.owls.flyingLetter,
+                ? t.owls.flyingGift
+                : t.owls.flyingLetter,
             { names },
           );
     if (absence.returnsAt === null) return what;
     const hours = Math.max(1, Math.ceil((absence.returnsAt - Date.now()) / TIME.HOUR));
-    return `${what} ${fill(de.owls.backIn, { hours })}`;
+    return `${what} ${fill(t.owls.backIn, { hours })}`;
   }
 </script>
 
@@ -185,8 +183,8 @@
   <section class="card naming" aria-labelledby="naming-title">
     <h2 id="naming-title">
       {unnamed.isChick
-        ? de.owls.chickNameTitle
-        : fill(de.owls.nameTitle, { species: speciesName(unnamed.species) })}
+        ? t.owls.chickNameTitle
+        : fill(t.owls.nameTitle, { species: speciesName(unnamed.species) })}
     </h2>
     <div class="naming-body">
       <OwlPicture
@@ -200,11 +198,10 @@
           void saveName(unnamed);
         }}
       >
-        <label for="owl-name">{de.owls.nameLabel}</label>
+        <label for="owl-name">{t.owls.nameLabel}</label>
         <input id="owl-name" bind:value={newName} maxlength="40" autocomplete="off" required />
-        <p class="hint">{de.owls.nameHint}</p>
-        <button class="button" type="submit" disabled={busy || !status.online}
-          >{de.owls.save}</button
+        <p class="hint">{t.owls.nameHint}</p>
+        <button class="button" type="submit" disabled={busy || !status.online}>{t.owls.save}</button
         >
       </form>
     </div>
@@ -221,9 +218,9 @@
 
 {#if loaded && owls.length === 0}
   <p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{de.owls.none}</span>
+    <span aria-hidden="true">ℹ</span><span>{t.owls.none}</span>
   </p>
-  <p><Link href="/app/menagerie" class="button">{de.owls.toMenagerie}</Link></p>
+  <p><Link href="/app/menagerie" class="button">{t.owls.toMenagerie}</Link></p>
 {/if}
 
 {#snippet owlCard(owl: Owl)}
@@ -239,10 +236,10 @@
     <div class="facts">
       <h3 class="name">{owl.name}</h3>
       <p class="species">
-        {speciesName(owl.species)} · {owl.sex === 'f' ? de.owls.female : de.owls.male}
+        {speciesName(owl.species)} · {owl.sex === 'f' ? t.owls.female : t.owls.male}
       </p>
       <p class="energy">
-        <span>{fill(de.owls.energy, { energy: owl.energy, max: owl.maxEnergy })}</span>
+        <span>{fill(t.owls.energy, { energy: owl.energy, max: owl.maxEnergy })}</span>
         <meter min="0" max={owl.maxEnergy} value={owl.energy} aria-hidden="true"></meter>
       </p>
       <p class="state" class:away={owl.state !== 'home'}>
@@ -257,13 +254,13 @@
             class="button secondary"
             type="button"
             disabled={busy || !status.online}
-            onclick={() => void pet(owl)}>{de.owls.pet}</button
+            onclick={() => void pet(owl)}>{t.owls.pet}</button
           >
           <button
             class="button secondary"
             type="button"
             disabled={busy || owl.fedToday || !status.online}
-            onclick={() => void feed(owl)}>{owl.fedToday ? de.owls.fedToday : de.owls.feed}</button
+            onclick={() => void feed(owl)}>{owl.fedToday ? t.owls.fedToday : t.owls.feed}</button
           >
         {/if}
         {#if owl.actions.treat}
@@ -271,13 +268,13 @@
             class="button secondary"
             type="button"
             disabled={busy || !status.online}
-            onclick={() => void treat(owl, 'self')}>{de.owls.treatSelf}</button
+            onclick={() => void treat(owl, 'self')}>{t.owls.treatSelf}</button
           >
           <button
             class="button secondary"
             type="button"
             disabled={busy || !status.online}
-            onclick={() => void treat(owl, 'vet')}>{de.owls.treatVet}</button
+            onclick={() => void treat(owl, 'vet')}>{t.owls.treatVet}</button
           >
         {/if}
         {#if owl.actions.menagerie}
@@ -285,7 +282,7 @@
             class="button secondary"
             type="button"
             disabled={busy || !status.online}
-            onclick={() => void menagerie(owl)}>{de.owls.menagerie}</button
+            onclick={() => void menagerie(owl)}>{t.owls.menagerie}</button
           >
         {/if}
         {#if owl.actions.rename}
@@ -295,16 +292,16 @@
             onclick={() => {
               renaming = renaming === owl.id ? null : owl.id;
               newName = owl.name ?? '';
-            }}>{de.owls.rename}</button
+            }}>{t.owls.rename}</button
           >
         {:else if owl.kind === 'own'}
-          <p class="hint">{de.owls.renameBlocked}</p>
+          <p class="hint">{t.owls.renameBlocked}</p>
         {/if}
         {#if owl.actions.gift}
           <button
             class="button secondary"
             type="button"
-            onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{de.owls.gift}</button
+            onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{t.owls.gift}</button
           >
         {/if}
         {#if owl.actions.release}
@@ -312,7 +309,7 @@
             class="button danger"
             type="button"
             disabled={busy || !status.online}
-            onclick={() => (releasing = owl)}>{de.owls.release}</button
+            onclick={() => (releasing = owl)}>{t.owls.release}</button
           >
         {/if}
       </div>
@@ -325,7 +322,7 @@
           }}
         >
           <label for={`rename-${owl.id}`}
-            >{fill(de.owls.renameTitle, { name: owl.name ?? '' })}</label
+            >{fill(t.owls.renameTitle, { name: owl.name ?? '' })}</label
           >
           <input
             id={`rename-${owl.id}`}
@@ -334,12 +331,12 @@
             autocomplete="off"
             required
           />
-          <p class="hint">{de.owls.nameHint}</p>
+          <p class="hint">{t.owls.nameHint}</p>
           <button class="button" type="submit" disabled={busy || !status.online}
-            >{de.owls.save}</button
+            >{t.owls.save}</button
           >
           <button class="button secondary" type="button" onclick={() => (renaming = null)}
-            >{de.owls.cancel}</button
+            >{t.owls.cancel}</button
           >
         </form>
       {/if}
@@ -380,7 +377,7 @@
       releasing = null;
       if (!gone) return;
       owls = owls.filter((other) => other.id !== gone.id);
-      released = fill(de.owls.releaseDone, { name: gone.name ?? '' });
+      released = fill(t.owls.releaseDone, { name: gone.name ?? '' });
     }}
   />
 {/if}

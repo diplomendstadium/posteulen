@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { REPOSITORY_URL, VERSION } from '@posteulen/shared/version.ts';
+  import { DONATION } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
@@ -22,18 +23,18 @@
     event.preventDefault();
     if (busy || !status.online) return;
     error = null;
-    busy = de.start.loggingIn;
+    busy = t.start.loggingIn;
     try {
       const outcome = await login(name, password, (step) => {
-        busy = step === 'captcha' ? de.start.stepCaptcha : de.start.stepPassword;
+        busy = step === 'captcha' ? t.start.stepCaptcha : t.start.stepPassword;
       });
       if (outcome === 'ok') {
         password = '';
         navigate('/app', true);
       } else if (outcome === 'wrong') {
-        error = de.start.wrong;
+        error = t.start.wrong;
       } else {
-        error = fill(de.start.wait, { seconds: outcome.wait });
+        error = fill(t.start.wait, { seconds: outcome.wait });
       }
     } catch (caught) {
       error = errorMessage(caught);
@@ -46,16 +47,16 @@
 <div class="start">
   <header class="hero card">
     <img class="logo" src="/icons/icon.svg" alt="" width="96" height="96" />
-    <h1>{de.start.title}</h1>
-    <p class="intro">{de.start.intro}</p>
+    <h1>{t.start.title}</h1>
+    <p class="intro">{t.start.intro}</p>
   </header>
 
   <div class="columns">
     <section class="card" aria-labelledby="login-heading">
-      <h2 id="login-heading">{de.start.loginHeading}</h2>
+      <h2 id="login-heading">{t.start.loginHeading}</h2>
       <form onsubmit={submit} novalidate>
         <div class="field">
-          <label for="login-name">{de.start.userName}</label>
+          <label for="login-name">{t.start.userName}</label>
           <input
             id="login-name"
             name="username"
@@ -67,16 +68,16 @@
         </div>
         <PasswordInput
           id="login-password"
-          label={de.start.password}
+          label={t.start.password}
           autocomplete="current-password"
           bind:value={password}
         />
         <ErrorText message={error} />
         <div class="actions">
           <button class="button" type="submit" disabled={busy !== null || !status.online}
-            >{de.start.login}</button
+            >{t.start.login}</button
           >
-          <Link href="/konto-erstellen" class="button secondary">{de.start.createAccount}</Link>
+          <Link href="/konto-erstellen" class="button secondary">{t.start.createAccount}</Link>
         </div>
         {#if busy}<p class="notice" role="status">
             <span aria-hidden="true">⏳</span><span>{busy}</span>
@@ -92,19 +93,22 @@
           sizes="(min-width: 48rem) 28rem, 100vw"
           width="960"
           height="960"
-          alt={de.start.groupAlt}
+          alt={t.start.groupAlt}
           decoding="async"
         />
       </figure>
     {/if}
   </div>
 
-  <nav class="footer-links card" aria-label={de.nav.main}>
-    <Link href="/hilfe">{de.nav.help}</Link>
-    <Link href="/datenschutz">{de.nav.privacy}</Link>
-    <Link href="/impressum">{de.nav.imprint}</Link>
+  <nav class="footer-links card" aria-label={t.nav.main}>
+    <Link href="/hilfe">{t.nav.help}</Link>
+    <Link href="/datenschutz">{t.nav.privacy}</Link>
+    <Link href="/impressum">{t.nav.imprint}</Link>
+    <a href={DONATION.URL} target="_blank" rel="noopener noreferrer"
+      >{t.nav.donate}<span class="visually-hidden">{` ${t.nav.donateLink}`}</span></a
+    >
     <a class="version" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
-      >v{VERSION}<span class="visually-hidden">{de.app.versionLink}</span></a
+      >v{VERSION}<span class="visually-hidden">{t.app.versionLink}</span></a
     >
   </nav>
 </div>

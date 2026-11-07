@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
+  import LanguageFlag from '../components/LanguageFlag.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
   import { sceneImage } from '../lib/owl-image.ts';
@@ -26,18 +27,18 @@
 
   /** Sections of the logged-in start page (SPEC 8.3). Icons are decorative; text is always shown. */
   const sections = [
-    { href: '/app/briefe', label: de.nav.letters, icon: '✉' },
-    { href: '/app/eulen', label: de.nav.owls, icon: '🦉' },
-    { href: '/app/finanzen', label: de.nav.finance, icon: '⛀' },
-    { href: '/app/menagerie', label: de.nav.menagerie, icon: '⌂' },
-    { href: '/app/adressbuch', label: de.nav.addressBook, icon: '☰' },
-    { href: '/app/karte', label: de.nav.map, icon: '⌖' },
-    { href: '/app/einstellungen', label: de.nav.settings, icon: '⚙' },
-    { href: '/hilfe', label: de.nav.help, icon: '?' },
+    { href: '/app/briefe', label: t.nav.letters, icon: '✉' },
+    { href: '/app/eulen', label: t.nav.owls, icon: '🦉' },
+    { href: '/app/finanzen', label: t.nav.finance, icon: '⛀' },
+    { href: '/app/menagerie', label: t.nav.menagerie, icon: '⌂' },
+    { href: '/app/adressbuch', label: t.nav.addressBook, icon: '☰' },
+    { href: '/app/karte', label: t.nav.map, icon: '⌖' },
+    { href: '/app/einstellungen', label: t.nav.settings, icon: '⚙' },
+    { href: '/hilfe', label: t.nav.help, icon: '?' },
   ] as const;
 
   const bottomNav = [
-    { href: '/app', label: de.nav.home, icon: '⌂' },
+    { href: '/app', label: t.nav.home, icon: '⌂' },
     sections[0],
     sections[1],
     sections[4],
@@ -52,12 +53,12 @@
   const chatPeer = $derived(
     route.path.startsWith('/app/briefe/') ? route.path.slice('/app/briefe/'.length) : null,
   );
-  const newsTexts = de.news as Record<string, string>;
+  const newsTexts = t.news as Record<string, string>;
   /** Unread letters and system messages: "Neue Post!" in the top bar (v0.2). */
   const unread = $derived(
     live.chats.reduce((sum, chat) => sum + chat.unread, 0) + live.systemUnread,
   );
-  const newPostLetters = Array.from(de.app.newPost);
+  const newPostLetters = Array.from(t.app.newPost);
 
   // News are shown once on the overview and then removed (SPEC 8.3, 11.5).
   $effect(() => {
@@ -77,9 +78,9 @@
 <div class="shell">
   <header class="topbar">
     <p class="brand-line">
-      <Link href="/app" class="brand">{de.app.name}</Link>
+      <Link href="/app" class="brand">{t.app.name}</Link>
       {#if route.path === '/app'}<span class="version"
-          >{fill(de.app.version, { version: VERSION })}</span
+          >{fill(t.app.version, { version: VERSION })}</span
         >{/if}
     </p>
     {#if unread > 0}
@@ -90,21 +91,24 @@
             >{#each newPostLetters as letter, index (index)}<span>{letter}</span>{/each}</span
           >
           <span class="visually-hidden"
-            >{de.app.newPost} {fill(de.app.newPostCount, { count: unread })}</span
+            >{t.app.newPost} {fill(t.app.newPostCount, { count: unread })}</span
           >
         </Link>
       {/key}
     {/if}
-    <p class="gold">
-      <span aria-hidden="true">⛀</span>
-      <span>{de.units.gold(account.profile?.gold ?? 0)}</span>
-    </p>
+    <div class="topbar-end">
+      <p class="gold">
+        <span aria-hidden="true">⛀</span>
+        <span>{t.units.gold(account.profile?.gold ?? 0)}</span>
+      </p>
+      <LanguageFlag onwood />
+    </div>
   </header>
   {#if live.pushState !== 'confirmed' && !account.pushHintHidden}
     <p class="push-hint">
-      <Link href="/app/einstellungen">{de.push.headerHint}</Link>
+      <Link href="/app/einstellungen">{t.push.headerHint}</Link>
       <button class="hide-hint" type="button" onclick={() => setPushHintHidden(true)}
-        >{de.push.headerHide}</button
+        >{t.push.headerHide}</button
       >
     </p>
   {/if}
@@ -112,11 +116,11 @@
   <div class="content">
     {#if account.notice === 'deletionCancelled'}
       <p class="notice" role="status">
-        <span aria-hidden="true">ℹ</span><span>{de.start.deletionCancelled}</span>
+        <span aria-hidden="true">ℹ</span><span>{t.start.deletionCancelled}</span>
       </p>
     {/if}
     {#if current}
-      <h1 class="plate">{chatPeer === 'system' ? de.letters.system : current.label}</h1>
+      <h1 class="plate">{chatPeer === 'system' ? t.letters.system : current.label}</h1>
       {#if current.href === '/app/einstellungen'}
         <Settings />
       {:else if chatPeer === 'system'}
@@ -136,13 +140,13 @@
       {:else if current.href === '/app/karte'}
         <MapPage />
       {:else}
-        <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.pages.notFound}</span></p>
+        <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.pages.notFound}</span></p>
       {/if}
     {:else}
-      <h1 class="visually-hidden">{de.nav.home}</h1>
+      <h1 class="visually-hidden">{t.nav.home}</h1>
       {#if live.news.length > 0}
         <section class="news card" aria-labelledby="news-title">
-          <h2 id="news-title">{de.news.title}</h2>
+          <h2 id="news-title">{t.news.title}</h2>
           <ul>
             {#each live.news as item (item.id)}
               <li>
@@ -170,10 +174,10 @@
             <img
               src={group.files['s480']}
               srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
-              sizes="24rem"
+              sizes="30rem"
               width="960"
               height="960"
-              alt={de.start.groupAlt}
+              alt={t.start.groupAlt}
               loading="lazy"
               decoding="async"
             />
@@ -185,7 +189,7 @@
 
   <OwlOverlay />
 
-  <nav class="bottom" aria-label={de.nav.main}>
+  <nav class="bottom" data-bottom-nav aria-label={t.nav.main}>
     {#each bottomNav as item (item.href)}
       <Link href={item.href} class="bottom-item">
         <span class="bottom-icon" aria-hidden="true">{item.icon}</span>
@@ -212,6 +216,20 @@
     padding: 0.5rem 1rem;
     background: var(--wood);
     color: var(--on-wood);
+  }
+
+  .topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  /* v0.4: room for the language flag next to the gold on phones. */
+  @media (max-width: 30rem) {
+    .topbar {
+      gap: 0.25rem;
+      padding-inline: 0.5rem;
+    }
   }
 
   .topbar :global(.brand) {
@@ -382,26 +400,39 @@
   .group img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
     border-radius: var(--radius);
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
   }
 
+  /*
+   * v0.4: tiles and picture share the width half and half and are exactly the same height –
+   * the square picture sets the height, the four rows of tiles stretch to it (and should the
+   * tiles ever need more room, the picture fills it with a minimal crop).
+   */
   @media (min-width: 64rem) {
     .home-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
-      gap: 1.5rem;
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0.75rem;
     }
 
     .home-grid .tiles {
       grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: 1fr;
+    }
+
+    /* Slightly lower tiles, so the square picture sets the height and is not cropped. */
+    .home-grid .tiles :global(.tile) {
+      min-height: 6rem;
     }
 
     .group {
       display: block;
+      height: 100%;
     }
   }
 

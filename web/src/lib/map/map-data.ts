@@ -7,6 +7,8 @@ import maskUrl from '../../../../shared/data/landmask.bin?url';
 export interface Country {
   readonly id: string;
   readonly name: string;
+  /** English name where it differs (v0.4). */
+  readonly nameEn?: string;
   readonly area: number;
   readonly d: string;
   readonly label: readonly [number, number] | null;
@@ -15,6 +17,8 @@ export interface Country {
 /** A city with more than 200 000 inhabitants (`big`: more than one million), largest first. */
 export interface City {
   readonly name: string;
+  /** English name where it differs (v0.4). */
+  readonly nameEn?: string;
   readonly big: boolean;
   readonly x: number;
   readonly y: number;

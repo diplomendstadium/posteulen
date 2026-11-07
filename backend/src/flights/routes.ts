@@ -45,7 +45,7 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
             )
             .map((bot) => ({
               id: bot.id,
-              name: botTitle(bot),
+              name: botTitle(ctx, bot),
               bot: true,
               lat: bot.home_lat / 100,
               lon: bot.home_lon / 100,

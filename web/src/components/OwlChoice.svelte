@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { speciesById } from '@posteulen/shared/game/owls.ts';
   /**
    * Owl selection with the server-computed preview (SPEC 8.4 step 4): energy, speed,
    * arrival per recipient, return home.
    */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
-  import { SPECIES } from '@posteulen/shared/species.ts';
+  import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   import OwlPicture from './OwlPicture.svelte';
   import { dateTime } from '../lib/format.ts';
@@ -17,19 +17,19 @@
     name,
   }: { choices: readonly OwlChoice[]; selected: string | null; name: string } = $props();
 
-  const species = (id: string) => SPECIES.find((s) => s.id === id);
+  const species = (id: string) => speciesById(id);
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ??
     live.bots.find((b) => b.userId === id)?.name ??
-    de.letters.unknown;
+    t.letters.unknown;
 </script>
 
 <fieldset class="choices">
-  <legend>{de.letters.chooseOwl}</legend>
+  <legend>{t.letters.chooseOwl}</legend>
   {#if choices.length === 0}
-    <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.letters.noOwl}</span></p>
+    <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.letters.noOwl}</span></p>
   {:else if choices.every((choice) => choice.offer)}
-    <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.letters.loanOffers}</span></p>
+    <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.letters.loanOffers}</span></p>
   {/if}
   {#each choices as choice (choice.id)}
     <label class="choice" class:chosen={selected === choice.id}>
@@ -37,19 +37,19 @@
       <span class="picture"><OwlPicture speciesId={choice.species} alt="" /></span>
       <span class="text">
         <strong>
-          {fill(de.letters.owlOption, {
+          {fill(t.letters.owlOption, {
             owl: choice.name,
-            species: species(choice.species)?.name ?? choice.species,
+            species: speciesName(choice.species),
             energy: choice.energy,
             max: choice.maxEnergy,
             speed: Math.round(owlSpeedKmh(species(choice.species)?.speedFactor ?? 1)),
           })}
         </strong>
-        {#if choice.offer}<span class="hint offer">{de.letters.loanOfferHint}</span>{/if}
-        {#if choice.kind === 'loan'}<span class="hint">{de.letters.loanHint}</span>{/if}
+        {#if choice.offer}<span class="hint offer">{t.letters.loanOfferHint}</span>{/if}
+        {#if choice.kind === 'loan'}<span class="hint">{t.letters.loanHint}</span>{/if}
         {#each choice.arrivals as arrival (arrival.recipientId)}
           <span
-            >{fill(de.letters.arrival, {
+            >{fill(t.letters.arrival, {
               name: nameOf(arrival.recipientId),
               time: dateTime(arrival.at),
             })}</span
@@ -57,8 +57,8 @@
         {/each}
         <span>
           {choice.returnsAt === null
-            ? de.letters.noReturn
-            : fill(de.letters.returnsAt, { time: dateTime(choice.returnsAt) })}
+            ? t.letters.noReturn
+            : fill(t.letters.returnsAt, { time: dateTime(choice.returnsAt) })}
         </span>
       </span>
     </label>

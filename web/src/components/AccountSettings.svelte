@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Name, home and deletion (SPEC 7.3–7.5, 8.10). */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill, locale, decimal } from '../lib/i18n.svelte.ts';
   import { isLand } from '@posteulen/shared/map/landmask.ts';
   import ErrorText from './ErrorText.svelte';
   import MapView from './MapView.svelte';
@@ -27,7 +27,7 @@
   const homeBlocked = $derived((profile?.homeChangesLeft ?? 0) <= 0);
   const homeFrom = $derived(
     profile
-      ? new Intl.DateTimeFormat('de-DE', { dateStyle: 'long' }).format(
+      ? new Intl.DateTimeFormat(locale(), { dateStyle: 'long' }).format(
           new Date(`${profile.homeChangeFrom}T00:00:00Z`),
         )
       : '',
@@ -50,7 +50,7 @@
       async () => {
         nameError = null;
         await changeName(name.trim());
-        nameDone = fill(de.settings.nameChanged, { name: account.profile?.name ?? '' });
+        nameDone = fill(t.settings.nameChanged, { name: account.profile?.name ?? '' });
         name = '';
       },
       (message) => (nameError = message),
@@ -63,7 +63,7 @@
       lon: Math.round(position.lon * 100) / 100,
     };
     if (!isLand(await landMask(), rounded.lat, rounded.lon)) {
-      homeError = de.errors.home_invalid;
+      homeError = t.errors.home_invalid;
       home = null;
       return;
     }
@@ -86,21 +86,21 @@
     run(
       async () => {
         deleteError = null;
-        if (!confirm(de.settings.deleteConfirm)) return;
+        if (!confirm(t.settings.deleteConfirm)) return;
         const outcome = await deleteAccount(password);
         if (outcome === 'ok') navigate('/', true);
-        else if (outcome === 'wrong') deleteError = de.settings.wrongOld;
-        else deleteError = fill(de.start.wait, { seconds: outcome.wait });
+        else if (outcome === 'wrong') deleteError = t.settings.wrongOld;
+        else deleteError = fill(t.start.wait, { seconds: outcome.wait });
       },
       (message) => (deleteError = message),
     );
 </script>
 
 <section class="card" aria-labelledby="name-title">
-  <h2 id="name-title">{de.settings.nameTitle}</h2>
-  <p>{de.settings.nameIntro}</p>
+  <h2 id="name-title">{t.settings.nameTitle}</h2>
+  <p>{t.settings.nameIntro}</p>
   {#if nameBlocked}
-    <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.settings.nameBlocked}</span></p>
+    <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.settings.nameBlocked}</span></p>
   {:else}
     <form
       onsubmit={(event) => {
@@ -108,7 +108,7 @@
         void saveName();
       }}
     >
-      <label for="new-name">{de.settings.newName}</label>
+      <label for="new-name">{t.settings.newName}</label>
       <input
         id="new-name"
         type="text"
@@ -119,7 +119,7 @@
       />
       <ErrorText message={nameError} />
       <button class="button" type="submit" disabled={busy || !status.online}
-        >{de.settings.nameSave}</button
+        >{t.settings.nameSave}</button
       >
     </form>
   {/if}
@@ -129,16 +129,16 @@
 </section>
 
 <section class="card" aria-labelledby="home-title">
-  <h2 id="home-title">{de.settings.homeTitle}</h2>
-  <p>{de.settings.homeIntro}</p>
+  <h2 id="home-title">{t.settings.homeTitle}</h2>
+  <p>{t.settings.homeIntro}</p>
   {#if homeBlocked}
     <p class="notice">
       <span aria-hidden="true">ℹ</span><span
-        >{fill(de.settings.homeBlocked, { date: homeFrom })}</span
+        >{fill(t.settings.homeBlocked, { date: homeFrom })}</span
       >
     </p>
   {:else}
-    <p>{fill(de.settings.homeLeft, { count: profile?.homeChangesLeft ?? 0 })}</p>
+    <p>{fill(t.settings.homeLeft, { count: profile?.homeChangesLeft ?? 0 })}</p>
     <MapView onpick={(position) => void pick(position)}>
       {#snippet markers(toSvg, scale)}
         {#if profile}
@@ -159,9 +159,9 @@
     </MapView>
     {#if home}
       <p role="status">
-        {fill(de.register.homeChosen, {
-          lat: home.lat.toFixed(2).replace('.', ','),
-          lon: home.lon.toFixed(2).replace('.', ','),
+        {fill(t.register.homeChosen, {
+          lat: decimal(home.lat, 2),
+          lon: decimal(home.lon, 2),
         })}
       </p>
     {/if}
@@ -170,17 +170,17 @@
       class="button"
       type="button"
       disabled={!home || busy || !status.online}
-      onclick={() => void saveHome()}>{de.settings.homeSave}</button
+      onclick={() => void saveHome()}>{t.settings.homeSave}</button
     >
   {/if}
   {#if homeDone}<p class="notice" role="status">
-      <span aria-hidden="true">✔</span><span>{de.settings.homeChanged}</span>
+      <span aria-hidden="true">✔</span><span>{t.settings.homeChanged}</span>
     </p>{/if}
 </section>
 
 <section class="card" aria-labelledby="delete-title">
-  <h2 id="delete-title">{de.settings.deleteTitle}</h2>
-  <p>{de.settings.deleteIntro}</p>
+  <h2 id="delete-title">{t.settings.deleteTitle}</h2>
+  <p>{t.settings.deleteIntro}</p>
   <form
     onsubmit={(event) => {
       event.preventDefault();
@@ -189,13 +189,13 @@
   >
     <PasswordInput
       id="delete-password"
-      label={de.settings.deletePassword}
+      label={t.settings.deletePassword}
       autocomplete="current-password"
       bind:value={password}
     />
     <ErrorText message={deleteError} />
     <button class="button danger" type="submit" disabled={busy || !password || !status.online}
-      >{de.settings.deleteButton}</button
+      >{t.settings.deleteButton}</button
     >
   </form>
 </section>

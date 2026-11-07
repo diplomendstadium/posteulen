@@ -282,9 +282,17 @@ for (const [feature, id] of [
     id,
     area: Math.round(Math.abs(area) / 2),
     name: String(props['NAME_DE'] ?? props['NAME']),
+    // v0.4: English name for the English view, only where it differs.
+    ...englishName(String(props['NAME_DE'] ?? props['NAME']), props['NAME_EN'] ?? props['NAME']),
     d: pathOf(rings, tolerance),
     label: label ? [Number(label.x.toFixed(1)), Number((-label.y).toFixed(1))] : null,
   });
+}
+
+/** `{ nameEn }` if the English name differs from the German one (v0.4), else nothing. */
+function englishName(german: string, english: unknown): { nameEn?: string } {
+  const name = typeof english === 'string' ? english.trim() : '';
+  return name !== '' && name !== german ? { nameEn: name } : {};
 }
 
 // ── Städte (v0.2): über 200 000 Einwohner im Ausschnitt, größte zuerst ──
@@ -309,6 +317,10 @@ const outCities = places
     return [
       {
         name: String(place.properties['NAME_DE'] || place.properties['NAME']),
+        ...englishName(
+          String(place.properties['NAME_DE'] || place.properties['NAME']),
+          place.properties['NAME_EN'] || place.properties['NAME'],
+        ),
         population,
         x: Number(p.x.toFixed(1)),
         y: Number((-p.y).toFixed(1)),
@@ -318,6 +330,7 @@ const outCities = places
   .sort((a, b) => b.population - a.population || a.name.localeCompare(b.name, 'de'))
   .map((city) => ({
     name: city.name,
+    ...(city.nameEn ? { nameEn: city.nameEn } : {}),
     big: city.population > MAP.CITY_BIG_POPULATION,
     x: city.x,
     y: city.y,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill, decimal } from '../lib/i18n.svelte.ts';
   import { checkPassword, checkUserName } from '@posteulen/shared/names.ts';
   import { isLand } from '@posteulen/shared/map/landmask.ts';
   import Link from '../components/Link.svelte';
@@ -40,7 +40,7 @@
     // Instant feedback from the land mask; the server checks again (SPEC 12.3).
     if (!isLand(await mask, rounded.lat, rounded.lon)) {
       home = null;
-      homeError = de.register.homeWater;
+      homeError = t.register.homeWater;
       return;
     }
     homeError = null;
@@ -50,13 +50,13 @@
   function localError(): string | null {
     const checked = checkUserName(name);
     if (typeof checked === 'string')
-      return (de.errors as Record<string, string>)[`name_${checked}`] ?? de.errors.bad_request;
+      return (t.errors as Record<string, string>)[`name_${checked}`] ?? t.errors.bad_request;
     const passwordError = checkPassword(password);
-    if (passwordError === 'too_short') return de.register.tooShort;
-    if (passwordError === 'too_long') return de.register.tooLong;
-    if (password !== repeat) return de.register.mismatch;
-    if (!home) return de.register.homeMissing;
-    if (!confirmed) return de.register.confirmRequired;
+    if (passwordError === 'too_short') return t.register.tooShort;
+    if (passwordError === 'too_long') return t.register.tooLong;
+    if (password !== repeat) return t.register.mismatch;
+    if (!home) return t.register.homeMissing;
+    if (!confirmed) return t.register.confirmRequired;
     return null;
   }
 
@@ -65,11 +65,11 @@
     if (busy || !status.online) return;
     error = localError();
     if (error || !home) return;
-    busy = de.register.stepCaptcha;
+    busy = t.register.stepCaptcha;
     try {
       await register(
         { name, password, home, ...(mode === 'invite' ? { inviteCode } : {}) },
-        (step) => (busy = step === 'captcha' ? de.register.stepCaptcha : de.register.stepKeys),
+        (step) => (busy = step === 'captcha' ? t.register.stepCaptcha : t.register.stepKeys),
       );
       password = '';
       repeat = '';
@@ -83,19 +83,19 @@
 </script>
 
 <div class="page">
-  <p class="plate"><Link href="/" class="back">← {de.app.back}</Link></p>
-  <h1 class="plate">{de.register.title}</h1>
+  <p class="plate"><Link href="/" class="back">← {t.app.back}</Link></p>
+  <h1 class="plate">{t.register.title}</h1>
 
   {#if mode === 'closed'}
     <p class="notice" role="status">
-      <span aria-hidden="true">🔒</span><span>{de.register.closed}</span>
+      <span aria-hidden="true">🔒</span><span>{t.register.closed}</span>
     </p>
   {:else if mode !== null}
     <form class="card" onsubmit={submit} novalidate>
       {#if mode === 'invite'}
-        <p class="notice"><span aria-hidden="true">✉</span><span>{de.register.inviteOnly}</span></p>
+        <p class="notice"><span aria-hidden="true">✉</span><span>{t.register.inviteOnly}</span></p>
         <div class="field">
-          <label for="invite">{de.register.inviteCode}</label>
+          <label for="invite">{t.register.inviteCode}</label>
           <input
             id="invite"
             type="text"
@@ -106,7 +106,7 @@
         </div>
       {/if}
       <div class="field">
-        <label for="reg-name">{de.register.userName}</label>
+        <label for="reg-name">{t.register.userName}</label>
         <input
           id="reg-name"
           type="text"
@@ -115,25 +115,25 @@
           bind:value={name}
           aria-describedby="reg-name-hint"
         />
-        <p class="hint" id="reg-name-hint">{de.register.userNameHint}</p>
+        <p class="hint" id="reg-name-hint">{t.register.userNameHint}</p>
       </div>
       <PasswordInput
         id="reg-password"
-        label={de.register.password}
+        label={t.register.password}
         autocomplete="new-password"
-        hint={de.register.passwordHint}
+        hint={t.register.passwordHint}
         bind:value={password}
       />
       <PasswordInput
         id="reg-repeat"
-        label={de.register.passwordRepeat}
+        label={t.register.passwordRepeat}
         autocomplete="new-password"
         bind:value={repeat}
       />
 
       <fieldset class="field">
-        <legend>{de.register.home}</legend>
-        <p class="hint">{de.register.homeHint}</p>
+        <legend>{t.register.home}</legend>
+        <p class="hint">{t.register.homeHint}</p>
         <MapView onpick={(position) => void pick(position)}>
           {#snippet markers(toSvg, scale)}
             {#if home}
@@ -144,9 +144,9 @@
         </MapView>
         {#if home}
           <p class="chosen" role="status">
-            {fill(de.register.homeChosen, {
-              lat: home.lat.toFixed(2).replace('.', ','),
-              lon: home.lon.toFixed(2).replace('.', ','),
+            {fill(t.register.homeChosen, {
+              lat: decimal(home.lat, 2),
+              lon: decimal(home.lon, 2),
             })}
           </p>
         {/if}
@@ -155,12 +155,12 @@
 
       <div class="confirm">
         <input id="confirm" type="checkbox" bind:checked={confirmed} />
-        <label for="confirm">{de.register.warning}</label>
+        <label for="confirm">{t.register.warning}</label>
       </div>
 
       <ErrorText message={error} />
       <button class="button" type="submit" disabled={busy !== null || !status.online}
-        >{de.register.submit}</button
+        >{t.register.submit}</button
       >
       {#if busy}<p class="notice" role="status">
           <span aria-hidden="true">⏳</span><span>{busy}</span>

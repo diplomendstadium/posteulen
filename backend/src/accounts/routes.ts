@@ -5,6 +5,7 @@ import { checkUserName } from '@posteulen/shared/names.ts';
 import {
   AccountDelete,
   HomeChange,
+  LanguageSetting,
   NameChange,
   LetterSettings,
 } from '@posteulen/shared/schemas/auth.ts';
@@ -124,6 +125,16 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
   });
 
   /** Deletion with a fresh password check; logout at once, 24 hours to change one's mind (7.5). */
+  /** Preferred language (v0.4): the settings and the flag in the top right corner. */
+  app.patch('/api/account/language', { preHandler: authenticated }, async (request) => {
+    const body = parse(LanguageSetting, request.body);
+    const me = userOf(request).id;
+    ctx.db.run('UPDATE users SET language = ? WHERE id = ?', body.language, me);
+    // Bot names (aunt/uncle) and loan owl names follow the language.
+    ctx.hub.notify(me, 'profile', 'contacts', 'owls', 'map');
+    return { profile: profileOf(ctx, me) };
+  });
+
   app.post('/api/account/delete', { preHandler: authenticated }, async (request, reply) => {
     const body = parse(AccountDelete, request.body);
     const me = userOf(request).id;

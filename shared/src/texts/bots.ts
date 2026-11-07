@@ -3,7 +3,10 @@
  * friendly, simple. They contain no names of the user on purpose – the bot chats are sent to
  * OpenAI as context, and requests must not carry names (SPEC 10.5).
  * Placeholders: {aunt}, {uncle} (first names of the bots).
+ * v0.4: the English letters live in bots-en.ts; `botLetters()` picks by language.
  */
+import { BOT_LETTERS_EN } from './bots-en.ts';
+
 export const BOT_TITLES = {
   explainer: 'Erklärbär',
   aunt: 'Tante {name}',
@@ -15,7 +18,7 @@ export const EXPLAINER_LETTERS = {
 
 Ich bin der Erklärbär und schreibe dir in den nächsten Tagen ein paar kurze Briefe.
 
-Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber jeden Tag gibt es 1 Gold dazu. Bis dahin leihst du dir für 0,1 Gold eine Leiheule – in der Menagerie oder direkt beim Briefschreiben.
+Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber in deinen ersten 30 Tagen gibt es jeden Tag 3 Gold dazu, danach 2 Gold. Bis dahin leihst du dir für 0,1 Gold eine Leiheule – in der Menagerie oder direkt beim Briefschreiben.
 
 Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
 
@@ -43,6 +46,8 @@ Bis bald, dein Erklärbär`,
 In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Gold kannst du per Eule an Kontakte schicken.
 
 In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort drei neue Leiheulen, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+
+Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück.
 
 Viel Spaß beim Sparen, dein Erklärbär`,
   day4: `Hallo, heute geht es um Kontakte!
@@ -98,3 +103,22 @@ Die Ziege behalte ich. Vom Gold bekommt die ganze Familie etwas ab, du also 10 G
 
 Dein Onkel {uncle}`,
 } as const;
+
+export type BotLetters = {
+  readonly titles: Readonly<Record<'explainer' | 'aunt' | 'uncle', string>>;
+  readonly explainer: Readonly<Record<keyof typeof EXPLAINER_LETTERS, string>>;
+  readonly aunt: Readonly<Record<keyof typeof AUNT_LETTERS, string>>;
+  readonly uncle: Readonly<Record<keyof typeof UNCLE_LETTERS, string>>;
+};
+
+const GERMAN: BotLetters = {
+  titles: BOT_TITLES,
+  explainer: EXPLAINER_LETTERS,
+  aunt: AUNT_LETTERS,
+  uncle: UNCLE_LETTERS,
+};
+
+/** Fixed letters and titles in the language of the account (v0.4). */
+export function botLetters(language: 'de' | 'en'): BotLetters {
+  return language === 'en' ? BOT_LETTERS_EN : GERMAN;
+}

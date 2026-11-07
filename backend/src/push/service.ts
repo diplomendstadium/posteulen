@@ -119,9 +119,11 @@ export class PushService {
       endpoint: string;
       p256dh: string;
       auth: string;
+      language: string;
     }>(
-      `SELECT n.user_id, n.type, s.endpoint, s.p256dh, s.auth
+      `SELECT n.user_id, n.type, s.endpoint, s.p256dh, s.auth, u.language
          FROM notifications n JOIN push_subscriptions s ON s.user_id = n.user_id
+         JOIN users u ON u.id = n.user_id
         WHERE n.id = ? AND n.push_state = 'pending'`,
       notificationId,
     );
@@ -130,7 +132,8 @@ export class PushService {
     try {
       result = await this.sender(
         row,
-        JSON.stringify({ id: notificationId, type: row.type }),
+        // v0.4: the service worker shows the text in the account's language.
+        JSON.stringify({ id: notificationId, type: row.type, lang: row.language }),
         this.vapid,
       );
     } catch {

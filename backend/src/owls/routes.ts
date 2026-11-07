@@ -213,10 +213,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       .filter(isReady)
       .map((owl) => owl.id);
     // No owl ready: the loan owls of the day, borrowed only on sending (8.4 step 4, 9.6).
+    // Since v0.4 also for several recipients.
     const offers =
-      own.length === 0 &&
-      body.recipients.length === 1 &&
-      canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
+      own.length === 0 && canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
         ? offerOf(ctx, utcDay(now))
             .filter((species) => loanProblem(ctx, me, species, now) === null)
             .map((species) => `${LOAN_REF_PREFIX}${species}`)

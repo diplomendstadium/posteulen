@@ -1,6 +1,6 @@
 <script lang="ts">
   /** One chick of two or three must be given away within 24 hours (SPEC 9.9). */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import CoverInput from './CoverInput.svelte';
   import ErrorText from './ErrorText.svelte';
   import { giftChick, type Clutch, type Owl } from '../lib/owls.ts';
@@ -22,21 +22,21 @@
   const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
   const chosen = $derived(chicks.find((chick) => chick.id === chickId));
   const nameOf = (id: string): string =>
-    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
+    live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
 
   async function send(): Promise<void> {
     if (!chosen || !recipient || busy) return;
-    if (chosen.name === null) return void (error = de.owls.clutchNameFirst);
+    if (chosen.name === null) return void (error = t.owls.clutchNameFirst);
     busy = true;
     error = null;
     try {
       await giftChick(clutch.id, chosen.id, recipient, cover);
-      showOwlImage(chosen.species, 'chick', fill(de.owls.departs, { name: chosen.name }));
+      showOwlImage(chosen.species, 'chick', fill(t.owls.departs, { name: chosen.name }));
       ondone();
     } catch (caught) {
       error =
         caught instanceof KeyMismatchError
-          ? fill(de.contacts.keyWarningLong, { name: nameOf(caught.message) })
+          ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
           : errorMessage(caught);
     } finally {
       busy = false;
@@ -45,24 +45,24 @@
 </script>
 
 <section class="card clutch" aria-labelledby={`clutch-${clutch.id}`}>
-  <h2 id={`clutch-${clutch.id}`}>{de.owls.clutchTitle}</h2>
-  <p>{fill(de.owls.clutchIntro, { until: dateTime(clutch.giftDeadline) })}</p>
+  <h2 id={`clutch-${clutch.id}`}>{t.owls.clutchTitle}</h2>
+  <p>{fill(t.owls.clutchIntro, { until: dateTime(clutch.giftDeadline) })}</p>
   <form
     onsubmit={(event) => {
       event.preventDefault();
       void send();
     }}
   >
-    <label for={`clutch-chick-${clutch.id}`}>{de.owls.clutchChick}</label>
+    <label for={`clutch-chick-${clutch.id}`}>{t.owls.clutchChick}</label>
     <select id={`clutch-chick-${clutch.id}`} bind:value={chickId} required>
-      <option value="">{de.letters.choose}</option>
+      <option value="">{t.letters.choose}</option>
       {#each chicks as chick (chick.id)}
-        <option value={chick.id}>{chick.name ?? de.owls.unnamed}</option>
+        <option value={chick.id}>{chick.name ?? t.owls.unnamed}</option>
       {/each}
     </select>
-    <label for={`clutch-to-${clutch.id}`}>{de.owls.giftTo}</label>
+    <label for={`clutch-to-${clutch.id}`}>{t.owls.giftTo}</label>
     <select id={`clutch-to-${clutch.id}`} bind:value={recipient} required>
-      <option value="">{de.letters.choose}</option>
+      <option value="">{t.letters.choose}</option>
       {#each contacts as contact (contact.userId)}<option value={contact.userId}
           >{contact.name}</option
         >{/each}
@@ -70,7 +70,7 @@
     <CoverInput bind:value={cover} id={`clutch-cover-${clutch.id}`} />
     <ErrorText message={error} />
     <button class="button" type="submit" disabled={busy || !chickId || !recipient || !status.online}
-      >{de.owls.giftSend}</button
+      >{t.owls.giftSend}</button
     >
   </form>
 </section>

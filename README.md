@@ -2,6 +2,8 @@
 
 **Briefe, die eine Eule bringt.** Eine laufende Instanz wohnt unter **[posteulen.de](https://posteulen.de)** – schau gern vorbei.
 
+🇬🇧 *This README in English: [README.en.md](README.en.md)*
+
 ---
 
 ## Teil 1: Für alle, die gern Post bekommen
@@ -14,7 +16,7 @@ Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? Pos
 
 Du kaufst oder leihst dir Eulen, gibst ihnen Namen, fütterst und streichelst sie. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu, und jede erzählt dort ein bisschen über ihren Charakter. Gut umsorgte Eulen werden seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Kommt sie heim, wartet sie auf dem Fensterbrett.
 
-Gold gibt es jeden Tag ein bisschen, und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
+Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
 
 ### Spiel? Messenger? Beides – und zwar ernsthaft sicher.
 
@@ -32,7 +34,9 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Briefe sind vergänglich.** Alle Briefe werden spätestens **ein Jahr** nach der Zustellung automatisch und unwiderruflich gelöscht. Wer mag, stellt in den Einstellungen 30, 90 oder 180 Tage ein. Was bleiben soll, schreibt man sich besser ab – wie früher.
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
-- **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen). Niemand muss, alle dürfen.
+- **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg.
+- **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
+- **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen.
 
 ### Ein guter erster Messenger für Kinder
 
@@ -72,7 +76,7 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.3.2**.
+Stand: **Version 0.4.0**.
 
 **Kurzfassung**
 
@@ -230,7 +234,7 @@ sudo posteulen-update v0.3.0      # spielt eine bestimmte Version ein
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → starten → Funktionsprüfung. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden.
 
-Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal eine Systemnachricht, die die Neuerungen in einfachen Worten erklärt (ohne Push-Benachrichtigung). Wer Versionen überspringt, bekommt die Nachrichten aller übersprungenen Versionen. Eine frische Installation verschickt nichts. Die Texte stehen in `shared/src/texts/messages.ts`; zu jeder neuen Version gehört dort ein neuer Eintrag.
+Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal eine Systemnachricht, die die Neuerungen in einfachen Worten erklärt (ohne Push-Benachrichtigung). Wer Versionen überspringt, bekommt die Nachrichten aller übersprungenen Versionen. Eine frische Installation verschickt nichts. Die Texte stehen in `shared/src/texts/messages.ts` (Deutsch und Englisch); zu jeder neuen Version gehört dort ein neuer Eintrag. Die Nachricht erscheint in der Sprache, die der Nutzer gerade eingestellt hat.
 
 Außerdem bekommt jedes Konto alle fünf Wochen nach der Registrierung eine freundliche Bitte um eine freiwillige Spende an das Projekt ([ko-fi.com/posteulen](https://ko-fi.com/posteulen)), drei Texte reihum. Das gehört zum Projekt und ist auf jeder Instanz gleich.
 
@@ -281,7 +285,7 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte. Die
 
 ### 9. Datenschutzerklärung und Impressum
 
-Datenschutzerklärung (`/datenschutz`) und Impressum (`/impressum`) liegen als Standardtexte des Projekts in der App. Wer eine eigene Instanz betreibt, passt sie selbst an seinen Betrieb an und ist dafür verantwortlich. Die Texte stehen in `shared/src/texts/legal.ts`: im eigenen Repository ändern, committen, eine neue Version taggen und mit `sudo posteulen-update` einspielen. (Direkt auf dem Server geänderte Dateien überschreibt das nächste Update.)
+Datenschutzerklärung (`/datenschutz`) und Impressum (`/impressum`) liegen als Standardtexte des Projekts in der App, auf Deutsch und Englisch. Wer eine eigene Instanz betreibt, passt sie selbst an seinen Betrieb an und ist dafür verantwortlich. Die Texte stehen in `shared/src/texts/legal.ts` (Deutsch) und `shared/src/texts/legal-en.ts` (Englisch): im eigenen Repository ändern, committen, eine neue Version taggen und mit `sudo posteulen-update` einspielen. (Direkt auf dem Server geänderte Dateien überschreibt das nächste Update.)
 
 Wer die Bots nutzt, überträgt Briefe an Bots an OpenAI. Dafür ggf. die Datenverarbeitungsbedingungen von OpenAI (Data Processing Addendum) abschließen.
 

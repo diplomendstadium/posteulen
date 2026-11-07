@@ -269,11 +269,13 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     expect((await preview(anna, [ben.id])).map((o) => o.id)).not.toContain(chosen.id);
   });
 
-  it('no offers with a ready owl, for several recipients or without enough gold', async () => {
+  it('no offers with a ready owl or without enough gold; several recipients are fine (v0.4)', async () => {
     const carla = await person(app, 'Carla');
     await couple(anna, carla);
     setGold(app, anna, 200);
-    expect(await preview(anna, [ben.id, carla.id])).toEqual([]);
+    const several = await preview(anna, [ben.id, carla.id]);
+    expect(several).toHaveLength(3);
+    expect(several.every((choice) => choice.offer)).toBe(true);
     setGold(app, anna, 0);
     expect(await preview(anna, [ben.id])).toEqual([]);
     setGold(app, anna, 200);

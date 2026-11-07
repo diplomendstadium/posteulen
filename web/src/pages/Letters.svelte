@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import Link from '../components/Link.svelte';
   import { dateTime } from '../lib/format.ts';
   import { live } from '../lib/live.svelte.ts';
@@ -9,9 +9,9 @@
   <li>
     <Link href="/app/briefe/system" class="chat pinned">
       <span class="icon" aria-hidden="true">📌</span>
-      <span class="who">{de.letters.system}</span>
+      <span class="who">{t.letters.system}</span>
       {#if live.systemUnread > 0}<span class="badge"
-          >{fill(de.letters.unread, { count: live.systemUnread })}</span
+          >{fill(t.letters.unread, { count: live.systemUnread })}</span
         >{/if}
     </Link>
   </li>
@@ -19,18 +19,18 @@
     <li>
       <Link href={`/app/briefe/${chat.peerId}`} class="chat">
         <span class="icon" aria-hidden="true">{chat.peerKind === 'bot' ? '🤖' : '✉'}</span>
-        <span class="who name">{chat.name ?? de.letters.unknown}</span>
-        {#if chat.peerKind === 'bot'}<span class="bot-label">{de.bots.label}</span>{/if}
+        <span class="who name">{chat.name ?? t.letters.unknown}</span>
+        {#if chat.peerKind === 'bot'}<span class="bot-label">{t.bots.label}</span>{/if}
         <span class="when">{dateTime(chat.lastActivityAt)}</span>
         {#if chat.unread > 0}<span class="badge"
-            >{fill(de.letters.unread, { count: chat.unread })}</span
+            >{fill(t.letters.unread, { count: chat.unread })}</span
           >{/if}
       </Link>
     </li>
   {/each}
 </ul>
 {#if live.chats.length === 0}<p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{de.letters.none}</span>
+    <span aria-hidden="true">ℹ</span><span>{t.letters.none}</span>
   </p>{/if}
 
 <style>

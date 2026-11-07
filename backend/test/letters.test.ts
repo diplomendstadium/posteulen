@@ -297,20 +297,40 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     await couple(anna, clara);
     setGold(app, anna, 100);
     const owl = await buyOwl(app, anna);
-    // A loan owl carries only one letter (9.6).
-    expect((await send(anna, [clara, ben], 'Rundbrief', 'large')).body).toMatchObject({
-      code: 'owl_recipients',
-    });
+    // Since v0.4 a loan owl flies to several recipients as well, without a way home (9.6).
+    const loaned = await send(anna, [clara, ben], 'Rundbrief', 'large');
+    expect(loaned.status).toBe(200);
+    expect(arrival(loaned, 1)).toBeGreaterThan(arrival(loaned, 0));
+    expect(loaned.body).toMatchObject({ returnsAt: null });
     const sent = await send(anna, [clara, ben], 'Rundbrief', 'large', owl);
     expect(sent.status).toBe(200);
     expect(arrival(sent, 1)).toBeGreaterThan(arrival(sent, 0));
     expect(sent.body).toMatchObject({ returnsAt: expect.any(Number) });
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      100 - 60 - 1 - 1, // owl, large parchment, the loan owl of the refused attempt
+      100 - 60 - 1 - 1 - 1, // owl, large parchment twice, the loan owl (once for both letters)
     );
     // Only letters between people (Clara's bots write to her as well).
     const ids = app.db.all<{ id: string }>('SELECT id FROM letters WHERE ciphertext IS NOT NULL');
-    expect(new Set(ids.map((r) => r.id)).size).toBe(2);
+    expect(new Set(ids.map((r) => r.id)).size).toBe(4);
+  });
+
+  it('a loan owl skips a recipient who removed the contact and flies on (v0.4, 9.5)', async () => {
+    const clara = await person(app, 'Clara', { lat: 52.38, lon: 9.73 });
+    await couple(anna, clara);
+    setGold(app, anna, 100);
+    const sent = await send(anna, [clara, ben], 'Rundbrief');
+    expect(sent.status).toBe(200);
+    await clara.agent.json('DELETE', `/api/contacts/${anna.id}`);
+    const flight = app.db.get<{ state: string; owl_id: string }>(
+      "SELECT state, owl_id FROM flights WHERE holder_id = ? AND owl_kind = 'loan'",
+      anna.id,
+    );
+    expect(flight?.state).toBe('active');
+    advanceTo(app, app.clock.now + 3 * TIME.DAY);
+    const [read] = await readAll(ben, anna, anna);
+    expect(read?.opened).toMatchObject({ ok: true, text: 'Rundbrief' });
+    // Gone after the last delivery.
+    expect(app.db.get('SELECT id FROM owls WHERE id = ?', flight!.owl_id)).toBeUndefined();
   });
 
   it('rejects wrong lengths, foreign tokens and non-contacts', async () => {
@@ -523,7 +543,11 @@ describe('push (SPEC 11.3, 11.4)', () => {
     expect(put.status).toBe(200);
     await app.ctx.push.idle();
     expect(app.pushes).toHaveLength(1);
-    expect(JSON.parse(app.pushes[0]!.payload)).toEqual({ id: put.body.testId, type: 'push_test' });
+    expect(JSON.parse(app.pushes[0]!.payload)).toEqual({
+      id: put.body.testId,
+      type: 'push_test',
+      lang: 'de',
+    });
     expect((await ben.agent.json('GET', '/api/push/status')).body).toMatchObject({
       state: 'testing',
     });

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from '../lib/i18n.svelte.ts';
   import {
     enablePush,
     isIos,
@@ -31,12 +31,12 @@
 
   const label = $derived(
     {
-      confirmed: de.push.stateConfirmed,
-      testing: de.push.stateTesting,
-      unconfirmed: de.push.stateUnconfirmed,
-      none: de.push.stateOff,
-      unavailable: de.push.stateUnavailable,
-      denied: de.push.stateUnavailable,
+      confirmed: t.push.stateConfirmed,
+      testing: t.push.stateTesting,
+      unconfirmed: t.push.stateUnconfirmed,
+      none: t.push.stateOff,
+      unavailable: t.push.stateUnavailable,
+      denied: t.push.stateUnavailable,
     }[pushState],
   );
 
@@ -52,31 +52,31 @@
 </script>
 
 <section class="card" aria-labelledby="push-title">
-  <h2 id="push-title">{de.push.title}</h2>
-  <p>{de.push.intro}</p>
+  <h2 id="push-title">{t.push.title}</h2>
+  <p>{t.push.intro}</p>
   <p role="status"><strong>Status:</strong> <span data-testid="push-state">{label}</span></p>
-  {#if pushState === 'denied'}<p>{de.push.denied}</p>{/if}
-  {#if isIos() && pushState === 'unavailable'}<p>{de.push.iosHint}</p>{/if}
+  {#if pushState === 'denied'}<p>{t.push.denied}</p>{/if}
+  {#if isIos() && pushState === 'unavailable'}<p>{t.push.iosHint}</p>{/if}
   {#if pushSupported()}
     <p class="actions">
       {#if pushState === 'confirmed' || pushState === 'unconfirmed'}
         <button class="button" type="button" disabled={busy} onclick={() => void run(sendTest)}
-          >{de.push.test}</button
+          >{t.push.test}</button
         >
       {/if}
       {#if pushState !== 'confirmed'}
         <button class="button" type="button" disabled={busy} onclick={() => void run(enablePush)}
-          >{de.push.enable}</button
+          >{t.push.enable}</button
         >
       {/if}
     </p>
   {/if}
   {#if failed}
-    <p role="alert"><strong>{de.push.failedTitle}</strong> {de.push.failedHint}</p>
+    <p role="alert"><strong>{t.push.failedTitle}</strong> {t.push.failedHint}</p>
   {/if}
   {#if failed || pushState === 'unavailable' || pushState === 'unconfirmed'}
     <!-- Special cases such as phones without Google services: only in the help (v0.3). -->
-    <p class="help-link"><Link href="/hilfe#benachrichtigungen">{de.push.helpLink}</Link></p>
+    <p class="help-link"><Link href="/hilfe#benachrichtigungen">{t.push.helpLink}</Link></p>
   {/if}
 </section>
 

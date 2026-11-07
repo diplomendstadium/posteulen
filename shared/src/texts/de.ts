@@ -1,6 +1,7 @@
 /**
- * All user-facing German texts (SPEC 1: one central file, translatable later).
- * Keys are English; values are German. Placeholders use {name}.
+ * All user-facing German texts (SPEC 1: one central file). Keys are English; values are
+ * German. Placeholders use {name}. v0.4: the English view has the same keys in en.ts, typed
+ * against `Texts`, so no text can be missing there.
  */
 export const de = {
   app: {
@@ -15,6 +16,18 @@ export const de = {
     version: 'v{version}',
     versionLink: ' – Quelltext auf GitHub',
     skipToContent: 'Zum Inhalt springen',
+  },
+  language: {
+    /** Flag in the top right corner (v0.4): label in the language it switches to. */
+    switchLabel: 'Switch to English',
+    switchTo: 'en',
+    title: 'Sprache',
+    intro:
+      'In welcher Sprache möchtest du PostEulen sehen? Deine Wahl gilt für dieses Konto und auf jedem Gerät, auf dem du dich anmeldest. Auch die Bots schreiben dir dann in dieser Sprache. Umschalten kannst du jederzeit auch mit dem Fähnchen oben rechts.',
+    legend: 'Sprache der App',
+    de: 'Deutsch',
+    en: 'English (Englisch)',
+    saved: 'Gespeichert.',
   },
   start: {
     title: 'Willkommen bei PostEulen',
@@ -211,7 +224,7 @@ export const de = {
     owl: 'Eule: {owl} ({species})',
     owlOption: '{owl} ({species}) – Energie {energy} von {max}, Geschwindigkeit {speed} km/h',
     loanHint:
-      'Leiheule: trägt einen Brief oder Gold an genau einen Empfänger und fliegt nicht zurück.',
+      'Leiheule: trägt einen Brief an bis zu 5 Empfänger (Gold an einen) und fliegt nicht zurück.',
     retentionHint:
       'Briefe werden {period} nach der Zustellung automatisch und unwiderruflich gelöscht (Einstellungen).',
     retentionYear: 'ein Jahr',
@@ -223,7 +236,7 @@ export const de = {
     returnsAt: 'Wieder zu Hause: ca. {time}',
     noReturn: 'Fliegt nicht zurück.',
     noOwl:
-      'Gerade ist keine Eule einsatzbereit. Für mehrere Empfänger brauchst du eine eigene Eule (Menagerie).',
+      'Gerade ist keine Eule einsatzbereit, und heute kannst du keine Leiheule mehr leihen (oder dir fehlen 0,1 Gold). Schau in die Menagerie oder warte, bis eine deiner Eulen zurück ist.',
     coverGold: 'Begleitbrief zu {amount}',
     coverOwl: 'Begleitbrief zur Eule {owl}',
     coverChick: 'Begleitbrief zum Küken {owl}',
@@ -427,7 +440,7 @@ export const de = {
     limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     loanTitle: 'Eulen leihen',
     loanIntro:
-      'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief oder Gold an genau einen Empfänger und verschwindet danach. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung).',
+      'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung).',
     loanCount: 'Heute geliehen: {count} von {max}. Morgen gibt es neue Eulen zum Leihen.',
     loan: '{name} leihen ({species}, {sex})',
     loaned: 'Schon geliehen',
@@ -435,7 +448,9 @@ export const de = {
   },
   finance: {
     balance: 'Dein Gold: {amount}',
-    daily: 'Jeden Tag um {time} Uhr bekommst du 1,0 Gold, solange du aktiv bist.',
+    daily: 'Jeden Tag um {time} Uhr bekommst du {amount}, solange du aktiv bist.',
+    dailyRule:
+      'In den ersten 30 Tagen nach der Kontoerstellung gibt es 3,0 Gold am Tag, danach 2,0 Gold.',
     transactions: 'Letzte Buchungen',
     none: 'Noch keine Buchungen.',
     date: 'Datum',
@@ -509,6 +524,8 @@ export const de = {
     help: 'Hilfe',
     privacy: 'Datenschutz',
     imprint: 'Impressum',
+    donate: 'Spenden',
+    donateLink: '(öffnet ko-fi.com in einem neuen Tab)',
     home: 'Übersicht',
   },
   header: {
@@ -637,8 +654,7 @@ export const de = {
     push_endpoint_invalid: 'Dieser Push-Dienst wird nicht unterstützt.',
     push_not_subscribed: 'Benachrichtigungen sind noch nicht eingerichtet.',
     owl_not_ready: 'Diese Eule ist gerade nicht einsatzbereit.',
-    owl_recipients:
-      'Diese Eule fliegt nur zu einem Empfänger. Für mehrere Empfänger brauchst du eine eigene Eule.',
+    owl_recipients: 'So viele Empfänger kann diese Eule nicht anfliegen (höchstens 5).',
     owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen.',
     owl_not_home: 'Das geht nur, wenn die Eule zu Hause ist.',
@@ -675,7 +691,16 @@ export const de = {
   },
 } as const;
 
-export type Texts = typeof de;
+/** The shape of `de` with plain strings, so other languages can fill it (v0.4). */
+type Widen<T> = T extends string
+  ? string
+  : T extends (...args: infer A) => infer R
+    ? (...args: A) => R
+    : T extends readonly (infer U)[]
+      ? readonly Widen<U>[]
+      : { readonly [K in keyof T]: Widen<T[K]> };
+
+export type Texts = Widen<typeof de>;
 
 /** Replaces `{key}` placeholders. Unknown keys stay visible to make mistakes obvious. */
 export function fill(template: string, values: Readonly<Record<string, string | number>>): string {

@@ -12,7 +12,8 @@ import type { Context } from '../context.ts';
 import { logError } from '../ops/error-log.ts';
 import { utcDay } from '../security/ids.ts';
 import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from './ai.ts';
-import { SUMMARY_PROMPT, SYSTEM_PROMPTS } from './prompts.ts';
+import { SUMMARY_PROMPT, systemPrompt } from './prompts.ts';
+import { languageOf } from '../accounts/language.ts';
 import { botById, dispatchBotLetter, type BotRow } from './service.ts';
 
 /**
@@ -193,7 +194,7 @@ export class BotReplies {
         key,
         model,
         [
-          { role: 'system', content: SYSTEM_PROMPTS[bot.type] },
+          { role: 'system', content: systemPrompt(bot.type, languageOf(ctx, bot.owner_id)) },
           ...(summary
             ? [{ role: 'system' as const, content: `Bisheriger Briefwechsel in Kürze: ${summary}` }]
             : []),

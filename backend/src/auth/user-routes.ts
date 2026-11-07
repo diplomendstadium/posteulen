@@ -2,6 +2,8 @@
  * Registration, login, logout, re-authentication and password change (SPEC 5.2–5.6, 5.10).
  * The server never sees the password or any unencrypted private key.
  */
+import { DEFAULT_LANGUAGE, isLanguage } from '@posteulen/shared/i18n.ts';
+import { dailyWage } from '@posteulen/shared/game/gold.ts';
 import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ACCOUNT, GOLD, TIME } from '@posteulen/shared/constants.ts';
@@ -170,8 +172,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run(
         `INSERT INTO users (id, name_display, name_key, created_on, opaque_record, ed25519_pub, x25519_pub,
                             key_format, wrapped_master_key, private_keys, home_lat, home_lon,
-                            home_changed_on, gold, last_active_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            home_changed_on, gold, last_active_date, language)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         reservation.userId,
         reservation.display,
         reservation.key,
@@ -187,6 +189,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
         today,
         GOLD.START,
         today,
+        body.language ?? DEFAULT_LANGUAGE,
       );
       ctx.db.run(
         "UPDATE stats_counters SET value = value + 1 WHERE key = 'accounts_created_total'",
@@ -474,9 +477,10 @@ export function profileOf(ctx: Context, userId: string) {
     name_changed_year: number | null;
     letter_retention_days: number;
     letters_print: number;
+    language: string;
   }>(
     `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
-            name_changed_year, letter_retention_days, letters_print FROM users WHERE id = ?`,
+            name_changed_year, letter_retention_days, letters_print, language FROM users WHERE id = ?`,
     userId,
   );
   if (!row) throw new HttpError(401, 'unauthorized', { reason: 'no_session' });
@@ -491,5 +495,8 @@ export function profileOf(ctx: Context, userId: string) {
     ...homeChanges(row.home_moves_month, row.home_moves_count, ctx.now()),
     letterRetentionDays: row.letter_retention_days,
     lettersPrint: row.letters_print === 1,
+    language: isLanguage(row.language) ? row.language : DEFAULT_LANGUAGE,
+    // v0.4: today's wage (higher during the first days after registration).
+    dailyGold: dailyWage(row.created_on, ctx.now()),
   };
 }

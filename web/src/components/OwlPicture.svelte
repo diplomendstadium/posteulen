@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from '../lib/i18n.svelte.ts';
   import { owlImage, sceneImage } from '../lib/owl-image.ts';
 
   let {
@@ -34,7 +34,7 @@
   sizes={`${size}px`}
   width={size}
   height={size}
-  alt={image.placeholder ? `${alt} (${de.images.placeholderAlt})` : alt}
+  alt={image.placeholder ? `${alt} (${t.images.placeholderAlt})` : alt}
   loading="lazy"
   decoding="async"
 />

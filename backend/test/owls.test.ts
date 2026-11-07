@@ -644,24 +644,49 @@ describe('owl gifts (SPEC 9.2.7)', () => {
 });
 
 describe('daily gold (SPEC 9.1.1, 4.5)', () => {
-  it('pays 1.0 at 15:00 UTC to active accounts only, once per day, and catches up', async () => {
+  it('pays the daily wage at 15:00 UTC to active accounts only, once per day, and catches up', async () => {
     app.ctx.queue.ensureDailyJobs();
     app.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', '2026-10-01', ben.id);
     advanceTo(app, Date.UTC(2026, 10, 5, 15));
-    expect(gold(anna)).toBe(GOLD.START + 10);
+    expect(gold(anna)).toBe(GOLD.START + GOLD.DAILY);
     expect(gold(ben)).toBe(GOLD.START);
     // The same day again: nothing.
     app.ctx.queue.schedule('daily:daily_gold', 'daily_gold', Date.UTC(2026, 10, 5, 15, 30));
     advanceTo(app, Date.UTC(2026, 10, 5, 16));
-    expect(gold(anna)).toBe(GOLD.START + 10);
+    expect(gold(anna)).toBe(GOLD.START + GOLD.DAILY);
     // Two days of downtime: one payment per missed day.
     advanceTo(app, Date.UTC(2026, 10, 8, 16));
-    expect(gold(anna)).toBe(GOLD.START + 40);
+    expect(gold(anna)).toBe(GOLD.START + 4 * GOLD.DAILY);
     const finance = await anna.agent.json<{ transactions: { type: string; at: number }[] }>(
       'GET',
       '/api/finance',
     );
     expect(finance.body.transactions.filter((t) => t.type === 'daily')).toHaveLength(4);
+  });
+
+  it('pays 3.0 for the first 30 days after registration and 2.0 afterwards (v0.4)', async () => {
+    app.ctx.queue.ensureDailyJobs();
+    const created = app.db.get<{ created_on: string }>(
+      'SELECT created_on FROM users WHERE id = ?',
+      anna.id,
+    )!.created_on;
+    const start = Date.parse(`${created}T00:00:00Z`);
+    // Day 29 after registration (the 30th payment day) still pays the higher wage …
+    app.db.run(
+      'UPDATE users SET gold = 0, last_active_date = ? WHERE id = ?',
+      '2099-01-01',
+      anna.id,
+    );
+    advanceTo(app, start + 29 * TIME.DAY + 16 * TIME.HOUR);
+    const before = gold(anna);
+    advanceTo(app, start + 30 * TIME.DAY + 16 * TIME.HOUR);
+    // … day 30 pays the lower one.
+    expect(gold(anna) - before).toBe(GOLD.DAILY_LATER);
+    const last = app.db.get<{ amount: number }>(
+      "SELECT amount FROM transactions WHERE user_id = ? AND type = 'daily' ORDER BY at DESC LIMIT 1 OFFSET 1",
+      anna.id,
+    );
+    expect(last?.amount).toBe(GOLD.DAILY);
   });
 
   it('keeps only the last 20 transactions', async () => {

@@ -3,7 +3,7 @@
    * Help, privacy policy and imprint (SPEC 8.11): text from `shared/texts`, always rendered as
    * text (links via LetterText, SPEC 6), with a table of contents for longer pages.
    */
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from '../lib/i18n.svelte.ts';
   import type { HelpQuestion, HelpSection } from '@posteulen/shared/texts/help.ts';
   import { onMount } from 'svelte';
   import Link from '../components/Link.svelte';
@@ -29,7 +29,7 @@
 </script>
 
 <div class="page">
-  <p class="plate"><Link href="/" class="back">← {de.app.back}</Link></p>
+  <p class="plate"><Link href="/" class="back">← {t.app.back}</Link></p>
   <header class="card head">
     <h1 id="top" tabindex="-1">
       {title}
@@ -39,13 +39,13 @@
 
   {#if showContents}
     <nav class="contents card" aria-labelledby="contents-title">
-      <h2 id="contents-title">{de.pages.contents}</h2>
+      <h2 id="contents-title">{t.pages.contents}</h2>
       <ol>
         {#each sections as section (section.id)}
           <li><a href="#{section.id}">{section.title}</a></li>
         {/each}
         {#if faq.length > 0}
-          <li><a href="#fragen">{de.pages.faqTitle}</a></li>
+          <li><a href="#fragen">{t.pages.faqTitle}</a></li>
         {/if}
       </ol>
     </nav>
@@ -70,7 +70,7 @@
 
   {#if faq.length > 0}
     <section class="section card" aria-labelledby="fragen">
-      <h2 id="fragen" tabindex="-1">{de.pages.faqTitle}</h2>
+      <h2 id="fragen" tabindex="-1">{t.pages.faqTitle}</h2>
       <dl class="faq">
         {#each faq as item (item.question)}
           <dt>{item.question}</dt>
@@ -81,7 +81,7 @@
   {/if}
 
   {#if showContents}
-    <p class="top plate"><a href="#top">↑ {de.pages.toTop}</a></p>
+    <p class="top plate"><a href="#top">↑ {t.pages.toTop}</a></p>
   {/if}
 </div>
 

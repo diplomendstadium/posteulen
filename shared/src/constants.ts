@@ -11,7 +11,11 @@ export const TIME = { MINUTE, HOUR, DAY } as const;
 
 export const GOLD = {
   START: 30,
-  DAILY: 10,
+  /** Daily wage in the first DAILY_HIGH_DAYS days after the account was created (v0.4). */
+  DAILY: 30,
+  /** Daily wage afterwards (v0.4). */
+  DAILY_LATER: 20,
+  DAILY_HIGH_DAYS: 30,
   DAILY_HOUR_UTC: 15,
   LARGE_PARCHMENT_SURCHARGE: 1,
   LOAN_PRICE: 1,
@@ -41,7 +45,6 @@ export const LETTER = {
   /** Large letters written before v0.3 were padded to this size; they stay readable. */
   LEGACY_LARGE_PADDED_BYTES: 16_384,
   MAX_RECIPIENTS: 5,
-  MAX_RECIPIENTS_LOAN_OWL: 1,
   /** Every letter and system message is deleted at the latest this many days after delivery. */
   RETENTION_MAX_DAYS: 365,
   /** Shorter periods a user can choose for their own copies (settings, v0.2). */

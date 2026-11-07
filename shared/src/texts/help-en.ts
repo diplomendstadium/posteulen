@@ -1,0 +1,433 @@
+/**
+ * The help in English (v0.4): the same sections (and section ids, so links keep working) as
+ * help.ts, for the English view and as the knowledge base of the Explainer Bear for accounts
+ * in English. All numbers come from the constants.
+ */
+import {
+  ACCOUNT,
+  BOTS,
+  DONATION,
+  FLIGHT,
+  GOLD,
+  LETTER,
+  MAP,
+  MENAGERIE,
+  OWL,
+} from '../constants.ts';
+import { formatGold } from '../game/gold.ts';
+import { SPECIES } from '../species.ts';
+import { en } from './en.ts';
+import type { Help, HelpQuestion, HelpSection } from './help.ts';
+
+const gold = (tenths: number): string => `${formatGold(tenths, '.')} gold`;
+const percent = (share: number): string => `${Math.round(share * 100)} %`;
+const dailyGoldTime = `${GOLD.DAILY_HOUR_UTC}:00 UTC (${GOLD.DAILY_HOUR_UTC}:00 in the UK in winter, ${GOLD.DAILY_HOUR_UTC + 1}:00 in summer)`;
+
+const INTRO =
+  'Here you can find out at leisure how PostEulen works – no prior knowledge needed. Right at the top you can read how PostEulen gets onto your phone; after that every part of the app has its own section, and at the end there are frequently asked questions. Anything still unclear? Write a letter to the Explainer Bear – he knows this help by heart.';
+
+const SECTIONS: readonly HelpSection[] = [
+  {
+    id: 'idee',
+    title: 'What is PostEulen?',
+    blocks: [
+      'PostEulen is a letter box with owls. You write letters to friends, and an owl carries them there – not in seconds like a text message, but as long as an owl takes to fly. The further away the other person lives, the longer it takes. Looking forward to it is part of the fun.',
+      'On the side, you look after your owls: you buy or borrow them, feed and pet them, earn a little gold every day and can send friends gold or even an owl.',
+      'Your letters to other people are encrypted: only you and the other person can read them – not even the people running PostEulen can.',
+      'PostEulen is a website that behaves like an app. You can put it on your home screen without any app store – the next section explains how.',
+      'The name PostEulen is German for “post owls”. You can use the whole app in English: tap the little British flag in the top right corner.',
+    ],
+  },
+  {
+    id: 'installieren',
+    title: 'Getting PostEulen onto your phone – without an app store',
+    blocks: [
+      'You get apps from the app store, right? Usually, yes. But there is a second way that many people do not know: some websites can turn into an app. Experts call this a “web app” – but you do not need to remember the word. You simply put PostEulen on your home screen, and from then on it has its own owl icon there, opens without an address bar and looks like any other app.',
+      'Do not worry: this is no witchcraft and not dangerous. Nothing is installed secretly, PostEulen does not want your photos or your contacts, and you can delete the icon at any time. New versions arrive by themselves.',
+      `This is how it works on an ${en.welcome.android}:`,
+      en.welcome.androidSteps,
+      `This is how it works on an ${en.welcome.ios}:`,
+      en.welcome.iosSteps,
+      `${en.welcome.other}: ${en.welcome.otherSteps}`,
+      'On a computer you can also set up PostEulen as an app in Chrome or Edge with the small install icon in the address bar, and in Safari on the Mac with File → “Add to Dock”. But you do not have to.',
+      `${en.welcome.push1} ${en.welcome.push2}`,
+    ],
+  },
+  {
+    id: 'sicher',
+    title: 'Game and secure letter box at the same time',
+    blocks: [
+      'PostEulen lives on the border between game and messenger. The owls, the gold and the flight times are the game – the encryption is not. Under the parchment surface works hard, serious, up-to-date cryptography. That is why PostEulen is quite suitable as a secure way of communicating when minutes do not matter.',
+      [
+        'Letters between people are encrypted on your device with XChaCha20-Poly1305 and signed with Ed25519. Only sender and recipient get the key for each letter, wrapped according to the HPKE standard (RFC 9180).',
+        'Your password never leaves your device. Signing in uses OPAQUE (RFC 9807): the server can neither see your password nor guess it from its database.',
+        'With the safety number you check that really nobody is sitting in between.',
+        'Only proven, openly reviewed libraries are used (libsodium, hpke-js, OPAQUE by Serenity) – no home-made cryptography. The source code is open.',
+      ],
+      'What PostEulen cannot hide: who writes to whom and when (metadata). And anyone holding your unlocked device can read your letters. Letters to bots and system messages are not encrypted.',
+    ],
+  },
+  {
+    id: 'konto',
+    title: 'Account, password and signing in',
+    blocks: [
+      `Your user name has ${ACCOUNT.USER_NAME_MIN_CHARS} to ${ACCOUNT.USER_NAME_MAX_CHARS} characters: Latin letters, umlauts, ß, common accented letters, digits and single spaces. Upper and lower case and easily confused characters (0 and O, 1, l and I) count as the same – so nobody can pretend to be somebody else.`,
+      `Your password has at least ${ACCOUNT.PASSWORD_MIN_CHARS} characters. A sentence you can remember easily is ideal. The password never leaves your device and is not stored anywhere on the server. So remember: if you forget it, all your data is lost for good. Nobody can reset it, not even the admin.`,
+      'When creating your account you set a fictional home on the map with a pin – please not your real address. That is where your owls live and where they take off from.',
+      'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
+      `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device; the next time you sign in it fetches them back from the server, encrypted.`,
+    ],
+  },
+  {
+    id: 'ueberblick',
+    title: 'The app at a glance',
+    blocks: [
+      'After signing in you see the overview with tiles for all parts: Letters, Owls, Finances, Menagerie, Address book, Map, Settings and Help. On the phone you also reach the most important parts with the bar at the bottom.',
+      'In the brown bar at the top you see how much gold you have. When new post is there, “New post!” hops up and down there – tapping it takes you to your letters. On the overview, the version of the app is shown in small print next to the lettering. If notifications are not set up, a note below takes you to the settings. If it bothers you, hide it with “Hide until the next sign-in”.',
+      'Whatever you have read counts as read straight away – the counters on the overview and in the bar go down without reloading.',
+      'Under “News” the overview shows everything that did not reach you by notification – for example because your phone was off.',
+      'In the top right corner of every page sits a little flag. Tapping the German flag switches PostEulen back to German, the British flag switches it to English (see Language).',
+    ],
+  },
+  {
+    id: 'sprache',
+    title: 'Language: German or English',
+    blocks: [
+      'PostEulen is available in German and in English. German is always the default. With the flag in the top right corner you can switch at any time: the British flag for English, the German flag for German.',
+      'When you are not signed in, your device remembers your choice. If you create an account in the English view, English applies to your account too. After every sign-in PostEulen then shows the language of your account, on every device.',
+      'When you are signed in, the flag saves the language in your account right away. You can also find it in the settings under “Language”.',
+      'The language applies to everything PostEulen writes itself: menus, help, system messages, notifications and the letters from the Explainer Bear, the aunt and the uncle. Loan owls and chicks then get English names. Letters from people of course stay as they were written, and so do bot letters that have already arrived.',
+    ],
+  },
+  {
+    id: 'adressbuch',
+    title: 'Address book and contacts',
+    blocks: [
+      'You can only write to people you are connected with. To connect, you both enter each other in the address book, each with the exactly spelled name. Talk to each other outside the app first: you do not see other people’s requests, and the answer is always the same – whether the name exists or not.',
+      `A request waits ${ACCOUNT.CONTACT_REQUEST_EXPIRY_HOURS} hours for the other side and then expires. You can make at most ${ACCOUNT.CONTACT_REQUESTS_PER_DAY} requests per day. As soon as you have both entered each other, you are connected and both get a system message.`,
+      [
+        '“unconfirmed”: your request is still waiting (with the time left).',
+        `“inactive”: the contact has not been around for more than ${ACCOUNT.INACTIVE_AFTER_DAYS} days. Until they come back, you cannot send them anything.`,
+        '“Safety number compared”: you have checked your number (see Encryption).',
+        '“Key warning”: something is wrong with the keys – do not send anything any more, see Encryption.',
+      ],
+      'If you remove a contact, you have to pair again. Owls on their way between you turn back immediately. The chat stays, but shows “unknown” as the name until you connect again.',
+      `The Explainer Bear is in the address book from the start. The aunt joins with her first letter, about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up, the uncle a few days later (see Bots).`,
+    ],
+  },
+  {
+    id: 'verschluesselung',
+    title: 'Encryption and safety number',
+    blocks: [
+      'Letters between people are encrypted and signed on your device. The server only sees gibberish. But it does see who writes to whom and when, how large the parchment is and whether a letter has been read.',
+      'Each contact shares a safety number of 60 digits with you. Compare it outside the app, for example when you meet or on the phone. If it matches, mark it as compared in the address book. Then you know for sure that nobody is sitting in between.',
+      'If your device notices that a contact’s keys have changed, it warns you clearly and blocks sending to them. That should never happen, because keys never change in PostEulen. Sort it out outside the app; then remove each other and pair again.',
+      'If a letter cannot be verified, PostEulen shows “Authenticity cannot be verified” instead of its content.',
+      'Limits: anyone holding your unlocked device can read your letters. Letters to bots and system messages are not encrypted.',
+    ],
+  },
+  {
+    id: 'briefe',
+    title: 'Writing and reading letters',
+    blocks: [
+      'Under Letters you see a chat for every person, sorted by latest activity and with a counter for unread letters. The system messages are pinned at the top.',
+      [
+        `Small parchment: up to ${LETTER.SMALL_MAX_CHARS} characters, free.`,
+        `Large parchment: up to ${LETTER.LARGE_MAX_CHARS.toLocaleString('en-GB')} characters, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} extra per sending.`,
+      ],
+      `How it works: choose the parchment, write the text, add more recipients if you like (at most ${LETTER.MAX_RECIPIENTS} in total), choose an owl and send. With several recipients, PostEulen sorts them so that the owl flies the shortest way – from you to all of them and back home. You can still change the order with the arrows. When you choose an owl, PostEulen shows you for every owl when it arrives at each recipient and when it is back home.`,
+      `No owl at home? Then the owl choice offers you the loan owls of the day right away. They are only borrowed and paid for (${gold(GOLD.LOAN_PRICE)}) when you really send – your letter stays as it is.`,
+      'With several recipients, the owl flies from one to the next. Everyone only sees their own letter and can only reply to you. This works with your own owls and with loan owls; a loan owl vanishes after the last recipient. Bots are never among several recipients.',
+      'Letters are plain text. Parchment knows no smileys and emojis – they are removed. Links starting with http:// or https:// can be clicked and open in the browser; check the address shown before you tap.',
+      [
+        '“Owl on its way – arrives around …”: the letter is on its way.',
+        '“delivered”: the owl has arrived.',
+        '“read”: the other person has seen the letter on their screen.',
+        '“not delivered – the owl turned back”: for example because the connection was cut.',
+      ],
+      'When an owl arrives at your place, you see its arrival picture the first time. It closes by itself after a few seconds, with a tap or with the Escape key.',
+      'In the chat, letters appear as sheets of parchment with frayed edges: letters to you on light parchment, in German school handwriting and blue-black ink, your own on darker parchment, in flowing quill handwriting and sepia. Links and names are always in print so you can read them safely. If handwriting is too much effort, switch to print in the settings.',
+      'When you open a chat, it jumps straight down to the latest letter. Older letters are above it.',
+      'Deleting a chat removes your copies of all letters of this chat for good. The other person keeps theirs.',
+    ],
+  },
+  {
+    id: 'aufbewahrung',
+    title: 'Old letters are deleted',
+    blocks: [
+      `Important: all letters and system messages are deleted automatically and for good ${LETTER.RETENTION_MAX_DAYS} days – that is, one year – after delivery at the latest. This applies to all accounts and to the bots’ letters too. Nobody can restore them.`,
+      'In the settings under “Letters” you can have your own copies deleted after 30, 90 or 180 days – letters written and received. If you choose a shorter period, everything older is deleted immediately. The other person keeps their copy until their own period runs out.',
+      'Letters still on their way are never deleted. If you want to keep something, write it down outside PostEulen.',
+    ],
+  },
+  {
+    id: 'systemnachrichten',
+    title: 'System messages',
+    blocks: [
+      'In the chat “System messages” PostEulen reports everything important right away: new contacts, gold or owls that have arrived, illnesses, eggs, chicks, name changes of your contacts, messages from the admin to everyone and more. You cannot reply there.',
+      'When one of your owls comes home from a flight, a message with a picture appears here: the owl sits on the window sill – in daylight or by candlelight, depending on whether it is light or dark at your home right now when you look at the message. If you have set up notifications, you get one of those too.',
+      'After every update a message tells you what has changed. And every five weeks a small request for a voluntary donation arrives (see Frequently asked questions).',
+    ],
+  },
+  {
+    id: 'eulen',
+    title: 'Your owls',
+    blocks: [
+      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter” or “In the Menagerie until Fri, 14:00”.',
+      'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is helping out in the Menagerie, you see its empty perch.',
+      'Each species has a price, a maximum energy, a speed factor and a recovery factor. Owls do not grow old and do not die.',
+      [
+        `Renaming: once per calendar year per owl (${OWL.NAME_MIN_CHARS}–${OWL.NAME_MAX_CHARS} characters). The first name after buying or hatching does not count.`,
+        'Giving away: a ready adult owl flies to a contact and belongs to them from its arrival. You can add a short cover letter. If it turns back, it belongs to you again.',
+        'Setting free: the owl is gone for good. So that this never happens by accident, you type its name exactly and then confirm a second time.',
+        `At most ${OWL.MAX_OWN_OWLS} owls of your own (chicks count, loan owls do not). Gifts and chicks may go beyond that; you just cannot buy any more then.`,
+      ],
+      'An owl can only take off if it is at home, healthy and grown up, and neither brooding nor in the Menagerie.',
+    ],
+  },
+  {
+    id: 'energie',
+    title: 'Energy, feeding and petting',
+    blocks: [
+      `At home an owl recovers: per hour ${percent(OWL.REGEN_SHARE_PER_HOUR)} of its maximum energy times its recovery factor. With factor 2 it is full again in 5 hours.`,
+      `Feeding costs ${gold(GOLD.FEED_PRICE)}, works once a day per owl and gives ${percent(OWL.FEED_SHARE)} energy times the recovery factor at once.`,
+      'Petting is free and possible as often as you like. But it only counts once a day for care.',
+      `Care bonus: the last ${OWL.CARE_BONUS_WINDOW_DAYS} days on which the owl was at home for at least ${OWL.CARE_BONUS_MIN_HOME_HOURS} hour are counted. If it was petted or fed on at least ${OWL.CARE_BONUS_MIN_DAYS} of them, it falls ill much less often. Whole travel days do not count – a busy letter owl does not lose its bonus just because it was away.`,
+    ],
+  },
+  {
+    id: 'flug',
+    title: 'How an owl flies',
+    blocks: [
+      `Base speed ${FLIGHT.BASE_SPEED_KMH} km/h times the speed factor of the species – just as fast by day and by night.`,
+      `Energy: at night ${FLIGHT.ENERGY_PER_KM_NIGHT} point per kilometre, by day ${FLIGHT.ENERGY_PER_KM_DAY} points. Twilight counts as day. Owls are night birds, after all.`,
+      `When its energy is empty, the owl sleeps ${FLIGHT.SLEEP_HOURS} hours on the spot and then flies on with full energy. Over water it does not sleep: it glides on without energy to the next coast and rests there. You can send off nearly empty owls too; the flight then simply starts with a nap.`,
+      'After the last delivery the owl flies home by the same rules. Loan owls do not fly back; owls and chicks given as gifts stay with the recipient.',
+      'If a recipient or you yourself move, the owl changes course at once. If the connection is cut or the recipient deletes their account, it turns back; with several recipients it leaves out the one affected.',
+    ],
+  },
+  {
+    id: 'karte',
+    title: 'The map',
+    blocks: [
+      'The map shows Western Europe with your home, the homes of your contacts and bots, and your owls that are currently on their way for you. You never see other people’s owls – not even when they are flying to you. You find the Explainer Bear on the map as soon as you have written to him for the first time; the aunt and the uncle as soon as their first letter has reached you.',
+      'Behind each of your owls runs a thin dark brown line: the way it has already flown. Where it spent the night there is a small “Zzz”. The map does not show the way still ahead – owls do not like people looking at their maps.',
+      'When you open it, the map zooms in just far enough that all your places and owls are visible. For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
+      `The dark area is the night. Your device recalculates positions, flight tracks and the night boundary every ${MAP.CLIENT_REFRESH_MINUTES} minutes without asking the server.`,
+      'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus) – but not beyond the edge of the map.',
+    ],
+  },
+  {
+    id: 'gold',
+    title: 'Gold and finances',
+    blocks: [
+      `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. The aunt gives you ${gold(GOLD.AUNT_GIFT)} after ${GOLD.AUNT_GIFT_AFTER_DAYS} days, the uncle ${gold(GOLD.UNCLE_INHERITANCE)} after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
+      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, feeding ${gold(GOLD.FEED_PRICE)}, large parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
+      `The finances show how much gold you have and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
+      `Sending gold: ${gold(GOLD.TRANSFER_MIN)} to ${gold(GOLD.TRANSFER_MAX)} by owl to a contact, with a short cover letter if you like. Afterwards you must have more than ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} left. The gold is debited when the owl takes off and arrives with the owl. If it turns back, you get it back as soon as it is home again. You cannot send gold to bots.`,
+    ],
+  },
+  {
+    id: 'menagerie',
+    title: 'Menagerie: buying and borrowing owls',
+    blocks: [
+      'At the top are the loan owls of the day, below them all owls for sale – sorted by price, the cheapest first. A short description of every owl for sale tells you where it comes from and what kind of character it is.',
+      `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name. Its sex is random; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
+      `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there.`,
+      `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. It can be fed and petted, but not renamed or given away.`,
+      `Tip for the start: with ${gold(GOLD.START)} starting gold you borrow an owl for your first letter. For the cheapest owl of your own (Tawny Owl, 6 gold) it is enough after a couple of days – or as soon as the aunt’s gift has arrived.`,
+    ],
+  },
+  {
+    id: 'arten',
+    title: 'Owl species at a glance',
+    blocks: [
+      'Price in gold, maximum energy, speed factor (times 25 km/h) and recovery factor:',
+      SPECIES.map(
+        (species) =>
+          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, speed ${species.speedFactor}, recovery ${species.recoveryFactor}`,
+      ),
+    ],
+  },
+  {
+    id: 'verleih',
+    title: 'Lending owls to the Menagerie',
+    blocks: [
+      `Healthy adult owls that are at home can be lent to the Menagerie for ${OWL.MENAGERIE_DAYS} days. Afterwards you get ${percent(GOLD.MENAGERIE_WAGE_SHARE)} of the species price as a wage, and the owl comes back with full energy. Meanwhile it is not available and does not fall ill.`,
+    ],
+  },
+  {
+    id: 'krankheit',
+    title: 'Illnesses',
+    blocks: [
+      `Every night an adult owl can fall ill with a probability of 1 in 30 – with the care bonus (see Energy, feeding and petting) much less often. During its first ${OWL.SICKNESS_GRACE_DAYS} days with you it never falls ill. Loan owls, chicks and bot owls never fall ill, and neither do the owls of inactive accounts.`,
+      'An ill owl looks grumpy and cannot fly until it has been cured. Petting and feeding still work.',
+      [
+        `Nurse it yourself: ${gold(GOLD.SELF_CARE_PRICE)} for special food, after ${OWL.SELF_CARE_DAYS} days it is healthy.`,
+        `Owl vet: ${gold(GOLD.VET_PRICE)}, after ${OWL.VET_HOURS} hours it is healthy.`,
+      ],
+      'If an owl falls ill on its way, you notice when it comes home.',
+    ],
+  },
+  {
+    id: 'kueken',
+    title: 'Eggs and chicks',
+    blocks: [
+      `Female owls sometimes lay eggs after coming home (about one time in a hundred). They then brood for ${OWL.BROODING_DAYS} days; afterwards ${OWL.CHICKS_MIN} to ${OWL.CHICKS_MAX} chicks hatch.`,
+      `You name the chicks within ${OWL.CHICK_NAME_DEADLINE_HOURS} hours, otherwise they get random names. With ${OWL.CHICK_GIFT_FROM_COUNT} or more chicks you have to give exactly one to a contact within ${OWL.CHICK_GIFT_DEADLINE_HOURS} hours, with a cover letter if you like. Otherwise lots are drawn among your active contacts. If you have none, you may keep them all.`,
+      `Chicks fly at a leisurely ${FLIGHT.CHICK_SPEED_KMH} km/h, one hour of flying, one hour of rest. They can be petted and fed but do not carry letters. They grow up with you after ${OWL.CHICK_ADULT_AT_MOTHER_DAYS} days, with the recipient of a gift ${OWL.CHICK_ADULT_AT_RECIPIENT_DAYS} days after arriving.`,
+    ],
+  },
+  {
+    id: 'bots',
+    title: 'Explainer Bear, aunt and uncle',
+    blocks: [
+      'Every account has three bots of its own. They are marked “Bot” in the chat list and the address book and reply using AI.',
+      [
+        `Explainer Bear: lives in Berlin and sends you short guides during the first week. He answers questions about PostEulen – but only those. His owls fly at ${BOTS.EXPLAINER_SPEED_KMH} km/h. He appears on the map as soon as you write to him for the first time.`,
+        `Aunt: a distantly related witch who loves a chat. Her first letter arrives about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up; only then is she in the address book and on the map. After ${GOLD.AUNT_GIFT_AFTER_DAYS} days she sends you ${gold(GOLD.AUNT_GIFT)} for your first owl.`,
+        `Uncle: a slightly crazy, moody relative. He gets in touch after ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} days and shares an inheritance of ${gold(GOLD.UNCLE_INHERITANCE)} with you after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
+      ],
+      `You can write one letter to a bot every ${BOTS.WRITE_LOCK_HOURS} hours; the app shows from when again. About ${BOTS.REPLY_AFTER_HOURS} hours after your letter arrives, it writes back (at most ${BOTS.REPLY_MAX_CHARS} characters). If the server’s daily limit has been reached, it replies the next day.`,
+      'The bots write to you in the language of your account. Letters that have already arrived stay in the language they were written in.',
+      en.bots.notice,
+      'Only the texts go to OpenAI, no names and no identifiers. Bots remember a short summary of your letters; it disappears when you delete the chat.',
+      'You can remove bots in the address book. This is final: chat, summary and any letters and gold still outstanding are gone then.',
+    ],
+  },
+  {
+    id: 'benachrichtigungen',
+    title: 'Notifications',
+    blocks: [
+      'Notifications are the small notes that pop up at the top of your phone screen. PostEulen can use them to let you know when an owl lands with a letter, one of your owls comes home, gold arrives, a gift turns up, eggs are laid, chicks hatch, automatic deletion is near or the admin writes to everyone. Notifications never contain names or content – anyone looking over your shoulder learns nothing.',
+      'It works best if you have put PostEulen on your home screen (see “Getting PostEulen onto your phone”): on Android with Chrome and on the iPhone with Safari. In a normal browser or as a bookmark there are no notifications – your post reaches you anyway, you see it the next time you look in. A real letter box does not ring either.',
+      'You can set them up in the settings under “Notifications”. Tap “Set up notifications” and allow them when your phone asks. PostEulen then sends a test message straight away. If it arrives, it says “active and confirmed”. With “Send a test notification” you can repeat that at any time.',
+      'By the way, PostEulen never asks for new letters in the background – that saves your battery. The message comes from the server as soon as something happens.',
+      'Notifications are shown in the language of your account.',
+      en.push.iosHint,
+      `For advanced users – ${en.push.degoogledTitle}:`,
+      en.push.degoogled1,
+      en.push.degoogled2,
+      en.push.degoogled3,
+      en.push.degoogled4,
+    ],
+  },
+  {
+    id: 'einstellungen',
+    title: 'Settings and account',
+    blocks: [
+      [
+        `Change user name: once per calendar year. Your contacts are told by system message; the old name is locked for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
+        `Change home: up to ${ACCOUNT.HOME_CHANGES_PER_MONTH} times per calendar month, however close together. Owls on their way change course.`,
+        'Change password: old password once, new one twice. All letters stay readable.',
+        'Letters: have your own letters and system messages deleted after 30, 90 or 180 days instead of after one year; show letters in print instead of handwriting.',
+        'Language: German or English, for this account on every device.',
+        'Notifications: see the status and test them.',
+        `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
+        'Sign out: removes all keys from this device.',
+      ],
+    ],
+  },
+  {
+    id: 'inaktiv',
+    title: 'Inactivity and automatic deletion',
+    blocks: [
+      `If you have not been in the app for more than ${ACCOUNT.INACTIVE_AFTER_DAYS} days, your account counts as inactive: contacts see “inactive” and cannot send you anything, you get no daily gold, and your owls do not fall ill. Letters from the bots and deliveries already on their way still arrive. As soon as you open the app, you are active again.`,
+      `After a longer period of inactivity the account is deleted automatically. The operator sets the period (at least ${ACCOUNT.AUTO_DELETE_MIN_DAYS}, usually ${ACCOUNT.AUTO_DELETE_DEFAULT_DAYS} days). You get a warning ${ACCOUNT.AUTO_DELETE_WARNING_DAYS} days before.`,
+    ],
+  },
+  {
+    id: 'offline',
+    title: 'Without a network',
+    blocks: [
+      'Without a connection PostEulen shows “No connection – owls need a network” and blocks all actions. As soon as the network is back, everything carries on. Letters are never stored unencrypted on your device.',
+    ],
+  },
+  {
+    id: 'krise',
+    title: 'If you are not feeling well',
+    blocks: [en.bots.crisis],
+  },
+];
+
+const FAQ: readonly HelpQuestion[] = [
+  {
+    question: 'I cannot find PostEulen in the app store. Have I done something wrong?',
+    answer:
+      'No, all is well! PostEulen is not in the app store on purpose. You put it on your home screen straight from the browser and still get a real app with an owl icon – “Getting PostEulen onto your phone” explains how.',
+  },
+  {
+    question: 'Is PostEulen suitable for children?',
+    answer:
+      'Quite possibly – PostEulen is a great way to introduce children gently to messengers. Because letters take hours to arrive, there is no constant typing and no pull to keep checking. And only people who have entered each other with the exact name in the address book can write: strangers cannot contact your child. The three pen friends Explainer Bear, aunt and uncle reply using AI; if you do not want that, remove them in the address book.',
+  },
+  {
+    question: 'What does PostEulen cost?',
+    answer: `Nothing. PostEulen is free, without adverts and without a paywall – and it will stay that way. Servers and development still cost money, though. That is why every five weeks we kindly ask for a voluntary donation via ${DONATION.URL.replace('https://', '')}; you also find the link at the bottom of the start page under “Donate”. Nobody has to give anything.`,
+  },
+  {
+    question: 'I have forgotten my password. What now?',
+    answer:
+      'Sadly it cannot be reset because it is not stored anywhere – that is the price of real encryption. Create a new account and pair again.',
+  },
+  {
+    question: 'Why does my letter not arrive immediately?',
+    answer:
+      'Owls need time. The flight time depends on distance, species and energy; at night owls save energy, and empty owls sleep for 10 hours. You see the arrival time on the letter.',
+  },
+  {
+    question: 'I cannot find my friend.',
+    answer:
+      'You both have to enter each other with the exact name. For privacy reasons PostEulen never says whether a name exists. Check the spelling and enter each other within 24 hours.',
+  },
+  {
+    question: 'Can I use PostEulen on several devices?',
+    answer:
+      'Only one after another: signing in on a new device signs you out on the old one. All letters and keys are then on the new device too.',
+  },
+  {
+    question: 'Why have my smileys disappeared?',
+    answer: 'Parchment knows no smileys. Emojis and invisible special characters are removed.',
+  },
+  {
+    question: 'I do not get any notifications.',
+    answer:
+      'Open the settings and send a test notification. Notifications only work if PostEulen is on your home screen as an app – on Android with Chrome, on the iPhone with Safari. For phones without Google services there is a separate way under “Notifications”. Letters arrive without notifications too – you see them when you open the app.',
+  },
+  {
+    question: 'I have run out of gold.',
+    answer: `You get gold every day as long as you are active: ${gold(GOLD.DAILY)} during the first ${GOLD.DAILY_HIGH_DAYS} days, then ${gold(GOLD.DAILY_LATER)}. Small letters are free; only owls, borrowing, feeding, large parchment and treatments cost gold.`,
+  },
+  {
+    question: 'Can the operator read my letters?',
+    answer:
+      'Letters between people, no – they are end-to-end encrypted. Letters to bots and system messages, yes. The server also sees who writes to whom and when.',
+  },
+  {
+    question: 'Where have my old letters gone?',
+    answer:
+      'Letters and system messages are deleted automatically one year after delivery at the latest – or sooner if you have set that in the settings. They cannot be restored.',
+  },
+  {
+    question: 'Is PostEulen just a game, or can I really write confidentially with it?',
+    answer:
+      'Both. The owls are a game; the encryption is meant seriously and state of the art. Nobody but the two of you can read letters between people, not even the operator. Compare your safety number, and you are on the safe side.',
+  },
+  {
+    question: 'Can I call back or edit a letter?',
+    answer:
+      'No, sent is sent. But you can delete your chat – the other person then keeps their copy.',
+  },
+  {
+    question: 'Why does the app have a German name?',
+    answer:
+      'PostEulen was made in Germany; the name means “post owls”. Everything in the app is available in English – just tap the British flag in the top right corner.',
+  },
+];
+
+export const HELP_EN: Help = {
+  intro: INTRO,
+  sections: SECTIONS,
+  faq: FAQ,
+  words: { faq: 'Frequently asked questions', question: 'Question', answer: 'Answer' },
+};

@@ -1,13 +1,8 @@
 <script lang="ts">
   /** Finance overview (SPEC 8.6): balance, last 20 transactions, gold by owl. */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill, formatGold, goldText } from '../lib/i18n.svelte.ts';
   import { GOLD } from '@posteulen/shared/constants.ts';
-  import {
-    formatGold,
-    maxTransfer,
-    parseGold,
-    transferProblem,
-  } from '@posteulen/shared/game/gold.ts';
+  import { maxTransfer, parseGold, transferProblem } from '@posteulen/shared/game/gold.ts';
   import CoverInput from '../components/CoverInput.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import OwlChoice from '../components/OwlChoice.svelte';
@@ -22,6 +17,7 @@
   import { errorMessage } from '../lib/messages.ts';
   import { dateTime, time } from '../lib/format.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
+  import { account } from '../lib/auth.svelte.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
 
@@ -36,11 +32,10 @@
   let error = $state<string | null>(null);
   let sent = $state<string | null>(null);
 
-  const goldText = (tenths: number): string => `${formatGold(tenths)} Gold`;
   const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
   const nameOf = (id: string): string =>
-    live.contacts.find((c) => c.userId === id)?.name ?? de.letters.unknown;
-  const typeTexts = de.finance as Record<string, string>;
+    live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
+  const typeTexts = t.finance as Record<string, string>;
   // Local time of 15:00 UTC today (changes with daylight saving time).
   const today = new Date();
   const dailyTime = time(
@@ -67,9 +62,9 @@
     error = null;
     sent = null;
     const amount = parseGold(amountText);
-    if (amount === undefined) return void (error = de.finance.amountInvalid);
+    if (amount === undefined) return void (error = t.finance.amountInvalid);
     const problem = transferProblem(gold, amount);
-    if (problem) return void (error = de.errors[problem]);
+    if (problem) return void (error = t.errors[problem]);
     if (!recipient) return;
     busy = true;
     try {
@@ -92,9 +87,9 @@
       showOwlImage(
         result.owl.species,
         'departure',
-        fill(de.owls.departs, { name: result.owl.name }),
+        fill(t.owls.departs, { name: result.owl.name }),
       );
-      sent = fill(de.finance.sent, {
+      sent = fill(t.finance.sent, {
         owl: result.owl.name,
         amount: goldText(amount),
         name: nameOf(recipient),
@@ -106,7 +101,7 @@
     } catch (caught) {
       error =
         caught instanceof KeyMismatchError
-          ? fill(de.contacts.keyWarningLong, { name: nameOf(caught.message) })
+          ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
           : errorMessage(caught);
     } finally {
       busy = false;
@@ -115,31 +110,37 @@
 </script>
 
 <div class="card summary">
-  <p class="balance">{fill(de.finance.balance, { amount: goldText(gold) })}</p>
-  <p class="hint">{fill(de.finance.daily, { time: dailyTime })}</p>
+  <p class="balance">{fill(t.finance.balance, { amount: goldText(gold) })}</p>
+  <p class="hint">
+    {fill(t.finance.daily, {
+      time: dailyTime,
+      amount: goldText(account.profile?.dailyGold ?? GOLD.DAILY_LATER),
+    })}
+    {t.finance.dailyRule}
+  </p>
 </div>
 
 <section class="card" aria-labelledby="send-title">
-  <h2 id="send-title">{de.finance.sendTitle}</h2>
-  <p class="hint">{de.finance.sendHint}</p>
+  <h2 id="send-title">{t.finance.sendTitle}</h2>
+  <p class="hint">{t.finance.sendHint}</p>
   {#if possible <= 0}
-    <p class="notice"><span aria-hidden="true">ℹ</span><span>{de.finance.notPossible}</span></p>
+    <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.finance.notPossible}</span></p>
   {:else}
-    <p>{fill(de.finance.maxNow, { amount: goldText(possible) })}</p>
+    <p>{fill(t.finance.maxNow, { amount: goldText(possible) })}</p>
     <form
       onsubmit={(event) => {
         event.preventDefault();
         void (choices ? send() : chooseOwl());
       }}
     >
-      <label for="gold-to">{de.finance.recipient}</label>
+      <label for="gold-to">{t.finance.recipient}</label>
       <select id="gold-to" bind:value={recipient} required onchange={() => (choices = null)}>
-        <option value="">{de.letters.choose}</option>
+        <option value="">{t.letters.choose}</option>
         {#each contacts as contact (contact.userId)}<option value={contact.userId}
             >{contact.name}</option
           >{/each}
       </select>
-      <label for="gold-amount">{de.finance.amountLabel}</label>
+      <label for="gold-amount">{t.finance.amountLabel}</label>
       <input
         id="gold-amount"
         inputmode="decimal"
@@ -160,16 +161,16 @@
         type="submit"
         disabled={busy || !status.online || (choices !== null && !owlId)}
       >
-        {choices ? de.finance.send : de.letters.preview}
+        {choices ? t.finance.send : t.letters.preview}
       </button>
     </form>
   {/if}
 </section>
 
 <section class="card" aria-labelledby="tx-title">
-  <h2 id="tx-title">{de.finance.transactions}</h2>
+  <h2 id="tx-title">{t.finance.transactions}</h2>
   {#if transactions.length === 0}
-    <p>{de.finance.none}</p>
+    <p>{t.finance.none}</p>
   {:else}
     <!-- Scrolls sideways on narrow screens; a scrollable region must be reachable by keyboard
          (WCAG 2.1.1, axe scrollable-region-focusable), hence tabindex on a labelled group. -->
@@ -178,10 +179,10 @@
       <table>
         <thead>
           <tr>
-            <th scope="col">{de.finance.date}</th>
-            <th scope="col">{de.finance.kind}</th>
-            <th scope="col" class="amount">{de.finance.amount}</th>
-            <th scope="col">{de.finance.counterpart}</th>
+            <th scope="col">{t.finance.date}</th>
+            <th scope="col">{t.finance.kind}</th>
+            <th scope="col" class="amount">{t.finance.amount}</th>
+            <th scope="col">{t.finance.counterpart}</th>
           </tr>
         </thead>
         <tbody>
@@ -199,7 +200,7 @@
               <td
                 >{entry.counterpart === undefined
                   ? ''
-                  : (entry.counterpart ?? de.letters.unknown)}</td
+                  : (entry.counterpart ?? t.letters.unknown)}</td
               >
             </tr>
           {/each}

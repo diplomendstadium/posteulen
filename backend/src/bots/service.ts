@@ -5,15 +5,12 @@
  */
 import { BOTS, GOLD, MAP, TIME } from '@posteulen/shared/constants.ts';
 import { simulate, type FlightProfile } from '@posteulen/shared/game/flight.ts';
-import { AUNT_NAMES, OWL_NAMES, UNCLE_NAMES } from '@posteulen/shared/names-data.ts';
+import { AUNT_NAMES, owlNames, UNCLE_NAMES } from '@posteulen/shared/names-data.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
-import {
-  AUNT_LETTERS,
-  BOT_TITLES,
-  EXPLAINER_LETTERS,
-  UNCLE_LETTERS,
-} from '@posteulen/shared/texts/bots.ts';
+import { botLetters } from '@posteulen/shared/texts/bots.ts';
 import { fill } from '@posteulen/shared/texts/de.ts';
+import type { Language } from '@posteulen/shared/i18n.ts';
+import { languageOf } from '../accounts/language.ts';
 import { isLand } from '@posteulen/shared/map/landmask.ts';
 import type { Context } from '../context.ts';
 import { randomId } from '../security/ids.ts';
@@ -60,9 +57,18 @@ export function ownBot(
   return any || bot.in_addressbook === 1 ? bot : undefined;
 }
 
-/** "Erklärbär", "Tante Emma", "Onkel Paul" (SPEC 10.3, 10.4). */
-export function botTitle(bot: Pick<BotRow, 'type' | 'first_name'>): string {
-  return fill(BOT_TITLES[bot.type], { name: bot.first_name ?? '' });
+/**
+ * "Erklärbär", "Tante Emma", "Onkel Paul" (SPEC 10.3, 10.4) – or "Explainer Bear",
+ * "Aunt Emma", "Uncle Paul" for an account in English (v0.4). Bots belong to one account,
+ * so the owner's language decides.
+ */
+export function botTitle(
+  ctx: Context,
+  bot: Pick<BotRow, 'type' | 'first_name' | 'owner_id'>,
+): string {
+  return fill(botLetters(languageOf(ctx, bot.owner_id)).titles[bot.type], {
+    name: bot.first_name ?? '',
+  });
 }
 
 function pick<T>(ctx: Context, list: readonly T[]): T {
@@ -131,7 +137,7 @@ export function dispatchBotLetter(
   fixedArrival?: number,
 ): { letterId: string; arrivesAt: number } {
   const species = pick(ctx, SPECIES).id;
-  const owlName = pick(ctx, OWL_NAMES);
+  const owlName = pick(ctx, owlNames(languageOf(ctx, bot.owner_id)));
   const profile = profileOf(ctx, bot.type);
   const simulation = simulate(
     profile,
@@ -223,6 +229,9 @@ export function createBots(ctx: Context, userId: string, now: number): void {
   });
   const aunt = insert('aunt', pick(ctx, AUNT_NAMES), randomHome(ctx));
   const uncle = insert('uncle', pick(ctx, UNCLE_NAMES), randomHome(ctx));
+  // v0.4: fixed letters in the language the account was created in.
+  const language: Language = languageOf(ctx, userId);
+  const letters = botLetters(language);
 
   // Day 0: already in the letter box, "brought" by an owl of the Erklärbär (SPEC 10.2).
   ctx.db.run(
@@ -234,8 +243,8 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     userId,
     now,
     now,
-    EXPLAINER_LETTERS.day0,
-    pick(ctx, OWL_NAMES),
+    letters.explainer.day0,
+    pick(ctx, owlNames(language)),
     pick(ctx, SPECIES).id,
   );
   upsertBotChat(ctx, userId, explainer.id, now, 1);
@@ -246,7 +255,7 @@ export function createBots(ctx: Context, userId: string, now: number): void {
   dispatchBotLetter(
     ctx,
     aunt,
-    letterText(aunt, AUNT_LETTERS.welcome),
+    letterText(aunt, letters.aunt.welcome),
     0,
     now,
     now + (BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES * TIME.MINUTE) / ctx.flightTimeScale,
@@ -306,13 +315,13 @@ function deliverShipment(ctx: Context, shipmentId: string, at: number, after: Af
       shipment.gold,
       at,
       null,
-      botTitle(bot),
+      botTitle(ctx, bot),
     );
     addSystemMessage(
       ctx,
       bot.owner_id,
       'gold_arrived',
-      { name: botTitle(bot), amount: shipment.gold, owl: '' },
+      { name: botTitle(ctx, bot), amount: shipment.gold, owl: '' },
       at,
       after,
     );
@@ -371,11 +380,12 @@ export function registerBotHandlers(ctx: Context): void {
     const [botId, which] = event.ref.split(':');
     const bot = botId ? botById(ctx, botId) : undefined;
     if (!bot || !which) return;
+    const letters = botLetters(languageOf(ctx, bot.owner_id));
     const text =
       bot.type === 'explainer'
-        ? EXPLAINER_LETTERS[which as keyof typeof EXPLAINER_LETTERS]
+        ? letters.explainer[which as keyof typeof letters.explainer]
         : bot.type === 'uncle' && which === 'first'
-          ? UNCLE_LETTERS.first
+          ? letters.uncle.first
           : undefined;
     if (!text || !claimFixed(ctx, bot, which)) return;
     dispatchBotLetter(ctx, bot, letterText(bot, text), 0, event.logicalAt);
@@ -384,10 +394,11 @@ export function registerBotHandlers(ctx: Context): void {
     const bot = botById(ctx, event.ref);
     if (!bot || bot.type === 'explainer' || !claimFixed(ctx, bot, 'gold')) return;
     const aunt = bot.type === 'aunt';
+    const letters = botLetters(languageOf(ctx, bot.owner_id));
     dispatchBotLetter(
       ctx,
       bot,
-      letterText(bot, aunt ? AUNT_LETTERS.gold : UNCLE_LETTERS.gold),
+      letterText(bot, aunt ? letters.aunt.gold : letters.uncle.gold),
       aunt ? GOLD.AUNT_GIFT : GOLD.UNCLE_INHERITANCE,
       event.logicalAt,
     );

@@ -1,7 +1,7 @@
 # PostEulen.de – Fortschritt
 
-**Aktueller Stand:** Version 0.3.2 (fertig; Tag `v0.3.2` signiert der Auftraggeber)
-**Stand:** 2026-11-06
+**Aktueller Stand:** Version 0.4.0 (fertig; Tag `v0.4.0` signiert der Auftraggeber)
+**Stand:** 2026-11-07
 
 ## Erledigt
 ### Stufe P
@@ -80,10 +80,14 @@
 - 0.3.2 nach Rückfragen (Teil M, D-130 bis D-135): Leihen pro Tag (Migration 0009), neue Leiheulen-Namen, kürzeste Route als Vorschlag, Pergament-Texturen ohne Siegel, Gruppenbild auf der Übersicht, README/Hilfe zu Kindern. SPEC auf Stand v0.3.2 (Anhang H).
 - Tests auf Wunsch nur die nötigen: Lint, Typen, Unit-Tests (neu: Route, Leihen pro Tag), betroffene E2E-Tests.
 
+### Version 0.4.0
+- Nach Rückfragen (Teil N, D-136 bis D-145): Spendenlink auf der Startseite, Leiheulen mit bis zu 5 Empfängern, Tageslohn 3,0/2,0 Gold, Chats öffnen beim neuesten Brief, Gruppenbild gleich hoch wie die Kacheln, quadratische Karte, englische Ansicht mit Fähnchen und Kontosprache (Migration 0010), englische Hilfe, Rechtstexte, Bot-Briefe, Push-Texte, Karte, Artnamen und Leiheulen-Namen, `README.en.md`. SPEC auf Stand v0.4 (8.12, Anhang I).
+- Tests: 497 Unit-Tests (Abdeckung 95,5 %, shared/ je Datei ≥ 90 %; neu: Tageslohn, Leiheule mit mehreren Empfängern und Umkehren, Kontosprache, englische Texte), 178 E2E-Tests in 4 Browserprofilen grün, Lint, Typen, `npm audit` ohne Befund; Prüfung im Browser (englische Registrierung, Fähnchen, Einstellungen, Login mit Kontosprache, Karte, Übersicht, Chat, Handy 390 px). VM-Test nicht erneut gelaufen.
+
 ## Offen
-- Tag `v0.3.2` signieren und pushen (Auftraggeber, D-28).
+- Tag `v0.4.0` signieren und pushen (Auftraggeber, D-28).
 - OpenAI-Key im Adminpanel hinterlegen und eine echte Bot-Antwort prüfen.
 - Web Push auf echten Geräten prüfen (D-61), Google-freies Android auf einem Gerät (D-97).
 
 ## Nächster Schritt
-v0.3 ist fertig. Weitere Arbeit nur nach neuem Auftrag.
+v0.4 ist fertig. Weitere Arbeit nur nach neuem Auftrag.

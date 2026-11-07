@@ -3,7 +3,7 @@
    * Releasing an owl (v0.3): the user types the exact name, then confirms a second time.
    * The server checks the name again.
    */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import ErrorText from './ErrorText.svelte';
   import { releaseOwl, type Owl } from '../lib/owls.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -43,8 +43,8 @@
 </script>
 
 <dialog bind:this={dialog} aria-labelledby="release-title" {onclose}>
-  <h2 id="release-title">{fill(de.owls.releaseTitle, { name })}</h2>
-  <p>{de.owls.releaseIntro}</p>
+  <h2 id="release-title">{fill(t.owls.releaseTitle, { name })}</h2>
+  <p>{t.owls.releaseIntro}</p>
   <ErrorText message={error} />
   {#if step === 'name'}
     <form
@@ -53,7 +53,7 @@
         if (matches) step = 'sure';
       }}
     >
-      <label for="release-name">{fill(de.owls.releaseNameLabel, { name })}</label>
+      <label for="release-name">{fill(t.owls.releaseNameLabel, { name })}</label>
       <input
         id="release-name"
         bind:value={typed}
@@ -63,25 +63,25 @@
         required
       />
       <div class="buttons">
-        <button class="button" type="submit" disabled={!matches}>{de.owls.releaseNext}</button>
+        <button class="button" type="submit" disabled={!matches}>{t.owls.releaseNext}</button>
         <button class="button secondary" type="button" onclick={() => dialog?.close()}
-          >{de.owls.cancel}</button
+          >{t.owls.cancel}</button
         >
       </div>
     </form>
   {:else}
     <p class="sure" role="alert">
-      <span aria-hidden="true">⚠</span><span>{fill(de.owls.releaseSure, { name })}</span>
+      <span aria-hidden="true">⚠</span><span>{fill(t.owls.releaseSure, { name })}</span>
     </p>
     <div class="buttons">
       <button
         class="button danger"
         type="button"
         disabled={busy || !status.online}
-        onclick={() => void release()}>{fill(de.owls.releaseFinal, { name })}</button
+        onclick={() => void release()}>{fill(t.owls.releaseFinal, { name })}</button
       >
       <button class="button secondary" type="button" onclick={() => dialog?.close()}
-        >{de.owls.cancel}</button
+        >{t.owls.cancel}</button
       >
     </div>
   {/if}

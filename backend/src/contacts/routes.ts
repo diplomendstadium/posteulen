@@ -173,7 +173,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       // Own bots, clearly marked (SPEC 8.8, 10.1); writable again 24 hours after the last letter.
       bots: bots.map((bot) => ({
         userId: bot.id,
-        name: botTitle(bot),
+        name: botTitle(ctx, bot),
         type: bot.type,
         writableFrom:
           bot.last_user_letter_at === null

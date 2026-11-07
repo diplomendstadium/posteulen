@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.4.0',
+    title: 'Ein Turm voller Neuigkeiten: Version 0.4',
+    paragraphs: [
+      'Die Eulenmeister haben einen langen Abend im Turm verbracht, und die Eulen haben eifrig Vokabeln gelernt. Das ist neu:',
+      '• PostEulen spricht jetzt auch Englisch. Oben rechts sitzt ein kleines britisches Fähnchen: ein Tipp darauf, und alles erscheint auf Englisch – die Hilfe, die Systemnachrichten und sogar neue Briefe von Erklärbär, Tante und Onkel. Das deutsche Fähnchen bringt dich wieder zurück. In den Einstellungen unter „Sprache“ legst du fest, welche Sprache dein Konto bevorzugt.',
+      '• Mehr Gold aus der Schatzkammer: In den ersten 30 Tagen nach der Kontoerstellung gibt es jeden Tag 3 Gold, danach 2 Gold – doppelt so viel wie bisher.',
+      '• Leiheulen sind fleißiger geworden: Auch sie fliegen jetzt bis zu fünf Freunde nacheinander an, bevor sie sich verabschieden.',
+      '• Öffnest du einen Briefwechsel, landest du gleich beim neuesten Brief – kein langes Blättern mehr durch alte Pergamente.',
+      '• Die Karte ist jetzt immer quadratisch und passt ganz ins Fenster. Über den Rand der Welt lugt niemand mehr.',
+      '• Am großen Bildschirm ist das Gruppenbild der Eulen auf der Übersicht jetzt genauso hoch wie die Kacheln daneben.',
+      '• Unten auf der Startseite gibt es einen Link „Spenden“, für alle, die etwas in die Eulenkasse werfen möchten. Freiwillig, wie immer.',
+      'Viel Freude beim Schreiben – in welcher Sprache auch immer!',
+    ],
+  },
+  {
     version: '0.3.2',
     title: 'Frisch gefegte Stangen: Version 0.3.2',
     paragraphs: [
@@ -89,6 +104,93 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
   },
 ];
 
+/** English donation requests (v0.4), in the same order as DONATION_TEXTS. */
+export const DONATION_TEXTS_EN: readonly LongMessage[] = [
+  {
+    title: 'A small request from the owlery',
+    paragraphs: [
+      'PostEulen does not cost you a single penny. For those of us who build PostEulen it is sadly not quite so free: servers, electricity and a great deal of coffee have to be paid for – and lately the owls insist on fresh hazelnut biscuits.',
+      'Nobody has to give anything, and PostEulen stays free for everyone. Promise. But if you would like to and can afford it, we would be delighted about a small donation: {link}',
+      'Thank you for writing letters here!',
+    ],
+  },
+  {
+    title: 'Psst … the owls have done the sums',
+    paragraphs: [
+      'PostEulen is only free on your side of the window sill. On our side the bills for servers and owl food are piling up – and the Snowy Owl has already started nibbling at them.',
+      'Donating is entirely voluntary. There are no adverts and no paywall here, and it will stay that way. Anyone who can and would like to is welcome to drop a few coins into the owl fund: {link}',
+      'Many thanks – also for simply being here.',
+    ],
+  },
+  {
+    title: 'A letter on our own behalf',
+    paragraphs: [
+      'Every five weeks we send you this little message, and then we leave you in peace again. Word of honour. PostEulen is free and is meant to stay that way. But behind it are people who code in the evenings instead of petting owls.',
+      'Nobody is obliged to give anything. If you like PostEulen and have a few pounds or euros to spare, every donation helps to keep the owlery running: {link}',
+      'Thank you! The owls send their regards.',
+    ],
+  },
+];
+
+/** English update notes (v0.4), same versions as UPDATE_NOTES. */
+export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.4.0',
+    title: 'A tower full of news: version 0.4',
+    paragraphs: [
+      'The owl masters have spent a long evening in the tower, and the owls have been busy learning vocabulary. Here is what is new:',
+      '• PostEulen now speaks English too. A little British flag sits in the top right corner: one tap and everything appears in English – the help, the system messages and even new letters from the Explainer Bear, the aunt and the uncle. The German flag takes you back. In the settings under “Language” you choose which language your account prefers.',
+      '• More gold from the treasury: during the first 30 days after creating your account you get 3 gold every day, and 2 gold after that – twice as much as before.',
+      '• Loan owls have become more hard-working: they too now fly to up to five friends one after another before they say goodbye.',
+      '• When you open a conversation, you land right at the latest letter – no more leafing through old parchments.',
+      '• The map is now always square and fits completely into the window. Nobody peeks over the edge of the world any more.',
+      '• On large screens, the group picture of the owls on the overview is now exactly as tall as the tiles next to it.',
+      '• At the bottom of the start page there is a “Donate” link for everyone who would like to drop something into the owl fund. Voluntary, as always.',
+      'Enjoy writing – in whichever language you like!',
+    ],
+  },
+  {
+    version: '0.3.2',
+    title: 'Freshly swept perches: version 0.3.2',
+    paragraphs: [
+      'The owl masters have enchanted a few little things again:',
+      '• Borrowing without waiting: every day you can borrow all three loan owls of the day – even if some from yesterday are still sitting with you. New ones arrive at midnight.',
+      '• Lots of new names for loan owls, from Hermes to Wilhelmina and Gunhilda.',
+      '• If you write to several friends at once, PostEulen sorts them so that your owl flies the shortest way. If you want it differently, simply change the order yourself.',
+      '• Letters now sit on real parchment: letters to you on light parchment, your own on darker parchment. The red seal has clocked off.',
+      '• On large screens, the whole flock of owls now keeps you company on the overview.',
+      'Enjoy writing!',
+    ],
+  },
+  {
+    version: '0.3.1',
+    title: 'A little tidy-up in the owl tower: version 0.3.1',
+    paragraphs: [
+      'The owls complained: their group picture hung so far down the start page that hardly anyone saw it.',
+      '• Now it hangs right next to the sign-in, where the Tawny Owl used to sit alone on its perch. The Tawny Owl is of course still in the picture – it did not want to pose alone anyway.',
+      'Nothing else has changed. Enjoy writing!',
+    ],
+  },
+  {
+    version: '0.3.0',
+    title: 'News from the owl tower: version 0.3',
+    paragraphs: [
+      'Hear, hear! Overnight the owl masters have dusted the tower, oiled the perches and spoken a few spells anew. Here is what is new:',
+      '• Longer letters: a free letter now holds up to 800 characters, a large parchment even 15,000 – enough for a whole chapter of magical studies.',
+      '• Letters now look like real sheets of writing paper, with frayed edges and a red seal. And behind everything shimmers an old world map, as if painted in faded ink.',
+      '• When an owl is on its way, the owl overview shows it in flight – in sunshine or under the stars, depending on where it is. On the map it draws a fine brown trail behind it, and a “Zzz” reveals where it spent the night. The map now checks in every five minutes.',
+      '• When an owl comes home, you get a message with a picture: it waits on the window sill, in daylight or by candlelight. If you have notifications switched on, it knocks there too.',
+      '• In the owl overview, loan owls and your own owls are now shown separately. If one of your owls is helping out in the Menagerie, you see its empty perch there.',
+      '• In the Menagerie the loan owls are at the very top. The owls for sale are sorted by price, and each now tells you a little about itself.',
+      '• Setting an owl free now only works if you type its name and confirm twice. No more goodbyes by accident.',
+      '• Letters you have read count as read straight away – without reloading.',
+      '• You can hide the note about unconfirmed notifications until the next sign-in.',
+      '• The help now explains in detail and at leisure how to get PostEulen onto your phone – without an app store.',
+      'Enjoy writing – and do not forget the hazelnut biscuits!',
+    ],
+  },
+];
+
 function release(version: string): [number, number, number] {
   const [major = 0, minor = 0, patch = 0] = (version.split('-')[0] ?? '')
     .split('.')
@@ -113,6 +215,12 @@ export function notesSince(previous: string, current: string): UpdateNote[] {
   ).sort((a, b) => compare(a.version, b.version));
 }
 
-export function updateNote(version: string): UpdateNote | undefined {
-  return UPDATE_NOTES.find((note) => compare(note.version, version) === 0);
+export function updateNote(version: string, language: 'de' | 'en' = 'de'): UpdateNote | undefined {
+  const notes = language === 'en' ? UPDATE_NOTES_EN : UPDATE_NOTES;
+  return notes.find((note) => compare(note.version, version) === 0);
+}
+
+/** One of the three donation requests in a language (v0.4). */
+export function donationText(index: number, language: 'de' | 'en' = 'de'): LongMessage | undefined {
+  return (language === 'en' ? DONATION_TEXTS_EN : DONATION_TEXTS)[index];
 }

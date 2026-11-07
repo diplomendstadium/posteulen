@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from '../lib/i18n.svelte.ts';
   import { applyUpdate, status } from '../lib/status.svelte.ts';
 </script>
 
 {#if !status.online}
   <div class="banner offline" role="status">
     <span aria-hidden="true">⚠</span>
-    <span>{de.app.offline}</span>
+    <span>{t.app.offline}</span>
   </div>
 {/if}
 {#if status.updateReady}
   <div class="banner" role="status">
     <span aria-hidden="true">↻</span>
-    <span>{de.app.updateAvailable}</span>
-    <button class="button" type="button" onclick={() => void applyUpdate()}>{de.app.reload}</button>
+    <span>{t.app.updateAvailable}</span>
+    <button class="button" type="button" onclick={() => void applyUpdate()}>{t.app.reload}</button>
   </div>
 {/if}
 

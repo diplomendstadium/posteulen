@@ -13,6 +13,7 @@ import {
 import { distanceKm, interpolate, roundPoint } from '../src/game/geo.ts';
 import {
   canAfford,
+  dailyWage,
   formatGold,
   maxTransfer,
   parseGold,
@@ -39,6 +40,7 @@ import { SPECIES, type Species } from '../src/species.ts';
 const fast: Species = {
   id: 'test',
   name: 'Test',
+  nameEn: 'Test',
   imageName: 'Test',
   price: 10,
   maxEnergy: 100,
@@ -160,12 +162,24 @@ describe('energy (SPEC 9.3, 17.2)', () => {
   });
 });
 
+describe('daily wage (v0.4, SPEC 9.1.1)', () => {
+  it('pays 3.0 on the day of registration and the 29 days after, then 2.0', () => {
+    const day = (iso: string) => Date.parse(`${iso}T15:00:00Z`);
+    expect(dailyWage('2026-11-01', day('2026-11-01'))).toBe(GOLD.DAILY);
+    expect(dailyWage('2026-11-01', day('2026-11-30'))).toBe(GOLD.DAILY);
+    expect(dailyWage('2026-11-01', day('2026-12-01'))).toBe(GOLD.DAILY_LATER);
+    expect(GOLD.DAILY).toBe(30);
+    expect(GOLD.DAILY_LATER).toBe(20);
+  });
+});
+
 describe('gold (SPEC 9.1, 17.2)', () => {
   it('works in tenths without rounding errors', () => {
     expect(formatGold(30)).toBe('3,0');
     expect(formatGold(1)).toBe('0,1');
     expect(formatGold(1234)).toBe('123,4');
     expect(formatGold(-5)).toBe('-0,5');
+    expect(formatGold(1234, '.')).toBe('123.4');
     expect(parseGold('1,5')).toBe(15);
     expect(parseGold(' 2 ')).toBe(20);
     expect(parseGold('0.1')).toBe(1);
@@ -219,7 +233,7 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canTransport({ state: 'home', kind: 'bot', isChick: false })).toBe(false);
     expect(canGift({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
     expect(canGift({ ...own, state: 'home' })).toBe(true);
-    expect(maxRecipients({ state: 'home', kind: 'loan', isChick: false })).toBe(1);
+    expect(maxRecipients({ state: 'home', kind: 'loan', isChick: false })).toBe(5);
     expect(maxRecipients({ ...own, state: 'home' })).toBe(5);
     expect(canCare({ ...own, state: 'sick' })).toBe(true);
     expect(canCare({ ...own, state: 'vet' })).toBe(false);

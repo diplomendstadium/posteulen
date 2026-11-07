@@ -5,6 +5,8 @@
 import { api, ApiError, onUnauthorized } from './api.ts';
 import { clearKeys, loadKeys, saveKeys, type LocalKeys } from './crypto/keystore.ts';
 import { solveCaptcha } from './captcha.ts';
+import type { Language } from '@posteulen/shared/i18n.ts';
+import { i18n } from './i18n.svelte.ts';
 
 export interface Profile {
   readonly id: string;
@@ -19,6 +21,10 @@ export interface Profile {
   readonly homeChangesLeft: number;
   readonly letterRetentionDays: number;
   readonly lettersPrint: boolean;
+  /** Language of the account (v0.4). */
+  readonly language: Language;
+  /** Today's daily wage in tenths (v0.4). */
+  readonly dailyGold: number;
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */
@@ -207,6 +213,8 @@ export async function register(
     x25519Public: encoding.toBase64Url(created.account.identity.x25519Public),
     keyPackage: created.keyPackage,
     home: input.home,
+    // v0.4: an account created in the English view prefers English.
+    language: i18n.lang,
   });
   await saveKeys(done.userId, created.account);
   created.account.masterKey.fill(0);

@@ -25,7 +25,11 @@ import {
 } from '../flights/transport.ts';
 import { balance, debit } from './ledger.ts';
 
-/** Daily gold at 15:00 UTC for every active account, once per (missed) day (9.1.1, 4.5). */
+/**
+ * Daily gold at 15:00 UTC for every active account, once per (missed) day (9.1.1, 4.5):
+ * GOLD.DAILY during the first GOLD.DAILY_HIGH_DAYS days after the account was created,
+ * GOLD.DAILY_LATER afterwards (v0.4).
+ */
 export function registerGoldJobs(ctx: Context): void {
   ctx.queue.registerDaily({
     name: 'daily_gold',
@@ -36,16 +40,23 @@ export function registerGoldJobs(ctx: Context): void {
       const activeSince = utcDay(
         Math.max(ctx.now(), logicalAt) - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY,
       );
+      // created_on is the UTC day of the registration: that day and the following 29 pay more.
+      const highSince = utcDay(logicalAt - GOLD.DAILY_HIGH_DAYS * TIME.DAY);
+      const wage = 'CASE WHEN created_on > ? THEN ? ELSE ? END';
       ctx.db.run(
         `INSERT INTO transactions (user_id, at, type, amount)
-           SELECT id, ?, 'daily', ? FROM users WHERE state != 'deleting' AND last_active_date >= ?`,
+           SELECT id, ?, 'daily', ${wage} FROM users WHERE state != 'deleting' AND last_active_date >= ?`,
         logicalAt,
+        highSince,
         GOLD.DAILY,
+        GOLD.DAILY_LATER,
         activeSince,
       );
       ctx.db.run(
-        "UPDATE users SET gold = gold + ? WHERE state != 'deleting' AND last_active_date >= ?",
+        `UPDATE users SET gold = gold + ${wage} WHERE state != 'deleting' AND last_active_date >= ?`,
+        highSince,
         GOLD.DAILY,
+        GOLD.DAILY_LATER,
         activeSince,
       );
       ctx.db.run(

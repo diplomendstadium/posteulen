@@ -4,47 +4,47 @@
    * screen without an app store, for Android/Chrome, iPhone/Safari and everything else, and
    * what notifications are about. Special cases (phones without Google) only in the help.
    */
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from '../lib/i18n.svelte.ts';
   import Link from '../components/Link.svelte';
   import PushSettings from '../components/PushSettings.svelte';
 </script>
 
 <div class="page">
   <header class="card">
-    <h1>{de.welcome.title}</h1>
-    <p>{de.welcome.intro}</p>
+    <h1>{t.welcome.title}</h1>
+    <p>{t.welcome.intro}</p>
   </header>
 
   <section class="card" aria-labelledby="app-title">
-    <h2 id="app-title">{de.welcome.appTitle}</h2>
-    <p>{de.welcome.app1}</p>
-    <p>{de.welcome.app2}</p>
+    <h2 id="app-title">{t.welcome.appTitle}</h2>
+    <p>{t.welcome.app1}</p>
+    <p>{t.welcome.app2}</p>
 
-    <h3>{de.welcome.android}</h3>
+    <h3>{t.welcome.android}</h3>
     <ol>
-      {#each de.welcome.androidSteps as step, index (index)}<li>{step}</li>{/each}
+      {#each t.welcome.androidSteps as step, index (index)}<li>{step}</li>{/each}
     </ol>
 
-    <h3>{de.welcome.ios}</h3>
+    <h3>{t.welcome.ios}</h3>
     <ol>
-      {#each de.welcome.iosSteps as step, index (index)}<li>{step}</li>{/each}
+      {#each t.welcome.iosSteps as step, index (index)}<li>{step}</li>{/each}
     </ol>
 
-    <h3>{de.welcome.other}</h3>
-    <p>{de.welcome.otherSteps}</p>
+    <h3>{t.welcome.other}</h3>
+    <p>{t.welcome.otherSteps}</p>
   </section>
 
   <section class="card" aria-labelledby="push-intro-title">
-    <h2 id="push-intro-title">{de.welcome.pushTitle}</h2>
-    <p>{de.welcome.push1}</p>
-    <p>{de.welcome.push2}</p>
-    <p>{de.welcome.push3}</p>
+    <h2 id="push-intro-title">{t.welcome.pushTitle}</h2>
+    <p>{t.welcome.push1}</p>
+    <p>{t.welcome.push2}</p>
+    <p>{t.welcome.push3}</p>
   </section>
 
   <PushSettings />
 
-  <p class="plate"><Link href="/hilfe#installieren">{de.welcome.helpLink}</Link></p>
-  <p><Link href="/app" class="button">{de.welcome.continue}</Link></p>
+  <p class="plate"><Link href="/hilfe#installieren">{t.welcome.helpLink}</Link></p>
+  <p><Link href="/app" class="button">{t.welcome.continue}</Link></p>
 </div>
 
 <style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Measures the Argon2id hardening on this device (SPEC 5.3, F-06). Nothing is sent. */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
 
   let running = $state(false);
   let result = $state<string | null>(null);
@@ -30,18 +30,18 @@
       );
       total += performance.now() - t0;
     }
-    result = fill(de.measure.result, { ms: Math.round(total / runs), runs });
+    result = fill(t.measure.result, { ms: Math.round(total / runs), runs });
     running = false;
   }
 </script>
 
 <div class="page">
-  <h1 class="plate">{de.measure.title}</h1>
-  <p>{de.measure.intro}</p>
+  <h1 class="plate">{t.measure.title}</h1>
+  <p>{t.measure.intro}</p>
   <button class="button" type="button" disabled={running} onclick={() => void measure()}
-    >{de.measure.start}</button
+    >{t.measure.start}</button
   >
-  {#if running}<p class="notice" role="status">{de.measure.running}</p>{/if}
+  {#if running}<p class="notice" role="status">{t.measure.running}</p>{/if}
   {#if result}<p class="notice" role="status" data-testid="measure-result">{result}</p>{/if}
   <p><small>{navigator.userAgent}</small></p>
 </div>

@@ -2,7 +2,7 @@
  * Gold arithmetic (SPEC 9.1). All amounts are integers in tenths, so there are no rounding
  * errors; every paid action needs full cover and a non-negative balance.
  */
-import { GOLD } from '../constants.ts';
+import { GOLD, TIME } from '../constants.ts';
 
 export function canAfford(balance: number, cost: number): boolean {
   return balance >= 0 && balance >= cost;
@@ -13,11 +13,21 @@ export function priceTenths(price: number): number {
   return Math.round(price * 10);
 }
 
-/** "12,3" – German decimal comma, always one decimal. */
-export function formatGold(tenths: number): string {
+/** "12,3" – German decimal comma, always one decimal; "12.3" in the English view (v0.4). */
+export function formatGold(tenths: number, separator: ',' | '.' = ','): string {
   const sign = tenths < 0 ? '-' : '';
   const abs = Math.abs(tenths);
-  return `${sign}${Math.floor(abs / 10)},${abs % 10}`;
+  return `${sign}${Math.floor(abs / 10)}${separator}${abs % 10}`;
+}
+
+/**
+ * Daily wage of an account at `at` (v0.4, 9.1.1): GOLD.DAILY on the day of registration
+ * (UTC day `createdOn`, YYYY-MM-DD) and the following days up to GOLD.DAILY_HIGH_DAYS in total,
+ * GOLD.DAILY_LATER afterwards. The server's daily job uses the same rule.
+ */
+export function dailyWage(createdOn: string, at: number): number {
+  const highSince = new Date(at - GOLD.DAILY_HIGH_DAYS * TIME.DAY).toISOString().slice(0, 10);
+  return createdOn > highSince ? GOLD.DAILY : GOLD.DAILY_LATER;
 }
 
 /** Parses "1,5", "1.5" or "2" into tenths; undefined for anything else. */

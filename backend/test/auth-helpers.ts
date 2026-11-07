@@ -139,7 +139,11 @@ export async function register(
   agent: Agent,
   name: string,
   password: string,
-  options: { inviteCode?: string; home?: { lat: number; lon: number } } = {},
+  options: {
+    inviteCode?: string;
+    home?: { lat: number; lon: number };
+    language?: 'de' | 'en';
+  } = {},
 ): Promise<{ status: number; body: Record<string, unknown>; account?: Registered }> {
   await client.ready();
   const start = client.startRegistration(password);
@@ -164,6 +168,7 @@ export async function register(
     x25519Public: toBase64Url(account.identity.x25519Public),
     keyPackage,
     home: options.home ?? BERLIN,
+    ...(options.language ? { language: options.language } : {}),
   });
   return {
     status: second.status,
@@ -238,10 +243,11 @@ export async function person(
   app: TestApp,
   name: string,
   home: { lat: number; lon: number } = BERLIN,
+  language?: 'de' | 'en',
 ): Promise<Person> {
   const agent = new Agent(app.userApi, USER_ORIGIN);
   const password = 'ein sehr langes Passwort';
-  await register(agent, name, password, { home });
+  await register(agent, name, password, { home, ...(language ? { language } : {}) });
   const result = await login(agent, name, password);
   const unlocked = await unlockFromLogin(result);
   return { agent, name, id: String(result.body['userId']), identity: unlocked.identity };

@@ -5,6 +5,12 @@
 import { ACCOUNT, LETTER, OPERATIONS } from '../constants.ts';
 import { de } from './de.ts';
 import type { HelpSection } from './help.ts';
+import {
+  IMPRINT_INTRO_EN,
+  IMPRINT_SECTIONS_EN,
+  PRIVACY_INTRO_EN,
+  PRIVACY_SECTIONS_EN,
+} from './legal-en.ts';
 
 export const PRIVACY_INTRO =
   'Kurz gesagt: PostEulen speichert so wenig wie möglich. Briefe zwischen Menschen kann nur ihr lesen, IP-Adressen werden nicht gespeichert, und es gibt weder Werbung noch Analyse-Werkzeuge.';
@@ -16,7 +22,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'PostEulen fragt weder nach E-Mail-Adresse noch nach Klarname oder Telefonnummer. Gespeichert wird nur, was die App zum Funktionieren braucht:',
       [
-        'Konto: Nutzername, fiktiver Wohnort (auf etwa 1 km gerundet), Tag der Registrierung und Tag deiner letzten Aktivität (nur der Tag, keine Uhrzeit, kein Verlauf).',
+        'Konto: Nutzername, fiktiver Wohnort (auf etwa 1 km gerundet), Tag der Registrierung, Tag deiner letzten Aktivität (nur der Tag, keine Uhrzeit, kein Verlauf) und die gewählte Sprache der App.',
         'Anmeldung: ein OPAQUE-Datensatz. Aus ihm lässt sich dein Passwort nicht ermitteln; das Passwort selbst verlässt nie dein Gerät.',
         'Sitzung: ein Prüfwert deines Sitzungs-Cookies und der Zeitpunkt der letzten Nutzung.',
         'Schlüssel: deine öffentlichen Schlüssel lesbar, deine privaten Schlüssel und dein Kontakt-Tresor nur verschlüsselt. Den Schlüssel dafür kennt nur dein Gerät, während du angemeldet bist.',
@@ -62,6 +68,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     title: 'Ein einziges Cookie',
     blocks: [
       'PostEulen setzt genau ein Cookie: das Sitzungs-Cookie, ohne das die Anmeldung nicht funktioniert. Es ist technisch notwendig, nur für PostEulen lesbar und enthält eine zufällige Zeichenfolge; der Server speichert davon nur einen Prüfwert. Es gibt keine Tracking-Cookies, keine Werbung, keine Analyse-Werkzeuge und keine Inhalte von fremden Servern.',
+      'Die Sprache, die du vor der Anmeldung wählst, merkt sich nur dein Browser in seinem lokalen Speicher, nicht der Server.',
     ],
   },
   {
@@ -111,3 +118,27 @@ export const IMPRINT_SECTIONS: readonly HelpSection[] = [
     ],
   },
 ];
+
+export interface LegalTexts {
+  readonly privacyIntro: string;
+  readonly privacy: readonly HelpSection[];
+  readonly imprintIntro: string;
+  readonly imprint: readonly HelpSection[];
+}
+
+/** Privacy policy and imprint in a language (v0.4). */
+export function legalOf(language: 'de' | 'en'): LegalTexts {
+  return language === 'en'
+    ? {
+        privacyIntro: PRIVACY_INTRO_EN,
+        privacy: PRIVACY_SECTIONS_EN,
+        imprintIntro: IMPRINT_INTRO_EN,
+        imprint: IMPRINT_SECTIONS_EN,
+      }
+    : {
+        privacyIntro: PRIVACY_INTRO,
+        privacy: PRIVACY_SECTIONS,
+        imprintIntro: IMPRINT_INTRO,
+        imprint: IMPRINT_SECTIONS,
+      };
+}

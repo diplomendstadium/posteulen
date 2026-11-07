@@ -4,8 +4,7 @@
    * backdrop), closes on tap, click or Escape and by itself after a few seconds, has an
    * alternative text and is not animated with prefers-reduced-motion.
    */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
-  import { SPECIES } from '@posteulen/shared/species.ts';
+  import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
   import { owlImage } from '../lib/owl-image.ts';
   import { closeOwlImage, overlay } from '../lib/overlay.svelte.ts';
 
@@ -13,9 +12,7 @@
 
   const current = $derived(overlay.current);
   const image = $derived(current ? owlImage(current.species, current.kind) : null);
-  const speciesName = $derived(
-    current ? (SPECIES.find((s) => s.id === current.species)?.name ?? current.species) : '',
-  );
+  const shownSpecies = $derived(current ? speciesName(current.species) : '');
 
   $effect(() => {
     if (!current) return;
@@ -37,7 +34,7 @@
         type="button"
         class="close-area"
         onclick={closeOwlImage}
-        aria-label={de.owls.overlayClose}
+        aria-label={t.owls.overlayClose}
       >
         <img
           src={image.files.s480}
@@ -45,7 +42,7 @@
           sizes="(max-width: 600px) 80vw, 420px"
           width="480"
           height="480"
-          alt={fill(de.owls.imageAlt, { species: speciesName, what: current.caption })}
+          alt={fill(t.owls.imageAlt, { species: shownSpecies, what: current.caption })}
         />
       </button>
       <figcaption class="name"><span role="status">{current.caption}</span></figcaption>

@@ -7,7 +7,7 @@
    * zoomed in; their names give way to the user's own places and owls.
    */
   import { onMount, type Snippet } from 'svelte';
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { i18n, t } from '../lib/i18n.svelte.ts';
   import { MAP } from '@posteulen/shared/constants.ts';
   import { project, unproject } from '@posteulen/shared/map/projection.ts';
   import { placeCityLabels, type Box } from '@posteulen/shared/map/labels.ts';
@@ -17,7 +17,7 @@
   let {
     onpick,
     markers,
-    label = de.map.label,
+    label = t.map.label,
     nightAt = null,
     occupied,
     fit = null,
@@ -40,16 +40,52 @@
   // Fallback frame until the map data is loaded (same as the generated view box).
   let data = $state<MapData | null>(null);
   let full = $state<readonly [number, number, number, number]>([-1860.3, -1120.4, 3127.8, 2915.8]);
-  let view = $state({ x: -1860.3, y: -1120.4, w: 3127.8, h: 2915.8 });
+  /**
+   * v0.4: the map is always square, and so is the view – it never shows anything beyond the
+   * edge of the map data. The largest view is the centred square of the shorter side.
+   */
+  const side = $derived(Math.min(full[2], full[3]));
+  function whole(frame: readonly [number, number, number, number]) {
+    const size = Math.min(frame[2], frame[3]);
+    return {
+      x: frame[0] + (frame[2] - size) / 2,
+      y: frame[1] + (frame[3] - size) / 2,
+      w: size,
+      h: size,
+    };
+  }
+  let view = $state(whole([-1860.3, -1120.4, 3127.8, 2915.8]));
+
+  /**
+   * v0.4: the square map is as large as fits below its position and above a fixed bottom
+   * navigation, so the whole map is visible without scrolling (at least 18rem).
+   */
+  let wrapper: HTMLDivElement | undefined = $state();
+  let maxSide = $state<number | null>(null);
+  function measure(): void {
+    if (!wrapper) return;
+    const top = wrapper.getBoundingClientRect().top + window.scrollY;
+    const nav = document.querySelector('[data-bottom-nav]')?.getBoundingClientRect().height ?? 0;
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    maxSide = Math.max(18 * rem, window.innerHeight - top - nav - rem);
+  }
+
+  // Through the CSSOM, which the CSP allows (no inline style attribute).
+  $effect(() => {
+    if (wrapper && maxSide !== null) wrapper.style.setProperty('--map-max', `${maxSide}px`);
+  });
 
   onMount(() => {
+    measure();
+    window.addEventListener('resize', measure);
     void loadMapData()
       .then((loaded) => {
         data = loaded;
         full = loaded.viewBox;
-        view = { x: full[0], y: full[1], w: full[2], h: full[3] };
+        view = whole(full);
       })
       .catch(() => undefined); // offline: the map stays empty until the page is opened again
+    return () => window.removeEventListener('resize', measure);
   });
 
   // All night runs as one path: overlapping edges are not darkened twice (no stripes).
@@ -75,23 +111,26 @@
   let svg: SVGSVGElement | undefined = $state();
   let pixelWidth = $state(0);
   let pixelHeight = $state(0);
-  /** SVG units per screen pixel ("meet": the tighter of both directions). */
+  /** SVG units per screen pixel ("meet": the tighter of both directions; both equal when square). */
   const scale = $derived(
     pixelWidth > 0 && pixelHeight > 0
       ? Math.max(view.w / pixelWidth, view.h / pixelHeight)
       : view.w / 900,
   );
+  /** Name in the language of the view (v0.4: English names from Natural Earth). */
+  const shown = (place: { name: string; nameEn?: string }): string =>
+    i18n.lang === 'en' && place.nameEn ? place.nameEn : place.name;
   /** Country names only where the country is large enough on the screen. */
   const labelMinArea = $derived(1800 * scale * scale);
   const countryFont = $derived(15 * scale);
   const countryLabels = $derived(
     (data?.countries ?? []).flatMap((country) =>
       country.label && country.area >= labelMinArea
-        ? [{ id: country.id, name: country.name, x: country.label[0], y: country.label[1] }]
+        ? [{ id: country.id, name: shown(country), x: country.label[0], y: country.label[1] }]
         : [],
     ),
   );
-  const zoomFactor = $derived(full[2] / view.w);
+  const zoomFactor = $derived(side / view.w);
 
   /** Country names and the zoom buttons (top right): city names keep clear of them, too. */
   function fixedBoxes(): Box[] {
@@ -129,7 +168,7 @@
         key: city.name,
         x: city.x,
         y: city.y,
-        text: city.name,
+        text: shown(city),
         fontSize: 13 * scale,
         radius: 3.5 * scale,
       })),
@@ -140,7 +179,7 @@
       dots,
       labels: dots.flatMap((city) => {
         const placed = names.get(city.name);
-        return placed ? [{ name: city.name, x: placed.x, y: placed.y }] : [];
+        return placed ? [{ name: city.name, text: shown(city), x: placed.x, y: placed.y }] : [];
       }),
     };
   });
@@ -165,12 +204,11 @@
     const widthFor = (span: number, pixels: number) =>
       span / Math.max(0.2, 1 - (2 * edge) / Math.max(pixels, 1));
     const w = Math.max(
-      full[2] / 12,
+      side / 12,
       widthFor(maxX - minX, pixelWidth),
-      (widthFor(maxY - minY, pixelHeight) * full[2]) / full[3],
+      widthFor(maxY - minY, pixelHeight),
     );
-    const h = (w / full[2]) * full[3];
-    clamp({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - h / 2, w, h });
+    clamp({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - w / 2, w, h: w });
   });
 
   const toSvg = (lat: number, lon: number) => {
@@ -179,8 +217,8 @@
   };
 
   function clamp(next: { x: number; y: number; w: number; h: number }) {
-    const w = Math.min(full[2], Math.max(full[2] / 40, next.w));
-    const h = (w / full[2]) * full[3];
+    const w = Math.min(side, Math.max(side / 40, next.w));
+    const h = w;
     const x = Math.min(full[0] + full[2] - w, Math.max(full[0], next.x));
     const y = Math.min(full[1] + full[3] - h, Math.max(full[1], next.y));
     view = { x, y, w, h };
@@ -286,7 +324,7 @@
   }
 </script>
 
-<div class="map">
+<div class="map" bind:this={wrapper}>
   <!-- The map is an interactive widget (role "application") with full keyboard support:
        arrows pan, +/− zoom, Enter picks the centre. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
@@ -308,7 +346,7 @@
     <rect class="water" x={full[0]} y={full[1]} width={full[2]} height={full[3]} />
     {#if !data}
       <text class="label" x={full[0] + full[2] / 2} y={full[1] + full[3] / 2} font-size="80"
-        >{de.map.loading}</text
+        >{t.map.loading}</text
       >
     {/if}
     {#each data?.countries ?? [] as country (country.id)}
@@ -326,7 +364,7 @@
         <circle class="city" cx={city.x} cy={city.y} r={3.5 * scale} stroke-width={1.2 * scale} />
       {/each}
       {#each cities.labels as city (city.name)}
-        <text class="city-name" x={city.x} y={city.y} font-size={13 * scale}>{city.name}</text>
+        <text class="city-name" x={city.x} y={city.y} font-size={13 * scale}>{city.text}</text>
       {/each}
     </g>
     {@render markers?.(toSvg, scale)}
@@ -335,35 +373,37 @@
     <button
       type="button"
       class="button secondary"
-      aria-label={de.map.zoomIn}
+      aria-label={t.map.zoomIn}
       onclick={() => zoom(0.7)}>+</button
     >
     <button
       type="button"
       class="button secondary"
-      aria-label={de.map.zoomOut}
+      aria-label={t.map.zoomOut}
       onclick={() => zoom(1 / 0.7)}>−</button
     >
     <button
       type="button"
       class="button secondary"
-      aria-label={de.map.reset}
-      onclick={() => clamp({ x: full[0], y: full[1], w: full[2], h: full[3] })}>⤢</button
+      aria-label={t.map.reset}
+      onclick={() => (view = whole(full))}>⤢</button
     >
   </div>
 </div>
 
 <style>
+  /* v0.4: always square, as large as fits into the window (whole map visible without scrolling). */
   .map {
     position: relative;
+    width: min(100%, var(--map-max, max(18rem, 100dvh - 12rem)));
+    margin-inline: auto;
   }
 
   svg {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 3128 / 2916;
-    max-height: 70vh;
+    aspect-ratio: 1;
     border: 2px solid var(--line);
     border-radius: var(--radius);
     background: #b9cfd9;

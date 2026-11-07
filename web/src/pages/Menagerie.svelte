@@ -3,10 +3,10 @@
    * Menagerie (SPEC 8.7): the loan owls of the day on top, then all 17 species for sale by
    * price, each with picture, values and a description (v0.3).
    */
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill, i18n, speciesName, locale, goldText } from '../lib/i18n.svelte.ts';
   import { SPECIES } from '@posteulen/shared/species.ts';
-  import { SPECIES_DESCRIPTIONS } from '@posteulen/shared/texts/species.ts';
-  import { canAfford, formatGold, priceTenths } from '@posteulen/shared/game/gold.ts';
+  import { speciesDescription } from '@posteulen/shared/texts/species.ts';
+  import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import { account } from '../lib/auth.svelte.ts';
@@ -32,11 +32,10 @@
       .catch(() => undefined);
   });
 
-  const speciesName = (id: string): string => SPECIES.find((s) => s.id === id)?.name ?? id;
   /** Cheapest first; equal prices by name. */
-  const forSale = [...SPECIES].sort(
-    (a, b) => a.price - b.price || a.name.localeCompare(b.name, 'de'),
-  );
+  const forSale = [...SPECIES]
+    .map((species) => ({ ...species, name: speciesName(species.id) }))
+    .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, i18n.lang));
 
   async function loan(item: Offer['offer'][number]): Promise<void> {
     if (busy) return;
@@ -46,7 +45,7 @@
     try {
       await borrow(item.species);
       offer = await menagerie();
-      loanDone = fill(de.menagerie.loanDone, { name: item.name });
+      loanDone = fill(t.menagerie.loanDone, { name: item.name });
       await refreshTopics('profile');
     } catch (caught) {
       error = errorMessage(caught);
@@ -56,7 +55,7 @@
   }
 
   const gold = $derived(account.profile?.gold ?? 0);
-  const number = (value: number): string => value.toLocaleString('de-DE');
+  const number = (value: number): string => value.toLocaleString(locale());
 
   async function buy(speciesId: string): Promise<void> {
     if (busy) return;
@@ -75,18 +74,18 @@
   }
 </script>
 
-<p class="card intro">{de.menagerie.intro}</p>
+<p class="card intro">{t.menagerie.intro}</p>
 <ErrorText message={error} />
 {#if !canBuy}<p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{de.menagerie.limit}</span>
+    <span aria-hidden="true">ℹ</span><span>{t.menagerie.limit}</span>
   </p>{/if}
 
 <section aria-labelledby="loan-title">
   <div class="card section-head">
-    <h2 id="loan-title">{de.menagerie.loanTitle}</h2>
-    <p>{de.menagerie.loanIntro}</p>
+    <h2 id="loan-title">{t.menagerie.loanTitle}</h2>
+    <p>{t.menagerie.loanIntro}</p>
     {#if offer}
-      <p>{fill(de.menagerie.loanCount, { count: offer.loans, max: offer.maxLoans })}</p>
+      <p>{fill(t.menagerie.loanCount, { count: offer.loans, max: offer.maxLoans })}</p>
     {/if}
   </div>
   {#if offer}
@@ -98,7 +97,7 @@
             alt={`${item.name}, ${speciesName(item.species)}`}
             size={480}
           />
-          <h3 class="name" lang="de">{item.name}</h3>
+          <h3 class="name">{item.name}</h3>
           <p class="stats">{speciesName(item.species)}</p>
           <button
             class="button"
@@ -110,11 +109,11 @@
               !canAfford(gold, GOLD.LOAN_PRICE)}
             onclick={() => void loan(item)}
             >{item.loaned
-              ? de.menagerie.loaned
-              : fill(de.menagerie.loan, {
+              ? t.menagerie.loaned
+              : fill(t.menagerie.loan, {
                   name: item.name,
                   species: speciesName(item.species),
-                  sex: item.sex === 'f' ? de.owls.female : de.owls.male,
+                  sex: item.sex === 'f' ? t.owls.female : t.owls.male,
                 })}</button
           >
         </li>
@@ -127,24 +126,24 @@
 </section>
 
 <section aria-labelledby="buy-title">
-  <h2 id="buy-title" class="plate">{de.menagerie.buyTitle}</h2>
+  <h2 id="buy-title" class="plate">{t.menagerie.buyTitle}</h2>
   <ul class="species for-sale">
     {#each forSale as species (species.id)}
       <li class="card">
         <OwlPicture speciesId={species.id} alt={species.name} size={480} />
-        <h3 lang="de">{species.name}</h3>
+        <h3>{species.name}</h3>
         <p class="price">
-          {fill(de.menagerie.price, { price: `${formatGold(priceTenths(species.price))} Gold` })}
+          {fill(t.menagerie.price, { price: goldText(priceTenths(species.price)) })}
         </p>
         <p class="stats">
-          {fill(de.menagerie.stats, {
+          {fill(t.menagerie.stats, {
             energy: number(species.maxEnergy),
             speed: number(species.speedFactor),
             recovery: number(species.recoveryFactor),
           })}
         </p>
-        {#if SPECIES_DESCRIPTIONS[species.id]}<p class="description">
-            {SPECIES_DESCRIPTIONS[species.id]}
+        {#if speciesDescription(species.id, i18n.lang)}<p class="description">
+            {speciesDescription(species.id, i18n.lang)}
           </p>{/if}
         <button
           class="button"
@@ -154,7 +153,7 @@
             !status.online ||
             !canAfford(gold, priceTenths(species.price))}
           onclick={() => void buy(species.id)}
-          >{fill(de.menagerie.buy, { species: species.name })}</button
+          >{fill(t.menagerie.buy, { species: species.name })}</button
         >
       </li>
     {/each}

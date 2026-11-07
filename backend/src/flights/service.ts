@@ -547,14 +547,16 @@ export function turnBack(
     ...flight,
     gold_state: loadFlight(ctx, flight.id)?.gold_state ?? flight.gold_state,
   };
-  if (!hasHome) {
-    // Loan and stand-in owls have no home: they vanish at once (9.5).
+  const stillPending = route.some((stop) => stop.status === 'pending');
+  if (!hasHome && !stillPending) {
+    // Loan and stand-in owls have no home: without further recipients they vanish at once
+    // (9.5); otherwise they fly on to the next one (v0.4: loan owls with several recipients).
     saveRoute(ctx, fresh, route);
     finishFlight(ctx, flight.id);
     if (flight.owl_kind === 'loan' && flight.owl_id) {
       ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
     }
-  } else if (route.some((stop) => stop.status === 'pending')) {
+  } else if (stillPending) {
     replanFlight(ctx, fresh, route, now);
   } else {
     saveRoute(ctx, fresh, route);

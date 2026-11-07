@@ -1,8 +1,8 @@
-# PostEulen.de – Spezifikation v0.3
+# PostEulen.de – Spezifikation v0.4
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Entscheidungen, die sie offenlässt, werden in `DECISIONS.md` dokumentiert.
 >
-> **Stand: Version 0.3.2.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-135 und die Änderungen der Versionen 0.2, 0.3, 0.3.1 und 0.3.2 (Übersicht in Anhang F, G und H). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
+> **Stand: Version 0.4.0.** Eingearbeitet sind alle Entscheidungen aus `DECISIONS.md` bis D-145 und die Änderungen der Versionen 0.2, 0.3, 0.3.1, 0.3.2 und 0.4 (Übersicht in Anhang F, G, H und I). Wo eine Entscheidung eine Regel dieser Spezifikation präzisiert, steht die Präzisierung hier im Text; `DECISIONS.md` bleibt das Protokoll mit Begründungen und Alternativen.
 
 ---
 
@@ -11,19 +11,19 @@
 - **MUSS** = zwingend. **SOLL** = umsetzen, außer es gibt einen in `DECISIONS.md` dokumentierten guten Grund. **KANN** = optional.
 - Prioritäten bei Zielkonflikten: 1. Sicherheit, 2. Korrektheit der Spielregeln, 3. Datensparsamkeit, 4. Ressourcenschonung (Server und Akku), 5. Komfort.
 - Alle Zeitangaben und Tagesgrenzen sind **UTC**. „Tag“ ohne Zusatz = UTC-Kalendertag, „Kalenderjahr“ = UTC-Kalenderjahr. Die Oberfläche zeigt Uhrzeiten in der Ortszeit des Geräts.
-- Gold wird intern als ganze Zahl in Zehnteln gespeichert (1 Goldstück = 10). Angezeigt wird immer eine Nachkommastelle („3,0 Gold“).
+- Gold wird intern als ganze Zahl in Zehnteln gespeichert (1 Goldstück = 10). Angezeigt wird immer eine Nachkommastelle („3,0 Gold“, in der englischen Ansicht „3.0 gold“).
 - Alle Zahlenwerte stehen gesammelt in **Anhang A** und MÜSSEN im Code an genau einer Stelle (`shared/`) definiert sein.
 
 ---
 
 ## 1. Projekt
 
-- **Name:** PostEulen.de, **Version:** 0.2
+- **Name:** PostEulen.de, **Version:** 0.4
 - **Idee:** Ein moderner, sicherer, Ende-zu-Ende-verschlüsselter Messenger, der liebevoll so tut, als würde man keine schnöden Nachrichten, sondern Briefe per Eule verschicken. Man kauft, leiht und pflegt Eulen; Flugzeiten hängen von Entfernung, Eulenart, Energie und Tag/Nacht ab.
 - **Spiel und sicherer Kommunikationsweg:** PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Spielmechanik ist verspielt, die Kryptografie nicht: Sie ist ernsthaft und auf dem Stand der Zeit (Abschnitt 5). README und Hilfe sagen das ausdrücklich.
 - **Plattform:** primär Smartphone (PWA), außerdem Desktop (Linux, macOS, Windows).
-- **Sprache:** Oberfläche nur Deutsch, alle Texte zentral in einer Datei (später übersetzbar). Code, Bezeichner und Kommentare auf Englisch.
-- **Umfang:** v0.3 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
+- **Sprache:** Oberfläche auf **Deutsch (Standard) und Englisch** (britisches Englisch, ab v0.4, Abschnitt 8.12). Alle Texte zentral: je Sprache eine Datei mit denselben Schlüsseln (`shared/src/texts/de.ts`, `en.ts`; die englische ist gegen den Typ der deutschen geprüft, damit kein Text fehlt), dazu Hilfe, Rechtstexte, Bot-Briefe und Systemtexte je Sprache. Das Adminpanel bleibt deutsch. Code, Bezeichner und Kommentare auf Englisch.
+- **Umfang:** v0.4 MUSS alle in diesem Dokument beschriebenen Funktionen enthalten.
 - **Bestandteile:** Website für Nutzer (PWA), Website mit Adminpanel, Backend inkl. Datenbank – jeweils in einem eigenen Ordner (4.2).
 
 ---
@@ -247,7 +247,7 @@ Gilt für Briefe zwischen Menschen, einschließlich Begleitbriefen zu Gold-, Eul
 - **Weitere Header:** HSTS (inkl. Subdomains), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, restriktive `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`.
 - **Darstellung von Nutzer- und Bot-Text** ausschließlich als Text (nie `innerHTML`/`{@html}` mit Nutzerdaten). Anklickbar werden nur `http://`- und `https://`-Links (`target="_blank" rel="noopener noreferrer nofollow"`, Öffnen im Standardbrowser); angezeigt wird die vollständige URL.
 - **Ausgehende Verbindungen des Servers** nur zur OpenAI-API (fest konfigurierte Basis-URL) und zu Push-Endpunkten (mit SSRF-Schutz, 11.3).
-- Fehlerantworten verraten keine Interna (keine Stacktraces nach außen). Für Nutzer gibt es freundliche, verständliche deutsche Fehlermeldungen.
+- Fehlerantworten verraten keine Interna (keine Stacktraces nach außen). Für Nutzer gibt es freundliche, verständliche Fehlermeldungen in der Sprache der Ansicht (der Server liefert nur Fehlercodes, übersetzt wird im Browser).
 - **Logs** enthalten keine IP-Adressen, Namen, Brief- oder Bot-Inhalte, Schlüssel, Tokens oder API-Keys (Redaktion erzwingen).
 - **systemd-Härtung:** eigener Systembenutzer, `NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`, `PrivateDevices`, `ReadWritePaths` nur für das Datenverzeichnis, leere `CapabilityBoundingSet`, `RestrictAddressFamilies`, `SystemCallFilter=@system-service`. (Nicht `MemoryDenyWriteExecute` – das bricht V8/WASM.) Der Node-Prozess lauscht nur auf localhost.
 - Abhängigkeiten per Lockfile fest gepinnt; `npm audit` läuft im Testbefehl mit.
@@ -298,8 +298,8 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ## 8. Screens und Funktionen
 
 ### 8.1 Startseite (nicht angemeldet)
-- Login-Maske (Nutzername, Passwort), „Konto erstellen“, „Hilfe“, „Datenschutz“, „Impressum“.
-- Unten neben „Hilfe · Datenschutz · Impressum“ die installierte Versionsnummer (z. B. „v0.3.0“) als Link auf das GitHub-Repository (`REPOSITORY_URL`, neues Fenster, `noopener noreferrer`).
+- Login-Maske (Nutzername, Passwort), „Konto erstellen“, „Hilfe“, „Datenschutz“, „Impressum“, „Spenden“.
+- Unten „Hilfe · Datenschutz · Impressum · Spenden“ (v0.4: „Spenden“ verlinkt auf https://ko-fi.com/posteulen, neues Fenster, `noopener noreferrer`; Screenreader hören zusätzlich, dass sich ko-fi.com in einem neuen Tab öffnet), daneben die installierte Versionsnummer (z. B. „v0.3.0“) als Link auf das GitHub-Repository (`REPOSITORY_URL`, neues Fenster, `noopener noreferrer`).
 - Neben dem Login das **Gruppenbild** aller Eulenarten auf ihren Stangen (`images/Gruppenbild.png`, 9.2.6); auf dem Handy darunter.
 
 ### 8.2 Konto erstellen
@@ -309,14 +309,15 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ### 8.3 Startseite nach Login
 - Bereiche: Briefwechsel, Eulen, Finanzübersicht, Menagerie, Adressbuch, Karte, Einstellungen, Hilfe – auf dem Handy schnell erreichbar (z. B. Kacheln plus untere Navigationsleiste für die wichtigsten Bereiche).
-- Kopfbereich (braune Statusleiste): Schriftzug „PostEulen“, Goldstand; Hinweis, falls Push nicht bestätigt ist („Benachrichtigungen sind noch nicht eingerichtet – so geht’s“, Link zu den Einstellungen). Dahinter „Ausblenden bis zur nächsten Anmeldung“: Der Hinweis bleibt dann auf diesem Gerät verborgen (lokal gespeichert) und erscheint nach der nächsten Anmeldung oder Registrierung wieder. Auf der Übersicht steht oben rechts klein am Schriftzug die Versionsnummer (kein Link).
-- **Gruppenbild auf der Übersicht:** Ab Desktopbreite (64 rem) steht rechts neben den Kacheln (dann zweispaltig) das Gruppenbild der Eulen; auf Handy und Tablet nicht, damit die Kacheln oben bleiben.
+- Kopfbereich (braune Statusleiste): Schriftzug „PostEulen“, Goldstand, ganz rechts das Sprachfähnchen (8.12); Hinweis, falls Push nicht bestätigt ist („Benachrichtigungen sind noch nicht eingerichtet – so geht’s“, Link zu den Einstellungen). Dahinter „Ausblenden bis zur nächsten Anmeldung“: Der Hinweis bleibt dann auf diesem Gerät verborgen (lokal gespeichert) und erscheint nach der nächsten Anmeldung oder Registrierung wieder. Auf der Übersicht steht oben rechts klein am Schriftzug die Versionsnummer (kein Link).
+- **Gruppenbild auf der Übersicht:** Ab Desktopbreite (64 rem) steht rechts neben den Kacheln (dann zweispaltig) das Gruppenbild der Eulen; auf Handy und Tablet nicht, damit die Kacheln oben bleiben. v0.4: Kacheln und Bild teilen sich die Breite je zur Hälfte und schließen oben und unten bündig ab – das quadratische Bild gibt die Höhe vor, die vier Kachelreihen strecken sich darauf (Kacheln dort mindestens 6 rem hoch); bräuchten die Kacheln einmal mehr Platz, füllt das Bild die Höhe mit minimalem Beschnitt.
 - **„Neue Post!“:** Solange es ungelesene Briefe oder Systemnachrichten gibt, zeigt die Statusleiste auf allen Seiten den Text „Neue Post!“ als Link zum Briefwechsel. Die Buchstaben hüpfen nacheinander; die Animation läuft bei jeder neuen Post rund 5 Sekunden (3 Durchgänge) und ruht dann (WCAG 2.2.2). Bei `prefers-reduced-motion` ohne Animation. Screenreader hören „Neue Post! [Anzahl] ungelesen“.
 - Nach Login bzw. App-Start: Übersicht „Neuigkeiten“ mit allen Benachrichtigungen, die nicht bestätigt per Push zugestellt wurden (11.5). Sie verschwinden mit der Bestätigung des Service Workers oder beim Anzeigen auf der Übersicht.
 
 ### 8.4 Briefwechsel
 - **Chatliste** wie in klassischen Messengern: ein Chat pro Gegenüber, sortiert nach letzter Aktivität, mit Ungelesen-Zähler. Sobald Briefe oder Systemnachrichten als gelesen gemeldet sind, gehen Zähler und „Neue Post!“ sofort zurück, ohne Neuladen und auch beim Wechsel über die Navigationsleiste. Angezeigt wird stets der **aktuelle** Name des Gegenübers; nach Kontakttrennung oder Kontolöschung „unbekannt“. Bot-Chats sind optisch deutlich unterscheidbar (Symbol und Text „Bot“, nicht nur Farbe). Der Chat „Systemnachrichten“ ist oben angeheftet.
 - **Chatverlauf:** soll nach echten Briefen aussehen, nicht nach Messenger. Jeder Brief ist ein **Pergamentbogen** mit ausgefranstem Rand (eine von sechs festen Randformen, je Brief aus seiner ID gewählt, also bei jedem Anzeigen gleich), leicht schräg, ohne Siegel. Briefe an den Nutzer stehen auf **hellem**, eigene auf **dunklerem Pergament** (Texturen vom Auftraggeber, `web/assets/parchment-light.webp` und `parchment-dark.webp`); auf dem dunklen Pergament steht auch die Kleinschrift in der dunkelsten Tinte (Kontrast AA). Eigene Briefe rechts, die des Gegenübers links, in **zwei verschiedenen Handschriften und Tinten** (eigene: Dancing Script in Sepia; Gegenüber: Playwrite DE Grund, eine deutsche Schulschrift, in Blauschwarz; beide OFL, selbst gehostet). Links, Namen, Zeit, Pergamentart, Status und Begleitbrief-Zusatz stehen immer in der gut lesbaren Druckschrift (Schutz vor Verwechslung, 6, 7.1). Einstellung „Briefe in Druckschrift anzeigen“ (8.10). Je Brief: Zeit, Pergamentart; beim Empfänger „Gebracht von [Eulenname] ([Art])“. Über dem Verlauf ein Hinweis auf die Löschfrist (8.4.1). Sieht der Empfänger einen neu angekommenen Brief zum ersten Mal, wird das Ankunftsbild der Eule eingeblendet (9.2.6).
+- **Öffnen eines Chats (v0.4):** Beim Öffnen eines Chats – auch des Systemchats – springt die Seite sofort zum **neuesten** Brief (die Liste bleibt chronologisch, älteste oben): Der letzte Brief endet knapp über der unteren Navigationsleiste; ist er höher als der sichtbare Bereich, steht stattdessen sein Anfang oben unter der Statusleiste. Vorher wird auf das Laden der Schriften gewartet (Handschriften ändern die Höhe). Nach dem Absenden eines Briefs scrollt die Seite sanft zum neuen Brief. Spätere Aktualisierungen (neue Post, SSE) scrollen nicht.
 - **Begleitbriefe** (9.1.4, 9.2.7, 9.9) erscheinen bei beiden Seiten im Chat wie Briefe, mit dem Zusatz „Begleitbrief zu [Betrag] Gold“, „Begleitbrief zur Eule [Name]“ bzw. „Begleitbrief zum Küken [Name]“, und haben denselben Status und dieselben Lesebestätigungen. Gold-, Eulen- und Kükensendungen ohne Begleitbrief erscheinen nicht im Chat, sondern nur im Systemchat (Gold zusätzlich in der Finanzübersicht).
 - **Status eigener Briefe** (Symbol + Text): „Eule unterwegs – Ankunft ca. [Zeit]“, „zugestellt“, „gelesen“, „nicht zugestellt – die Eule ist umgekehrt“.
 - **Lesebestätigungen:** Ein Brief gilt als gelesen, sobald er beim Empfänger im sichtbaren Chatverlauf angezeigt wurde; der Browser meldet das dem Server. Gespeichert wird nur Ja/Nein, kein Zeitpunkt. Briefe an Bots gelten als gelesen, sobald der Bot seine Antwort verfasst hat. Systemnachrichten haben keinen Lesestatus.
@@ -326,10 +327,10 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
   2. Text schreiben, mit Zeichenzähler.
   3. Empfänger: im Chat vorbelegt; optional weitere hinzufügen (insgesamt max. 5). Bei mehreren Empfängern sortiert die App sie beim Hinzufügen und Entfernen so, dass die Gesamtstrecke vom Wohnort über alle Empfänger zurück nach Hause am kürzesten ist (Großkreise; alle Reihenfolgen werden durchgerechnet, bei gleicher Länge zuerst der nähere Empfänger). Das ist ein Vorschlag mit Hinweis; mit ↑ und ↓ lässt sich die Reihenfolge danach ändern, und der Server fliegt die Reihenfolge, die abgeschickt wird.
   4. Eule wählen: Liste der einsatzbereiten eigenen Eulen und Leiheulen mit Energie, Geschwindigkeit und vom Server berechneter Vorschau (Ankunft je Empfänger, Rückkehr). Eigene Eulen zuerst; die erste ist vorausgewählt.
-     **Ist keine Eule einsatzbereit** und gibt es genau einen Empfänger, bietet die Liste direkt die Leiheulen des Tages an (9.6), soweit der Nutzer sie leihen darf (Limit, eine je Art) und mindestens 0,1 Gold hat – mit Name, Energie und exakter Vorschau. Keine davon ist vorausgewählt. Geliehen und bezahlt wird erst beim Absenden, in derselben Transaktion wie der Abflug; bricht man ab, kostet es nichts und der Brieftext bleibt erhalten. Das gilt ebenso für Goldsendungen (9.1.4) und Briefe an Bots.
+     **Ist keine Eule einsatzbereit**, bietet die Liste direkt die Leiheulen des Tages an (9.6; seit v0.4 auch bei mehreren Empfängern), soweit der Nutzer sie leihen darf (Limit, eine je Art) und mindestens 0,1 Gold hat – mit Name, Energie und exakter Vorschau. Keine davon ist vorausgewählt. Geliehen und bezahlt wird erst beim Absenden, in derselben Transaktion wie der Abflug; bricht man ab, kostet es nichts und der Brieftext bleibt erhalten. Das gilt ebenso für Goldsendungen (9.1.4) und Briefe an Bots.
   5. Absenden. Beim Abflug wird das Abflugbild der Eule eingeblendet (9.2.6).
 - Man kann jemandem schreiben, auch wenn bereits eine Eule zu ihm unterwegs ist.
-- **Mehrere Empfänger:** max. 5, Reihenfolge wählbar, nicht mit Leiheulen und nicht mit Bots. Die Eule fliegt von Kontakt zu Kontakt und kehrt erst nach dem letzten zurück. Für die Empfänger sieht es so aus, als wäre die Eule nur zu ihnen geflogen. Der Brief erscheint beim Absender in jedem Einzelchat; Empfänger sehen die anderen Empfänger nicht und können nur dem Absender antworten.
+- **Mehrere Empfänger:** max. 5, Reihenfolge wählbar, mit eigenen Eulen und (seit v0.4) mit Leiheulen, nicht mit Bots. Die Eule fliegt von Kontakt zu Kontakt und kehrt erst nach dem letzten zurück (eine Leiheule verschwindet nach dem letzten, 9.6). Für die Empfänger sieht es so aus, als wäre die Eule nur zu ihnen geflogen. Der Brief erscheint beim Absender in jedem Einzelchat; Empfänger sehen die anderen Empfänger nicht und können nur dem Absender antworten.
 - Empfänger müssen bestätigte, aktive Kontakte sein (9.10), und die Schlüsselbindung muss intakt sein (5.7).
 - **Chat löschen** (mit Bestätigungsdialog): entfernt die eigenen Kopien aller Briefe des Chats tatsächlich aus der Datenbank; unwiderruflich. Das Gegenüber behält seine Kopien. Physisch gelöscht wird ein Brief, sobald ihn keine Seite mehr hat. Bei Bot-Chats wird auch die Bot-Zusammenfassung gelöscht. Ist das Gegenüber kein Kontakt mehr, wird mit dem Chat auch sein Tresor-Eintrag gelöscht (5.7).
 - **Systemnachrichten:** eigener Chat „Systemnachrichten“. Nachrichten erscheinen sofort (ohne Eulenflug); Antworten sind nicht möglich. Ereignisse: Anhang C. Besondere Nachrichten (v0.3):
@@ -368,18 +369,20 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Bots:** Der Erklärbär steht von Anfang an im Adressbuch, Tante und Onkel erst, wenn ihr erster Brief angekommen ist (Tante: 5 Minuten nach der Registrierung, 10.3). Bots können entfernt werden – unwiderruflich, inklusive Chat, Zusammenfassung und noch ausstehender Goldsendungen (Bestätigungsdialog).
 
 ### 8.9 Karte
-- Siehe Abschnitt 12.
+- Siehe Abschnitt 12. Die Karte ist immer **quadratisch** (v0.4, 12.1).
 
 ### 8.10 Einstellungen
 - Nutzernamen ändern (einmal pro Kalenderjahr; Anzeige, wann wieder möglich).
 - Wohnort ändern (bis zu 3-mal pro Kalendermonat, Anzeige der verbleibenden Umzüge bzw. ab wann wieder; Pin auf der politischen Karte).
 - **Briefe:** Löschfrist für eigene Briefe und Systemnachrichten (30, 90, 180 Tage oder ein Jahr, 8.4.1); „Briefe in Druckschrift statt Handschrift anzeigen“ (reine Anzeige, wird am Konto gespeichert).
+- **Sprache** (v0.4, 8.12): Deutsch oder English als Auswahl; wirkt sofort und wird am Konto gespeichert.
 - Passwort ändern (5.6).
 - Benachrichtigungen: kurze Erklärung in einfachen Worten, Status („aktiv und bestätigt“ / „nicht bestätigt“ / „nicht verfügbar“), Knopf „Test-Benachrichtigung senden“; bei Problemen ein Verweis auf den Hilfeabschnitt Benachrichtigungen (dort auch Google-freies Android, 11.7).
 - Konto löschen (7.5).
 - Ausloggen.
 
 ### 8.11 Hilfe, Datenschutz, Impressum
+- v0.4: Hilfe, Datenschutzerklärung und Impressum gibt es auch auf Englisch (gleiche Abschnitte und Anker); die englischen Rechtstexte sind Übersetzungen der Standardtexte, das englische Impressum nennt die deutsche Fassung als maßgeblich.
 - **Hilfe:** erklärt die App und alle Funktionen verständlich und freundlich, auch für absolute technische Laien (je Funktion ein Abschnitt mit Inhaltsverzeichnis und Ankern, dazu FAQ und Push auf Google-freiem Android). Gleich nach der Einführung steht ausführlich, wie PostEulen ohne App-Store auf den Startbildschirm kommt (wie 8.2, ergänzt um den Computer). Nur die Hilfe (Abschnitt Benachrichtigungen) und das README erklären den Sonderfall Google-freies Android und UnifiedPush. Jeder Abschnitt steht in einer eigenen Box (14). Erreichbar vor und nach dem Login. Ein eigener Abschnitt betont, dass PostEulen zwar zwischen Spiel und Messenger liegt, sich aber wegen ernsthafter, aktueller Kryptografie auch als sicherer Kommunikationsweg eignet; ein weiterer erklärt deutlich die Löschfrist (8.4.1). Der Hilfetext ist zugleich die Wissensbasis des Erklärbärs. Hilfe, Datenschutzerklärung und Impressum stehen als strukturierte Daten in `shared/src/texts/` (Abschnitte aus Absätzen und Listen, Zahlen aus den Konstanten).
 - **Datenschutzerklärung:** so knapp und verständlich wie nötig, aber vollständig zu: gespeicherten Daten (2.2, 3), Ende-zu-Ende-Verschlüsselung und ihren Grenzen (Metadaten, entsperrtes Gerät), unverschlüsselten Bot-Chats und deren Übermittlung an OpenAI, Push-Diensten von Apple/Google/Mozilla bzw. UnifiedPush-Servern (Inhalte verschlüsselt, Zeitpunkte sichtbar), einem einzigen technisch notwendigen Cookie, fehlender IP-Speicherung, Backups (gelöschte Daten verschwinden spätestens nach 7 Tagen auch aus den Backups), automatischer Löschung bei Inaktivität, Löschfrist für Briefe (8.4.1). Ohne Kapitel zu Verantwortlichem und Betroffenenrechten, ohne Platzhalter und ohne Entwurfshinweis.
 - **Impressum:** betont augenzwinkernd, dass es sich um ein technisches Experiment für den Eigengebrauch handelt; schließt freundlich, aber bestimmt jede Haftung aus; Kontakt zum Entwickler über das Mastodon-Profil @iak@23.social. Enthält nur Einleitung, Kontakt und Haftung.
@@ -387,12 +390,21 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ---
 
+### 8.12 Sprache: Deutsch und Englisch (v0.4)
+- **Deutsch ist immer Standard.** Die Sprache des Browsers wird nicht ausgewertet.
+- **Fähnchen oben rechts** auf allen Seiten: In der deutschen Ansicht eine kleine britische Flagge (Beschriftung für Screenreader „Switch to English“), in der englischen eine deutsche Flagge („Auf Deutsch umstellen“). Ein Tipp schaltet die ganze App sofort um, ohne Neuladen. Nicht angemeldet steht das Fähnchen in einer eigenen Zeile über dem Inhalt, angemeldet ganz rechts in der Statusleiste. Die Flaggen sind eingebettete SVGs (keine fremden Ressourcen).
+- **Vor dem Login** merkt sich das Gerät die Wahl dauerhaft im lokalen Speicher des Browsers (`posteulen.language`, nicht auf dem Server).
+- **Konto:** Jedes Konto hat eine Sprache (`users.language`, `de` oder `en`, Standard `de`). Ein Konto, das in der englischen Ansicht erstellt wird, bekommt Englisch. Nach jeder Anmeldung (und bei jeder Aktualisierung des Profils) gilt die Sprache des Kontos – auf jedem Gerät. Angemeldet speichert das Fähnchen die Wahl zugleich im Konto (`PATCH /api/account/language`); dieselbe Einstellung steht in den Einstellungen (8.10). Abmelden ändert die Sprache des Geräts nicht.
+- **Was übersetzt wird:** alle Texte der Oberfläche, Fehlermeldungen, Hilfe mit FAQ, Datenschutzerklärung, Impressum, Systemnachrichten (auch Spendenbitten und Update-Nachrichten, angezeigt in der Sprache der Ansicht), Push-Texte (der Server schickt die Sprache des Kontos im verschlüsselten Push mit; der Service Worker hat beide Textsätze), Artnamen und Artbeschreibungen, Länder- und Städtenamen der Karte (englische Namen aus Natural Earth `NAME_EN`, wo sie sich unterscheiden), Datums- und Zahlenformat (`en-GB`, Dezimalpunkt).
+- **Was der Server in der Kontosprache schreibt:** feste Bot-Briefe und KI-Antworten (Englisch: „Explainer Bear“, „Aunt …“, „Uncle …“), Bot-Namen in Adressbuch, Karte, Systemnachrichten und Finanzen, Namen der Leiheulen und Zufallsnamen der Küken (englische Liste gleicher Länge und Reihenfolge, Anhang D – die HMAC-Ableitung bleibt gleich). Schon zugestellte Bot-Briefe, gespeicherte Namen und Briefe von Menschen bleiben, wie sie sind.
+- Nicht übersetzt: der Name „PostEulen“, Nutzer- und Eulennamen, Rundnachrichten des Admins, das Adminpanel, die Skripte und das Web-App-Manifest.
+
 ## 9. Spielmechanik
 
 ### 9.1 Gold
 
 #### 9.1.1 Grundregeln
-- Startguthaben 3,0 Gold. Jeden Tag um 15:00 UTC erhält jedes **aktive** Konto (9.10) automatisch 1,0 Gold. Inaktive Konten und Bots erhalten nichts. Das tägliche Gold erscheint nur in der Finanzübersicht, nicht im Systemchat.
+- Startguthaben 3,0 Gold. Jeden Tag um 15:00 UTC erhält jedes **aktive** Konto (9.10) automatisch Gold (v0.4): **3,0 Gold** am Tag der Registrierung und an den folgenden Tagen bis einschließlich zum 29. Tag danach (30 Zahltage, maßgeblich ist der UTC-Tag der Registrierung `created_on`), danach **2,0 Gold**. Bestehende Konten werden nach ihrem Registrierungstag eingeordnet. Die Finanzübersicht zeigt den heutigen Betrag und die Regel. Inaktive Konten und Bots erhalten nichts. Das tägliche Gold erscheint nur in der Finanzübersicht, nicht im Systemchat.
 - Außerdem schicken Tante und Onkel jedem neuen Konto einmalig Gold per Eule: die Tante 4,0 Gold 2 Tage nach der Kontoerstellung, der Onkel 10,0 Gold 21 Tage nach der Kontoerstellung (10.3, 10.4).
 - Alle Beträge und Kontostände sind Vielfache von 0,1.
 - Jede kostenpflichtige Aktion erfordert volle Deckung (Guthaben ≥ Kosten) und wird atomar gebucht. Dadurch wird der Kontostand nie negativ. Sollte er dennoch (z. B. durch einen Fehler) negativ sein, sind alle kostenpflichtigen Aktionen gesperrt, bis wieder genug Guthaben vorhanden ist.
@@ -443,7 +455,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 | brütet | nein | ja | nein | nein |
 | an die Menagerie verliehen | nein | nein | nein | nein |
 | Küken | nein | ja | nein | nein |
-| Leiheule vor dem Abflug | nur Brief/Gold an 1 Empfänger | ja | nein | nein |
+| Leiheule vor dem Abflug | Brief an bis zu 5 Empfänger, Gold an 1 | ja | nein | nein |
 
 #### 9.2.6 Bilder
 - Der Auftraggeber liefert für jede Art elf Bilder im Ordner `/images/` (Dateinamen: Anhang B), dazu zwei Bilder ohne Art: die leere Stange und das Gruppenbild. Alle Eulen einer Art – gekaufte, geschenkte, Leih- und Bot-Eulen – zeigen dieselben Bilder; Küken zeigen statt des normalen Bilds das Küken-Bild:
@@ -500,7 +512,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 #### 9.4.2 Ablauf
 - **Route:** Zuhause → Empfänger 1 → … → Empfänger n → Zuhause. Die Zustellung erfolgt bei Ankunft am Wohnort des Empfängers; der Weiter- bzw. Rückflug beginnt sofort mit der Restenergie. Der Rückflug folgt denselben Regeln wie der Hinflug.
-- **Ohne Rückflug:** Leiheulen verschwinden nach der Zustellung. Geschenkte Eulen und Küken bleiben beim Empfänger.
+- **Ohne Rückflug:** Leiheulen verschwinden nach der letzten Zustellung. Geschenkte Eulen und Küken bleiben beim Empfänger.
 - **Energie leer:**
   - über Land: 10 Stunden Schlafpause an Ort und Stelle, danach volle Energie (Maximum), Weiterflug;
   - über Wasser: Die Eule fliegt ohne Energieverbrauch weiter, bis sie wieder über Land ist, und macht dort die 10-Stunden-Pause.
@@ -528,7 +540,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
   - Der Brief an den betroffenen Empfänger wird nicht zugestellt (seine Kopie wird gelöscht). Der Absender sieht „nicht zugestellt – die Eule ist umgekehrt“ und erhält eine Systemnachricht.
   - Gold: Gutschrift beim Absender, sobald die Eule wieder zu Hause ist.
   - Geschenkte Eule / Küken: fliegt zum Schenkenden zurück und gehört wieder ihm.
-  - Leiheulen haben kein Zuhause: Sie verschwinden sofort; mitgeführtes Gold wird sofort zurückgebucht.
+  - Leiheulen haben kein Zuhause: Bleibt kein weiterer Empfänger, verschwinden sie sofort; sonst fliegen sie zum nächsten Empfänger weiter (v0.4). Mitgeführtes Gold wird sofort zurückgebucht.
   - Begleitbriefe teilen das Schicksal ihrer Sendung: Sie werden nicht zugestellt (die Kopie des Empfängers wird gelöscht), und der Absender sieht im Chat „nicht zugestellt – die Eule ist umgekehrt“.
 - **Absenderkonto gelöscht** ⇒ Lieferungen kommen trotzdem an (7.7).
 
@@ -540,7 +552,8 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Start-Energie 60–100 % (per HMAC, s. o.); Werte ihrer Art.
 - Sie muss innerhalb von 24 Stunden nach dem Leihen losgeschickt werden, sonst verschwindet sie aus der Eulenübersicht; das Gold wird nicht erstattet (Systemnachricht).
 - Sie kann gefüttert und gestreichelt, aber nicht umbenannt, verschenkt oder an die Menagerie verliehen werden. Sie wird nie krank und legt keine Eier.
-- Sie trägt einen Brief oder Gold an genau **einen** Empfänger und ist nach erfolgreicher Zustellung verschwunden (kein Rückflug).
+- Sie trägt einen Brief an **bis zu 5 Empfänger** nacheinander (v0.4, wie eine eigene Eule, mit Routen-Vorsortierung 8.4) oder Gold an genau einen Empfänger (9.1.4) und ist nach der letzten Zustellung verschwunden (kein Rückflug). Der Leihpreis bleibt pauschal 0,1 Gold, egal wie viele Empfänger.
+- Name je Kontosprache aus der deutschen oder englischen Liste (Anhang D, 8.12).
 - Es gibt unbegrenzt viele Leiheulen. Von Spielern an die Menagerie verliehene Eulen erscheinen nicht im Angebot.
 
 ### 9.7 Eulenverleih an die Menagerie
@@ -602,10 +615,11 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Wohnt in Berlin (52,520° N, 13,405° O); dort starten seine Eulen.
 - Seine Eulen fliegen 200 km/h, damit Einführungsbriefe und Antworten auf Hilfefragen auch am Rand der Karte nach höchstens etwa einem halben Tag ankommen (Berlin–Algarve ≈ 2 450 km ≈ 12 Stunden).
 - Schickt in den ersten Tagen feste Briefe (vom Agenten geschriebene Texte mit Platzhaltern, kleines Pergament, kurz, freundlich, einfach):
-  - Tag 0: Willkommen, Navigation, Leiheulen (erklärt, dass man mit 3 Gold startet, die erste eigene Eule nach ein paar Tagen kaufen kann und Leiheulen auch direkt beim Briefschreiben bekommt), deutlich die Löschfrist (8.4.1) und dass er auf der Karte erscheint, sobald man ihm geschrieben hat. Dieser Brief liegt bei der Registrierung **schon zugestellt** im Briefkasten (ohne Flug; er gilt als von einer Erklärbär-Eule gebracht), damit neue Nutzer sofort eine Anleitung haben.
+  - Tag 0: Willkommen, Navigation, Leiheulen (erklärt, dass man mit 3 Gold startet, in den ersten 30 Tagen täglich 3 Gold und danach 2 Gold bekommt, die erste eigene Eule nach ein paar Tagen kaufen kann und Leiheulen auch direkt beim Briefschreiben bekommt), deutlich die Löschfrist (8.4.1) und dass er auf der Karte erscheint, sobald man ihm geschrieben hat. Dieser Brief liegt bei der Registrierung **schon zugestellt** im Briefkasten (ohne Flug; er gilt als von einer Erklärbär-Eule gebracht), damit neue Nutzer sofort eine Anleitung haben.
   - Tag 1: PostEulen ohne App-Store auf den Startbildschirm holen (Android/Chrome, iPhone/Safari; andere Browser als Lesezeichen, nur ohne Benachrichtigungen) – ohne den Sonderfall Google-freies Android und UnifiedPush
   - Tag 3: Eulen, Energie, Tag/Nacht, Flug, Flugspur auf der Karte
-  - Tag 2: Gold, Finanzen, Menagerie (kaufen, leihen, verleihen)
+  - Tag 2: Gold, Finanzen, Menagerie (kaufen, leihen, verleihen); v0.4: Hinweis auf das Sprachfähnchen oben rechts
+  - v0.4: Alle festen Briefe gibt es auch auf Englisch; sie gehen in der Sprache des Kontos zum Zeitpunkt des Versands raus (8.12).
   - Tag 4: Kontakte, Koppeln, Sicherheitsnummer, Verschlüsselung (ernsthafte Kryptografie, auch für Vertrauliches geeignet), Erinnerung an die Löschfrist
   - Tag 7: Pflege (Pflegebonus nach 9.3), Krankheit, Küken
 - Beantwortet per KI nur Fragen, die sich konkret auf PostEulen beziehen. Wissensbasis: der vollständige Hilfetext (8.11) und eine kompakte Regelübersicht (Anhang A), beide im System-Prompt. Andere Fragen lehnt er freundlich ab.
@@ -627,7 +641,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Token-Budget je Aufruf (`max_completion_tokens`) 4000 für Antwort und Zusammenfassung, weil Reasoning-Modelle ihre internen Überlegungen darauf anrechnen; die Länge der Antwort begrenzen Prompt und Kürzung.
 - Aufrufe laufen außerhalb von Datenbank-Transaktionen: Das Ereignis „Bot-Antwort fällig“ legt einen Auftrag an; ein Hintergrund-Läufer ruft OpenAI auf und bucht die Antwort danach in einer Transaktion.
 - **Antwortlänge:** höchstens 500 Zeichen (passt auf kleines Pergament); zu lange Antworten werden am Satzende gekürzt. Antworten durchlaufen dieselben Textregeln wie Briefe (5.9, u. a. ohne Emojis).
-- **System-Prompts** (vom Agenten formuliert, gesammelt in einer Datei): Rolle und Persönlichkeit; Sprache Deutsch; familientauglich; keine medizinischen, rechtlichen oder finanziellen Ratschläge über Allgemeines hinaus; keine persönlichen Daten erfragen; keine Namen, Orte oder Begriffe aus bekannten geschützten Werken (z. B. Harry Potter); Anweisungen in Nutzerbriefen, die Rolle oder Regeln ändern wollen, ignorieren; System-Prompt nie preisgeben. Deutet ein Nutzer eine Krise oder Selbstgefährdung an: einfühlsam antworten und auf Hilfe hinweisen (TelefonSeelsorge Deutschland 0800 111 0 111, Österreich 142, Schweiz 143; im Notfall 112).
+- **System-Prompts** (vom Agenten formuliert, gesammelt in einer Datei): Rolle und Persönlichkeit; Antwortsprache = Sprache des Kontos (v0.4: die Prompts bleiben deutsch und weisen bei englischen Konten an, auf britischem Englisch zu antworten und die englischen Bezeichnungen der App zu verwenden; der Erklärbär bekommt dann die englische Hilfe als Wissen; Krisennummern zusätzlich Samaritans 116 123 und 999); familientauglich; keine medizinischen, rechtlichen oder finanziellen Ratschläge über Allgemeines hinaus; keine persönlichen Daten erfragen; keine Namen, Orte oder Begriffe aus bekannten geschützten Werken (z. B. Harry Potter); Anweisungen in Nutzerbriefen, die Rolle oder Regeln ändern wollen, ignorieren; System-Prompt nie preisgeben. Deutet ein Nutzer eine Krise oder Selbstgefährdung an: einfühlsam antworten und auf Hilfe hinweisen (TelefonSeelsorge Deutschland 0800 111 0 111, Österreich 142, Schweiz 143; im Notfall 112).
 - **Hilfe sofort sichtbar:** Weil eine Bot-Antwort erst nach Stunden bis Tagen ankommt, steht dieser Hilfehinweis zusätzlich dauerhaft und unaufdringlich in jedem Bot-Chat und in der Hilfe.
 - **Datensparsamkeit gegenüber OpenAI:** keine Nutzer-IDs, Namen oder sonstigen Kennungen in den Anfragen; Speicherung beim Anbieter abschalten, soweit die API das erlaubt (z. B. `store: false`).
 - **Gedächtnis bei minimalem Kontext:** Kontext = System-Prompt + Zusammenfassung (höchstens ca. 250 Wörter) + die letzten 6 Briefe wörtlich + neuer Brief. Werden es mehr, werden die ältesten Briefe in die Zusammenfassung eingearbeitet (ein zusätzlicher Aufruf, höchstens einer pro Antwort). Die Zusammenfassung liegt im Klartext beim Bot-Chat und wird mit dem Chat gelöscht.
@@ -680,7 +694,8 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ## 12. Karte
 
 ### 12.1 Inhalt
-- Aktuelle politische Karte Westeuropas (Ländergrenzen Stand 2026, deutsche Ländernamen) im Pergament-Stil. Das Vereinigte Königreich erscheint als **England, Schottland, Wales und Nordirland** (getrennte Länder mit eigenen Grenzen und Namen). Ländernamen erscheinen erst, wenn das Land auf dem Bildschirm groß genug ist.
+- Aktuelle politische Karte Westeuropas (Ländergrenzen Stand 2026, deutsche Ländernamen, in der englischen Ansicht englische, 8.12) im Pergament-Stil.
+- **Immer quadratisch (v0.4):** Die Karte ist ein Quadrat, so groß, wie es unter ihrer Position und über einer festen unteren Navigationsleiste ins Fenster passt (mindestens 18 rem, höchstens die Inhaltsbreite), mittig. Auch der sichtbare Ausschnitt ist immer quadratisch: „Ganze Karte“ zeigt das mittige Quadrat über die kürzere Seite der Kartendaten, und Zoomen und Verschieben bleiben innerhalb der Kartendaten – man sieht nie über den Kartenrand hinaus. Das Vereinigte Königreich erscheint als **England, Schottland, Wales und Nordirland** (getrennte Länder mit eigenen Grenzen und Namen). Ländernamen erscheinen erst, wenn das Land auf dem Bildschirm groß genug ist.
 - **Ausschnitt** ungefähr: West 10,7° W (Irland, Portugal), Ost 24,0° O (Lublin, Sofia), Süd 35,8° N (Südspitze Spaniens), Nord 60,6° N (Bergen). Werte in Anhang A.
 - **Angezeigt:** eigener Wohnort (Quadrat); Wohnorte aller Kontakte (Kreis) inkl. Bots (Raute, eigener Legendeneintrag – auch in Graustufen unterscheidbar; der Erklärbär erst, sobald der Nutzer ihm zum ersten Mal geschrieben hat, Tante und Onkel erst mit ihrem ersten Brief); eigene Eulen und Leiheulen, die gerade für den Nutzer unterwegs sind (inkl. verschenkter Eulen und Küken bis zur Ankunft).
 - **Flugspur:** Für jede eigene fliegende Eule zeigt eine dünne dunkelbraune Linie den **bisher geflogenen** Weg (entlang der Großkreise, aus dem Flugplan im Browser berechnet), und ein „Zzz“ markiert jeden Ort, an dem sie eine Schlafpause gemacht hat. Die noch kommende Route wird nie gezeichnet. Legende: „Bisherige Flugstrecke“, „Hier hat eine Eule übernachtet“. Beschriftungen überlappen nicht (gierig: über, unter, rechts, links des Markers, dann weiter außen).
@@ -738,6 +753,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - Schriften selbst gehostet, freie Lizenz (OFL): eine Zierschrift nur für Überschriften (Cinzel Decorative), eine gut lesbare Schrift für Fließtext (mindestens 16 px), in der I, l und 1 sowie O und 0 klar unterscheidbar sind (Atkinson Hyperlegible Next). Nutzer- und Eulennamen erscheinen immer in dieser Schrift, nie in der Zierschrift oder einer Handschrift (Schutz vor Verwechslung, 7.1).
 - **Handschriften** nur für den Brieftext im Chatverlauf (8.4): Dancing Script (eigene Briefe, Sepia) und Playwrite DE Grund (Briefe des Gegenübers, Blauschwarz). Links in Briefen stehen immer in der Fließtextschrift. Abschaltbar in den Einstellungen.
 - Symbole in Kacheln und Navigation als Unicode-Zeichen; Text steht immer daneben.
+- **Sprachfähnchen** (v0.4, 8.12): kleine eingebettete SVG-Flagge (Vereinigtes Königreich bzw. Deutschland) mit dünnem Rahmen; außerhalb der Statusleiste als Papierschild, in der Statusleiste ohne Schild und schmaler (mindestens 2 rem breit), damit sie auf dem Handy neben dem Goldstand passt.
 - **Barrierefreiheit wird automatisch geprüft** (axe-core gegen WCAG 2.2 AA) auf allen Seiten und in jedem Screenshot-Zustand. Animationen laufen höchstens etwa 5 Sekunden am Stück (WCAG 2.2.2).
 - Semantisches HTML, beschriftete Formularfelder, sichtbarer Fokus, `prefers-reduced-motion` wird respektiert.
 - **Browser:** aktuelle Versionen von Chrome (Android, Desktop), Safari (iOS ab 16.4, macOS), Firefox (inkl. IronFox und Fennec F-Droid) und Edge.
@@ -784,7 +800,7 @@ Das Skript ist **idempotent**: Ein erneuter Lauf repariert oder ergänzt, übers
 - KANN: ein Befehl `posteulen-restore <Sicherung>` für die Wiederherstellung aus einem Backup.
 
 ### 16.4 README.md
-Im Wurzelverzeichnis liegt eine `README.md` (Markdown, Deutsch), die GitHub formatiert anzeigt. Sie besteht aus zwei Teilen, beide nett und mit einem Schmunzeln zu lesen:
+Im Wurzelverzeichnis liegt eine `README.md` (Markdown, Deutsch), die GitHub formatiert anzeigt. Seit v0.4 gibt es daneben eine englische Fassung `README.en.md` mit demselben Inhalt; beide verlinken einander ganz oben. Teil 1 erwähnt außerdem die englische Ansicht der App (Fähnchen oben rechts). Sie besteht aus zwei Teilen, beide nett und mit einem Schmunzeln zu lesen:
 - **Teil 1 für Laien:** ein freundlicher, untechnischer Einstieg mit dem Gruppenbild der Eulen, der das Projekt in wenigen Absätzen erklärt, auf `https://posteulen.de` als laufende Instanz verweist, ausdrücklich betont, dass PostEulen zwar zwischen Spiel und Messenger liegt, wegen ernsthafter, aktueller Kryptografie aber auch ein sicherer Kommunikationsweg ist, auf die Löschfrist und die freiwillige Spende hinweist, erklärt, warum PostEulen sich als erster Messenger für Kinder eignet (kein Sog durch das langsame Tempo, keine Nachrichten von Fremden), und erklärt, wie PostEulen ohne App-Store aufs Handy kommt – einschließlich des Sonderfalls Google-freies Android mit UnifiedPush; dazu einige Screenshots (`docs/readme/`).
 - **Teil 2 für Technikerinnen und Techniker, die selbst hosten:** erklärt Schritt für Schritt und für Einsteiger verständlich, wie das Projekt auf einem frischen VPS mit **Debian 13** per HTTPS läuft. Er beschreibt den Weg mit den Skripten und erklärt, was diese tun, sodass man jeden Schritt nachvollziehen und notfalls von Hand ausführen kann. Mindestens:
 
@@ -882,16 +898,16 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Bereich | Wert |
 |---|---|
 | Startguthaben | 3,0 Gold |
-| Tägliches Gold | 1,0 um 15:00 UTC, nur aktive Konten |
+| Tägliches Gold | 15:00 UTC, nur aktive Konten: 3,0 in den ersten 30 Tagen ab Registrierung (Registrierungstag + 29 Tage), danach 2,0 (v0.4) |
 | Aufpreis großes Pergament | 0,1 pro Versand |
 | Begleitbrief | nur bei Gold-, Eulen- und Kükensendungen; kleines Pergament, kostenlos |
 | Goldgeschenk der Tante | 4,0 Gold, 2 Tage nach Registrierung |
 | Erbe vom Onkel | 10,0 Gold, 21 Tage nach Registrierung |
 | Zeichen klein / groß | 800 / 15 000 |
 | Padding klein / groß | 4 096 / 65 536 Byte (große Briefe vor v0.3: 16 384 Byte, weiter lesbar) |
-| Empfänger pro Brief | max. 5 (Leiheule: 1; keine Bots im Mehrfachversand) |
+| Empfänger pro Brief | max. 5, auch mit Leiheule (seit v0.4); Gold an 1; keine Bots im Mehrfachversand |
 | Überweisung | 0,1–20,0 Gold; Restguthaben danach > 10,0 |
-| Leiheule | 0,1 Gold; jede Angebotsart 1× pro Angebotstag (bis 3 am Tag, keine Grenze für gleichzeitig vorhandene); Verfall nach 24 h; 3 verschiedene Namen je Nutzer und Tag |
+| Leiheule | 0,1 Gold pauschal (auch bei mehreren Empfängern); jede Angebotsart 1× pro Angebotstag (bis 3 am Tag, keine Grenze für gleichzeitig vorhandene); Verfall nach 24 h; 3 verschiedene Namen je Nutzer und Tag |
 | Tagesangebot Menagerie | 3 Arten, 00:00 UTC |
 | Start-Energie bei Kauf/Leihe | 60–100 % zufällig (Leihe: per HMAC je Nutzer, Tag und Art) |
 | Fluggeschwindigkeit | 25 km/h × Fluggeschwindigkeitsfaktor |
@@ -1031,6 +1047,8 @@ Momo, Keks, Pino, Flauschi, Nori, Puschel, Tofu, Krümel, Miso, Knöpfchen, Flö
 
 Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, die eindeutig aus geschützten Werken stammen, kommen nicht in die Liste (14).
 
+**Englische Liste (v0.4)** für Konten in Englisch, gleiche Länge und Reihenfolge (deutsche Wörter übersetzt, internationale Namen unverändert): Momo, Cookie, Pino, Fluffy, Nori, Tuft, Tofu, Crumble, Miso, Button, Snowdrop, Pips, Mochi, Scruffy, Kiki, Fluff, Bubu, Snuffles, Dotty, Tippy, Nyx, Rune, Mist, Echo, Onyx, Shadow, Moonlight, Nox, Salem, Merlin, Dusk, Mystic, Orion, Cosmo, Nova, Auri, Kismet, Lumi, Zora, Vesper, Moss, Flake, Maple, Cloud, Feather, Clover, Storm, Pebble, Frost, Spark, Dew, Ash, Rain, Autumn, Lilac, Fir, Breeze, Fern, Snow, Glimmer, Rio, Kim, Mika, Lou, Juno, Niko, Toni, Sam, Robin, Alex, Yuki, Nalu, Quinn, Sky, Ari, Neo, Jona, Remy, Eli, Lio, Hoot, Hooty, Cuckoo, Professor, Specs, Nibbles, Flutter, Whoosh, Goggles, Beaky, Plush, Creaky, Cloudlet, Marble, Pompom, Snuggles, Twirl, Fiddlesticks, Pipsqueak, Hermes, Arnold, Dougal, Bathilda, Ariana, Kendra, Hestia, Phineas, Arcturus, Ruppert, Walburga, Septimus, Septima, Aurora, Wilhelmina, Silvanus, Cuthbert, Galatea, Rolanda, Irma, Garrick, Ambrosius, Rosmerta, Dilys, Armando, Everard, Perenelle, Hepzibah, Merope, Wendelin, Gunhilda
+
 ---
 
 ## Anhang E – Namen für Bots
@@ -1090,4 +1108,19 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 | 0.3.2 | Chatverlauf | Pergament-Texturen: hell für Briefe an den Nutzer, dunkel für eigene; kein Siegel mehr | 8.4, 14 |
 | 0.3.2 | Übersicht | Gruppenbild ab Desktopbreite neben den Kacheln | 8.3 |
 | 0.3.2 | README, Hilfe | Hinweis, dass PostEulen sich eignet, Kinder an Messenger heranzuführen (langsames Tempo, keine Fremden) | 8.11, 16.4 |
+
+---
+
+## Anhang I – Änderungen in Version 0.4
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Startseite | Link „Spenden“ zu https://ko-fi.com/posteulen neben Hilfe, Datenschutz, Impressum | 8.1 |
+| Leiheulen | Briefe an bis zu 5 Empfänger nacheinander (Gold weiter an 1), Angebot in der Eulenwahl auch bei mehreren Empfängern; Leihpreis pauschal 0,1 Gold; fällt ein Empfänger weg, fliegt die Leiheule zum nächsten | 8.4, 9.5, 9.6, Anhang A |
+| Gold | Tägliches Gold 3,0 in den ersten 30 Tagen ab Registrierung, danach 2,0 (statt 1,0); bestehende Konten nach ihrem Registrierungstag | 9.1.1, Anhang A |
+| Chatverlauf | Beim Öffnen eines Chats (auch Systemchat) springt die Seite zum neuesten Brief; nach dem Absenden zum neuen Brief | 8.4 |
+| Übersicht | Gruppenbild und Kacheln am Desktop je halbe Breite, oben und unten bündig | 8.3 |
+| Karte | Immer quadratisch, passt ins Fenster; Ausschnitt quadratisch und nie über den Kartenrand hinaus | 8.9, 12.1 |
+| Sprache | Englische Ansicht mit Fähnchen oben rechts auf allen Seiten; Deutsch Standard; Wahl vor dem Login auf dem Gerät gespeichert, Kontosprache nach dem Login; Einstellung „Sprache“; Bots, Push, Systemnachrichten, Hilfe, Rechtstexte, Karte, Leiheulen- und Kükennamen in der Sprache (Migration 0010) | 1, 8.12, 8.10, 10.5, Anhang D |
+| README, Hilfe, Erklärbär | Neue Abschnitte zu Sprache und Spenden; neue Goldregel und Leiheulen in Hilfe, Bot-Briefen und Wissensbasis; englische README `README.en.md` | 8.11, 10.2, 16.4 |
 

@@ -47,7 +47,7 @@ flowchart LR
 | Nutzer-PWA | `web/` | Oberfläche, gesamte Client-Kryptografie, Karte (Anzeige), Service Worker |
 | Adminpanel | `admin/` | Oberfläche für die Admin-API (13) |
 | Backend | `backend/` | Fastify-Server mit zwei getrennten Listenern (Nutzer-API und Admin-API, eigene Routen, eigene Cookies), Datenbank und Migrationen, Ereignis-Warteschlange, Spielregeln, Bots, Push, Kommandozeilenbefehle (Setup, Admin-Reset, Backup) |
-| Shared | `shared/` | Typen, Valibot-Schemas, Konstanten (Anhang A, B, D, E), Texte (`texts/de.ts`), Krypto-Formate, reine Spiellogik (Flug, Energie, Gold, Wahrscheinlichkeiten, Namens-Normalisierung, Textregeln), Land/Wasser-Maske |
+| Shared | `shared/` | Typen, Valibot-Schemas, Konstanten (Anhang A, B, D, E), Texte (`texts/de.ts`, v0.4 zusätzlich `texts/en.ts` und je Sprache Hilfe, Rechtstexte, Bot-Briefe, Systemtexte), Krypto-Formate, reine Spiellogik (Flug, Energie, Gold, Wahrscheinlichkeiten, Namens-Normalisierung, Textregeln), Land/Wasser-Maske |
 | Betrieb | `deploy/` | `install.sh`, `update.sh`, Caddyfile-Vorlage, systemd-Units, Backup-Skript, VM-Testumgebung |
 | Bilder | `images/` | Originale (PNG); der Build erzeugt daraus WebP-Varianten in `web/dist` |
 
@@ -162,7 +162,7 @@ Legende Schutz: **E2E** = nur der Browser des Nutzers kann entschlüsseln · **S
 
 | Tabelle | Felder | Schutz |
 |---|---|---|
-| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `home_moves_month` + `home_moves_count` (v0.2: 3 Umzüge je Monat) · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` · `letter_retention_days` (30/90/180/365) · `letters_print` · `donation_count` (v0.3: Zahl der Spendenbitten, bestimmt den nächsten Text) | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
+| `users` | `id` PK · `name_display` · `name_key` UNIQUE (Vergleichsschlüssel 7.1) · `created_on` · `state` (`active`/`deletion_pending`/`deleting`) · `deletion_requested_at` · `opaque_record` · `ed25519_pub` · `x25519_pub` · `key_package` · `key_format` · `home_lat`, `home_lon` · `home_changed_on` · `home_moves_month` + `home_moves_count` (v0.2: 3 Umzüge je Monat) · `name_changed_year` · `gold` · `last_active_date` · `inactivity_warned_on` · `letter_retention_days` (30/90/180/365) · `letters_print` · `donation_count` (v0.3: Zahl der Spendenbitten, bestimmt den nächsten Text) · `language` (v0.4: `de`/`en`, Sprache des Kontos für Bots, Push, Leiheulen-Namen) | `opaque_record`: OPAQUE (ohne OPRF-Schlüssel wertlos); `key_package`: **E2E**; öffentliche Schlüssel, Name, Wohnort, Gold: lesbar |
 | `sessions` | `token_hash` PK (SHA-256) · `user_id` · `last_used_at` | **H** |
 | `push_subscriptions` | `user_id` PK · `endpoint` · `p256dh` · `auth` · `created_at` · `last_confirmed_at` | lesbar (nötig zum Senden) |
 | `notifications` | `id` PK (= Push-ID, 128 Bit) · `user_id` · `type` · `params` (JSON, z. B. Betrag, Eulen-ID) · `created_at` · `push_state` | lesbar |
@@ -222,7 +222,7 @@ Alle Spielstände sind lesbar (3: „für den Server sichtbare Metadaten“).
 
 ## 4. API-Übersicht
 
-Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Endpunkte ohne Nutzdaten akzeptieren nur einen leeren Inhalt oder `{}` (`emptyBody`, D-94). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 512 KiB (v0.3: 15 000 Zeichen an bis zu 5 Empfänger) und `POST /api/bot-letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der deutsche Text kommt aus `texts/de.ts`. Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
+Konventionen: nur JSON, Valibot-Schema je Endpunkt (`shared/schemas/`; unbekannte Felder werden abgelehnt). Ändernde Endpunkte ohne Nutzdaten akzeptieren nur einen leeren Inhalt oder `{}` (`emptyBody`, D-94). Ändernde Anfragen brauchen den Header `X-PostEulen: 1` und einen exakt passenden `Origin`. Höchstgröße 64 KiB, nur `POST /api/letters/send` 512 KiB (v0.3: 15 000 Zeichen an bis zu 5 Empfänger) und `POST /api/bot-letters/send` 128 KiB. Fehlerantworten sind `{ code }`, der Text kommt im Browser aus `texts/de.ts` bzw. `texts/en.ts` (v0.4). Jede Antwort trägt die Server-Version. Ein veralteter Client erhält `409 { code: "client_outdated" }`, und die App fordert zum Neuladen auf (16.3).
 
 Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Registrierung, Vorbereitung/Flugvorschau, Kontaktanfragen) · **A** Admin streng. `bg` = Hintergrundanfrage, zählt nicht als Aktivität (9.10).
 
@@ -243,6 +243,7 @@ Rate-Limit-Klassen: **N** normal (pro Sitzung und IP) · **T** teuer (Login, Reg
 | `POST /account/delete` | Löschung mit 24-Stunden-Frist starten | Sitzung + Token | N |
 | `PATCH /account/name`, `/account/home` | Namens- bzw. Wohnortwechsel | Sitzung | N |
 | `PATCH /account/letters` | Löschfrist und Druckschrift (v0.2, sofortige Löschung bei kürzerer Frist) | Sitzung | N |
+| `PATCH /account/language` | Sprache des Kontos `de`/`en` (v0.4: Fähnchen und Einstellungen) | Sitzung | N |
 | `GET /sync` | vollständiger Abgleich (Profil, Chatliste, Eulen, Neuigkeiten, Versionen) | Sitzung | N |
 | `GET /events` | SSE-Hinweise („Chat X geändert“), keine Inhalte | Sitzung | N |
 | `GET /chats/:peer/letters` | Verlauf (Chiffrate und Metadaten; nur zugestellte bzw. eigene) | Sitzung, eigener Chat | N |
@@ -645,7 +646,8 @@ Uhr und Zufall werden immer als Parameter übergeben (`{ now, rng }`). Das Backe
 - **CSP-Verträglichkeit (D-07):** Svelte 5 setzt Styles über das CSSOM und Übergänge über die Web Animations API; beides ist mit `style-src 'self'` vereinbar. Statische `style="…"`-Attribute in Templates sind verboten (Lint-Regel). Svelte bringt eine Trusted-Types-Policy `svelte-trusted-html` mit. Die CSP enthält deshalb `require-trusted-types-for 'script'; trusted-types svelte-trusted-html posteulen-sw` (die zweite Policy erlaubt genau `/sw.js` für die Registrierung des Service Workers, D-30). Diese Policy lässt das HTML ungeprüft durch und ist nur sicher, weil `{@html}` verboten ist. Ein Playwright-Test lauscht auf `securitypolicyviolation` und schlägt bei jedem Verstoß fehl.
 - **ALTCHA-Widget:** wird selbst gehostet. Ob es ohne Inline-Styles auskommt, prüfe ich in Stufe 1. Sonst baue ich eine eigene kleine Svelte-Komponente auf `altcha/lib`.
 - **Bilder:** Der Build (`sharp`) erzeugt WebP in 160, 480 und 960 px mit Hash im Namen und ein Manifest. Fehlende Bilder ersetzt er durch einen Platzhalter und gibt eine Warnung aus (9.2.6).
-- **Hilfe, Datenschutz, Impressum:** strukturierte Texte in `shared/texts/help.ts` und `legal.ts`, dargestellt von `TextPage.svelte` (Inhaltsverzeichnis, Sprungmarken, nur Text). `helpAsText()` liefert dieselbe Hilfe als Wissensbasis des Erklärbärs (D-91).
+- **Hilfe, Datenschutz, Impressum:** strukturierte Texte in `shared/texts/help.ts` und `legal.ts` (v0.4: englisch in `help-en.ts`, `legal-en.ts`; Auswahl über `helpOf`/`legalOf`), dargestellt von `TextPage.svelte` (Inhaltsverzeichnis, Sprungmarken, nur Text). `helpAsText(language)` liefert dieselbe Hilfe als Wissensbasis des Erklärbärs (D-91).
+- **Sprache (v0.4, D-142 bis D-145):** `web/src/lib/i18n.svelte.ts` hält die Sprache der Ansicht (`localStorage` vor dem Login, danach `profile.language`) und liefert über den Proxy `t` die Texte; `App.svelte` rendert beim Wechsel neu (`{#key}`). Das Fähnchen (`LanguageFlag.svelte`) und die Einstellung speichern angemeldet per `PATCH /api/account/language`. Der Server nutzt `languageOf()` für Bot-Briefe, Bot-Namen, KI-Prompts, Push-Nutzlast (`lang`) und Leiheulen-/Kükennamen.
 - **Schriften:** Atkinson Hyperlegible Next (Fließtext, Namen) und eine Zierschrift für Überschriften (Cinzel Decorative, F-08), beide OFL, als WOFF2 selbst gehostet.
 
 ---

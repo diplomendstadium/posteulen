@@ -1,5 +1,5 @@
 /** Owl states and allowed actions (SPEC 9.2.5) – used by server checks and the UI alike. */
-import { OWL } from '../constants.ts';
+import { LETTER, OWL } from '../constants.ts';
 import { SPECIES, type Species } from '../species.ts';
 
 export type OwlState =
@@ -22,9 +22,9 @@ export function canTransport(owl: OwlFacts): boolean {
   return owl.state === 'home' && !owl.isChick && owl.kind !== 'bot';
 }
 
-/** Several recipients only with an own owl (8.4, 9.6). */
+/** Own and loan owls fly to up to LETTER.MAX_RECIPIENTS recipients (8.4, 9.6; loan owls since v0.4). */
 export function maxRecipients(owl: OwlFacts): number {
-  return owl.kind === 'loan' ? 1 : 5;
+  return owl.kind === 'bot' ? 1 : LETTER.MAX_RECIPIENTS;
 }
 
 export function canGift(owl: OwlFacts): boolean {
