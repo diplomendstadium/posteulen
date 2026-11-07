@@ -5,9 +5,11 @@
 #   sudo posteulen-update v0.1.0       bestimmte Version
 #   sudo posteulen-update --check      nur anzeigen, was installiert und verfügbar ist
 #   sudo posteulen-update --rollback   zurück zur vorigen Version (seitdem entstandene Daten gehen verloren)
-#   --verify-tags                      Tag-Signatur gegen deploy/allowed_signers prüfen
+#   --no-verify-tags                   Tag-Signatur NICHT prüfen (nur bewusst, z. B. für eigene Builds)
 #   --yes                              keine Rückfragen
 #
+# Seit v0.6.1 prüft jedes Update die Signatur des Tags gegen deploy/allowed_signers der
+# installierten Version (--verify-tags ist damit Standard und wird nur noch angenommen).
 # Dieser Befehl holt die neue Version und übergibt dann an deren eigenes Update-Skript, damit
 # neue Versionen eigene Schritte mitbringen können.
 set -euo pipefail
@@ -15,15 +17,16 @@ set -euo pipefail
 source /opt/posteulen/current/deploy/lib.sh
 require_root
 
-target='' check=0 rollback=0 verify=0
+target='' check=0 rollback=0 verify=1
 PE_ASSUME_YES=0
 while [[ $# -gt 0 ]]; do
   case $1 in
     --check) check=1; shift ;;
     --rollback) rollback=1; shift ;;
     --verify-tags) verify=1; shift ;;
+    --no-verify-tags) verify=0; shift ;;
     --yes) PE_ASSUME_YES=1; shift ;;
-    -h | --help) sed -n '2,13p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,15p' "$0"; exit 0 ;;
     -*) die "Unbekannter Parameter: $1" "Hilfe mit „posteulen-update --help“." ;;
     *) target=$1; shift ;;
   esac
@@ -44,7 +47,7 @@ info "Hole verfügbare Versionen …"
 git -C "$PE_REPO" fetch --quiet --force --tags origin '+refs/heads/*:refs/heads/*' || die "Repository nicht erreichbar." "Netzwerk und Zugang prüfen."
 [[ -n $target ]] || target=$(newest_tag "$PE_REPO")
 [[ -n $target ]] || die "Keine Version gefunden."
-commit=$(git -C "$PE_REPO" rev-parse --short=12 "$target^{commit}" 2>/dev/null) || die "Version „$target“ gibt es nicht." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
+commit=$(release_commit "$PE_REPO" "$target" 2>/dev/null) || die "Version „$target“ gibt es nicht." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
 
 if [[ $check -eq 1 ]]; then
   printf 'Installiert: %s (%s)\nVerfügbar:   %s (%s)\n\n' "$current_version" "$(basename "$current_release")" "$target" "$commit"
@@ -58,9 +61,12 @@ if [[ $current_release == *"-$commit" ]]; then
 fi
 
 if [[ $verify -eq 1 ]]; then
-  git -C "$PE_REPO" -c gpg.format=ssh -c "gpg.ssh.allowedSignersFile=$current_release/deploy/allowed_signers" \
-    verify-tag "$target" 2>/dev/null || die "Die Signatur von $target ist ungültig oder fehlt." "Nicht aktualisieren und die Herkunft prüfen."
-  ok "Signatur von $target geprüft."
+  signature=$(verify_release_tag "$PE_REPO" "$target" "$current_release/deploy/allowed_signers") ||
+    die "Die Signatur von $target ist ungültig oder fehlt (oder „$target“ ist kein signiertes Tag)." \
+      "Nicht aktualisieren und die Herkunft prüfen. Nur für bewusst unsignierte eigene Stände: --no-verify-tags."
+  ok "Signatur von $target geprüft: $signature"
+else
+  warn "Die Signatur von $target wird NICHT geprüft (--no-verify-tags). Nur für eigene, vertrauenswürdige Stände verwenden."
 fi
 
 release="$PE_RELEASES/$(tr -c 'A-Za-z0-9._-' '_' <<<"$target" | sed 's/_$//')-$commit"

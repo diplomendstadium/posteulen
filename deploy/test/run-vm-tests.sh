@@ -39,29 +39,41 @@ mv SHA512SUMS.new SHA512SUMS
 echo "Image geprüft (SHA-512)."
 
 [[ -f vm_key ]] || ssh-keygen -q -t ed25519 -N '' -f vm_key -C posteulen-vm-test
+# Eigener Signaturschlüssel nur für Test-Tags (v0.6.1: Updates prüfen Signaturen standardmäßig).
+[[ -f vm_sign_key ]] || ssh-keygen -q -t ed25519 -N '' -f vm_sign_key -C posteulen-vm-sign
 run_dir=$(mktemp -d "$CACHE/run.XXXXXX")
 trap 'if [[ ${KEEP_VM:-0} != 1 && -f $run_dir/qemu.pid ]]; then kill "$(cat "$run_dir/qemu.pid")" 2>/dev/null || true; fi' EXIT
 
 say "Test-Versionen aus HEAD bauen"
 work="$run_dir/repo"
 git clone --quiet --no-local "$ROOT" "$work"
-git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet --allow-empty -m "VM-Test: Version 1"
+# Die Test-Versionen vertrauen dem Testschlüssel statt dem Schlüssel des Auftraggebers.
+printf 'vmtest namespaces="git" %s\n' "$(cut -d' ' -f1,2 "$CACHE/vm_sign_key.pub")" >"$work/deploy/allowed_signers"
+git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet --allow-empty -am "VM-Test: Version 1"
 version=$(sed -n "s/^export const VERSION = '\(.*\)';$/\1/p" "$work/shared/src/version.ts")
 set_version() {
   sed -i "s/^export const VERSION = '.*';$/export const VERSION = '$1';/" "$work/shared/src/version.ts"
 }
+signed_tag() {
+  git -C "$work" -c gpg.format=ssh -c "user.signingkey=$CACHE/vm_sign_key" \
+    -c user.name=vmtest -c user.email=vmtest@invalid tag -s -m "PostEulen $1" "$1"
+}
 set_version "$version-vmtest.1"
 git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -am "VM-Test 1"
-git -C "$work" tag "v$version-vmtest.1"
+signed_tag "v$version-vmtest.1"
 set_version "$version-vmtest.2"
 git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -am "VM-Test 2"
-git -C "$work" tag "v$version-vmtest.2"
+signed_tag "v$version-vmtest.2"
+# Unsigniert (muss abgelehnt werden) und ein echt signiertes Tag unter falschem Namen – beide
+# auf Version 1, damit sie sich vom dann installierten Stand (Version 2) unterscheiden.
+git -C "$work" tag "v$version-vmtest.0" "v$version-vmtest.1^{commit}"
+git -C "$work" update-ref "refs/tags/v$version-vmtest.00" "$(git -C "$work" rev-parse "refs/tags/v$version-vmtest.1")"
 set_version "$version-vmtest.3"
 next=$(($(find "$work/backend/migrations" -name '*.sql' | wc -l) + 1))
 printf -- '-- Absichtlich kaputt (VM-Test: Rückfall).\nCREATE TABLE vmtest_broken (x INTEGER) STRICT;\nINSERT INTO gibt_es_nicht VALUES (1);\n' >"$work/backend/migrations/$(printf '%04d' "$next")_vmtest_broken.sql"
 git -C "$work" add -A
 git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -m "VM-Test 3 (kaputt)"
-git -C "$work" tag "v$version-vmtest.3"
+signed_tag "v$version-vmtest.3"
 git -C "$work" bundle create --quiet "$run_dir/posteulen.bundle" --all
 # Vorige Stufe: das neueste Release-Tag vor HEAD (SPEC 17.6: Update vom Tag der vorigen Stufe).
 previous=$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)

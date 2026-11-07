@@ -12,7 +12,11 @@
 #   --ssh-hardening ja|nein    SSH nur noch mit Schlüssel (nur wenn ein Schlüssel hinterlegt ist)
 #   --swap ja|nein             Swap-Datei anlegen, falls der RAM knapp ist
 #   --test-mode                lokale Zertifikate (Caddy „tls internal“), keine DNS-Prüfung
+#   --no-verify-tags           Tag-Signatur NICHT prüfen (nur bewusst, z. B. für eigene Builds)
 #   --yes                      keine Rückfragen, Vorgaben verwenden
+#
+# Seit v0.6.1 wird nur eine Version mit gültig signiertem Tag installiert (Prüfung gegen
+# deploy/allowed_signers dieses Klons); der Fingerabdruck des Schlüssels wird angezeigt.
 #
 # Das Skript ist idempotent: Ein erneuter Lauf repariert oder ergänzt, überschreibt aber nie
 # Geheimnis-Datei, Datenbank, Backups oder lokale Anpassungen.
@@ -23,6 +27,7 @@ source "$SELF_DIR/lib.sh"
 SOURCE_CLONE=$(cd "$SELF_DIR/.." && pwd)
 
 domain='' repo='' ref='' allowlist='' backup_pubkey='' ssh_hardening='' swap='' test_mode=0
+verify=1
 PE_ASSUME_YES=0
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -34,8 +39,9 @@ while [[ $# -gt 0 ]]; do
     --ssh-hardening) ssh_hardening=${2:-}; shift 2 ;;
     --swap) swap=${2:-}; shift 2 ;;
     --test-mode) test_mode=1; shift ;;
+    --no-verify-tags) verify=0; shift ;;
     --yes) PE_ASSUME_YES=1; shift ;;
-    -h | --help) sed -n '2,22p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,26p' "$0"; exit 0 ;;
     *) die "Unbekannter Parameter: $1" "Hilfe mit „$0 --help“." ;;
   esac
 done
@@ -115,7 +121,7 @@ add_key() {
 info "Installiere Pakete …"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq ca-certificates curl gnupg git age ufw unattended-upgrades needrestart iproute2 >/dev/null
+apt-get install -y -qq ca-certificates curl gnupg git openssh-client age ufw unattended-upgrades needrestart iproute2 >/dev/null
 add_key "$NODESOURCE_KEY_URL" "$NODESOURCE_KEY_FPR" /usr/share/keyrings/nodesource.gpg
 add_key "$CADDY_KEY_URL" "$CADDY_KEY_FPR" /usr/share/keyrings/caddy-stable.gpg
 cat >/etc/apt/sources.list.d/nodesource.sources <<SRC
@@ -221,7 +227,7 @@ git -C "$PE_REPO" fetch --quiet --force --tags origin '+refs/heads/*:refs/heads/
 if [[ -L $PE_CURRENT ]]; then
   release=$(readlink -f "$PE_CURRENT")
   if [[ -n $ref ]]; then
-    wanted=$(git -C "$PE_REPO" rev-parse --short=12 "$ref^{commit}" 2>/dev/null || true)
+    wanted=$(release_commit "$PE_REPO" "$ref" 2>/dev/null || true)
     [[ $release == *"-$wanted" ]] || die "Hier ist bereits $(release_version "$release") installiert." "Für andere Versionen „sudo posteulen-update <Version>“ verwenden."
   fi
   ok "Vorhandenes Release bleibt: $release"
@@ -230,7 +236,16 @@ else
     ref=$(newest_tag "$PE_REPO")
     [[ -n $ref ]] || die "Im Repository gibt es noch keine Version (Tag)." "Mit „--ref <Commit>“ eine Version angeben."
   fi
-  commit=$(git -C "$PE_REPO" rev-parse --short=12 "$ref^{commit}" 2>/dev/null) || die "Version „$ref“ nicht gefunden."
+  commit=$(release_commit "$PE_REPO" "$ref" 2>/dev/null) || die "Version „$ref“ nicht gefunden."
+  if [[ $verify -eq 1 ]]; then
+    signature=$(verify_release_tag "$PE_REPO" "$ref" "$SOURCE_CLONE/deploy/allowed_signers") ||
+      die "Die Signatur von $ref ist ungültig oder fehlt (oder „$ref“ ist kein signiertes Tag)." \
+        "Nur signierte Versionen installieren. Für bewusst unsignierte eigene Stände: --no-verify-tags."
+    ok "Signatur von $ref geprüft: $signature"
+    info "Diesen Fingerabdruck mit dem in README.md veröffentlichten vergleichen."
+  else
+    warn "Die Signatur von $ref wird NICHT geprüft (--no-verify-tags)."
+  fi
   release="$PE_RELEASES/$(tr -c 'A-Za-z0-9._-' '_' <<<"$ref" | sed 's/_$//')-$commit"
   rm -rf "$release"
   mkdir -p "$release"

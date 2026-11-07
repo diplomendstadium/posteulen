@@ -119,6 +119,7 @@ interface Item {
   id: string;
   senderId: string;
   recipientId: string;
+  sentAt: number;
   kind: 'letter';
   parchment: 'small';
   status: string;
@@ -193,6 +194,7 @@ if (command === 'letters-setup') {
         letterId: item.id,
         senderId: item.senderId,
         recipientId: item.recipientId,
+        sentAt: item.sentAt,
         kind: item.kind,
         parchment: item.parchment,
       },

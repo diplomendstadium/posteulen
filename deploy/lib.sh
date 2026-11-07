@@ -141,6 +141,33 @@ newest_tag() {
   git -C "$1" -c versionsort.suffix=- tag --list 'v*' --sort=-v:refname | head -n1
 }
 
+# Prüft die Signatur eines Release-Tags (SPEC 16.3, seit v0.6.1 Standard).
+# $1 = Repository, $2 = Tag-Name, $3 = allowed_signers-Datei. Erfolg nur für ein annotiertes,
+# gültig signiertes Tag, dessen eingetragener Name zum Ref passt (sonst ließe sich ein altes,
+# echt signiertes Tag unter neuem Namen unterschieben). Gibt die Prüfmeldung von git aus.
+verify_release_tag() {
+  local repo=$1 tag=$2 signers name output
+  # Absolut, denn git -C wechselt das Verzeichnis.
+  signers=$(readlink -f "$3") && [[ -f $signers ]] || return 1
+  git -C "$repo" rev-parse --quiet --verify "refs/tags/$tag" >/dev/null || return 1
+  [[ $(git -C "$repo" cat-file -t "refs/tags/$tag") == tag ]] || return 1
+  name=$(git -C "$repo" cat-file tag "refs/tags/$tag" | sed -n 's/^tag //p' | head -n1)
+  [[ $name == "$tag" ]] || return 1
+  output=$(git -C "$repo" -c gpg.format=ssh -c "gpg.ssh.allowedSignersFile=$signers" \
+    verify-tag "refs/tags/$tag" 2>&1) || return 1
+  grep -m1 '^Good ' <<<"$output" || printf 'gültig\n'
+}
+
+# Commit eines Tags oder einer Commit-Angabe; Tags haben Vorrang vor gleichnamigen Branches.
+release_commit() {
+  local repo=$1 ref=$2
+  if git -C "$repo" rev-parse --quiet --verify "refs/tags/$ref" >/dev/null; then
+    git -C "$repo" rev-parse --short=12 "refs/tags/$ref^{commit}"
+  else
+    git -C "$repo" rev-parse --short=12 "$ref^{commit}"
+  fi
+}
+
 # Versionsnummer eines Release-Verzeichnisses (aus shared/src/version.ts).
 release_version() {
   sed -n "s/^export const VERSION = '\(.*\)';$/\1/p" "$1/shared/src/version.ts"

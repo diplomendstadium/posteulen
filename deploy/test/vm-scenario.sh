@@ -5,6 +5,8 @@ set -euo pipefail
 base=$1
 previous=${2:-}
 v1="v$base-vmtest.1" v2="v$base-vmtest.2" v3="v$base-vmtest.3"
+# Unsigniert bzw. ein signiertes Tag unter fremdem Namen (v0.6.1: beides muss scheitern).
+unsigned="v$base-vmtest.0" renamed="v$base-vmtest.00"
 DOMAIN=posteulen.test
 pass=0 failed=0
 check() {
@@ -146,6 +148,11 @@ check "Geheimnisse unverändert" test "$(fingerprint)" = "$before"
 check "Verschlüsselte Sicherung vor dem Update" update_backup_exists
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
+
+echo "── 3a. Nur signierte Tags (v0.6.1)"
+if posteulen-update "$unsigned" --yes; then check "unsigniertes Tag abgelehnt" false; else check "unsigniertes Tag abgelehnt" true; fi
+if posteulen-update "$renamed" --yes; then check "umbenanntes signiertes Tag abgelehnt" false; else check "umbenanntes signiertes Tag abgelehnt" true; fi
+check "Version $v2 läuft unverändert" test "$(api_version)" = "${v2#v}"
 
 echo "── 4. Kaputtes Update $v2 → $v3 wird zurückgerollt"
 if posteulen-update "$v3" --yes; then check "kaputtes Update schlägt fehl" false; else check "kaputtes Update schlägt fehl" true; fi
