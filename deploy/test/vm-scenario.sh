@@ -89,6 +89,10 @@ if [[ -n $previous ]]; then
     check "Testkonto mit $previous registrieren" account register && account_registered=1
   fi
   before_update=$(fingerprint)
+  # Seit v0.6.1 prüft schon die installierte Vorversion jede Signatur gegen ihre eigene
+  # allowed_signers (Schlüssel des Auftraggebers). Die Test-Tags trägt der Testschlüssel: Ihm
+  # vertraut die Vorversion hier zusätzlich – das steht für die echte Signatur des Auftraggebers.
+  git -C /root/posteulen show "$v1:deploy/allowed_signers" >>/opt/posteulen/current/deploy/allowed_signers
   check "posteulen-update $v1 (von $previous)" posteulen-update "$v1" --yes
   check "Version $v1 antwortet" test "$(api_version)" = "${v1#v}"
   check "Daten der vorigen Stufe erhalten" has_previous_marker
