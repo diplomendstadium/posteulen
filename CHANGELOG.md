@@ -5,7 +5,7 @@ Abschnitt **Hinweise für Betreiber**.
 
 ## v0.7.0 – Eulen, die zum Plausch bleiben
 
-Funktionsversion (SPEC Anhang P, Entscheidungen D-184 bis D-205).
+Funktionsversion (SPEC Anhang P, Entscheidungen D-184 bis D-206).
 
 - **Rast beim Empfänger:** Beim Schreiben wählt man, wie lange die Eule bei jedem Empfänger bleibt
   (gar nicht, 1, 2, 24 oder 48 Stunden; vorgewählt 1 Stunde). Der Empfänger sieht sie als Gast in seiner
@@ -37,6 +37,8 @@ Funktionsversion (SPEC Anhang P, Entscheidungen D-184 bis D-205).
   neu bauen kann.
 - **Tests:** neue Unit-Tests (`backend/test/v07.test.ts`, `shared/test/timezone.test.ts`, Ergänzungen in
   Flug-, Karten-, Zufalls- und Admin-Tests) und E2E-Tests (`e2e/v07.spec.ts`, Gutschein im Adminpanel).
+- **VM-Test:** Die installierte Vorversion (seit 0.6.1 mit Signaturprüfung) vertraut für das Update auf
+  die Test-Tags dem Testschlüssel.
 - SPEC (Stand 0.7.0, Anhang P), PROMPT, README, Hilfe und Erklärbär de/en angepasst.
 
 ### Hinweise für Betreiber

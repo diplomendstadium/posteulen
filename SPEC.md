@@ -2,7 +2,7 @@
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Zusammen mit `PROMPT.md` (Bauauftrag) reicht sie aus, um PostEulen auf dem aktuellen Stand neu zu bauen.
 >
-> **Stand: Version 0.7.0.** Eingearbeitet sind alle Entscheidungen bis D-205 und die Änderungen der Versionen 0.2 bis 0.7.0 (Übersicht in Anhang F bis K, M, O und P). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
+> **Stand: Version 0.7.0.** Eingearbeitet sind alle Entscheidungen bis D-206 und die Änderungen der Versionen 0.2 bis 0.7.0 (Übersicht in Anhang F bis K, M, O und P). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
 
 ---
 
@@ -1449,7 +1449,7 @@ Funktionsversion: Rast beim Empfänger mit Antwort, Motivation je Etappe, Weltka
 | Startseite | Anmelde-Box und Gruppenbild gleich groß; alle Fußzeilen-Links in derselben Farbe | 8.1 |
 | Betrieb | minimale fontconfig-Konfiguration beim Build (keine Meldung „Fontconfig error“ mehr) | 16, L.7 |
 | Doku | README: Hinweis, dass man PostEulen mit `PROMPT.md`, `SPEC.md` und `images/` selbst neu bauen kann | 16.4 |
-| Tests | neue Unit-Tests (Rast, Antworten, Motivation je Etappe, Gutscheine, Leiheulen-Sperre, Löschfrist-Nachricht, Zahltag 03:00, Zeitzonen, Projektion) und E2E-Tests (Begrüßung, Rast mit Antwort, Verbrennen, Weltkarte, Startseite, Gutschein im Adminpanel) | 17, L.8 |
+| Tests | neue Unit-Tests (Rast, Antworten, Motivation je Etappe, Gutscheine, Leiheulen-Sperre, Löschfrist-Nachricht, Zahltag 03:00, Zeitzonen, Projektion) und E2E-Tests (Begrüßung, Rast mit Antwort, Verbrennen, Weltkarte, Startseite, Gutschein im Adminpanel); VM-Test: die installierte Vorversion vertraut für das Update auf die Test-Tags dem Testschlüssel (seit 0.6.1 prüft schon sie Signaturen) | 17, 17.6, L.8 |
 
 ---
 
@@ -1503,3 +1503,4 @@ Neue Entscheidungen, die diese Spezifikation offenlässt, stehen hier (Nummer, D
 | D-203 | 2026-11-08 | Gegen die Meldung „Fontconfig error“ beim Build: `FONTCONFIG_FILE` auf eine minimale `deploy/fontconfig/fonts.conf` | Wunsch des Auftraggebers; kein zusätzliches Paket | Paket `fontconfig-config`; ignorieren |
 | D-204 | 2026-11-08 | Startseite: Anmelde-Box und Gruppenbild per Grid-Stretch gleich groß (das quadratische Bild gibt die Höhe vor); die Versionsnummer hat keine eigene Farbe mehr | gleiche Optik wie Kacheln und Bild auf der Übersicht (v0.4) | Bild verkleinern |
 | D-205 | 2026-11-08 | Brüten-Bilder als Bildart `brooding` (`<Bildname>-Brueten.png`), ersetzt bei brütenden Eulen auch das Nickerchen; der Phönix hat keines | einheitliche Dateinamen nach Anhang B; der Phönix legt keine Eier | Nickerchen weiter zulassen |
+| D-206 | 2026-11-08 | VM-Test: Vor dem Update von der vorigen Stufe trägt das Szenario den Test-Signaturschlüssel in die `allowed_signers` der installierten Vorversion ein | seit 0.6.1 prüft bereits die Vorversion jede Signatur gegen den Schlüssel des Auftraggebers, den der Test nicht hat; der Eintrag steht für dessen echte Signatur, alle Ablehnungsprüfungen bleiben | Vorversion mit `--no-verify-tags` aktualisieren (prüfte die Signaturprüfung nicht mehr) |
