@@ -58,7 +58,8 @@ export const de = {
     passwordRepeat: 'Passwort wiederholen',
     inviteCode: 'Einladungscode',
     home: 'Fiktiver Wohnort',
-    homeHint: 'Tippe auf die Karte. Bitte nicht deine echte Adresse wählen.',
+    homeHint:
+      'Tippe auf die Karte. Überlege sorgfältig, ob du deine echte Adresse wählen möchtest.',
     homeChosen: 'Gewählt: {lat}° {ns}, {lon}° {ew}',
     north: 'N',
     south: 'S',
@@ -155,7 +156,7 @@ export const de = {
     lettersSaved: 'Gespeichert.',
     homeTitle: 'Wohnort ändern',
     homeIntro:
-      'Bis zu 3-mal pro Kalendermonat möglich. Tippe auf die Karte (nur Land). Bitte nicht deine echte Adresse wählen. Eulen, die gerade zu dir unterwegs sind, ändern ihren Kurs.',
+      'Bis zu 3-mal pro Kalendermonat möglich. Tippe auf die Karte (nur Land). Überlege sorgfältig, ob du deine echte Adresse wählen möchtest. Eulen, die gerade zu dir unterwegs sind, ändern ihren Kurs.',
     homeLeft: 'Diesen Monat noch {count}-mal möglich.',
     homeBlocked: 'Diesen Monat bist du schon 3-mal umgezogen. Wieder möglich ab {date}.',
     homeSave: 'Wohnort übernehmen',
@@ -238,6 +239,7 @@ export const de = {
     restHours: '{hours} Std.',
     restHint:
       'So lange bleibt die Eule bei jedem Empfänger, erholt sich dort wie zu Hause und nimmt eine Antwort an dich mit. Bekommt sie eine Antwort, fliegt sie sofort weiter.',
+    guestGone: 'Die Gast-Eule ist inzwischen weitergeflogen. Wähle eine andere Eule.',
     restGuestHint:
       'Eine Gast-Eule bringt deine Antwort direkt zurück – eine Rast gibt es dabei nicht.',
     guestHint: 'Rastet gerade bei dir (bis {time}) und bringt deine Antwort direkt zu {name}.',
@@ -328,6 +330,21 @@ export const de = {
       'Dein Konto wird in 30 Tagen gelöscht, wenn du dich nicht anmeldest. Jede Nutzung der App verhindert das.',
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
     broadcast: '{text}',
+  },
+  /** v0.7.1: a short message to the admin (settings). */
+  feedback: {
+    title: 'Nachricht an den Admin',
+    intro:
+      'Klemmt etwas, oder hast du eine Idee, wie PostEulen schöner wird? Schreib dem Admin dieser PostEulen-Instanz eine kurze Nachricht – höchstens 300 Zeichen, eine pro Tag.',
+    notEncrypted:
+      'Diese Nachricht ist nicht verschlüsselt: Sie liegt lesbar auf dem Server (ohne deinen Namen) und wird nach 90 Tagen gelöscht. Schreib nichts Vertrauliches hinein.',
+    label: 'Deine Nachricht',
+    counter: '{count} von {max} Zeichen',
+    send: 'An den Admin schicken',
+    sent: 'Danke! Deine Nachricht ist beim Admin angekommen.',
+    blocked: 'Heute hast du schon eine Nachricht geschickt. Die nächste geht ab {time}.',
+    empty: 'Bitte schreib etwas.',
+    tooLong: 'Die Nachricht ist zu lang (höchstens 300 Zeichen).',
   },
   /** v0.7: greeting on the overview by the time of day at the (fictional) home. */
   greeting: {
@@ -521,6 +538,7 @@ export const de = {
     mythical:
       'Ein Phönix wird nie verliehen, legt keine Eier und hilft nicht in der Menagerie aus.',
     buy: '{species} kaufen',
+    buyConfirm: '{species} wirklich für {price} kaufen?',
     limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     loanTitle: 'Eulen leihen',
     loanIntro:
@@ -589,7 +607,7 @@ export const de = {
     worldLabel: 'Weltkarte',
     zoomIn: 'Vergrößern',
     zoomOut: 'Verkleinern',
-    reset: 'Ganze Karte',
+    reset: 'Ansicht zurücksetzen',
   },
   nav: {
     main: 'Hauptnavigation',
@@ -668,6 +686,11 @@ export const de = {
     voucherHint: 'Gutschein …{hint}: {what}, gültig bis {until}',
     voucherHintRedeemed: 'Gutschein …{hint}: {what} – eingelöst',
     vouchersNone: 'Keine Gutscheine.',
+    feedbackTitle: 'Nachrichten der Nutzer',
+    feedbackIntro:
+      'Kurze Nachrichten aus den Einstellungen der App (höchstens 300 Zeichen, eine pro Konto und Tag), ohne Absender. Sie werden nach 90 Tagen automatisch gelöscht.',
+    feedbackNone: 'Keine Nachrichten.',
+    feedbackDelete: 'Löschen',
     statsTitle: 'Statistik',
     statsCreated: 'Konten insgesamt erstellt: {count}',
     statsCurrent: 'Konten vorhanden: {count}',
@@ -753,6 +776,10 @@ export const de = {
     push_not_subscribed: 'Benachrichtigungen sind noch nicht eingerichtet.',
     owl_not_ready: 'Diese Eule ist gerade nicht einsatzbereit.',
     voucher_invalid: 'Dieser Gutschein ist ungültig, abgelaufen oder schon eingelöst.',
+    feedback_daily: 'Heute hast du schon eine Nachricht an den Admin geschickt.',
+    feedback_empty: 'Bitte schreib etwas.',
+    feedback_too_long: 'Die Nachricht ist zu lang (höchstens 300 Zeichen).',
+    feedback_invalid: 'Die Nachricht enthält Zeichen, die nicht erlaubt sind.',
     owl_recipients: 'So viele Empfänger kann diese Eule nicht anfliegen (höchstens 5).',
     owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen.',

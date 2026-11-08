@@ -23,6 +23,7 @@ import { checkRegistrationRecord, opaqueStep } from '../auth/opaque-guard.ts';
 import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
 import { createInvite, getRegistrationMode, listInvites, setRegistrationMode } from './settings.ts';
 import { createVoucher, listVouchers } from './vouchers.ts';
+import { listFeedback } from './feedback.ts';
 import { VoucherCreate } from '@posteulen/shared/schemas/vouchers.ts';
 import { registerAdminOperations } from './operations.ts';
 
@@ -319,6 +320,18 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   app.delete('/api/vouchers/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = parse(Id, (request.params as { id?: unknown }).id);
     const result = ctx.db.run('DELETE FROM vouchers WHERE id = ?', id);
+    if (result.changes !== 1) throw new HttpError(404, 'not_found');
+    return { ok: true };
+  });
+
+  // ── Nachrichten der Nutzer (v0.7.1, SPEC 13): ohne Absender, 90 Tage ──
+  app.get('/api/feedback', { preHandler: authenticated }, async () => ({
+    messages: listFeedback(ctx, ctx.now()),
+  }));
+
+  app.delete('/api/feedback/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const id = parse(Id, (request.params as { id?: unknown }).id);
+    const result = ctx.db.run('DELETE FROM feedback WHERE id = ?', id);
     if (result.changes !== 1) throw new HttpError(404, 'not_found');
     return { ok: true };
   });

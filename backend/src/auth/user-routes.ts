@@ -511,9 +511,11 @@ export function profileOf(ctx: Context, userId: string) {
     letter_retention_days: number;
     letters_print: number;
     language: string;
+    feedback_sent_on: string | null;
   }>(
     `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
-            name_changed_year, letter_retention_days, letters_print, language FROM users WHERE id = ?`,
+            name_changed_year, letter_retention_days, letters_print, language, feedback_sent_on
+       FROM users WHERE id = ?`,
     userId,
   );
   if (!row) throw new HttpError(401, 'unauthorized', { reason: 'no_session' });
@@ -531,5 +533,7 @@ export function profileOf(ctx: Context, userId: string) {
     language: isLanguage(row.language) ? row.language : DEFAULT_LANGUAGE,
     // v0.4: today's wage (higher during the first days after registration).
     dailyGold: dailyWage(row.created_on, ctx.now()),
+    // v0.7.1: a message to the admin was already sent today (UTC).
+    feedbackSentToday: row.feedback_sent_on === utcDay(ctx.now()),
   };
 }

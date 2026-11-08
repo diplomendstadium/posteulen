@@ -67,3 +67,10 @@
     </p>
   {/if}
 </section>
+
+<style>
+  /* Same spacing as the other boxes of the settings (v0.7.1: it was missing). */
+  section {
+    margin-bottom: 1.5rem;
+  }
+</style>

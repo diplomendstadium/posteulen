@@ -13,6 +13,7 @@
   import { showOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
   import { deckleClass } from '../lib/deckle.ts';
   import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
+  import { clearReplyWith, replyWith } from '../lib/reply.svelte.ts';
 
   let { peerId }: { peerId: string } = $props();
 
@@ -206,7 +207,9 @@
 {#if contact && contact.active && !contact.keyWarning}
   <Compose
     {peerId}
+    guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
     onsent={() => {
+      clearReplyWith();
       jump = 'smooth';
       void load();
     }}

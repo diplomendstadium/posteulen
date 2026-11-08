@@ -58,8 +58,10 @@
   const gold = $derived(account.profile?.gold ?? 0);
   const number = (value: number): string => value.toLocaleString(locale());
 
-  async function buy(speciesId: string): Promise<void> {
+  async function buy(speciesId: string, name: string, price: number): Promise<void> {
     if (busy) return;
+    // v0.7.1: a purchase is confirmed first, so that nobody buys an owl by mistake.
+    if (!confirm(fill(t.menagerie.buyConfirm, { species: name, price: goldText(price) }))) return;
     busy = true;
     error = null;
     try {
@@ -155,7 +157,7 @@
             !canBuy ||
             !status.online ||
             !canAfford(gold, priceTenths(species.price))}
-          onclick={() => void buy(species.id)}
+          onclick={() => void buy(species.id, species.name, priceTenths(species.price))}
           >{fill(t.menagerie.buy, { species: species.name })}</button
         >
       </li>

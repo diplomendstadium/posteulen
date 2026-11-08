@@ -216,6 +216,13 @@ export const DONATION = {
   TEXTS: 3,
 } as const;
 
+/** v0.7.1: short, unencrypted messages from users to the admin (SPEC 8.10, 13). */
+export const FEEDBACK = {
+  MAX_CHARS: 300,
+  /** Deleted this many days after they arrived. */
+  RETENTION_DAYS: 90,
+} as const;
+
 /** v0.7: vouchers for gold or an owl, created in the admin panel (SPEC 13). */
 export const VOUCHER = {
   VALID_DAYS: 90,

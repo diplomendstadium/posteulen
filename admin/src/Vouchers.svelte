@@ -132,6 +132,11 @@
 </section>
 
 <style>
+  /* Same spacing as the other boxes of the admin panel (v0.7.1: it was missing). */
+  section {
+    margin-bottom: 1.5rem;
+  }
+
   fieldset {
     border: none;
     padding: 0;

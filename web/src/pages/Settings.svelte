@@ -8,6 +8,7 @@
   import LetterSettings from '../components/LetterSettings.svelte';
   import LanguageSettings from '../components/LanguageSettings.svelte';
   import VoucherRedeem from '../components/VoucherRedeem.svelte';
+  import FeedbackForm from '../components/FeedbackForm.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -109,6 +110,9 @@
     >{t.settings.logout}</button
   >
 </section>
+
+<!-- v0.7.1: at the very bottom, a short message to the admin. -->
+<FeedbackForm />
 
 <style>
   section {

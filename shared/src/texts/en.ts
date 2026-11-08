@@ -59,7 +59,7 @@ export const en: Texts = {
     passwordRepeat: 'Repeat password',
     inviteCode: 'Invitation code',
     home: 'Fictional home',
-    homeHint: 'Tap the map. Please do not choose your real address.',
+    homeHint: 'Tap the map. Think carefully about whether you want to choose your real address.',
     homeChosen: 'Chosen: {lat}° {ns}, {lon}° {ew}',
     north: 'N',
     south: 'S',
@@ -156,7 +156,7 @@ export const en: Texts = {
     lettersSaved: 'Saved.',
     homeTitle: 'Change home',
     homeIntro:
-      'Possible up to 3 times per calendar month. Tap the map (land only). Please do not choose your real address. Owls on their way to you change course.',
+      'Possible up to 3 times per calendar month. Tap the map (land only). Think carefully about whether you want to choose your real address. Owls on their way to you change course.',
     homeLeft: 'Moves left this month: {count}.',
     homeBlocked: 'You have already moved 3 times this month. Possible again from {date}.',
     homeSave: 'Use this home',
@@ -235,6 +235,7 @@ export const en: Texts = {
     restHours: '{hours} h',
     restHint:
       'This is how long the owl stays with each recipient – it recovers there as at home and takes a reply back to you. Once it has a reply, it flies on at once.',
+    guestGone: 'The visiting owl has flown on in the meantime. Choose another owl.',
     restGuestHint: 'A visiting owl takes your reply straight back – without a rest.',
     guestHint: 'Is resting with you (until {time}) and takes your reply straight to {name}.',
     routeHint:
@@ -324,6 +325,20 @@ export const en: Texts = {
       'Your account will be deleted in 30 days if you do not sign in. Any use of the app prevents this.',
     deletion_cancelled: 'The deletion of your account has been cancelled.',
     broadcast: '{text}',
+  },
+  feedback: {
+    title: 'Message to the admin',
+    intro:
+      'Is something not working, or do you have an idea how to make PostEulen nicer? Send the admin of this PostEulen instance a short message – at most 300 characters, one a day.',
+    notEncrypted:
+      'This message is not encrypted: it lies readable on the server (without your name) and is deleted after 90 days. Do not write anything confidential in it.',
+    label: 'Your message',
+    counter: '{count} of {max} characters',
+    send: 'Send to the admin',
+    sent: 'Thank you! Your message has reached the admin.',
+    blocked: 'You have already sent a message today. The next one is possible from {time}.',
+    empty: 'Please write something.',
+    tooLong: 'The message is too long (at most 300 characters).',
   },
   greeting: {
     morning: 'Good morning, {name}!',
@@ -512,6 +527,7 @@ export const en: Texts = {
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery} %/h',
     mythical: 'A phoenix is never lent out, lays no eggs and does not help out in the Menagerie.',
     buy: 'Buy {species}',
+    buyConfirm: 'Really buy the {species} for {price}?',
     limit: 'You already have 50 owls of your own – that is the limit.',
     loanTitle: 'Borrow owls',
     loanIntro:
@@ -580,7 +596,7 @@ export const en: Texts = {
     worldLabel: 'World map',
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
-    reset: 'Whole map',
+    reset: 'Reset view',
   },
   nav: {
     main: 'Main navigation',
@@ -652,6 +668,10 @@ export const en: Texts = {
     push_not_subscribed: 'Notifications are not set up yet.',
     owl_not_ready: 'This owl is not ready right now.',
     voucher_invalid: 'This voucher is invalid, has expired or has already been redeemed.',
+    feedback_daily: 'You have already sent a message to the admin today.',
+    feedback_empty: 'Please write something.',
+    feedback_too_long: 'The message is too long (at most 300 characters).',
+    feedback_invalid: 'The message contains characters that are not allowed.',
     owl_recipients: 'This owl cannot fly to that many recipients (at most 5).',
     owl_limit: 'You already have 50 owls of your own – that is the limit.',
     owl_fed_today: 'This owl has already eaten today.',

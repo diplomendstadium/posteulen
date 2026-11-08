@@ -69,6 +69,11 @@
     };
   }
   const largest = $derived(whole(frame, region === 'world'));
+  /**
+   * v0.7.1: the view the map opened with (Western Europe when choosing a home, otherwise the
+   * automatic zoom on home, contacts and owls); the reset button goes back to it.
+   */
+  let initial: { x: number; y: number; w: number; h: number } | null = null;
   let view = $state(whole([-17243.9, -8392.9, 34487.9, 16785.8], true));
 
   /**
@@ -99,6 +104,7 @@
         full = loaded.viewBox;
         europe = loaded.europe;
         view = whole(region === 'europe' ? europe : full, region === 'world');
+        initial = view;
       })
       .catch(() => undefined); // offline: the map stays empty until the page is opened again
     return () => window.removeEventListener('resize', measure);
@@ -226,6 +232,7 @@
       widthFor(maxY - minY, pixelHeight),
     );
     clamp({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - w / 2, w, h: w });
+    initial = view;
   });
 
   const toSvg = (lat: number, lon: number) => {
@@ -417,7 +424,7 @@
       type="button"
       class="button secondary"
       aria-label={t.map.reset}
-      onclick={() => (view = largest)}>⤢</button
+      onclick={() => (view = initial ?? largest)}>⤢</button
     >
   </div>
 </div>

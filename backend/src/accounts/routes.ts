@@ -18,10 +18,25 @@ import { addSystemMessage } from '../messages/system.ts';
 import { rerouteForMove } from '../flights/service.ts';
 import { contactIdsOf, lockName, requestDeletion } from './lifecycle.ts';
 import { purgeOldLetters } from '../letters/retention.ts';
+import { sendFeedback } from '../admin/feedback.ts';
+import { FeedbackSend } from '@posteulen/shared/schemas/feedback.ts';
+import { ipKey } from '../security/ip.ts';
 
 export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void {
   const spec = cookieSpec(ctx.config.userOrigin, 'pe_session');
   const authenticated = requireUser(ctx, spec);
+
+  /** v0.7.1: a short, unencrypted message to the admin, once per calendar day (8.10). */
+  app.post('/api/feedback', { preHandler: authenticated }, async (request) => {
+    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+      throw new HttpError(429, 'rate_limited');
+    const body = parse(FeedbackSend, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    ctx.db.transaction(() => sendFeedback(ctx, me, body.text, now));
+    ctx.hub.notify(me, 'profile');
+    return { profile: profileOf(ctx, me) };
+  });
 
   /** Once per calendar year; all contacts are told; the old name is locked 90 days (7.4). */
   app.patch('/api/account/name', { preHandler: authenticated }, async (request) => {

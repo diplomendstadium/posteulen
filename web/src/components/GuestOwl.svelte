@@ -9,7 +9,8 @@
   import { motivationFactor, motivationShare } from '@posteulen/shared/game/motivation.ts';
   import OwlPicture from './OwlPicture.svelte';
   import GaugeBar from './GaugeBar.svelte';
-  import Link from './Link.svelte';
+  import { navigate } from '../lib/router.svelte.ts';
+  import { replyWith } from '../lib/reply.svelte.ts';
   import ErrorText from './ErrorText.svelte';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
@@ -115,8 +116,15 @@
         >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
       >
       {#if guest.holderName !== null}
-        <Link href={`/app/briefe/${guest.holderId}`} class="button"
-          >{fill(t.owls.guestReply, { name: holder })}</Link
+        <!-- v0.7.1: opens the chat with exactly this owl chosen. -->
+        <button
+          class="button"
+          type="button"
+          onclick={() => {
+            replyWith.peerId = guest.holderId;
+            replyWith.owlId = guest.id;
+            navigate(`/app/briefe/${guest.holderId}`);
+          }}>{fill(t.owls.guestReply, { name: holder })}</button
         >
       {/if}
     </div>

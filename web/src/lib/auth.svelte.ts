@@ -25,6 +25,8 @@ export interface Profile {
   readonly language: Language;
   /** Today's daily wage in tenths (v0.4). */
   readonly dailyGold: number;
+  /** v0.7.1: a message to the admin was already sent today (UTC). */
+  readonly feedbackSentToday?: boolean;
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */

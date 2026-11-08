@@ -7,6 +7,7 @@
   import Operations from './Operations.svelte';
   import OpenAi from './OpenAi.svelte';
   import Vouchers from './Vouchers.svelte';
+  import Feedback from './Feedback.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -180,6 +181,9 @@
   <PasswordForm ondone={() => (passwordChanged = true)} />
   {#if passwordChanged}<p role="status">✔ {de.admin.changed}</p>{/if}
 </section>
+
+<!-- v0.7.1: last item: messages of users, without sender. -->
+<Feedback />
 
 <style>
   section {

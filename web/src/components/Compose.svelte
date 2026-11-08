@@ -18,7 +18,17 @@
     peerId,
     onsent,
     bot = false,
-  }: { peerId: string; onsent: () => void; bot?: boolean } = $props();
+    guestOwl = null,
+  }: {
+    peerId: string;
+    onsent: () => void;
+    bot?: boolean;
+    /** v0.7.1: reply with exactly this visiting owl (no other owls, no rest option). */
+    guestOwl?: string | null;
+  } = $props();
+  /** The visiting owl is gone (flew on meanwhile): then the normal choice. */
+  let guestGone = $state(false);
+  const replying = $derived(guestOwl !== null && !guestGone);
 
   let parchment = $state<Parchment>('small');
   /** v0.7: how long the owl rests at each recipient (hours, letters to people only). */
@@ -105,7 +115,21 @@
     if (count > max) return void (error = t.letters.tooLong);
     busy = true;
     try {
-      prepared = await previewFlights(recipients, { rest: bot ? 0 : rest, guests: !bot });
+      const choices = await previewFlights(recipients, {
+        rest: bot || replying ? 0 : rest,
+        guests: !bot,
+      });
+      if (replying) {
+        // v0.7.1: only the visiting owl the reply was started with.
+        const guest = choices.filter((choice) => choice.id === `guest:${guestOwl}`);
+        if (guest.length === 0) {
+          guestGone = true;
+          error = t.letters.guestGone;
+        }
+        prepared = guest.length > 0 ? guest : choices;
+      } else {
+        prepared = choices;
+      }
       // v0.7: a visiting owl of the recipient comes first and is preselected.
       owlId = prepared.find((choice) => !choice.offer)?.id ?? null;
     } catch (caught) {
@@ -187,7 +211,7 @@
       <span aria-hidden="true">✒</span><span>{t.letters.noSmileys}</span>
     </p>{/if}
 
-  {#if !bot}
+  {#if !bot && !replying}
     <fieldset>
       <legend>{t.letters.recipients}</legend>
       <ol class="recipients">

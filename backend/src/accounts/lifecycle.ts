@@ -6,6 +6,7 @@
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { pruneCareHistory } from '../owls/care.ts';
 import { purgeOldLetters } from '../letters/retention.ts';
+import { pruneFeedback } from '../admin/feedback.ts';
 import type { Context } from '../context.ts';
 import { hmac, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -179,6 +180,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
   pruneCareHistory(ctx, at);
   purgeOldLetters(ctx, at, undefined, after);
+  // v0.7.1: messages to the admin go after 90 days.
+  pruneFeedback(ctx, at);
 }
 
 export function registerAccountHandlers(ctx: Context): void {
