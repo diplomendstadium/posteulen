@@ -18,7 +18,6 @@
   import { OWL_NAP_AFTER_CARE_MS, OWL_NAP_SHARE } from '@posteulen/shared/constants.ts';
   import { account } from '../lib/auth.svelte.ts';
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
-  import { TIME } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
@@ -39,7 +38,7 @@
     type Owl,
   } from '../lib/owls.ts';
   import GuestOwlCard from '../components/GuestOwl.svelte';
-  import { dateTime } from '../lib/format.ts';
+  import { dateTime, duration } from '../lib/format.ts';
   import { menagerieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
@@ -289,8 +288,8 @@
             );
     const doing = resting ?? what;
     if (absence.returnsAt === null) return doing;
-    const hours = Math.max(1, Math.ceil((absence.returnsAt - Date.now()) / TIME.HOUR));
-    return `${doing} ${fill(t.owls.backIn, { hours })}`;
+    // v0.7.2: under an hour in minutes.
+    return `${doing} ${fill(t.owls.backIn, { duration: duration(absence.returnsAt - Date.now()) })}`;
   }
 </script>
 

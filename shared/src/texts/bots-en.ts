@@ -20,7 +20,7 @@ At the bottom you will find the most important places: Letters, Owls, Address bo
 
 Important: all letters are deleted automatically and for good one year after delivery at the latest, this one too. In the settings you can have them deleted even sooner.
 
-Questions about PostEulen? Just write to me! Once you have, you will find me on your map as well.`,
+Questions about PostEulen? Just write to me – you will find me under Letters! Once you have, you will find me on your map as well.`,
     day1: `Hello, today I will tell you a little magic trick!
 
 PostEulen is not in any app store – and yet you can put it on your phone like an app. Simply add it to your home screen:

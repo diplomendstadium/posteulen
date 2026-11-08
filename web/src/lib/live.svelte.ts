@@ -9,7 +9,7 @@ import { isDay } from '@posteulen/shared/game/sun.ts';
 import { api } from './api.ts';
 import { account, accountGeneration, onSignOut } from './auth.svelte.ts';
 import { syncVault } from './vault.svelte.ts';
-import { showOwlImage } from './overlay.svelte.ts';
+import { clearOwlImages, queueOwlImage, showOwlImage } from './overlay.svelte.ts';
 import { t, fill } from './i18n.svelte.ts';
 
 export interface ChatSummary {
@@ -49,6 +49,8 @@ export const live = $state<{
   systemUnread: number;
   contacts: Contact[];
   bots: BotContact[];
+  /** v0.7.2: all bots of the account (also those not known yet). */
+  allBots: number;
   requests: { id: string; label: string; expiresAt: number }[];
   news: NewsItem[];
   pushState: string;
@@ -62,6 +64,7 @@ export const live = $state<{
   systemUnread: 0,
   contacts: [],
   bots: [],
+  allBots: 0,
   requests: [],
   news: [],
   pushState: 'none',
@@ -77,13 +80,61 @@ onSignOut(() => {
   live.systemUnread = 0;
   live.contacts = [];
   live.bots = [];
+  live.allBots = 0;
   live.requests = [];
   live.news = [];
   live.pushState = 'none';
+  clearOwlImages();
+  queuedHomecomings.clear();
 });
 
 type Topic =
-  'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push' | 'owls' | 'finance' | 'map';
+  | 'chats'
+  | 'contacts'
+  | 'news'
+  | 'system'
+  | 'profile'
+  | 'push'
+  | 'owls'
+  | 'finance'
+  | 'map'
+  | 'homecomings';
+
+/** v0.7.2: homecomings already queued in this tab (no double pictures). */
+// Plain Set on purpose: bookkeeping, not rendered state.
+// eslint-disable-next-line svelte/prefer-svelte-reactivity
+const queuedHomecomings = new Set<string>();
+
+/**
+ * v0.7.2: an own owl back home is no system message any more, only an overlay: the picture at
+ * the window, by day or by candlelight depending on whether it is light at the user's home
+ * at the moment it is shown. Several homecomings appear one after another.
+ */
+async function showHomecomings(current: () => boolean): Promise<void> {
+  if (document.visibilityState !== 'visible') return;
+  const { homecomings } = await api<{
+    homecomings: { id: string; owl: string; species: string; letters: number }[];
+  }>('GET', '/api/homecomings');
+  if (!current()) return;
+  const fresh = homecomings.filter((item) => !queuedHomecomings.has(item.id));
+  if (fresh.length === 0) return;
+  for (const item of fresh) {
+    queuedHomecomings.add(item.id);
+    queueOwlImage(() => {
+      const home = account.profile?.home;
+      const day = home ? isDay(Date.now(), home.lat, home.lon) : true;
+      const caption =
+        item.letters === 0
+          ? fill(t.owls.backHome, { name: item.owl })
+          : fill(item.letters === 1 ? t.owls.backHomeLetter : t.owls.backHomeLetters, {
+              name: item.owl,
+              count: item.letters,
+            });
+      return { species: item.species, kind: day ? 'homeDay' : 'homeNight', caption };
+    });
+  }
+  await api('POST', '/api/homecomings/seen', { ids: fresh.map((item) => item.id) });
+}
 
 export interface SystemMessage {
   readonly id: string;
@@ -147,11 +198,13 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
       api<{
         contacts: Contact[];
         bots: BotContact[];
+        allBots?: number;
         requests: { id: string; label: string; expiresAt: number }[];
       }>('GET', '/api/contacts').then(async (result) => {
         if (!current()) return;
         live.contacts = result.contacts;
         live.bots = result.bots;
+        live.allBots = result.allBots ?? result.bots.length;
         live.requests = result.requests;
         await syncVault(result.contacts);
       }),
@@ -171,6 +224,7 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
       }),
     );
   }
+  if (topics.includes('homecomings')) tasks.push(showHomecomings(current));
   if (topics.includes('owls')) live.owlsVersion++;
   if (topics.includes('finance')) live.financeVersion++;
   if (topics.includes('map')) live.mapVersion++;
@@ -197,7 +251,18 @@ export function refreshTopics(...topics: Topic[]): Promise<void> {
 }
 
 export function refreshAll(): Promise<void> {
-  return refresh(['chats', 'contacts', 'news', 'profile', 'push', 'owls', 'finance', 'map']);
+  // v0.7.2: on start, after signing in and on return to the app, waiting homecomings appear.
+  return refresh([
+    'chats',
+    'contacts',
+    'news',
+    'profile',
+    'push',
+    'owls',
+    'finance',
+    'map',
+    'homecomings',
+  ]);
 }
 
 let source: EventSource | null = null;

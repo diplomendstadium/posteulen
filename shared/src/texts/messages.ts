@@ -48,6 +48,18 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.7.2',
+    title: 'Ordnung im Eulenturm: Version 0.7.2',
+    paragraphs: [
+      'Die Eulenmeister haben ein paar Ecken des Turms aufgeräumt:',
+      '• Kehrt eine deiner Eulen heim, landet sie jetzt jedes Mal mit ihrem Bild auf dem Fensterbrett – sofort oder beim nächsten Öffnen der App. Eine Systemnachricht dazu gibt es nicht mehr.',
+      '• Erklärbär, Tante und Onkel wohnen nicht mehr im Adressbuch. Du findest sie im Briefwechsel; dort lassen sie sich auch einzeln entfernen. In den Einstellungen kannst du alle Bots auf einmal verabschieden.',
+      '• Wer alle Briefe eines Bots verbrannt hatte, bekam danach manchmal unsichtbare Post. Das ist behoben.',
+      '• Kurze Zeiten unter einer Stunde stehen jetzt in Minuten.',
+      'Fröhliches Weiterschreiben!',
+    ],
+  },
+  {
     version: '0.7.1',
     title: 'Feinschliff im Eulenturm: Version 0.7.1',
     paragraphs: [
@@ -215,6 +227,18 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.7.2',
+    title: 'Tidying the owlery: version 0.7.2',
+    paragraphs: [
+      'The owl masters have tidied up a few corners of the owlery:',
+      '• When one of your owls comes home, it now lands on the window sill with its picture every time – at once or the next time you open the app. There is no system message about it any more.',
+      '• The Explainer Bear, the aunt and the uncle no longer live in the address book. You find them under Letters, where you can also remove them one by one. In the settings you can say goodbye to all bots at once.',
+      '• Anyone who had burnt all letters of a bot sometimes got invisible post afterwards. That is fixed.',
+      '• Short times under an hour are now shown in minutes.',
+      'Happy writing!',
+    ],
+  },
   {
     version: '0.7.1',
     title: 'Polishing the owlery: version 0.7.1',

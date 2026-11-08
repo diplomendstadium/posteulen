@@ -359,7 +359,9 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         peer,
       );
       ctx.db.run(
-        'UPDATE letters SET recipient_has = 0 WHERE recipient_id = ? AND sender_id = ?',
+        // v0.7.2: only letters that have arrived – one still on its way is shown when it lands
+        // (before, it arrived invisible but counted as unread).
+        "UPDATE letters SET recipient_has = 0 WHERE recipient_id = ? AND sender_id = ? AND status != 'in_flight'",
         me,
         peer,
       );
@@ -398,6 +400,31 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         arrivalShown: row.arrival_shown === 1,
       })),
   }));
+
+  /** v0.7.2: own owls back home that the app has not shown yet (overlay, SPEC 8.4, 9.2.6). */
+  app.get('/api/homecomings', { preHandler: authenticated }, async (request) => ({
+    homecomings: ctx.db
+      .all<{ id: string; owl_name: string; species: string; letters: number; created_at: number }>(
+        'SELECT id, owl_name, species, letters, created_at FROM homecomings WHERE user_id = ? ORDER BY created_at, id',
+        userOf(request).id,
+      )
+      .map((row) => ({
+        id: row.id,
+        owl: row.owl_name,
+        species: row.species,
+        letters: row.letters,
+        at: row.created_at,
+      })),
+  }));
+
+  /** v0.7.2: shown – they go (nothing about homecomings is kept). */
+  app.post('/api/homecomings/seen', { preHandler: authenticated }, async (request) => {
+    const body = parse(IdList, request.body);
+    const me = userOf(request).id;
+    for (const id of body.ids)
+      ctx.db.run('DELETE FROM homecomings WHERE id = ? AND user_id = ?', id, me);
+    return { ok: true };
+  });
 
   /** The arrival image of a delivery without a letter has been shown (SPEC 9.2.6). */
   app.post('/api/system-messages/arrival-shown', { preHandler: authenticated }, async (request) => {

@@ -191,9 +191,9 @@ test.describe('Screenshots Stufe 5', () => {
     await page.getByRole('link', { name: /Erklärbär/ }).click();
     await page.getByTestId('bot-notice').waitFor();
     await shoot(page, info, 'chat-erklaerbaer', true);
-    await page.goto('/app/adressbuch');
-    await page.getByTestId('bot-contact').first().waitFor();
-    await shoot(page, info, 'adressbuch-bots');
+    await page.goto('/app/einstellungen');
+    await page.getByTestId('bot-settings').waitFor();
+    await shoot(page, info, 'einstellungen-bots');
   });
 });
 

@@ -115,6 +115,17 @@
     return letter.read ? t.letters.read : t.letters.delivered;
   }
 
+  /**
+   * v0.7.2: bots are not in the address book any more – a single bot is removed in its chat
+   * (for good: chat, memory, planned letters and gold go).
+   */
+  async function removeThisBot(): Promise<void> {
+    if (!confirm(fill(t.bots.removeConfirm, { name }))) return;
+    await api('DELETE', `/api/contacts/${peerId}`);
+    void refreshTopics('contacts', 'chats', 'map');
+    navigate('/app/briefe');
+  }
+
   /** v0.7: "Burn all letters" – confirmed first, then the letters go up in the fireplace. */
   async function burnLetters(): Promise<void> {
     if (!confirm(t.letters.deleteConfirm)) return;
@@ -238,6 +249,11 @@
   <button class="button secondary" type="button" onclick={() => void burnLetters()}
     >{t.letters.burnAll}</button
   >
+  {#if bot}
+    <button class="button secondary" type="button" onclick={() => void removeThisBot()}
+      >{fill(t.bots.remove, { name })}</button
+    >
+  {/if}
 </p>
 
 <style>

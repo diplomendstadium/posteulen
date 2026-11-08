@@ -9,6 +9,7 @@
   import LanguageSettings from '../components/LanguageSettings.svelte';
   import VoucherRedeem from '../components/VoucherRedeem.svelte';
   import FeedbackForm from '../components/FeedbackForm.svelte';
+  import BotSettings from '../components/BotSettings.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -100,6 +101,9 @@
       </p>{/if}
   </form>
 </section>
+
+<!-- v0.7.2: remove all bots. -->
+<BotSettings />
 
 <AccountSettings />
 

@@ -200,14 +200,19 @@ describe('rest at recipients and replies (v0.7, SPEC 8.4)', () => {
     }>('GET', `/api/chats/${ben.id}/letters`);
     const received = letters.body.letters.find((l) => l.id === reply.body.letters[0]!.id);
     expect(received).toMatchObject({ status: 'delivered', owl: { carrier: 'own' } });
-    const system = await anna.agent.json<{
-      messages: { type: string; params: Record<string, unknown> }[];
-    }>('GET', '/api/system-messages');
-    expect(system.body.messages.at(-1)).toMatchObject({
-      type: 'owl_home',
-      params: { count: 1 },
-      arrivalImage: 'waldkauz:home',
+    // v0.7.2: the homecoming is an overlay (with the number of replies), shown once.
+    const homecomings = await anna.agent.json<{ homecomings: { id: string; letters: number }[] }>(
+      'GET',
+      '/api/homecomings',
+    );
+    expect(homecomings.body.homecomings).toEqual([expect.objectContaining({ letters: 1 })]);
+    await anna.agent.json('POST', '/api/homecomings/seen', {
+      ids: homecomings.body.homecomings.map((item) => item.id),
     });
+    expect(
+      (await anna.agent.json<{ homecomings: unknown[] }>('GET', '/api/homecomings')).body
+        .homecomings,
+    ).toEqual([]);
     expect(app.pushes).toHaveLength(0); // no subscription in this test, but nothing else either
     // Ben sees on his copy whose owl carried it.
     const benSide = await ben.agent.json<{
@@ -235,10 +240,11 @@ describe('rest at recipients and replies (v0.7, SPEC 8.4)', () => {
     advanceTo(app, route[1]!.arrivesAt);
     expect((await send(carla, [anna], `guest:${owl}`)).status).toBe(200);
     advanceTo(app, routeOf(flightOf(owl))[2]!.arrivesAt);
-    const system = await anna.agent.json<{
-      messages: { type: string; params: Record<string, unknown> }[];
-    }>('GET', '/api/system-messages');
-    expect(system.body.messages.at(-1)).toMatchObject({ type: 'owl_home', params: { count: 2 } });
+    const homecomings = await anna.agent.json<{ homecomings: { letters: number }[] }>(
+      'GET',
+      '/api/homecomings',
+    );
+    expect(homecomings.body.homecomings).toEqual([expect.objectContaining({ letters: 2 })]);
   });
 
   it('a loan owl without a reply vanishes after the rest; with one it brings it first', async () => {

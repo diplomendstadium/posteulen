@@ -5,7 +5,17 @@
 import type { ServerResponse } from 'node:http';
 
 export type Topic =
-  'chats' | 'contacts' | 'news' | 'system' | 'profile' | 'push' | 'owls' | 'finance' | 'map';
+  | 'chats'
+  | 'contacts'
+  | 'news'
+  | 'system'
+  | 'profile'
+  | 'push'
+  | 'owls'
+  | 'finance'
+  | 'map'
+  /** v0.7.2: an own owl came home (overlay). */
+  | 'homecomings';
 
 const MAX_PER_USER = 3;
 const HEARTBEAT_MS = 25_000;

@@ -228,9 +228,27 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
 
   it('accounts from before stage 5 get their bots once', async () => {
     app.db.run('DELETE FROM bots');
+    app.db.run('UPDATE users SET bots_created = 0');
     expect(ensureBotsForAllUsers(app.ctx)).toBe(1);
     expect(ensureBotsForAllUsers(app.ctx)).toBe(0);
     expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toHaveLength(3);
+  });
+
+  it('removed bots never come back, also not after a restart (v0.7.2)', async () => {
+    expect(
+      (await anna.agent.json<{ removed: number }>('POST', '/api/bots/remove-all', {})).body,
+    ).toEqual({ removed: 3 });
+    expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toEqual([]);
+    expect(ensureBotsForAllUsers(app.ctx)).toBe(0);
+    expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toEqual([]);
+    expect(
+      app.db.all("SELECT 1 FROM scheduled_events WHERE type LIKE 'bot!_%' ESCAPE '!'"),
+    ).toEqual([]);
+    const contacts = await anna.agent.json<{ bots: unknown[]; allBots: number }>(
+      'GET',
+      '/api/contacts',
+    );
+    expect(contacts.body).toMatchObject({ bots: [], allBots: 0 });
   });
 });
 

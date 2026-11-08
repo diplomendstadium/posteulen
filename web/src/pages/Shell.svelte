@@ -55,6 +55,10 @@
     route.path.startsWith('/app/briefe/') ? route.path.slice('/app/briefe/'.length) : null,
   );
   const newsTexts = t.news as Record<string, string>;
+  /** v0.7.2: an own owl back home shows itself as an overlay, not under "Neuigkeiten". */
+  const shownNews = $derived(
+    live.news.filter((item) => item.type !== 'owl_home' && item.type !== 'owl_home_letters'),
+  );
   /** Unread letters and system messages: "Neue Post!" in the top bar (v0.2). */
   const unread = $derived(
     live.chats.reduce((sum, chat) => sum + chat.unread, 0) + live.systemUnread,
@@ -68,7 +72,7 @@
       void api('POST', '/api/news/seen', { ids }).catch(() => undefined); // shown again next time
       // Deliveries without a letter show their arrival image with the news (SPEC 9.2.6).
       // v0.7: also an owl back home (its picture at the window).
-      const withImage = ['gold_arrived', 'owl_gift', 'chick_gift', 'owl_home'];
+      const withImage = ['gold_arrived', 'owl_gift', 'chick_gift'];
       if (live.news.some((item) => withImage.includes(item.type)))
         void showSystemArrivals().catch(() => undefined);
     }
@@ -147,11 +151,11 @@
       {/if}
     {:else}
       <h1 class="visually-hidden">{t.nav.home}</h1>
-      {#if live.news.length > 0}
+      {#if shownNews.length > 0}
         <section class="news card" aria-labelledby="news-title">
           <h2 id="news-title">{t.news.title}</h2>
           <ul>
-            {#each live.news as item (item.id)}
+            {#each shownNews as item (item.id)}
               <li>
                 <span class="when">{dateTime(item.createdAt)}</span>
                 {newsTexts[item.type] ?? item.type}

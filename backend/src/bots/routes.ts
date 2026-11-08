@@ -4,15 +4,27 @@ import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { BotLetterSend } from '@posteulen/shared/schemas/letters.ts';
 import { letterTextError } from '@posteulen/shared/text-rules.ts';
 import type { Context } from '../context.ts';
-import { HttpError, parse } from '../http/errors.ts';
+import { HttpError, emptyBody, parse } from '../http/errors.ts';
 import { randomId } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { debit } from '../gold/ledger.ts';
 import { checkRecipients, depart } from '../flights/transport.ts';
+import { removeAllBots } from './service.ts';
 
 export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+
+  /** v0.7.2: remove all bots of this account for good, the Erklärbär included (settings). */
+  app.post('/api/bots/remove-all', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const me = userOf(request).id;
+    const after: (() => void)[] = [];
+    const removed = ctx.db.transaction(() =>
+      removeAllBots(ctx, me, ctx.now(), (work) => after.push(work)),
+    );
+    for (const work of after) work();
+    return { removed };
+  });
 
   app.post(
     '/api/bot-letters/send',

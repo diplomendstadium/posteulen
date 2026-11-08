@@ -119,7 +119,7 @@ const SECTIONS: readonly HelpSection[] = [
         '“Key warning”: something is wrong with the keys – do not send anything any more, see Encryption.',
       ],
       'If you remove a contact, you have to pair again. Owls on their way between you turn back immediately. The chat stays, but shows “unknown” as the name until you connect again.',
-      `The Explainer Bear is in the address book from the start. The aunt joins with her first letter, about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up, the uncle after ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} days (see Bots).`,
+      'Only real people are in the address book. You find the Explainer Bear, the aunt and the uncle in your correspondence; that is also where you write to them (see Bots).',
     ],
   },
   {
@@ -145,7 +145,7 @@ const SECTIONS: readonly HelpSection[] = [
       `How it works: choose the parchment, write the text, add more recipients if you like (at most ${LETTER.MAX_RECIPIENTS} in total), choose an owl and send. With several recipients, PostEulen sorts them so that the owl flies the shortest way – from you to all of them and back home. You can still change the order with the arrows. When you choose an owl, PostEulen shows you for every owl when it arrives at each recipient and when it is back home.`,
       `No owl at home? Then the owl choice offers you the loan owls of the day right away. They are only borrowed and paid for (${gold(GOLD.LOAN_PRICE)}) when you really send – your letter stays as it is.`,
       'With several recipients, the owl flies from one to the next. Everyone only sees their own letter and can only reply to you. This works with your own owls and with loan owls; a loan owl vanishes after the last recipient. Bots are never among several recipients.',
-      `A rest with the recipient: when writing, you choose how long the owl stays with each recipient before flying on – not at all, 1, 2, 24 or ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} hours (preselected: ${LETTER.REST_HOURS_DEFAULT} hour). During the rest it recovers as at home, and the recipient sees it under “Owls” with the clear note “Only here for a rest!”. They may look after it and hand it a reply to you – then it takes off at once. If the time runs out unused, it flies on by itself. With several recipients, each of them can give it a reply; the owl then comes home with several letters, and the message about its homecoming tells you how many. A loan owl without a reply vanishes after the last recipient; if it has replies on board, it brings them to you first and only then flies back to the Menagerie.`,
+      `A rest with the recipient: when writing, you choose how long the owl stays with each recipient before flying on – not at all, 1, 2, 24 or ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} hours (preselected: ${LETTER.REST_HOURS_DEFAULT} hour). During the rest it recovers as at home, and the recipient sees it under “Owls” with the clear note “Only here for a rest!”. They may look after it and hand it a reply to you – then it takes off at once. If the time runs out unused, it flies on by itself. With several recipients, each of them can give it a reply; the owl then comes home with several letters, and the picture of its homecoming tells you how many. A loan owl without a reply vanishes after the last recipient; if it has replies on board, it brings them to you first and only then flies back to the Menagerie.`,
       'When a contact’s owl is resting with you, you write your reply as usual in your chat: in the owl choice the visiting owl is at the top and already selected. It takes your letter straight to its holder – there is no rest on the way back.',
       'Letters are plain text. Parchment knows no smileys and emojis – they are removed. Links starting with http:// or https:// can be clicked and open in the browser; check the address shown before you tap.',
       `Beware of disguised addresses: some letters from other alphabets look just like ours (a Cyrillic “а” looks like an “a”). If the address of a link contains such characters, or a name with “@” in front of the actual address, PostEulen shows it in its technical form, such as “xn--pypal-4ve.com” instead of “pаypal.com”, and writes next to it: “${en.letters.linkWarning}” That way you see where the link really leads. Genuine addresses with accented letters (such as café.fr) look like that too.`,
@@ -160,7 +160,7 @@ const SECTIONS: readonly HelpSection[] = [
       'Below every letter it says which owl brought it – for your own letters too (“On its way with …” while it is still flying). If it was not your own owl, the brackets say that it was a loan owl or whose owl it was.',
       'In the chat, letters appear as sheets of parchment with frayed edges: letters to you on light parchment, in German school handwriting and blue-black ink, your own on darker parchment, in flowing quill handwriting and sepia. Links and names are always in print so you can read them safely. If handwriting is too much effort, switch to print in the settings.',
       'When you open a chat, it starts at the oldest letter you have not read yet. If everything is read, it jumps to the latest letter. Older letters are above it.',
-      '“Burn all letters” asks first and then removes your copies of all letters of this chat for good – they go up in flames in the fireplace. The other person keeps theirs.',
+      '“Burn all letters” asks first and then removes your copies of all letters of this chat for good – they go up in flames in the fireplace. The other person keeps theirs. A letter that is still on its way to you is not burnt: it arrives and then shows up in the chat.',
     ],
   },
   {
@@ -178,7 +178,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'System messages',
     blocks: [
       'In the chat “System messages” PostEulen reports everything important right away: new contacts, gold or owls that have arrived, illnesses, eggs, chicks, name changes of your contacts, messages from the admin to everyone and more. You cannot reply there.',
-      'When one of your owls comes home from a flight, a message appears here – with replies on board it also tells you how many. The first time it is shown (here, under “News” or at once if the app is open when the owl lands), a picture appears: the owl sits on the window sill – in daylight or by candlelight, depending on whether it is light or dark at your home at that moment. If you have set up notifications, you get one of those too.',
+      'When one of your owls comes home from a flight, there is no message here for it. Instead PostEulen shows you a picture: the owl sits on the window sill – in daylight or by candlelight, depending on whether it is light or dark at your home at that moment. If it has replies on board, the caption says how many. The picture appears at once if the app is open when the owl lands, otherwise the next time you open the app or sign in. If several owls have come home, you see the pictures one after another. If you have set up notifications, you get one of those too.',
       'After every update a message tells you what has changed. And every five weeks a small request for a voluntary donation arrives (see Frequently asked questions).',
     ],
   },
@@ -186,7 +186,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Your owls',
     blocks: [
-      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter”, “Is asleep on the way home”, “Resting with Peter until 20:00” or “In the Menagerie until Fri, 14:00”.',
+      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter. Expected back in 5 h”, “Is asleep on the way home”, “Resting with Peter until 20:00” or “In the Menagerie until Fri, 14:00”. If it takes less than an hour, the time is given in minutes, for example “back in 40 min”.',
       'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is taking a rest on the way, you see it asleep, by day or at night. If it is brooding, it sits on its eggs in the nest. If it is helping out in the Menagerie, you see its empty perch.',
       'If a contact’s owl is resting with you, it is right at the top under “Visiting you” – with the note that it is only here for a rest and until when. You can give it water, pet it and feed it (you pay for the biscuit and the snack) – that raises its motivation, and it flies on refreshed. “Give it a reply …” takes you straight to your chat.',
       'Owls are night birds: when it is light at your home, a healthy owl sometimes dozes – whether it is asleep is decided anew each time you open the owl overview, about every other time. At night and for ten minutes after you last looked after it, it is always awake. You can still care for it and send it off at any time.',
@@ -314,17 +314,17 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'bots',
     title: 'Explainer Bear, aunt and uncle',
     blocks: [
-      'Every account has three bots of its own. They are marked “Bot” in the chat list and the address book and reply using AI.',
+      'Every account has three bots of its own. You find them in your correspondence, clearly marked “Bot”, and as a diamond on the map – they are not in the address book. You write to them in their chat. They reply using AI.',
       [
         `Explainer Bear: lives in Berlin and sends you short guides during the first week. He answers questions about PostEulen – but only those. His owls fly at ${BOTS.EXPLAINER_SPEED_KMH} km/h. He appears on the map as soon as you write to him for the first time.`,
-        `Aunt: a distantly related witch who loves a chat. Her first letter arrives about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up; only then is she in the address book and on the map. After ${GOLD.AUNT_GIFT_AFTER_DAYS} days she sends you ${gold(GOLD.AUNT_GIFT)} for your first owl.`,
+        `Aunt: a distantly related witch who loves a chat. Her first letter arrives about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up; only then is she in your correspondence and on the map. After ${GOLD.AUNT_GIFT_AFTER_DAYS} days she sends you ${gold(GOLD.AUNT_GIFT)} for your first owl.`,
         `Uncle: a slightly crazy, moody relative. He gets in touch after ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} days and shares an inheritance of ${gold(GOLD.UNCLE_INHERITANCE)} with you after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
       ],
       `You can write one letter to a bot every ${BOTS.WRITE_LOCK_HOURS} hours; the app shows from when again. About ${BOTS.REPLY_AFTER_HOURS} hours after your letter arrives, it writes back (at most ${BOTS.REPLY_MAX_CHARS} characters). If the server’s daily limit has been reached, it replies the next day.`,
       'The bots write to you in the language of your account. Letters that have already arrived stay in the language they were written in.',
       en.bots.notice,
       'Only the texts go to OpenAI, no names and no identifiers. Bots remember a short summary of your letters; it disappears when you delete the chat.',
-      'You can remove bots in the address book. This is final: chat, summary and any letters and gold still outstanding are gone then.',
+      'You remove a bot in its chat (“Remove …”). All three at once – the Explainer Bear too – you remove in the settings with “Remove all bots”. Both are final: chat, summary and any letters and gold still outstanding are gone then, and the bots never come back.',
     ],
   },
   {
@@ -355,6 +355,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Letters: have your own letters and system messages deleted after 30, 90 or 180 days instead of after one year; show letters in print instead of handwriting.',
         'Language: German or English, for this account on every device.',
         'Notifications: see the status and test them.',
+        'Bots: “Remove all bots” takes the Explainer Bear, the aunt and the uncle out of your game for good – with their chats. This cannot be undone.',
         `Message to the admin (at the very bottom): for technical problems or suggestions, send the admin of your PostEulen instance a short message – at most ${FEEDBACK.MAX_CHARS} characters, one a day (the day changes at midnight UTC). It is not encrypted, lies readable on the server without your name and is deleted after ${FEEDBACK.RETENTION_DAYS} days. So do not write anything confidential in it.`,
         `Redeem a voucher: if the operator of your PostEulen instance has given you a voucher, type its code here. A voucher brings gold or a new owl, is valid for ${VOUCHER.VALID_DAYS} days and can be redeemed once.`,
         `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
@@ -393,7 +394,7 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Is PostEulen suitable for children?',
     answer:
-      'Quite possibly – PostEulen is a great way to introduce children gently to messengers. Because letters take hours to arrive, there is no constant typing and no pull to keep checking. And only people who have entered each other with the exact name in the address book can write: strangers cannot contact your child. The three pen friends Explainer Bear, aunt and uncle reply using AI; if you do not want that, remove them in the address book.',
+      'Quite possibly – PostEulen is a great way to introduce children gently to messengers. Because letters take hours to arrive, there is no constant typing and no pull to keep checking. And only people who have entered each other with the exact name in the address book can write: strangers cannot contact your child. The three pen friends Explainer Bear, aunt and uncle reply using AI; if you do not want that, remove them in the settings with “Remove all bots”.',
   },
   {
     question: 'What does PostEulen cost?',

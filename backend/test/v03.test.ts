@@ -93,7 +93,7 @@ describe('notes after an update (v0.3)', () => {
     // An update from 0.2: the remembered version is missing.
     app.db.run("DELETE FROM meta WHERE key = 'notes_version'");
     // From 0.2 straight to the current version: one note per version on the way.
-    expect(sendUpdateNotes(app.ctx)).toBe(10);
+    expect(sendUpdateNotes(app.ctx)).toBe(11);
     expect(systemMessages(anna, 'update_notes').map((m) => m.params)).toEqual([
       { version: '0.3.0' },
       { version: '0.3.1' },
@@ -105,6 +105,7 @@ describe('notes after an update (v0.3)', () => {
       { version: '0.6.1' },
       { version: '0.7.0' },
       { version: '0.7.1' },
+      { version: '0.7.2' },
     ]);
     // Starting again does not repeat it.
     expect(sendUpdateNotes(app.ctx)).toBe(0);
@@ -161,8 +162,13 @@ describe('owls in flight and back home (v0.3)', () => {
     expect(flying.absence?.daylight).toBe(isDay(app.clock.now, at.lat, at.lon));
 
     advanceTo(app, app.clock.now + 3 * TIME.DAY);
-    expect(systemMessages(anna, 'owl_home').map((m) => m.params)).toEqual([
-      { owl: expect.any(String), species: 'waldkauz' },
+    // v0.7.2: no system message – a homecoming waiting for its overlay.
+    expect(systemMessages(anna, 'owl_home')).toEqual([]);
+    const homecomings = await anna.agent.json<{
+      homecomings: { species: string; letters: number }[];
+    }>('GET', '/api/homecomings');
+    expect(homecomings.body.homecomings).toEqual([
+      expect.objectContaining({ species: 'waldkauz', letters: 0 }),
     ]);
     expect(
       app.db.all("SELECT 1 FROM notifications WHERE user_id = ? AND type = 'owl_home'", anna.id),

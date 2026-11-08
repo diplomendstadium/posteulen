@@ -180,7 +180,7 @@ export const de = {
       'Anfrage gespeichert. Sobald {name} dich ebenfalls hinzufügt, seid ihr verbunden.',
     limit: 'Heute sind keine weiteren Anfragen möglich (höchstens 20 pro Tag).',
     none: 'Noch keine Kontakte.',
-    pending: 'unbestätigt – noch {hours} Std.',
+    pending: 'unbestätigt – noch {duration}',
     cancel: 'Zurückziehen',
     inactive: 'inaktiv',
     compared: 'Sicherheitsnummer verglichen',
@@ -331,6 +331,11 @@ export const de = {
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
     broadcast: '{text}',
   },
+  /** v0.7.2: remaining times – under an hour in minutes. */
+  duration: {
+    minutes: '{n} Min.',
+    hours: '{n} Std.',
+  },
   /** v0.7.1: a short message to the admin (settings). */
   feedback: {
     title: 'Nachricht an den Admin',
@@ -421,6 +426,15 @@ export const de = {
     type_aunt: 'entfernt verwandte Tante',
     type_uncle: 'entfernt verwandter Onkel',
     title: 'Bots',
+    remove: '{name} entfernen',
+    removeAllTitle: 'Bots',
+    removeAllIntro:
+      'Erklärbär, Tante und Onkel sind Brieffreunde, die per KI antworten. Brauchst du sie nicht, kannst du alle auf einmal entfernen – einzelne entfernst du in ihrem Chat.',
+    removeAll: 'Alle Bots entfernen',
+    removeAllConfirm:
+      'Wirklich alle Bots entfernen, auch den Erklärbären? Das ist endgültig: Ihre Chats, ihr Gedächtnis und noch geplante Briefe und Goldsendungen verschwinden, und sie kommen nie wieder.',
+    removedAll: 'Alle Bots sind entfernt.',
+    noneLeft: 'Du hast keine Bots mehr.',
     removeConfirm:
       '{name} wirklich entfernen? Das ist endgültig: Chat, Gedächtnis und noch geplante Briefe und Goldsendungen verschwinden.',
   },
@@ -461,7 +475,7 @@ export const de = {
       'Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken. Entscheidest du dich nicht bis {until}, wird gelost (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
     clutchChick: 'Welches Küken?',
     clutchNameFirst: 'Bitte gib dem Küken zuerst einen Namen.',
-    backIn: 'Voraussichtlich zurück in {hours} Std.',
+    backIn: 'Voraussichtlich zurück in {duration}.',
     and: ' und ',
     pet: 'Streicheln',
     water: 'Wasser geben',
@@ -524,6 +538,8 @@ export const de = {
     departs: '{name} fliegt los',
     arrives: '{name} ist gelandet',
     backHome: '{name} ist wieder zu Hause',
+    backHomeLetter: '{name} ist wieder zu Hause – mit einem Antwortbrief',
+    backHomeLetters: '{name} ist wieder zu Hause – mit {count} Antwortbriefen',
     feeding: '{name} lässt es sich schmecken',
     drinking: '{name} trinkt einen Schluck',
     snacking: '{name} genießt {snack}',

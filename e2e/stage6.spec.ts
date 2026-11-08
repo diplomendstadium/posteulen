@@ -141,7 +141,8 @@ test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async
   expect(await inDisplayFont(page, loanName, '[data-testid="loan-offer"]'), 'Leihangebot').toEqual(
     [],
   );
-  for (const path of ['/app/briefe', '/app/adressbuch']) {
+  // v0.7.2: bots are not in the address book; the settings name them ("Alle Bots entfernen").
+  for (const path of ['/app/briefe', '/app/einstellungen']) {
     await page.goto(path);
     await page.getByText('Erklärbär').first().waitFor();
     expect(await inDisplayFont(page, 'Erklärbär'), path).toEqual([]);

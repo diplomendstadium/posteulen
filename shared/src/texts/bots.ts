@@ -22,7 +22,7 @@ Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und K
 
 Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
 
-Fragen zu PostEulen? Schreib mir einfach! Sobald du mir geschrieben hast, findest du mich auch auf deiner Karte.`,
+Fragen zu PostEulen? Schreib mir einfach – du findest mich im Briefwechsel! Sobald du mir geschrieben hast, findest du mich auch auf deiner Karte.`,
   day1: `Hallo, heute verrate ich dir einen kleinen Zaubertrick!
 
 PostEulen gibt es in keinem App-Store – und trotzdem kannst du es wie eine App auf dein Handy holen. Du legst es einfach auf deinen Startbildschirm:

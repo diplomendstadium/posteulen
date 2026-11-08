@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { duration } from '../lib/format.ts';
   import { t, fill } from '../lib/i18n.svelte.ts';
   import ErrorText from '../components/ErrorText.svelte';
   import Link from '../components/Link.svelte';
@@ -56,16 +57,12 @@
     shown = { ...shown, [userId]: (await safetyNumberWith(userId)) ?? '…' };
   }
 
-  async function remove(userId: string, contactName: string, isBot = false): Promise<void> {
-    const question = isBot ? t.bots.removeConfirm : t.contacts.removeConfirm;
-    if (!confirm(fill(question, { name: contactName }))) return;
+  async function remove(userId: string, contactName: string): Promise<void> {
+    if (!confirm(fill(t.contacts.removeConfirm, { name: contactName }))) return;
     await api('DELETE', `/api/contacts/${userId}`).catch(
       (caught: unknown) => (error = errorMessage(caught)),
     );
   }
-
-  const hoursLeft = (expiresAt: number): number =>
-    Math.max(1, Math.ceil((expiresAt - Date.now()) / 3_600_000));
 </script>
 
 <section class="card" aria-labelledby="add-title">
@@ -94,31 +91,7 @@
   </p>
 {/each}
 
-{#if live.bots.length > 0}
-  <section aria-labelledby="bots-title">
-    <h2 id="bots-title" class="plate">{t.bots.title}</h2>
-    <ul class="contacts">
-      {#each live.bots as bot (bot.userId)}
-        <li class="contact" data-testid="bot-contact">
-          <span class="name"
-            ><span aria-hidden="true">🤖</span>
-            {bot.name}
-            <span class="bot-label">{t.bots.label}</span></span
-          >
-          <span class="state">{(t.bots as Record<string, string>)[`type_${bot.type}`]}</span>
-          <div class="buttons">
-            <Link href={`/app/briefe/${bot.userId}`} class="button">{t.contacts.write}</Link>
-            <button
-              class="button secondary"
-              type="button"
-              onclick={() => void remove(bot.userId, bot.name, true)}>{t.contacts.remove}</button
-            >
-          </div>
-        </li>
-      {/each}
-    </ul>
-  </section>
-{/if}
+<!-- v0.7.2: bots are not in the address book; their chats are under Briefwechsel. -->
 
 <ul class="contacts">
   {#each live.requests as request (request.id)}
@@ -126,7 +99,7 @@
       <span class="name">{labels[request.id] ?? '…'}</span>
       <span class="state"
         ><span aria-hidden="true">⏳</span>
-        {fill(t.contacts.pending, { hours: hoursLeft(request.expiresAt) })}</span
+        {fill(t.contacts.pending, { duration: duration(request.expiresAt - Date.now()) })}</span
       >
       <button
         class="button secondary"
@@ -192,15 +165,6 @@
   </p>{/if}
 
 <style>
-  .bot-label {
-    margin-left: 0.25rem;
-    padding: 0 0.5rem;
-    border: 2px solid var(--wood);
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.9rem;
-  }
-
   section {
     margin-bottom: 1.5rem;
   }

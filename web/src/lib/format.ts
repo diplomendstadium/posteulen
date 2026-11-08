@@ -1,4 +1,4 @@
-import { locale } from './i18n.svelte.ts';
+import { fill, locale, t } from './i18n.svelte.ts';
 import { account } from './auth.svelte.ts';
 import { zoneAt } from '@posteulen/shared/map/timezone.ts';
 
@@ -38,6 +38,17 @@ export function dateTime(ms: number): string {
     sameDay ? { hour: '2-digit', minute: '2-digit' } : { dateStyle: 'medium', timeStyle: 'short' },
     ms,
   );
+}
+
+/**
+ * v0.7.2: a remaining time – under an hour in minutes (at least 1), otherwise in hours
+ * (rounded up).
+ */
+export function duration(ms: number): string {
+  const minutes = Math.max(1, Math.ceil(ms / 60_000));
+  return minutes < 60
+    ? fill(t.duration.minutes, { n: minutes })
+    : fill(t.duration.hours, { n: Math.ceil(minutes / 60) });
 }
 
 export { linkify, type TextPart } from '@posteulen/shared/links.ts';

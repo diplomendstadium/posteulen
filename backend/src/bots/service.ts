@@ -204,6 +204,12 @@ function upsertBotChat(
 
 /** Three bots for a new account (SPEC 10), the day-0 letter already delivered (10.2). */
 export function createBots(ctx: Context, userId: string, now: number): void {
+  // v0.7.2: only once per account – removed bots never come back.
+  const done = ctx.db.run(
+    'UPDATE users SET bots_created = 1 WHERE id = ? AND bots_created = 0',
+    userId,
+  );
+  if (done.changes !== 1) return;
   const exists = ctx.db.get('SELECT 1 FROM bots WHERE owner_id = ?', userId);
   if (exists) return;
   const insert = (
@@ -277,7 +283,8 @@ export function createBots(ctx: Context, userId: string, now: number): void {
 /** Accounts from before stage 5 get their bots once, with the schedule starting now (D-82). */
 export function ensureBotsForAllUsers(ctx: Context): number {
   const users = ctx.db.all<{ id: string }>(
-    "SELECT id FROM users WHERE state != 'deleting' AND id NOT IN (SELECT owner_id FROM bots)",
+    // v0.7.2: only accounts that never had bots (not those that removed them).
+    "SELECT id FROM users WHERE state != 'deleting' AND bots_created = 0",
   );
   const now = ctx.now();
   ctx.db.transaction(() => {
@@ -378,6 +385,13 @@ export function removeBot(
   // Shipments and reply jobs go with the bot (ON DELETE CASCADE).
   ctx.db.run('DELETE FROM bots WHERE id = ?', bot.id);
   after(() => ctx.hub.notify(userId, 'contacts', 'chats', 'map'));
+}
+
+/** v0.7.2: all bots of an account go for good, the Erklärbär included (settings, SPEC 10.1). */
+export function removeAllBots(ctx: Context, userId: string, now: number, after: After): number {
+  const bots = ctx.db.all<BotRow>('SELECT * FROM bots WHERE owner_id = ?', userId);
+  for (const bot of bots) removeBot(ctx, userId, bot, now, after);
+  return bots.length;
 }
 
 export function registerBotHandlers(ctx: Context): void {

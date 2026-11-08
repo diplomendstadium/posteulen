@@ -17,12 +17,8 @@ test.describe('Sicherheitsprüfung v0.6.1', () => {
   }) => {
     await registerViaUi(page);
     await borrowViaUi(page);
-    await page.goto('/app/adressbuch');
-    await page
-      .getByTestId('bot-contact')
-      .first()
-      .getByRole('link', { name: 'Brief schreiben' })
-      .click();
+    await page.goto('/app/briefe');
+    await page.getByRole('link', { name: /Erklärbär/ }).click();
     // Cyrillic "\u0430" (U+0430) in the host, an ordinary link next to it.
     await page
       .getByLabel('Text')

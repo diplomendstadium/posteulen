@@ -138,7 +138,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„Schlüsselwarnung“: etwas stimmt mit den Schlüsseln nicht – nichts mehr senden, siehe Verschlüsselung.',
       ],
       'Entfernst du einen Kontakt, müsst ihr euch neu koppeln. Eulen, die zwischen euch unterwegs sind, kehren sofort um. Der Chat bleibt erhalten, zeigt aber „unbekannt“ als Namen, bis ihr euch wieder verbindet.',
-      `Der Erklärbär steht von Anfang an im Adressbuch. Die Tante kommt mit ihrem ersten Brief dazu, etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach der Anmeldung, der Onkel nach ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} Tagen (siehe Bots).`,
+      'Im Adressbuch stehen nur echte Menschen. Erklärbär, Tante und Onkel findest du im Briefwechsel; dort schreibst du ihnen auch (siehe Bots).',
     ],
   },
   {
@@ -164,7 +164,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}), Eule wählen und absenden. Bei mehreren Empfängern sortiert PostEulen sie so, dass die Eule den kürzesten Weg fliegt – von dir zu allen und wieder nach Hause. Mit den Pfeilen kannst du die Reihenfolge trotzdem ändern. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
       `Keine Eule zu Hause? Dann bietet dir die Eulenwahl direkt die Leiheulen des Tages an. Geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
       'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Das geht mit eigenen Eulen und mit Leiheulen; eine Leiheule verschwindet nach dem letzten Empfänger. Bots sind nie bei mehreren Empfängern dabei.',
-      `Rast beim Empfänger: Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt, bevor sie weiterfliegt – gar nicht, 1, 2, 24 oder ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} Stunden (vorgewählt: ${LETTER.REST_HOURS_DEFAULT} Stunde). Während der Rast erholt sie sich wie zu Hause, und der Empfänger sieht sie unter „Eulen“ mit dem deutlichen Hinweis „Nur zur Rast hier!“. Er darf sie pflegen und ihr eine Antwort an dich mitgeben – dann fliegt sie sofort los. Läuft die Zeit ungenutzt ab, fliegt sie von selbst weiter. Bei mehreren Empfängern kann dir jeder eine Antwort mitgeben; die Eule kommt dann mit mehreren Briefen nach Hause, und deine Nachricht über ihre Heimkehr sagt dir, wie viele es sind. Eine Leiheule ohne Antwort verschwindet nach dem letzten Empfänger; hat sie Antworten dabei, bringt sie die noch zu dir und fliegt erst dann zurück in die Menagerie.`,
+      `Rast beim Empfänger: Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt, bevor sie weiterfliegt – gar nicht, 1, 2, 24 oder ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} Stunden (vorgewählt: ${LETTER.REST_HOURS_DEFAULT} Stunde). Während der Rast erholt sie sich wie zu Hause, und der Empfänger sieht sie unter „Eulen“ mit dem deutlichen Hinweis „Nur zur Rast hier!“. Er darf sie pflegen und ihr eine Antwort an dich mitgeben – dann fliegt sie sofort los. Läuft die Zeit ungenutzt ab, fliegt sie von selbst weiter. Bei mehreren Empfängern kann dir jeder eine Antwort mitgeben; die Eule kommt dann mit mehreren Briefen nach Hause, und das Bild ihrer Heimkehr sagt dir, wie viele es sind. Eine Leiheule ohne Antwort verschwindet nach dem letzten Empfänger; hat sie Antworten dabei, bringt sie die noch zu dir und fliegt erst dann zurück in die Menagerie.`,
       'Rastet die Eule eines Kontakts bei dir, schreibst du die Antwort ganz normal in eurem Chat: In der Eulenwahl steht die Gast-Eule ganz oben und ist schon ausgewählt. Sie bringt deinen Brief direkt zu ihrem Halter – eine Rast gibt es auf dem Rückweg nicht.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst.',
       `Vorsicht vor verkleideten Adressen: Manche Buchstaben aus fremden Alphabeten sehen aus wie unsere (ein kyrillisches „а“ wie ein „a“). Enthält die Adresse eines Links solche Zeichen oder einen Namen mit „@“ vor der eigentlichen Adresse, zeigt PostEulen sie in ihrer technischen Form, etwa „xn--pypal-4ve.com“ statt „pаypal.com“, und schreibt daneben: „${de.letters.linkWarning}“ So siehst du, wohin der Link wirklich führt. Auch echte Adressen mit Umlauten (z. B. müller.de) sehen dann so aus.`,
@@ -179,7 +179,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Unter jedem Brief steht, welche Eule ihn gebracht hat – bei deinen eigenen Briefen auch („Unterwegs mit …“, solange er noch fliegt). War es nicht deine eigene Eule, steht in Klammern dabei, dass es eine Leiheule war oder wessen Eule es war.',
       'Im Chat erscheinen Briefe als Pergamentbögen mit ausgefranstem Rand: Briefe an dich auf hellem Pergament, in deutscher Schulschrift und blauschwarzer Tinte, deine eigenen auf dunklerem Pergament, in geschwungener Federschrift und Sepia. Links und Namen stehen immer in Druckschrift, damit du sie sicher lesen kannst. Ist dir Handschrift zu mühsam, stell in den Einstellungen auf Druckschrift um.',
       'Öffnest du einen Chat, beginnt er beim ältesten Brief, den du noch nicht gelesen hast. Ist alles gelesen, springt er zum neuesten Brief. Ältere Briefe findest du darüber.',
-      '„Alle Briefe verbrennen“ entfernt nach einer Rückfrage deine Kopien aller Briefe dieses Chats endgültig – sie gehen im Kamin in Flammen auf. Dein Gegenüber behält seine.',
+      '„Alle Briefe verbrennen“ entfernt nach einer Rückfrage deine Kopien aller Briefe dieses Chats endgültig – sie gehen im Kamin in Flammen auf. Dein Gegenüber behält seine. Ein Brief, der gerade noch zu dir unterwegs ist, verbrennt nicht mit: Er kommt an und steht dann im Chat.',
     ],
   },
   {
@@ -197,7 +197,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Systemnachrichten',
     blocks: [
       'Im Chat „Systemnachrichten“ meldet PostEulen sofort alles Wichtige: neue Kontakte, angekommenes Gold oder Eulen, Krankheiten, Eier, Küken, Namensänderungen deiner Kontakte, Rundnachrichten des Admins und mehr. Antworten kannst du dort nicht.',
-      'Kommt eine deiner Eulen von einem Flug heim, steht hier eine Nachricht – mit Antwortbriefen an Bord sagt sie dir auch, wie viele es sind. Beim ersten Anzeigen (hier, unter „Neuigkeiten“ oder sofort, wenn die App bei der Landung offen ist) wird ein Bild eingeblendet: Die Eule sitzt auf dem Fensterbrett – bei Tageslicht oder bei Kerzenschein, je nachdem, ob es an deinem Wohnort in diesem Moment hell oder dunkel ist. Hast du Benachrichtigungen eingerichtet, bekommst du auch eine.',
+      'Kommt eine deiner Eulen von einem Flug heim, steht dafür keine Nachricht hier. Stattdessen zeigt dir PostEulen ein Bild: Die Eule sitzt auf dem Fensterbrett – bei Tageslicht oder bei Kerzenschein, je nachdem, ob es an deinem Wohnort in diesem Moment hell oder dunkel ist. Hat sie Antwortbriefe dabei, steht unter dem Bild, wie viele. Das Bild kommt sofort, wenn die App bei der Landung offen ist, sonst beim nächsten Öffnen oder Anmelden. Sind mehrere Eulen heimgekehrt, siehst du die Bilder nacheinander. Hast du Benachrichtigungen eingerichtet, bekommst du außerdem eine.',
       'Nach jedem Update erzählt dir eine Nachricht, was sich geändert hat. Und alle fünf Wochen kommt eine kleine Bitte um eine freiwillige Spende (siehe Häufige Fragen).',
     ],
   },
@@ -205,7 +205,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Deine Eulen',
     blocks: [
-      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie, Motivation und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter“, „Schläft auf dem Heimweg“, „Rastet bei Peter bis 20:00“ oder „In der Menagerie bis Fr., 14:00“.',
+      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie, Motivation und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter. Voraussichtlich zurück in 5 Std.“, „Schläft auf dem Heimweg“, „Rastet bei Peter bis 20:00“ oder „In der Menagerie bis Fr., 14:00“. Dauert es weniger als eine Stunde, steht die Zeit in Minuten da, etwa „zurück in 40 Min.“',
       'Das Bild zeigt, was die Eule gerade tut: Ist sie unterwegs, siehst du sie fliegen – im Sonnenschein oder unter Sternen, je nachdem, ob es dort, wo sie gerade ist, hell oder dunkel ist. Macht sie unterwegs eine Schlafpause, siehst du sie schlafen, bei Tag oder bei Nacht. Brütet sie, sitzt sie im Nest auf ihren Eiern. Hilft sie in der Menagerie aus, siehst du ihre leere Stange.',
       'Rastet die Eule eines Kontakts bei dir, steht sie ganz oben unter „Zu Gast bei dir“ – mit dem Hinweis, dass sie nur zur Rast hier ist und bis wann. Du kannst sie tränken, streicheln und füttern (Eulenkeks und Leckerli bezahlst du) – das hebt ihre Motivation, und sie fliegt gestärkt weiter. Über „Antwort … mitgeben“ kommst du direkt in euren Chat.',
       'Eulen sind nachtaktiv: Ist es bei dir zu Hause hell, döst eine gesunde Eule manchmal vor sich hin – ob sie gerade schläft, entscheidet sich bei jedem Öffnen der Eulenübersicht neu, etwa jedes zweite Mal. Nachts und in den zehn Minuten nach deiner letzten Pflege ist sie immer wach. Pflegen und losschicken kannst du sie trotzdem jederzeit.',
@@ -333,16 +333,16 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'bots',
     title: 'Erklärbär, Tante und Onkel',
     blocks: [
-      'Jedes Konto hat drei eigene Bots. Sie sind in Chatliste und Adressbuch mit „Bot“ gekennzeichnet und antworten per KI.',
+      'Jedes Konto hat drei eigene Bots. Du findest sie im Briefwechsel, deutlich mit „Bot“ gekennzeichnet, und als Raute auf der Karte – im Adressbuch stehen sie nicht. Schreiben kannst du ihnen in ihrem Chat. Sie antworten per KI.',
       [
         `Erklärbär: wohnt in Berlin und schickt dir in der ersten Woche kurze Anleitungen. Er beantwortet Fragen zu PostEulen – aber nur die. Seine Eulen fliegen ${BOTS.EXPLAINER_SPEED_KMH} km/h. Auf der Karte erscheint er, sobald du ihm zum ersten Mal schreibst.`,
-        `Tante: eine entfernt verwandte Hexe, die gern plaudert. Ihr erster Brief kommt etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach deiner Anmeldung; erst dann steht sie im Adressbuch und auf der Karte. Nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen schickt sie dir ${gold(GOLD.AUNT_GIFT)} für deine erste Eule.`,
+        `Tante: eine entfernt verwandte Hexe, die gern plaudert. Ihr erster Brief kommt etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach deiner Anmeldung; erst dann steht sie im Briefwechsel und auf der Karte. Nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen schickt sie dir ${gold(GOLD.AUNT_GIFT)} für deine erste Eule.`,
         `Onkel: ein etwas verrückter, launischer Verwandter. Er meldet sich nach ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} Tagen und teilt nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ein Erbe von ${gold(GOLD.UNCLE_INHERITANCE)} mit dir.`,
       ],
       `Einem Bot kannst du einen Brief in ${BOTS.WRITE_LOCK_HOURS} Stunden schreiben; die App zeigt, ab wann wieder. Etwa ${BOTS.REPLY_AFTER_HOURS} Stunden nach der Ankunft deines Briefs schreibt er zurück (höchstens ${BOTS.REPLY_MAX_CHARS} Zeichen). Ist das Tageslimit des Servers erreicht, antwortet er am nächsten Tag.`,
       de.bots.notice,
       'An OpenAI gehen nur die Texte, keine Namen und keine Kennungen. Bots merken sich eine kurze Zusammenfassung eures Briefwechsels; sie verschwindet, wenn du den Chat löschst.',
-      'Du kannst Bots im Adressbuch entfernen. Das ist endgültig: Chat, Zusammenfassung und noch ausstehende Briefe und Goldsendungen sind dann weg.',
+      'Einen Bot entfernst du in seinem Chat („… entfernen“). Alle drei auf einmal – auch den Erklärbär – entfernst du in den Einstellungen mit „Alle Bots entfernen“. Beides ist endgültig: Chat, Zusammenfassung und noch ausstehende Briefe und Goldsendungen sind dann weg, und die Bots kommen nie wieder.',
     ],
   },
   {
@@ -372,6 +372,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Sprache: Deutsch oder Englisch, für dieses Konto auf jedem Gerät.',
         'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
+        'Bots: „Alle Bots entfernen“ nimmt Erklärbär, Tante und Onkel endgültig aus deinem Spiel – mit ihren Chats. Das lässt sich nicht rückgängig machen.',
         `Nachricht an den Admin (ganz unten): Bei technischen Problemen oder Verbesserungsvorschlägen schickst du dem Admin deiner PostEulen-Instanz eine kurze Nachricht – höchstens ${FEEDBACK.MAX_CHARS} Zeichen, eine pro Tag (der Tag wechselt um Mitternacht UTC). Sie ist nicht verschlüsselt, liegt ohne deinen Namen lesbar auf dem Server und wird nach ${FEEDBACK.RETENTION_DAYS} Tagen gelöscht. Schreib also nichts Vertrauliches hinein.`,
         `Gutschein einlösen: Hast du von der Betreiberin oder dem Betreiber deiner PostEulen-Instanz einen Gutschein bekommen, tippst du hier den Code ein. Ein Gutschein bringt Gold oder eine neue Eule, gilt ${VOUCHER.VALID_DAYS} Tage und lässt sich einmal einlösen.`,
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
@@ -410,7 +411,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   {
     question: 'Ist PostEulen etwas für Kinder?',
     answer:
-      'Gut möglich – PostEulen eignet sich prima, um Kinder behutsam an Messenger heranzuführen. Weil Briefe Stunden unterwegs sind, gibt es kein Dauer-Tippen und keinen Sog, ständig nachzusehen. Und schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat: Fremde können dein Kind nicht anschreiben. Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI; wer das nicht möchte, entfernt sie im Adressbuch.',
+      'Gut möglich – PostEulen eignet sich prima, um Kinder behutsam an Messenger heranzuführen. Weil Briefe Stunden unterwegs sind, gibt es kein Dauer-Tippen und keinen Sog, ständig nachzusehen. Und schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat: Fremde können dein Kind nicht anschreiben. Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI; wer das nicht möchte, entfernt sie in den Einstellungen mit „Alle Bots entfernen“.',
   },
   {
     question: 'Was kostet PostEulen?',

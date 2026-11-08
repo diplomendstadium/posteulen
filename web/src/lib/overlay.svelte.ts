@@ -26,6 +26,29 @@ export function showSceneImage(id: SceneId, caption: string, alt: string): void 
   overlay.current = { id: next++, species: '', kind: 'normal', caption, scene: { id, alt } };
 }
 
+/**
+ * v0.7.2: pictures waiting to be shown one after another (homecomings). Each is built when it
+ * is shown (day or night at that moment).
+ */
+const waiting: (() => Omit<OverlayImage, 'id'>)[] = [];
+
+export function queueOwlImage(build: () => Omit<OverlayImage, 'id'>): void {
+  waiting.push(build);
+  if (!overlay.current) showNext();
+}
+
+function showNext(): void {
+  const build = waiting.shift();
+  overlay.current = build ? { id: next++, ...build() } : null;
+}
+
+/** Closing a picture shows the next waiting one, if any. */
 export function closeOwlImage(): void {
+  showNext();
+}
+
+/** Signing out forgets waiting pictures. */
+export function clearOwlImages(): void {
+  waiting.length = 0;
   overlay.current = null;
 }

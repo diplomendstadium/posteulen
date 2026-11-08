@@ -178,7 +178,7 @@ export const en: Texts = {
     requestSaved: 'Request saved. As soon as {name} adds you too, you are connected.',
     limit: 'No more requests are possible today (at most 20 per day).',
     none: 'No contacts yet.',
-    pending: 'unconfirmed – {hours} h left',
+    pending: 'unconfirmed – {duration} left',
     cancel: 'Withdraw',
     inactive: 'inactive',
     compared: 'Safety number compared',
@@ -326,6 +326,10 @@ export const en: Texts = {
     deletion_cancelled: 'The deletion of your account has been cancelled.',
     broadcast: '{text}',
   },
+  duration: {
+    minutes: '{n} min',
+    hours: '{n} h',
+  },
   feedback: {
     title: 'Message to the admin',
     intro:
@@ -413,6 +417,15 @@ export const en: Texts = {
     type_aunt: 'distantly related aunt',
     type_uncle: 'distantly related uncle',
     title: 'Bots',
+    remove: 'Remove {name}',
+    removeAllTitle: 'Bots',
+    removeAllIntro:
+      'The Explainer Bear, the aunt and the uncle are pen friends who reply by AI. If you do not need them, you can remove them all at once – a single one you remove in its chat.',
+    removeAll: 'Remove all bots',
+    removeAllConfirm:
+      'Really remove all bots, the Explainer Bear included? This is final: their chats, their memory and any planned letters and gold go, and they never come back.',
+    removedAll: 'All bots have been removed.',
+    noneLeft: 'You have no bots any more.',
     removeConfirm:
       'Really remove {name}? This is final: chat, memory and any letters and gold still planned disappear.',
   },
@@ -453,7 +466,7 @@ export const en: Texts = {
       'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
     clutchChick: 'Which chick?',
     clutchNameFirst: 'Please give the chick a name first.',
-    backIn: 'Expected back in {hours} h.',
+    backIn: 'Expected back in {duration}.',
     and: ' and ',
     pet: 'Pet',
     water: 'Give water',
@@ -514,6 +527,8 @@ export const en: Texts = {
     departs: '{name} takes off',
     arrives: '{name} has landed',
     backHome: '{name} is back home',
+    backHomeLetter: '{name} is back home – with a reply',
+    backHomeLetters: '{name} is back home – with {count} replies',
     feeding: '{name} is enjoying a snack',
     drinking: '{name} is having a drink',
     snacking: '{name} is enjoying {snack}',

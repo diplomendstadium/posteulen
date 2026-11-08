@@ -162,7 +162,11 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       "SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1 ORDER BY CASE type WHEN 'explainer' THEN 0 WHEN 'aunt' THEN 1 ELSE 2 END",
       me,
     );
+    // v0.7.2: all bots of the account, also the uncle before his first letter (settings).
+    const allBots =
+      ctx.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM bots WHERE owner_id = ?', me)?.n ?? 0;
     return {
+      allBots,
       contacts: rows.map((row) => ({
         userId: row.other,
         name: row.name_display,

@@ -182,6 +182,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   purgeOldLetters(ctx, at, undefined, after);
   // v0.7.1: messages to the admin go after 90 days.
   pruneFeedback(ctx, at);
+  // v0.7.2: homecomings nobody looked at (overlay) go after 60 days.
+  ctx.db.run('DELETE FROM homecomings WHERE created_at < ?', at - 60 * TIME.DAY);
 }
 
 export function registerAccountHandlers(ctx: Context): void {

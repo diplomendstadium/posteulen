@@ -465,22 +465,20 @@ function arriveHome(
     credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
     ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
   }
-  // v0.7: the picture of the owl at the window (by day or night where the user lives, at the
-  // moment it is shown) is an overlay when the homecoming is first seen; and a push – with
-  // replies on board, that is said (v0.7).
-  addSystemMessage(
-    ctx,
+  // v0.7.2: no system message any more – the homecoming waits until the app shows it as an
+  // overlay with the picture at the window (by day or night where the user lives, at the moment
+  // it is shown): at once if the app is open, otherwise when it is opened or after signing in.
+  // With replies on board, the caption says so; and a push.
+  ctx.db.run(
+    'INSERT INTO homecomings (id, user_id, owl_name, species, letters, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    randomId(),
     flight.holder_id,
-    'owl_home',
-    {
-      owl: flight.owl_name,
-      species: flight.owl_species,
-      ...(replies > 0 ? { count: replies } : {}),
-    },
+    flight.owl_name,
+    flight.owl_species,
+    replies,
     at,
-    after,
-    `${flight.owl_species}:home`,
   );
+  after(() => ctx.hub.notify(flight.holder_id, 'homecomings'));
   ctx.push.notify(flight.holder_id, replies > 0 ? 'owl_home_letters' : 'owl_home', null, at, after);
   if (flight.owl_id) {
     const owl = ctx.db.get<{ is_chick: number; hatched_at: number | null }>(

@@ -341,7 +341,9 @@ describe('flights with own owls (SPEC 9.4)', () => {
     const home = (await owls(anna))[0]!;
     expect(home.state).toBe('home');
     expect(home.energy).toBeLessThan(540);
-    expect(await systemTypes(anna)).toContain('owl_home');
+    // v0.7.2: a homecoming is an overlay, not a system message.
+    expect(await systemTypes(anna)).not.toContain('owl_home');
+    expect(app.db.all('SELECT 1 FROM homecomings WHERE user_id = ?', anna.id)).toHaveLength(1);
     expect((await anna.agent.json<{ flights: unknown[] }>('GET', '/api/map')).body.flights).toEqual(
       [],
     );
