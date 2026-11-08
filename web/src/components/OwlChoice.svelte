@@ -45,8 +45,17 @@
             speed: Math.round(owlSpeedKmh(species(choice.species)?.speedFactor ?? 1)),
           })}
         </strong>
+        {#if choice.guest}
+          <span class="hint offer"
+            >{fill(t.letters.guestHint, {
+              time: dateTime(choice.restUntil ?? Date.now()),
+              name: nameOf(choice.arrivals[0]?.recipientId ?? ''),
+            })}</span
+          >
+        {/if}
         {#if choice.offer}<span class="hint offer">{t.letters.loanOfferHint}</span>{/if}
-        {#if choice.kind === 'loan'}<span class="hint">{t.letters.loanHint}</span>{/if}
+        {#if choice.kind === 'loan' && !choice.guest}<span class="hint">{t.letters.loanHint}</span
+          >{/if}
         {#each choice.arrivals as arrival (arrival.recipientId)}
           <span
             >{fill(t.letters.arrival, {
@@ -55,11 +64,13 @@
             })}</span
           >
         {/each}
-        <span>
-          {choice.returnsAt === null
-            ? t.letters.noReturn
-            : fill(t.letters.returnsAt, { time: dateTime(choice.returnsAt) })}
-        </span>
+        {#if !choice.guest}
+          <span>
+            {choice.returnsAt === null
+              ? t.letters.noReturn
+              : fill(t.letters.returnsAt, { time: dateTime(choice.returnsAt) })}
+          </span>
+        {/if}
       </span>
     </label>
   {/each}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { de, fill } from '@posteulen/shared/texts/de.ts';
-  import { api } from './lib/api.ts';
+  import { api, SESSION_ENDED_EVENT, touchSession } from './lib/api.ts';
   import { login } from './lib/auth.ts';
   import { message } from './lib/messages.ts';
   import Dashboard from './Dashboard.svelte';
@@ -20,6 +20,7 @@
         '/api/session',
       );
       view = session.state !== 'active' ? 'login' : session.mustChangePassword ? 'change' : 'ready';
+      touchSession(view === 'login');
     } catch (caught) {
       view = 'login';
       error = message(caught);
@@ -28,6 +29,16 @@
 
   onMount(() => {
     void check();
+    // v0.7: after 10 minutes without activity the login expires (SPEC 13).
+    const ended = (): void => {
+      if (view === 'login' || view === 'loading') return;
+      view = 'login';
+      password = '';
+      initial = '';
+      error = de.admin.sessionExpired;
+    };
+    window.addEventListener(SESSION_ENDED_EVENT, ended);
+    return () => window.removeEventListener(SESSION_ENDED_EVENT, ended);
   });
 
   async function submit(event: SubmitEvent): Promise<void> {
@@ -51,6 +62,7 @@
 
   async function logout(): Promise<void> {
     await api('POST', '/api/logout', {}).catch(() => undefined);
+    touchSession(true);
     view = 'login';
   }
 </script>

@@ -20,7 +20,9 @@ export type TransactionType =
   | 'treatment'
   | 'menagerie_wage'
   | 'aunt_gift'
-  | 'uncle_inheritance';
+  | 'uncle_inheritance'
+  /** v0.7 */
+  | 'voucher';
 
 function record(
   db: Database,

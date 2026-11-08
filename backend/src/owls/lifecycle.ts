@@ -9,6 +9,7 @@ import {
   giftRequired,
   laysEggs,
   loanIdentities,
+  loanNamesOn,
   type LoanIdentity,
   menagerieWage,
   pastGracePeriod,
@@ -49,7 +50,16 @@ export function offerOf(ctx: Context, day: string): string[] {
     day,
   );
   if (row) return JSON.parse(row.species) as string[];
-  const species = pickOffer(ctx.random);
+  // v0.7: the species of the two days before are not offered again (only stored offers count).
+  const start = Date.parse(`${day}T00:00:00Z`);
+  const recent = [1, 2].flatMap((back) => {
+    const before = ctx.db.get<{ species: string }>(
+      'SELECT species FROM menagerie_offers WHERE day = ?',
+      utcDay(start - back * TIME.DAY),
+    );
+    return before ? (JSON.parse(before.species) as string[]) : [];
+  });
+  const species = pickOffer(ctx.random, recent);
   ctx.db.run(
     'INSERT OR IGNORE INTO menagerie_offers (day, species) VALUES (?, ?)',
     day,
@@ -77,7 +87,8 @@ export function loanIdentitiesFor(
     offer,
     (species, attempt) =>
       hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
-    owlNames(languageOf(ctx, userId)),
+    // v0.7: names rotate in groups by day, so none comes back on the two following days.
+    loanNamesOn(day, owlNames(languageOf(ctx, userId))),
   );
   return new Map(offer.map((species, index) => [species, identities[index] as LoanIdentity]));
 }

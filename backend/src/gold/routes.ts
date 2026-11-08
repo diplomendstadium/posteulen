@@ -24,9 +24,12 @@ import {
   TOKEN_MS,
 } from '../flights/transport.ts';
 import { balance, debit } from './ledger.ts';
+import { redeemVoucher } from '../admin/vouchers.ts';
+import { VoucherRedeem } from '@posteulen/shared/schemas/vouchers.ts';
 
 /**
- * Daily gold at 15:00 UTC for every active account, once per (missed) day (9.1.1, 4.5):
+ * Daily gold at 03:00 UTC (v0.7; before 15:00) for every active account, once per (missed) day
+ * (9.1.1, 4.5):
  * GOLD.DAILY during the first GOLD.DAILY_HIGH_DAYS days after the account was created,
  * GOLD.DAILY_LATER afterwards (v0.4).
  */
@@ -35,7 +38,7 @@ export function registerGoldJobs(ctx: Context): void {
     name: 'daily_gold',
     hourUtc: GOLD.DAILY_HOUR_UTC,
     catchUpEveryDay: true,
-    run: (_day, logicalAt) => {
+    run: (_day, logicalAt, tools) => {
       // Active at the time of the (catch-up) run (SPEC Anhang L.5).
       const activeSince = utcDay(
         Math.max(ctx.now(), logicalAt) - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY,
@@ -65,12 +68,26 @@ export function registerGoldJobs(ctx: Context): void {
                              FROM transactions) WHERE n > ?)`,
         GOLD.TRANSACTIONS_KEPT,
       );
+      // v0.7: the gold in the status bar follows at once for everybody with the app open.
+      tools.after(() => ctx.hub.notifyAll('profile', 'finance'));
     },
   });
 }
 
 export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+
+  /** v0.7: redeem a voucher of the admin – gold or an owl (SPEC 8.10, 13). */
+  app.post('/api/vouchers/redeem', { preHandler: authenticated }, async (request) => {
+    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+      throw new HttpError(429, 'rate_limited');
+    const body = parse(VoucherRedeem, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const result = ctx.db.transaction(() => redeemVoucher(ctx, me, body.code, now));
+    ctx.hub.notify(me, 'profile', 'finance', 'owls');
+    return result;
+  });
 
   app.get('/api/finance', { preHandler: authenticated }, async (request) => {
     const me = userOf(request).id;
@@ -115,6 +132,8 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     const problem = transferProblem(balance(ctx.db, me), body.amount);
     if (problem) throw new HttpError(400, problem);
     const owl = chooseOwl(ctx, me, body.owlId, now);
+    // v0.7: a visiting owl only carries a reply letter.
+    if (owl.guest) throw new HttpError(400, 'owl_not_ready');
     const planned = planFlight(ctx, {
       holderId: me,
       owl,

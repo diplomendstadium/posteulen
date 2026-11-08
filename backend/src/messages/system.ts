@@ -32,7 +32,9 @@ export type SystemMessageType =
   | 'deletion_cancelled'
   | 'broadcast'
   | 'donation'
-  | 'update_notes';
+  | 'update_notes'
+  | 'letters_purged'
+  | 'loan_back';
 
 export function addSystemMessage(
   ctx: Context,

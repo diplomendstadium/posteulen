@@ -24,4 +24,6 @@ export const SERVER_CONTEXTS = {
   INVITE: 'PostEulen/server/invite/v1',
   ALTCHA: 'PostEulen/server/altcha/v1',
   BACKUP_CHECK: 'PostEulen/server/backup-check/v1',
+  /** v0.7: vouchers (stored as HMAC, like invitation codes). */
+  VOUCHER: 'PostEulen/server/voucher/v1',
 } as const;

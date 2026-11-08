@@ -5,6 +5,7 @@
  * Nothing runs in the background.
  */
 import { OPERATIONS } from '@posteulen/shared/constants.ts';
+import { isDay } from '@posteulen/shared/game/sun.ts';
 import { api } from './api.ts';
 import { account, accountGeneration, onSignOut } from './auth.svelte.ts';
 import { syncVault } from './vault.svelte.ts';
@@ -104,13 +105,22 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
   const pending = list.filter((message) => message.arrivalImage && !message.arrivalShown);
   const latest = pending.at(-1);
   if (!latest?.arrivalImage) return;
-  // `species:chick` marks a chick: its arrival shows the chick picture (9.2.6).
+  // `species:chick` marks a chick: its arrival shows the chick picture (9.2.6). v0.7:
+  // `species:home` is an own owl back home – on the window sill by day or by candlelight,
+  // depending on whether it is light at the user's (fictional) home right now.
   const [species = '', variant] = latest.arrivalImage.split(':');
-  showOwlImage(
-    species,
-    variant === 'chick' ? 'chick' : 'arrival',
-    fill(t.owls.arrives, { name: String(latest.params['owl'] ?? '') }),
-  );
+  const name = String(latest.params['owl'] ?? '');
+  if (variant === 'home') {
+    const home = account.profile?.home;
+    const day = home ? isDay(Date.now(), home.lat, home.lon) : true;
+    showOwlImage(species, day ? 'homeDay' : 'homeNight', fill(t.owls.backHome, { name }));
+  } else {
+    showOwlImage(
+      species,
+      variant === 'chick' ? 'chick' : 'arrival',
+      fill(t.owls.arrives, { name }),
+    );
+  }
   await api('POST', '/api/system-messages/arrival-shown', { ids: pending.map((m) => m.id) });
 }
 

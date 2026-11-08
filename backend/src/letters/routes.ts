@@ -63,6 +63,26 @@ export function registerLetterHandlers(ctx: Context): void {
   });
 }
 
+/**
+ * v0.7: whose owl carried a letter, seen from `me` – own owl, loan owl, or the owl of someone
+ * else (a reply handed to a visiting owl, 8.4). Letters without a flight (bots, placeholder owl
+ * of stage 2) count as the sender's own owl.
+ */
+export function carrierOf(
+  me: string,
+  row: { sender_id: string; flight_owl_kind: string | null; flight_holder: string | null },
+  nameOf: (userId: string) => string | null = () => null,
+): { carrier: 'own' | 'loan' | 'foreign'; holderName?: string | null } {
+  const holder = row.flight_holder ?? row.sender_id;
+  if (row.flight_owl_kind === 'loan' || row.flight_owl_kind === 'stand_in') {
+    return { carrier: 'loan' };
+  }
+  if (holder === me) return { carrier: 'own' };
+  // The sender's own owl brings the letter to me: nothing to add (as before v0.7).
+  if (holder === row.sender_id) return { carrier: 'foreign' };
+  return { carrier: 'foreign', holderName: nameOf(holder) };
+}
+
 export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
 
@@ -80,6 +100,9 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, body.recipients, now);
     const owl = chooseOwl(ctx, me, body.owlId, now);
     if (body.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
+    // v0.7: a visiting owl takes a reply only to its holder.
+    if (owl.guest && body.recipients[0] !== owl.guest.flight.holder_id)
+      throw new HttpError(400, 'owl_recipients');
     const cost = costOf(body.parchment);
     if (!canAfford(balance(ctx.db, me), cost)) throw new HttpError(400, 'gold_insufficient');
     const letters = newLetters(body.recipients, now);
@@ -95,6 +118,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         recipients: body.recipients,
         letters,
         gold: 0,
+        restHours: owl.guest ? 0 : body.rest,
       },
       TOKEN_MS,
       now,
@@ -117,22 +141,27 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       }
       const letters = checkLetters(token, body.items);
       checkRecipients(ctx, me, token.recipients, now);
+      const afterCommit: (() => void)[] = [];
       const result = ctx.db.transaction(() => {
         const cost = costOf(token.parchment);
         if (cost > 0) debit(ctx.db, me, 'large_parchment', cost, now);
-        const { route, owl } = depart(ctx, token, letters, now);
+        const { route, owl } = depart(ctx, token, letters, now, (work) => afterCommit.push(work));
+        const home = route.find((stop) => stop.type === 'home')?.arrivesAt ?? null;
         return {
           owl: { name: owl.name, species: owl.species },
           letters: letters.map((letter) => ({
             id: letter.letterId,
             recipientId: letter.recipientId,
-            arrivesAt:
-              route.find((stop) => stop.type === 'deliver' && stop.userId === letter.recipientId)
-                ?.arrivesAt ?? now,
+            // v0.7: a reply with a visiting owl arrives when the owl is back with its holder.
+            arrivesAt: owl.guest
+              ? (home ?? now)
+              : (route.find((stop) => stop.type === 'deliver' && stop.userId === letter.recipientId)
+                  ?.arrivesAt ?? now),
           })),
-          returnsAt: route.find((stop) => stop.type === 'home')?.arrivesAt ?? null,
+          returnsAt: owl.guest ? null : home,
         };
       });
+      for (const work of afterCommit) work();
       ctx.hub.notify(me, 'chats', 'profile', 'owls', 'map', 'finance');
       return result;
     },
@@ -196,8 +225,11 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       owl_species: string;
       cover_gold: number | null;
       plaintext: string | null;
+      flight_owl_kind: string | null;
+      flight_holder: string | null;
     }>(
-      `SELECT l.*, f.gold AS cover_gold FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
+      `SELECT l.*, f.gold AS cover_gold, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
+         FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
         WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
            OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
         ORDER BY l.sent_at, l.id`,
@@ -222,7 +254,13 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           // v0.5: the recipient could not verify the letter (instead of "read" for the sender).
           unreadable: row.unreadable === 1,
           arrivalSeen: row.arrival_seen === 1,
-          owl: { name: row.owl_name, species: row.owl_species },
+          owl: {
+            name: row.owl_name,
+            species: row.owl_species,
+            ...carrierOf(me, row, (id) =>
+              findContact(ctx.db, me, id) ? (displayName(ctx.db, id) ?? null) : null,
+            ),
+          },
           // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl.
           ...(row.kind === 'cover_gold' ? { coverGold: row.cover_gold ?? 0 } : {}),
           role: mine ? 'sender' : 'recipient',

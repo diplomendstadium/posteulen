@@ -29,6 +29,7 @@ import {
   FlightPreview,
   GiftPrepare,
   Loan,
+  GUEST_REF_PREFIX,
   LOAN_REF_PREFIX,
   OwlBuy,
   OwlName,
@@ -43,13 +44,22 @@ import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { balance, debit } from '../gold/ledger.ts';
-import { planFlight } from '../flights/service.ts';
+import {
+  loadFlight,
+  planFlight,
+  previewReturn,
+  replanFlight,
+  routeOf,
+} from '../flights/service.ts';
+import { ownBot } from '../bots/service.ts';
 import {
   checkLetters,
   checkRecipients,
   chooseChick,
   chooseOwl,
   depart,
+  guestFlight,
+  guestsOf,
   newLetters,
   publicKeys,
   TOKEN_MS,
@@ -57,6 +67,7 @@ import {
 import {
   currentEnergy,
   facts,
+  guestView,
   isReady,
   ownOwl,
   ownOwlCount,
@@ -82,8 +93,16 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT id, hatched_at FROM clutches WHERE owner_id = ? AND gift_state = 'open'",
       me,
     );
+    // v0.7: owls of others resting here for a while.
+    const guests = guestsOf(ctx, me).flatMap(({ flight, index }) => {
+      const owl = flight.owl_id
+        ? ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', flight.owl_id)
+        : undefined;
+      return owl ? [guestView(ctx, owl, flight, index, now)] : [];
+    });
     return {
       owls: rows.map((owl) => owlView(ctx, owl, now)),
+      guests,
       canBuy: canBuyMore(ownOwlCount(ctx, me)),
       // Chicks of which one must be given away within 24 hours (9.9).
       clutches: clutches.map((clutch) => ({
@@ -157,10 +176,18 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const me = userOf(request).id;
     const now = ctx.now();
     const today = utcDay(now);
+    // v0.7: an owl resting here can be cared for by its host (who pays); it counts for the
+    // owl's motivation and care days, and more energy takes it further on its next leg.
+    const guest = ctx.db.get('SELECT 1 FROM owls WHERE id = ? AND owner_id = ?', id, me)
+      ? undefined
+      : guestFlight(ctx, me, id);
     ctx.db.transaction(() => {
-      const owl = ownOwl(ctx, me, id);
+      const owl = guest
+        ? ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', id)
+        : ownOwl(ctx, me, id);
+      if (!owl) throw new HttpError(404, 'not_found');
       const species = speciesById(owl.species);
-      if (!species || !canCare(facts(owl))) throw new HttpError(400, 'owl_not_home');
+      if (!species || (!guest && !canCare(facts(owl)))) throw new HttpError(400, 'owl_not_home');
       if (kind === 'feed' && owl.fed_on === today) throw new HttpError(400, 'owl_fed_today');
       if (kind === 'water' && owl.watered_on === today)
         throw new HttpError(400, 'owl_watered_today');
@@ -180,10 +207,26 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         kind,
         today,
         now,
-        energy === undefined ? undefined : { value: energy, at: now },
+        energy === undefined || guest ? undefined : { value: energy, at: now },
       );
+      if (guest) {
+        // The plan follows: more energy now, and the next leg with the new motivation.
+        const flight = loadFlight(ctx, guest.flight.id);
+        if (flight) {
+          replanFlight(ctx, flight, routeOf(flight), now, {
+            newLeg: true,
+            adjust: (state) => (energy === undefined ? state : { ...state, energy }),
+          });
+        }
+      }
     });
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
+    if (guest) {
+      ctx.hub.notify(guest.flight.holder_id, 'owls', 'map');
+      const owl = ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', id);
+      const flight = loadFlight(ctx, guest.flight.id);
+      return { guest: owl && flight ? guestView(ctx, owl, flight, guest.index, now) : null };
+    }
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   };
   app.post('/api/owls/:id/water', { preHandler: [authenticated, emptyBody] }, interaction('water'));
@@ -231,6 +274,30 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
             .map((species) => `${LOAN_REF_PREFIX}${species}`)
         : [];
     const owls = [];
+    // v0.7: a visiting owl of the only recipient comes first – it takes the reply straight back.
+    if (body.guests && body.recipients.length === 1) {
+      for (const guest of guestsOf(ctx, me)) {
+        if (guest.flight.holder_id !== body.recipients[0] || !guest.flight.owl_id) continue;
+        const owl = chooseOwl(ctx, me, `${GUEST_REF_PREFIX}${guest.flight.owl_id}`, now);
+        owls.push({
+          id: `${GUEST_REF_PREFIX}${guest.flight.owl_id}`,
+          kind: owl.kind,
+          guest: true,
+          name: owl.name,
+          species: owl.species,
+          energy: Math.round(owl.energy),
+          maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
+          arrivals: [
+            {
+              recipientId: guest.flight.holder_id,
+              at: previewReturn(ctx, guest.flight, guest.index, now),
+            },
+          ],
+          returnsAt: null,
+          restUntil: routeOf(guest.flight)[guest.index]?.restUntil ?? null,
+        });
+      }
+    }
     for (const owlId of [...own, ...offers]) {
       const owl = chooseOwl(ctx, me, owlId, now);
       if (body.recipients.length > owl.maxRecipients) continue;
@@ -240,6 +307,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         recipients: body.recipients,
         returnsHome: owl.returnsHome,
         now,
+        // v0.7: the rest at each person is part of the preview (not with bots).
+        restMs: body.recipients.some((id) => ownBot(ctx, me, id)) ? 0 : body.rest * TIME.HOUR,
       });
       owls.push({
         id: owlId,

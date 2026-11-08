@@ -35,8 +35,10 @@
     treatOwl,
     waterOwl,
     type Clutch,
+    type GuestOwl,
     type Owl,
   } from '../lib/owls.ts';
+  import GuestOwlCard from '../components/GuestOwl.svelte';
   import { dateTime } from '../lib/format.ts';
   import { menagerieWage, speciesPrice } from '@posteulen/shared/game/chance.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -45,6 +47,8 @@
   import { status } from '../lib/status.svelte.ts';
 
   let owls = $state<Owl[]>([]);
+  /** v0.7: owls of others resting here. */
+  let guests = $state<GuestOwl[]>([]);
   let clutches = $state<Clutch[]>([]);
   let loaded = $state(false);
   let error = $state<string | null>(null);
@@ -61,6 +65,7 @@
     try {
       const result = await listOwls();
       owls = result.owls;
+      guests = result.guests ?? [];
       clutches = result.clutches;
       loaded = true;
     } catch {
@@ -190,12 +195,16 @@
   }
 
   function pictureKind(owl: Owl): OwlImageKind {
+    // v0.7: resting at a recipient: the normal picture.
+    if (owl.state === 'flying' && owl.absence?.resting) return 'normal';
     if (owl.state === 'flying' && owl.absence) {
       // v0.5.1: asleep on the way, by day or at night where it is right now.
       if (owl.absence.sleeping) return owl.absence.daylight ? 'sleepDay' : 'sleepNight';
       return owl.absence.daylight ? 'flyingDay' : 'flyingNight';
     }
     if (owl.isChick) return 'chick';
+    // v0.7: a brooding owl sits on its eggs.
+    if (owl.state === 'brooding') return 'brooding';
     if (['sick', 'self_care', 'vet'].includes(owl.state)) return 'grumpy';
     return napping(owl) ? 'napHome' : 'normal';
   }
@@ -215,6 +224,7 @@
       return `${fill(text, { name })}, ${species}`;
     }
     if (pictureKind(owl) === 'napHome') return `${fill(t.owls.napAlt, { name })}, ${species}`;
+    if (pictureKind(owl) === 'brooding') return `${fill(t.owls.broodingAlt, { name })}, ${species}`;
     return `${name}, ${species}`;
   }
 
@@ -254,20 +264,33 @@
     const absence = owl.absence;
     if (!absence) return t.owls.stateFlying;
     const names = absence.recipients.map((name) => name ?? t.letters.unknown).join(t.owls.and);
+    // v0.7: resting at a recipient right now.
+    const resting = absence.resting
+      ? fill(t.owls.restingAt, {
+          name: absence.resting.name ?? t.letters.unknown,
+          until: dateTime(absence.resting.until),
+        })
+      : null;
+    // v0.7: a sleeping owl is not "flying" a letter right now.
     const what =
       absence.recipients.length === 0
-        ? t.owls.flyingHome
-        : fill(
-            absence.purpose === 'gold'
-              ? t.owls.flyingGold
-              : absence.purpose === 'gift'
-                ? t.owls.flyingGift
-                : t.owls.flyingLetter,
-            { names },
-          );
-    if (absence.returnsAt === null) return what;
+        ? absence.sleeping
+          ? t.owls.sleepingHome
+          : t.owls.flyingHome
+        : absence.sleeping
+          ? fill(t.owls.sleepingTo, { names })
+          : fill(
+              absence.purpose === 'gold'
+                ? t.owls.flyingGold
+                : absence.purpose === 'gift'
+                  ? t.owls.flyingGift
+                  : t.owls.flyingLetter,
+              { names },
+            );
+    const doing = resting ?? what;
+    if (absence.returnsAt === null) return doing;
     const hours = Math.max(1, Math.ceil((absence.returnsAt - Date.now()) / TIME.HOUR));
-    return `${what} ${fill(t.owls.backIn, { hours })}`;
+    return `${doing} ${fill(t.owls.backIn, { hours })}`;
   }
 </script>
 
@@ -292,6 +315,11 @@
           void saveName(unnamed);
         }}
       >
+        <p class="sex" data-testid="naming-sex">
+          {fill(t.owls.nameSex, {
+            sex: unnamed.sex === 'f' ? t.owls.female : t.owls.male,
+          })}
+        </p>
         <label for="owl-name">{t.owls.nameLabel}</label>
         <input id="owl-name" bind:value={newName} maxlength="40" autocomplete="off" required />
         <p class="hint">{t.owls.nameHint}</p>
@@ -314,7 +342,7 @@
   <p class="hint plate motivation-hint">{t.owls.motivationHint}</p>
 {/if}
 
-{#if loaded && owls.length === 0}
+{#if loaded && owls.length === 0 && guests.length === 0}
   <p class="notice">
     <span aria-hidden="true">ℹ</span><span>{t.owls.none}</span>
   </p>
@@ -343,7 +371,7 @@
       <p class="energy" data-testid="owl-motivation">
         <span
           >{fill(t.owls.motivation, {
-            value: decimal(motivationFactor(owl.motivation), 1),
+            value: Math.round(motivationFactor(owl.motivation) * 100),
           })}</span
         >
         <GaugeBar share={motivationShare(owl.motivation)} />
@@ -496,6 +524,18 @@
 {#if released}<p class="notice" role="status">
     <span aria-hidden="true">🕊</span><span>{released}</span>
   </p>{/if}
+
+{#if guests.length > 0}
+  <!-- v0.7: visiting owls first – they only rest here for a while. -->
+  <section aria-labelledby="guest-owls">
+    <h2 id="guest-owls" class="group plate">{t.owls.guestGroup}</h2>
+    <ul class="owls">
+      {#each guests as guest (guest.id)}
+        <GuestOwlCard {guest} onchanged={() => void load()} />
+      {/each}
+    </ul>
+  </section>
+{/if}
 
 {#each groups as group (group.id)}
   <section aria-labelledby={group.id}>

@@ -4,11 +4,9 @@
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
   import { DONATION } from '@posteulen/shared/constants.ts';
-  import { isDay } from '@posteulen/shared/game/sun.ts';
   import { donationText, updateNote, type LongMessage } from '@posteulen/shared/texts/messages.ts';
-  import OwlPicture from '../components/OwlPicture.svelte';
-  import { scrollToLatest } from '../lib/scroll.ts';
-  import { account } from '../lib/auth.svelte.ts';
+  import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
+  import { sceneImage } from '../lib/owl-image.ts';
   import { live, showSystemArrivals, type SystemMessage as Message } from '../lib/live.svelte.ts';
 
   let messages = $state<Message[]>([]);
@@ -22,7 +20,10 @@
       if (!jumped && messages.length > 0) {
         jumped = true;
         await tick();
-        await scrollToLatest(list);
+        // v0.7: start at the oldest unread message, without one at the latest.
+        const firstUnseen = messages.find((m) => !m.seen);
+        if (firstUnseen) await scrollToLetter(list, firstUnseen.id);
+        else await scrollToLatest(list);
       }
       // Arrival image of a delivery without a letter, when its message is first shown (9.2.6).
       await showSystemArrivals(messages);
@@ -46,15 +47,51 @@
   });
 
   const texts = t.system as Record<string, string>;
+  /** v0.7: the letters burning in the fireplace, with the notice about deleted letters. */
+  const burn = sceneImage('burn');
 
   function textOf(message: Message): string {
     const params = { ...message.params };
+    if (message.type === 'letters_purged') return purgedText(params);
+    // v0.7: an owl back with replies (own owl or loan owl).
+    if ((message.type === 'owl_home' || message.type === 'loan_back') && params['count']) {
+      const one = Number(params['count']) === 1;
+      const key =
+        message.type === 'owl_home'
+          ? one
+            ? 'owl_home_letter'
+            : 'owl_home_letters'
+          : one
+            ? 'loan_back_one'
+            : 'loan_back';
+      return fill(texts[key] ?? message.type, params);
+    }
     if (typeof params['amount'] === 'number') params['amount'] = goldText(params['amount']);
     // Returned gold or gift has its own wording (SPEC 9.5, Anhang C).
     const variant = params['cargo']
       ? texts[`${message.type}_${String(params['cargo'])}`]
       : undefined;
     return fill(variant ?? texts[message.type] ?? message.type, params);
+  }
+
+  /** v0.7: letters deleted by the deletion period – how many, from which chats. */
+  function purgedText(params: Record<string, string | number>): string {
+    let names: string[];
+    try {
+      names = (JSON.parse(String(params['chats'] ?? '[]')) as string[]).map(
+        (name) => name || t.letters.unknown,
+      );
+    } catch {
+      names = [];
+    }
+    const count = Number(params['count']) || 0;
+    return fill(
+      count === 1 ? (texts['letters_purged_one'] ?? '') : (texts['letters_purged'] ?? ''),
+      {
+        count,
+        chats: [...new Set(names)].join(', '),
+      },
+    );
   }
 
   /** Donation requests and update notes are longer messages with a title (v0.3). */
@@ -71,20 +108,12 @@
   function linkParts(paragraph: string): string[] {
     return paragraph.split('{link}');
   }
-
-  /**
-   * An owl back home sits on the window sill by day or by candlelight – depending on whether
-   * it is light at the user's (fictional) home right now, when the message is read (v0.3).
-   */
-  const daylightAtHome = $derived(
-    account.profile ? isDay(Date.now(), account.profile.home.lat, account.profile.home.lon) : true,
-  );
 </script>
 
 <ul class="messages" aria-live="polite" bind:this={list}>
   {#each messages as message (message.id)}
     {@const long = longMessage(message)}
-    <li class:long={long !== undefined}>
+    <li class:long={long !== undefined} data-letter-id={message.id}>
       <span class="when">{dateTime(message.createdAt)}</span>
       {#if long}
         <h2 class="title">{long.title}</h2>
@@ -100,16 +129,18 @@
         {/each}
       {:else}
         {textOf(message)}
-        {#if message.type === 'owl_home' && typeof message.params['species'] === 'string'}
-          {@const owl = String(message.params['owl'] ?? '')}
-          <div class="homecoming">
-            <OwlPicture
-              speciesId={message.params['species']}
-              kind={daylightAtHome ? 'homeDay' : 'homeNight'}
-              size={480}
-              alt={fill(daylightAtHome ? t.owls.homeDayAlt : t.owls.homeNightAlt, { name: owl })}
-            />
-          </div>
+        {#if message.type === 'letters_purged' && !burn.placeholder}
+          <img
+            class="burn"
+            src={burn.files['s480']}
+            srcset={`${burn.files['s480']} 480w, ${burn.files['s960']} 960w`}
+            sizes="(min-width: 30rem) 22rem, 90vw"
+            width="480"
+            height="480"
+            alt={texts['letters_purged_alt']}
+            loading="lazy"
+            decoding="async"
+          />
         {/if}
       {/if}
     </li>
@@ -152,9 +183,12 @@
     text-indent: -0.75rem;
   }
 
-  .homecoming {
+  .burn {
+    display: block;
+    width: min(100%, 22rem);
+    height: auto;
     margin-top: 0.6rem;
-    --owl-size: min(100%, 22rem);
+    border-radius: var(--radius);
   }
 
   .hint {

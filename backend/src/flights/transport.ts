@@ -8,14 +8,23 @@ import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
 import { maxRecipients } from '@posteulen/shared/game/owls.ts';
-import { LOAN_REF_PREFIX } from '@posteulen/shared/schemas/owls.ts';
+import { GUEST_REF_PREFIX, LOAN_REF_PREFIX } from '@posteulen/shared/schemas/owls.ts';
 import type { Context, TransportToken } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { recipientProblem } from '../contacts/model.ts';
-import { currentEnergy, isReady, type OwlRow } from '../owls/model.ts';
+import { activeFlightOf, currentEnergy, isReady, type OwlRow } from '../owls/model.ts';
 import { leftHome } from '../owls/care.ts';
-import { startFlight, type FlightOwl, type Purpose, type RouteStop } from './service.ts';
+import {
+  endRest,
+  previewReturn,
+  routeOf,
+  startFlight,
+  type FlightOwl,
+  type FlightRow,
+  type Purpose,
+  type RouteStop,
+} from './service.ts';
 import {
   borrow,
   loanIdentitiesFor,
@@ -29,6 +38,45 @@ export const TOKEN_MS = 5 * TIME.MINUTE;
 export interface ChosenOwl extends FlightOwl {
   readonly maxRecipients: number;
   readonly returnsHome: boolean;
+  /** v0.7: a visiting owl resting at the writer – it takes the reply to its holder. */
+  readonly guest?: { readonly flight: FlightRow; readonly index: number };
+}
+
+/** v0.7: the owl ID of a `guest:<owl id>` reference, or null. */
+export function guestRefOwl(owlRef: string): string | null {
+  return owlRef.startsWith(GUEST_REF_PREFIX) ? owlRef.slice(GUEST_REF_PREFIX.length) : null;
+}
+
+/**
+ * v0.7: the flight of an owl that rests at `userId` right now (letters only) and the index of
+ * that stop – the owl can take a reply back to its holder.
+ */
+export function guestFlight(
+  ctx: Context,
+  userId: string,
+  owlId: string,
+): { flight: FlightRow; index: number } | undefined {
+  const flight = activeFlightOf(ctx, owlId);
+  if (!flight || flight.purpose !== 'letter') return undefined;
+  const index = routeOf(flight).findIndex(
+    (stop) => stop.type === 'deliver' && stop.status === 'resting' && stop.userId === userId,
+  );
+  return index >= 0 ? { flight, index } : undefined;
+}
+
+/** v0.7: all owls resting at `userId` right now (their flights and stops). */
+export function guestsOf(ctx: Context, userId: string): { flight: FlightRow; index: number }[] {
+  return ctx.db
+    .all<FlightRow>(
+      "SELECT * FROM flights WHERE state = 'active' AND purpose = 'letter' AND owl_id IS NOT NULL AND instr(route, ?) > 0",
+      `"userId":"${userId}"`,
+    )
+    .flatMap((flight) => {
+      const index = routeOf(flight).findIndex(
+        (stop) => stop.type === 'deliver' && stop.status === 'resting' && stop.userId === userId,
+      );
+      return index >= 0 ? [{ flight, index }] : [];
+    });
 }
 
 /** The species of a `loan:<species>` reference, or null for an owl ID. */
@@ -41,6 +89,24 @@ export function loanRefSpecies(owlRef: string): string | null {
  * reference plans with the loan owl of the day that would be borrowed on sending (9.6).
  */
 export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: number): ChosenOwl {
+  const guestOwl = guestRefOwl(owlRef);
+  if (guestOwl !== null) {
+    const guest = guestFlight(ctx, userId, guestOwl);
+    const owl = ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', guestOwl);
+    if (!guest || !owl) throw new HttpError(400, 'owl_not_ready');
+    return {
+      id: owl.id,
+      kind: owl.kind,
+      name: owl.name ?? '',
+      species: owl.species,
+      energy: currentEnergy(ctx, owl, now),
+      motivation: owl.motivation,
+      // Only back to the holder (8.4).
+      maxRecipients: 1,
+      returnsHome: true,
+      guest,
+    };
+  }
   const species = loanRefSpecies(owlRef);
   if (species !== null) {
     const problem = loanProblem(ctx, userId, species, now);
@@ -198,7 +264,14 @@ export function depart(
   token: TransportToken,
   letters: readonly CheckedLetter[],
   now: number,
+  after: (work: () => void) => void = (work) => work(),
 ): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
+  if (guestRefOwl(token.owlId) !== null) {
+    // v0.7: a visiting owl carries only a letter back to its holder – no gold, no gift.
+    if (token.purpose !== 'letter' || token.kind !== 'letter')
+      throw new HttpError(400, 'owl_not_ready');
+    return departWithReply(ctx, token, letters, now, after);
+  }
   // A loan owl of the day is borrowed only now, together with the departure (9.6).
   const loanSpecies = token.chick ? null : loanRefSpecies(token.owlId);
   const owlId =
@@ -228,6 +301,11 @@ export function depart(
     purpose: token.purpose as Purpose,
     gold: token.gold,
     chick: token.chick === true,
+    // v0.7: rest at each recipient – letters to people only (not to bots).
+    restMs:
+      token.purpose === 'letter' && !ownBot(ctx, token.senderId, token.recipients[0] ?? '')
+        ? (token.restHours ?? 0) * TIME.HOUR
+        : 0,
   });
   for (const letter of letters) {
     const stop = route.find(
@@ -261,6 +339,54 @@ export function depart(
     );
   }
   return { flightId: id, route, owl };
+}
+
+/**
+ * v0.7: a reply handed to a visiting owl (8.4): the letter travels with it to its holder, and
+ * the owl takes off at once (its rest ends).
+ */
+function departWithReply(
+  ctx: Context,
+  token: TransportToken,
+  letters: readonly CheckedLetter[],
+  now: number,
+  after: (work: () => void) => void,
+): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
+  const owl = chooseOwl(ctx, token.senderId, token.owlId, now);
+  const guest = owl.guest;
+  const letter = letters[0];
+  if (!guest || !letter || letters.length !== 1) throw new HttpError(400, 'owl_not_ready');
+  if (token.recipients.length !== 1 || token.recipients[0] !== guest.flight.holder_id)
+    throw new HttpError(400, 'owl_recipients');
+  const returnsAt = previewReturn(ctx, guest.flight, guest.index, now);
+  ctx.db.run(
+    `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, ciphertext,
+                          wrap_recipient, wrap_sender, status, owl_name, owl_species, flight_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+    letter.letterId,
+    token.senderId,
+    letter.recipientId,
+    token.kind,
+    token.parchment,
+    letter.sentAt,
+    returnsAt,
+    letter.ciphertext,
+    letter.wrapRecipient,
+    letter.wrapSender,
+    guest.flight.owl_name,
+    guest.flight.owl_species,
+    guest.flight.id,
+  );
+  ctx.db.run(
+    `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at) VALUES (?, ?, 'user', ?)
+     ON CONFLICT (owner_id, peer_id) DO UPDATE SET last_activity_at = excluded.last_activity_at`,
+    token.senderId,
+    letter.recipientId,
+    now,
+  );
+  endRest(ctx, guest.flight, guest.index, now, after);
+  const fresh = ctx.db.get<FlightRow>('SELECT * FROM flights WHERE id = ?', guest.flight.id);
+  return { flightId: guest.flight.id, route: fresh ? routeOf(fresh) : [], owl };
 }
 
 // The lot of the chick gift (9.9) starts a gift flight without a cover letter.

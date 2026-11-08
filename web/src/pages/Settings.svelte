@@ -7,6 +7,7 @@
   import AccountSettings from '../components/AccountSettings.svelte';
   import LetterSettings from '../components/LetterSettings.svelte';
   import LanguageSettings from '../components/LanguageSettings.svelte';
+  import VoucherRedeem from '../components/VoucherRedeem.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -61,6 +62,8 @@
 <LetterSettings />
 
 <LanguageSettings />
+
+<VoucherRedeem />
 
 <section class="card" aria-labelledby="pw-title">
   <h2 id="pw-title">{t.settings.passwordTitle}</h2>

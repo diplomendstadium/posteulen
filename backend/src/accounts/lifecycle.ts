@@ -170,7 +170,7 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   );
   ctx.db.run(
     'DELETE FROM admin_sessions WHERE last_used_at < ?',
-    at - ACCOUNT.ADMIN_SESSION_IDLE_HOURS * TIME.HOUR,
+    at - ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE,
   );
   ctx.db.run('DELETE FROM name_locks WHERE expires_on < ?', day);
   ctx.db.run('DELETE FROM contact_requests WHERE expires_at <= ?', at);
@@ -178,7 +178,7 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   // Unconfirmed notifications are kept for "Neuigkeiten", but not forever.
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
   pruneCareHistory(ctx, at);
-  purgeOldLetters(ctx, at);
+  purgeOldLetters(ctx, at, undefined, after);
 }
 
 export function registerAccountHandlers(ctx: Context): void {

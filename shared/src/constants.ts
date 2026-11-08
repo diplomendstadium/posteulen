@@ -16,7 +16,8 @@ export const GOLD = {
   /** Daily wage afterwards (v0.4). */
   DAILY_LATER: 20,
   DAILY_HIGH_DAYS: 30,
-  DAILY_HOUR_UTC: 15,
+  /** v0.7: 03:00 UTC (before 15:00). */
+  DAILY_HOUR_UTC: 3,
   LARGE_PARCHMENT_SURCHARGE: 1,
   LOAN_PRICE: 1,
   FEED_PRICE: 1,
@@ -51,6 +52,13 @@ export const LETTER = {
   RETENTION_MAX_DAYS: 365,
   /** Shorter periods a user can choose for their own copies (settings, v0.2). */
   RETENTION_CHOICES: [30, 90, 180, 365],
+  /**
+   * v0.7: how long (hours) the owl rests at each recipient before flying on; the recipient may
+   * hand it a reply to the sender meanwhile. 0 = no rest.
+   */
+  REST_HOURS_CHOICES: [0, 1, 2, 24, 48],
+  /** v0.7: preselected when writing a letter. */
+  REST_HOURS_DEFAULT: 1,
 } as const;
 
 export const FLIGHT = {
@@ -155,7 +163,8 @@ export const ACCOUNT = {
   INACTIVITY_HOUR_UTC: 4,
   SELF_DELETE_GRACE_HOURS: 24,
   USER_SESSION_IDLE_DAYS: 30,
-  ADMIN_SESSION_IDLE_HOURS: 8,
+  /** v0.7: an admin login expires after 10 minutes without activity (was 8 hours). */
+  ADMIN_SESSION_IDLE_MINUTES: 10,
   REGISTRATION_RESERVATION_MINUTES: 10,
   INVITE_CODE_VALID_HOURS: 48,
   REAUTH_TOKEN_MINUTES: 5,
@@ -205,6 +214,14 @@ export const DONATION = {
   URL: 'https://ko-fi.com/posteulen',
   /** Number of different texts, shown in turn. */
   TEXTS: 3,
+} as const;
+
+/** v0.7: vouchers for gold or an owl, created in the admin panel (SPEC 13). */
+export const VOUCHER = {
+  VALID_DAYS: 90,
+  /** Gold in tenths: 0.1 to 100.0. */
+  GOLD_MIN: 1,
+  GOLD_MAX: 1000,
 } as const;
 
 export const MAP = {

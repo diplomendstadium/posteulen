@@ -20,6 +20,8 @@ interface PushTexts {
   deletionBody: string;
   broadcastBody: string;
   homeBody: string;
+  /** v0.7 */
+  homeLettersBody: string;
   newsBody: string;
 }
 declare const __POSTEULEN_PUSH_TEXTS__: { de: PushTexts; en: PushTexts };
@@ -128,6 +130,7 @@ sw.addEventListener('push', (event) => {
     deletion_warning: PUSH_TEXTS.deletionBody,
     broadcast: PUSH_TEXTS.broadcastBody,
     owl_home: PUSH_TEXTS.homeBody,
+    owl_home_letters: PUSH_TEXTS.homeLettersBody,
   };
   const body =
     typeof data.type === 'string' && Object.hasOwn(bodies, data.type)

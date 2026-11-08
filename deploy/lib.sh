@@ -180,6 +180,11 @@ build_release() {
   (
     cd "$dir"
     export HOME=/root npm_config_update_notifier=false
+    # v0.7: minimal fontconfig configuration – a fresh Debian 13 has none, and the image
+    # library printed "Fontconfig error: Cannot load default config file" (harmless).
+    if [ -f deploy/fontconfig/fonts.conf ]; then
+      export FONTCONFIG_FILE="$PWD/deploy/fontconfig/fonts.conf"
+    fi
     npm ci --ignore-scripts --no-audit --no-fund --loglevel=error
     npm run build --silent
     npm prune --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error

@@ -45,10 +45,16 @@ export function randomOwlName(random: number, names: readonly string[] = OWL_NAM
   return names[Math.min(names.length - 1, Math.floor(random * names.length))] ?? 'Momo';
 }
 
-/** Three different species for the daily offer (9.6); `random` is called once per pick. */
-export function pickOffer(random: () => number): string[] {
+/**
+ * Four different species for the daily offer (9.6); `random` is called once per pick.
+ * v0.7: species of the two previous days' offers (`recent`) are not offered again – there are
+ * always enough others (16 non-mythical species, at most 8 recent ones).
+ */
+export function pickOffer(random: () => number, recent: readonly string[] = []): string[] {
   // v0.5: mythical species (the phoenix) are never offered.
-  const pool = SPECIES.filter((species) => !species.mythical).map((species) => species.id);
+  const all = SPECIES.filter((species) => !species.mythical).map((species) => species.id);
+  const fresh = all.filter((id) => !recent.includes(id));
+  const pool = fresh.length >= MENAGERIE.OFFER_SPECIES_COUNT ? fresh : all;
   const picked: string[] = [];
   while (picked.length < MENAGERIE.OFFER_SPECIES_COUNT && pool.length > 0) {
     const index = Math.min(pool.length - 1, Math.floor(random() * pool.length));
@@ -81,6 +87,21 @@ export function loanIdentity(hmac: Uint8Array, names: readonly string[] = OWL_NA
     motivation:
       MOTIVATION.LOAN_MIN + ((hmac[6] ?? 0) % (MOTIVATION.LOAN_MAX - MOTIVATION.LOAN_MIN + 1)),
   };
+}
+
+/** v0.7: names rotate in this many groups, one per UTC day (see `loanNamesOn`). */
+export const LOAN_NAME_GROUPS = 3;
+
+/**
+ * v0.7: the names a loan owl can get on a day – every third name of the list, by day number.
+ * Consecutive days use different groups, so a name never comes back on the two following days
+ * (and with it never the same species with the same name). German and English lists have the
+ * same order, so the rule holds in both languages; nothing needs to be stored.
+ */
+export function loanNamesOn(day: string, names: readonly string[] = OWL_NAMES): string[] {
+  const dayNumber = Math.floor(Date.parse(`${day}T00:00:00Z`) / 86_400_000);
+  const group = ((dayNumber % LOAN_NAME_GROUPS) + LOAN_NAME_GROUPS) % LOAN_NAME_GROUPS;
+  return names.filter((_name, index) => index % LOAN_NAME_GROUPS === group);
 }
 
 /** Attempts per species before falling back to the next free name of the list. */

@@ -107,7 +107,7 @@
     <a href={DONATION.URL} target="_blank" rel="noopener noreferrer"
       >{t.nav.donate}<span class="visually-hidden">{` ${t.nav.donateLink}`}</span></a
     >
-    <a class="version" href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
+    <a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
       >v{VERSION}<span class="visually-hidden">{t.app.versionLink}</span></a
     >
   </nav>
@@ -157,9 +157,29 @@
     align-items: center;
   }
 
+  /*
+   * v0.7: side by side, the login box and the group picture have the same width and height –
+   * the square picture sets the height, the box stretches to it; should the box ever need
+   * more room, the picture fills that height with minimal cropping.
+   */
   @media (min-width: 48rem) {
     .columns {
       grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+    }
+
+    .columns > .card {
+      margin: 0;
+    }
+
+    .group {
+      max-width: none;
+      aspect-ratio: 1;
+    }
+
+    .group img {
+      height: 100%;
+      object-fit: cover;
     }
   }
 
@@ -183,10 +203,6 @@
     padding: 0.25rem 1rem;
     width: fit-content;
     max-width: 100%;
-  }
-
-  .version {
-    color: var(--ink-soft);
   }
 
   .footer-links :global(a) {

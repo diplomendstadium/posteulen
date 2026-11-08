@@ -43,7 +43,29 @@ export interface Owl {
     readonly daylight: boolean;
     /** v0.5.1: asleep on the way right now. */
     readonly sleeping: boolean;
+    /** v0.7: resting at a recipient right now (name null: no contact) until `until`. */
+    readonly resting?: { readonly name: string | null; readonly until: number } | null;
   } | null;
+}
+
+/** v0.7: an owl of someone else resting here for a while (8.5). */
+export interface GuestOwl {
+  readonly id: string;
+  readonly name: string;
+  readonly species: string;
+  readonly sex: 'f' | 'm';
+  readonly loan: boolean;
+  readonly energy: number;
+  readonly maxEnergy: number;
+  readonly motivation: number;
+  readonly fedToday: boolean;
+  readonly pettedToday: boolean;
+  readonly wateredToday: boolean;
+  readonly snackedToday: boolean;
+  readonly caredAt: number | null;
+  readonly holderId: string;
+  readonly holderName: string | null;
+  readonly restUntil: number;
 }
 
 export interface OwlChoice {
@@ -57,6 +79,9 @@ export interface OwlChoice {
   readonly maxEnergy: number;
   readonly arrivals: readonly { recipientId: string; at: number }[];
   readonly returnsAt: number | null;
+  /** v0.7: a visiting owl resting here (until `restUntil`) that takes a reply to its holder. */
+  readonly guest?: boolean;
+  readonly restUntil?: number | null;
 }
 
 export interface Clutch {
@@ -64,7 +89,12 @@ export interface Clutch {
   readonly giftDeadline: number;
 }
 
-export function listOwls(): Promise<{ owls: Owl[]; canBuy: boolean; clutches: Clutch[] }> {
+export function listOwls(): Promise<{
+  owls: Owl[];
+  guests?: GuestOwl[];
+  canBuy: boolean;
+  clutches: Clutch[];
+}> {
   return api('GET', '/api/owls');
 }
 
@@ -119,9 +149,21 @@ export function releaseOwl(id: string, name: string): Promise<{ ok: true }> {
   return api('POST', `/api/owls/${id}/release`, { name });
 }
 
-/** Ready owls with the server's flight preview (SPEC 8.4 step 4). */
-export async function previewFlights(recipients: readonly string[]): Promise<OwlChoice[]> {
-  return (await api<{ owls: OwlChoice[] }>('POST', '/api/flights/preview', { recipients })).owls;
+/**
+ * Ready owls with the server's flight preview (SPEC 8.4 step 4). v0.7: `rest` hours at each
+ * recipient; `guests` also offers visiting owls that take a reply back to their holder.
+ */
+export async function previewFlights(
+  recipients: readonly string[],
+  options: { rest?: number; guests?: boolean } = {},
+): Promise<OwlChoice[]> {
+  return (
+    await api<{ owls: OwlChoice[] }>('POST', '/api/flights/preview', {
+      recipients,
+      ...(options.rest ? { rest: options.rest } : {}),
+      ...(options.guests ? { guests: true } : {}),
+    })
+  ).owls;
 }
 
 interface PreparedCover extends PreparedLetters {

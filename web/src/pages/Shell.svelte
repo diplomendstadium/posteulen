@@ -21,6 +21,7 @@
   import MapPage from './MapPage.svelte';
   import OwlOverlay from '../components/OwlOverlay.svelte';
   import { showSystemArrivals } from '../lib/live.svelte.ts';
+  import Greeting from '../components/Greeting.svelte';
 
   onMount(() => startLive());
   onDestroy(() => stopLive());
@@ -66,7 +67,9 @@
       const ids = live.news.map((item) => item.id);
       void api('POST', '/api/news/seen', { ids }).catch(() => undefined); // shown again next time
       // Deliveries without a letter show their arrival image with the news (SPEC 9.2.6).
-      if (live.news.some((item) => item.type === 'gold_arrived' || item.type === 'owl_gift'))
+      // v0.7: also an owl back home (its picture at the window).
+      const withImage = ['gold_arrived', 'owl_gift', 'chick_gift', 'owl_home'];
+      if (live.news.some((item) => withImage.includes(item.type)))
         void showSystemArrivals().catch(() => undefined);
     }
   });
@@ -157,6 +160,8 @@
           </ul>
         </section>
       {/if}
+      <!-- v0.7: a greeting by the time of day at the user's home. -->
+      <Greeting />
       <div class="home-grid">
         <ul class="tiles">
           {#each sections as section (section.href)}

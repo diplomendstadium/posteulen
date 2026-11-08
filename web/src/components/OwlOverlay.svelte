@@ -5,13 +5,19 @@
    * alternative text and is not animated with prefers-reduced-motion.
    */
   import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
-  import { owlImage } from '../lib/owl-image.ts';
+  import { owlImage, sceneImage } from '../lib/owl-image.ts';
   import { closeOwlImage, overlay } from '../lib/overlay.svelte.ts';
 
   const AUTO_CLOSE_MS = 5000;
 
   const current = $derived(overlay.current);
-  const image = $derived(current ? owlImage(current.species, current.kind) : null);
+  const image = $derived(
+    current
+      ? current.scene
+        ? sceneImage(current.scene.id)
+        : owlImage(current.species, current.kind)
+      : null,
+  );
   const shownSpecies = $derived(current ? speciesName(current.species) : '');
 
   $effect(() => {
@@ -29,7 +35,11 @@
 
 {#if current && image}
   {#key current.id}
-    <figure class="owl-overlay" data-testid="owl-overlay" data-kind={current.kind}>
+    <figure
+      class="owl-overlay"
+      data-testid="owl-overlay"
+      data-kind={current.scene ? current.scene.id : current.kind}
+    >
       <button
         type="button"
         class="close-area"
@@ -42,7 +52,9 @@
           sizes="(max-width: 600px) 80vw, 420px"
           width="480"
           height="480"
-          alt={fill(t.owls.imageAlt, { species: shownSpecies, what: current.caption })}
+          alt={current.scene
+            ? current.scene.alt
+            : fill(t.owls.imageAlt, { species: shownSpecies, what: current.caption })}
         />
       </button>
       <figcaption class="name"><span role="status">{current.caption}</span></figcaption>

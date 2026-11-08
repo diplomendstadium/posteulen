@@ -25,3 +25,21 @@ export async function scrollToLatest(list: HTMLElement | undefined, smooth = fal
       : window.scrollY + rect.bottom - (window.innerHeight - bottom - gap);
   window.scrollTo({ top: Math.max(0, target), behavior: smooth ? 'smooth' : 'auto' });
 }
+
+/**
+ * v0.7: opening a conversation with unread letters starts at the beginning of the oldest
+ * unread one, just below the status bar.
+ */
+export async function scrollToLetter(list: HTMLElement | undefined, id: string): Promise<void> {
+  try {
+    await document.fonts.ready;
+  } catch {
+    // No font loading API: scroll right away.
+  }
+  const item = list?.querySelector(`[data-letter-id="${CSS.escape(id)}"]`);
+  if (!(item instanceof HTMLElement)) return;
+  const top = document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0;
+  const gap = 12;
+  const target = window.scrollY + item.getBoundingClientRect().top - top - gap;
+  window.scrollTo({ top: Math.max(0, target), behavior: 'auto' });
+}

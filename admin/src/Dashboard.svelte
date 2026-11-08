@@ -6,6 +6,7 @@
   import PasswordForm from './PasswordForm.svelte';
   import Operations from './Operations.svelte';
   import OpenAi from './OpenAi.svelte';
+  import Vouchers from './Vouchers.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -135,6 +136,8 @@
     </ul>
   {/if}
 </section>
+
+<Vouchers />
 
 <section class="card" aria-labelledby="err-title">
   <h2 id="err-title">{de.admin.errorsTitle}</h2>

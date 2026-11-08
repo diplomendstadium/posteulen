@@ -2,7 +2,7 @@
 import * as v from 'valibot';
 import { LETTER } from '../constants.ts';
 import { Base64Url, Id, ShortText } from './common.ts';
-import { OwlRef, Recipients } from './owls.ts';
+import { OwlRef, Recipients, RestHours } from './owls.ts';
 
 export const ContactRequest = v.strictObject({
   name: ShortText(100),
@@ -19,6 +19,8 @@ export const LetterPrepare = v.strictObject({
   recipients: Recipients,
   parchment: v.picklist(['small', 'large']),
   owlId: OwlRef,
+  /** v0.7: rest at each recipient (hours). */
+  rest: RestHours,
 });
 
 export const LetterSend = v.strictObject({

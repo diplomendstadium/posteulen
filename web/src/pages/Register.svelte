@@ -134,7 +134,7 @@
       <fieldset class="field">
         <legend>{t.register.home}</legend>
         <p class="hint">{t.register.homeHint}</p>
-        <MapView onpick={(position) => void pick(position)}>
+        <MapView region="europe" onpick={(position) => void pick(position)}>
           {#snippet markers(toSvg, scale)}
             {#if home}
               {@const p = toSvg(home.lat, home.lon)}

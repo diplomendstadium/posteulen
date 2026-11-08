@@ -98,6 +98,9 @@
 
 <section class="card" aria-labelledby="name-title">
   <h2 id="name-title">{t.settings.nameTitle}</h2>
+  <p data-testid="current-name">
+    {t.settings.currentName} <strong class="current-name">{account.profile?.name ?? ''}</strong>
+  </p>
   <p>{t.settings.nameIntro}</p>
   {#if nameBlocked}
     <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.settings.nameBlocked}</span></p>
@@ -139,7 +142,7 @@
     </p>
   {:else}
     <p>{fill(t.settings.homeLeft, { count: profile?.homeChangesLeft ?? 0 })}</p>
-    <MapView onpick={(position) => void pick(position)}>
+    <MapView region="europe" onpick={(position) => void pick(position)}>
       {#snippet markers(toSvg, scale)}
         {#if profile}
           {@const now = toSvg(profile.home.lat, profile.home.lon)}

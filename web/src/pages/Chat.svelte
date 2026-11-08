@@ -10,9 +10,9 @@
   import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
-  import { showOwlImage } from '../lib/overlay.svelte.ts';
+  import { showOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
   import { deckleClass } from '../lib/deckle.ts';
-  import { scrollToLatest } from '../lib/scroll.ts';
+  import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
 
   let { peerId }: { peerId: string } = $props();
 
@@ -50,7 +50,12 @@
         const smooth = jump === 'smooth';
         jump = null;
         await tick();
-        await scrollToLatest(list, smooth);
+        // v0.7: opening a chat starts at the oldest unread letter; without one at the latest.
+        const firstUnread = smooth
+          ? undefined
+          : letters.find((l) => l.role === 'recipient' && l.status === 'delivered' && !l.read);
+        if (firstUnread) await scrollToLetter(list, firstUnread.id);
+        else await scrollToLatest(list, smooth);
       }
       // A letter counts as read once it is shown in the visible conversation (SPEC 8.4).
       // v0.5: one that could not be verified is reported as unreadable instead.
@@ -109,10 +114,30 @@
     return letter.read ? t.letters.read : t.letters.delivered;
   }
 
-  async function deleteChat(): Promise<void> {
+  /** v0.7: "Burn all letters" – confirmed first, then the letters go up in the fireplace. */
+  async function burnLetters(): Promise<void> {
     if (!confirm(t.letters.deleteConfirm)) return;
     await api('DELETE', `/api/chats/${peerId}`);
+    showSceneImage('burn', t.letters.burnCaption, t.letters.burnAlt);
     navigate('/app/briefe');
+  }
+
+  /** "Brought by Waldi (tawny owl)", for loan owls and visiting owls with a note (v0.7). */
+  function carrierText(letter: ShownLetter): string {
+    const species = speciesName(letter.owl.species);
+    let what = species;
+    if (letter.owl.carrier === 'loan') what = fill(t.letters.carrierLoan, { species });
+    else if (letter.owl.carrier === 'own' && letter.role === 'recipient')
+      what = fill(t.letters.carrierYours, { species });
+    else if (letter.owl.carrier === 'foreign' && letter.role === 'sender')
+      what = fill(t.letters.carrierOf, {
+        species,
+        name: letter.owl.holderName ?? t.letters.unknown,
+      });
+    return fill(letter.status === 'in_flight' ? t.letters.carriedBy : t.letters.from, {
+      owl: letter.owl.name,
+      species: what,
+    });
   }
 </script>
 
@@ -139,18 +164,15 @@
 
 <ol class="letters" class:print aria-live="polite" bind:this={list}>
   {#each letters as letter (letter.id)}
-    <li class="letter" class:mine={letter.role === 'sender'}>
+    <li class="letter" class:mine={letter.role === 'sender'} data-letter-id={letter.id}>
       <article class={`sheet ${deckleClass(letter.id)}`}>
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         <p class="meta">
           {dateTime(letter.sentAt)} · {letter.parchment === 'large'
             ? t.letters.large
             : t.letters.small}
-          {#if letter.role === 'recipient'}
-            · {fill(t.letters.from, {
-              owl: letter.owl.name,
-              species: speciesName(letter.owl.species),
-            })}{/if}
+          {#if letter.status !== 'returned'}
+            · {carrierText(letter)}{/if}
         </p>
         {#if letter.text !== null}
           <LetterText text={letter.text} />
@@ -210,8 +232,8 @@
 {/if}
 
 <p class="danger">
-  <button class="button secondary" type="button" onclick={() => void deleteChat()}
-    >{t.letters.deleteChat}</button
+  <button class="button secondary" type="button" onclick={() => void burnLetters()}
+    >{t.letters.burnAll}</button
   >
 </p>
 

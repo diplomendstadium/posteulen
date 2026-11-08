@@ -78,12 +78,17 @@
     zzz: 13,
   };
 
-  /** Everything the user knows: the map opens just wide enough to show it all (v0.2). */
+  /**
+   * The map opens just wide enough to show the user, their contacts and their owls (v0.2);
+   * v0.7: without bots (they may live anywhere in later versions).
+   */
   const fit = $derived(
     info
       ? [
           info.home,
-          ...info.contacts.map((contact) => ({ lat: contact.lat, lon: contact.lon })),
+          ...info.contacts
+            .filter((contact) => !contact.bot)
+            .map((contact) => ({ lat: contact.lat, lon: contact.lon })),
           ...owls.flatMap(({ at }) => (at ? [at.position] : [])),
         ]
       : null,
@@ -165,6 +170,7 @@
 </script>
 
 <MapView
+  label={t.map.worldLabel}
   nightAt={now}
   {fit}
   occupied={(toSvg, scale) => (info ? layout(info, toSvg, scale).occupied : [])}

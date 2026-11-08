@@ -18,6 +18,7 @@ export type NotificationType =
   | 'deletion_warning'
   | 'broadcast'
   | 'owl_home'
+  | 'owl_home_letters'
   | 'push_test';
 
 export type PushSender = (

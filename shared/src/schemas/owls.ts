@@ -7,11 +7,24 @@ import { Base64Url, Id, ShortText } from './common.ts';
 /** Prefix of an owl reference that borrows a loan owl of the day on sending (9.6). */
 export const LOAN_REF_PREFIX = 'loan:';
 
-/** An own or loan owl, or `loan:<species>` for a loan owl that is borrowed on sending. */
+/** v0.7: prefix of an owl resting at the writer that takes a reply back to its sender. */
+export const GUEST_REF_PREFIX = 'guest:';
+
+/**
+ * An own or loan owl, `loan:<species>` for a loan owl that is borrowed on sending, or (v0.7)
+ * `guest:<owl id>` for a visiting owl that carries a reply back to its sender.
+ */
 export const OwlRef = v.union([
   Id,
   v.picklist(SPECIES.map((species) => `${LOAN_REF_PREFIX}${species.id}`)),
+  v.pipe(v.string(), v.regex(/^guest:[A-Za-z0-9_-]{22}$/)),
 ]);
+
+/** v0.7: rest at each recipient in hours (0 = none). */
+export const RestHours = v.optional(
+  v.picklist(LETTER.REST_HOURS_CHOICES as unknown as readonly [number, ...number[]]),
+  0,
+);
 
 export const Recipients = v.pipe(
   v.array(Id),
@@ -29,7 +42,13 @@ export const OwlName = v.strictObject({ name: ShortText(60) });
 /** Releasing needs the owl's exact name, typed by the user (v0.3). */
 export const OwlRelease = v.strictObject({ name: ShortText(60) });
 
-export const FlightPreview = v.strictObject({ recipients: Recipients });
+export const FlightPreview = v.strictObject({
+  recipients: Recipients,
+  /** v0.7: rest at each recipient (hours). */
+  rest: RestHours,
+  /** v0.7: offer visiting owls resting here that can take a reply to their holder (letters). */
+  guests: v.optional(v.boolean(), false),
+});
 
 /** A small cover letter (always small parchment, SPEC 9.1.4, 9.2.7). */
 export const CoverLetter = v.strictObject({

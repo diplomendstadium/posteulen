@@ -50,6 +50,8 @@ export interface Context {
     readonly fakeCredential: Uint8Array;
     readonly nameLock: Uint8Array;
     readonly invite: Uint8Array;
+    /** v0.7 */
+    readonly voucher: Uint8Array;
     readonly loanName: Uint8Array;
   };
   readonly landMask: Uint8Array;
@@ -105,6 +107,8 @@ export interface TransportToken {
     readonly sentAt: number;
   }[];
   readonly gold: number;
+  /** v0.7: rest at each recipient (hours, letters between people only). */
+  readonly restHours?: number;
 }
 
 /** Uniform in [0, 1) with 53 random bits from the CSPRNG. */
@@ -148,6 +152,7 @@ export async function createContext(
       fakeCredential: await deriveServerKey(secrets, SERVER_CONTEXTS.FAKE_CREDENTIAL),
       nameLock: await deriveServerKey(secrets, SERVER_CONTEXTS.NAME_LOCK),
       invite: await deriveServerKey(secrets, SERVER_CONTEXTS.INVITE),
+      voucher: await deriveServerKey(secrets, SERVER_CONTEXTS.VOUCHER),
       loanName: await deriveServerKey(secrets, SERVER_CONTEXTS.LOAN_NAME),
     },
     landMask,

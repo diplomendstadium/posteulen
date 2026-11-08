@@ -1,7 +1,9 @@
 /**
  * Owl flights on the server (SPEC 9.4, 9.5): the complete plan is simulated at departure
  * (shared/game/flight.ts), stored as a segment list and executed through the event queue –
- * one event per stop. Re-planning happens only on a move (9.4.6) and when turning back (9.5).
+ * one event per stop. Re-planning happens on a move (9.4.6), when turning back (9.5) and
+ * (v0.7) whenever the owl takes off from a recipient: the motivation counts per leg, and the
+ * owl may rest at each recipient, who can give it a reply to the sender (8.4, 9.4.2).
  */
 import { FLIGHT, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
@@ -11,6 +13,8 @@ import {
   simulate,
   type FlightEnvironment,
   type FlightProfile,
+  type FlightState,
+  type PlannedStop,
   type Segment,
   type Simulation,
 } from '@posteulen/shared/game/flight.ts';
@@ -36,9 +40,14 @@ export interface RouteStop {
   readonly lat: number;
   readonly lon: number;
   readonly type: 'deliver' | 'home';
-  status: 'pending' | 'done' | 'skipped';
+  /** v0.7: 'resting' – arrived, delivered, and resting there until `restUntil`. */
+  status: 'pending' | 'resting' | 'done' | 'skipped';
   arrivesAt: number;
   energy: number;
+  /** v0.7: planned rest at this recipient (ms; 0 or missing: none). */
+  rest?: number;
+  /** v0.7: end of the running rest. */
+  restUntil?: number;
 }
 
 export interface FlightRow {
@@ -102,17 +111,25 @@ export function profileFor(
     maxEnergy,
     mode: chick ? 'chick' : 'adult',
     recoveryPerHour: maxEnergy * OWL.REGEN_SHARE_PER_HOUR * species.recoveryFactor * factor,
+    // v0.7: resting at a recipient as at home (no motivation on the recovery).
+    restRecoveryPerHour: maxEnergy * OWL.REGEN_SHARE_PER_HOUR * species.recoveryFactor,
     motivation: factor,
+    // v0.7: the plan holds the owl's own energy, so the motivation can change at each stop.
+    ownUnits: true,
     ...(ctx.flightTimeScale !== 1 ? { timeScale: ctx.flightTimeScale } : {}),
   };
 }
 
-/** Energy of the plan (motivated units) back to the owl's own energy, capped at its maximum. */
+/**
+ * Energy of the plan back to the owl's own energy, capped at its maximum. Plans before v0.7
+ * hold motivated units (divided by the motivation of the trip); since v0.7 own energy.
+ */
 export function ownEnergy(
   flight: Pick<FlightRow, 'profile' | 'owl_species'>,
   energy: number,
 ): number {
-  const factor = (JSON.parse(flight.profile) as FlightProfile).motivation ?? 1;
+  const profile = JSON.parse(flight.profile) as FlightProfile;
+  const factor = profile.ownUnits ? 1 : (profile.motivation ?? 1);
   const max = speciesById(flight.owl_species)?.maxEnergy ?? Infinity;
   return Math.max(0, Math.min(max, energy / factor));
 }
@@ -140,6 +157,8 @@ export interface PlanRequest {
   readonly now: number;
   /** A chick on its gift flight (9.9). */
   readonly chick?: boolean;
+  /** v0.7: rest at each recipient (ms; letters between people only). */
+  readonly restMs?: number;
 }
 
 export interface PlannedFlight {
@@ -157,6 +176,7 @@ export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
     request.owl.motivation,
   );
   const home = homeOf(ctx, request.holderId);
+  const rest = request.chick === true ? 0 : (request.restMs ?? 0);
   const route: RouteStop[] = request.recipients.map((userId) => ({
     userId,
     ...homeOf(ctx, userId),
@@ -164,6 +184,7 @@ export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
     status: 'pending',
     arrivesAt: 0,
     energy: 0,
+    ...(rest > 0 ? { rest } : {}),
   }));
   if (request.returnsHome) {
     route.push({
@@ -177,13 +198,22 @@ export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
   }
   const simulation = simulate(
     profile,
-    // The owl's energy in the units of the motivated profile (v0.5).
-    { at: request.now, position: home, energy: request.owl.energy * (profile.motivation ?? 1) },
-    route.map((stop, index) => ({ index, point: { lat: stop.lat, lon: stop.lon } })),
+    // v0.7: the owl's own energy (the profile converts it for the motivated trip).
+    { at: request.now, position: home, energy: request.owl.energy },
+    route.map((stop, index) => plannedStop(stop, index)),
     flightEnvironment(ctx),
   );
   applyArrivals(route, simulation);
   return { route, simulation, profile };
+}
+
+/** A stop of the route for the simulation (v0.7: with its rest). */
+function plannedStop(stop: RouteStop, index: number): PlannedStop {
+  return {
+    index,
+    point: { lat: stop.lat, lon: stop.lon },
+    ...(stop.type === 'deliver' && (stop.rest ?? 0) > 0 ? { restMs: stop.rest } : {}),
+  };
 }
 
 function applyArrivals(route: RouteStop[], simulation: Simulation): void {
@@ -281,46 +311,120 @@ function saveRoute(
   }
 }
 
+export interface ReplanOptions {
+  /**
+   * v0.7: the owl takes off from a recipient (or rests there and takes off later): the next
+   * leg flies with the motivation it has now. Only for plans with own energy units (v0.7).
+   */
+  readonly newLeg?: boolean;
+  /** v0.7: changes the state first (rest ends now, more energy after feeding). */
+  readonly adjust?: (state: FlightState) => FlightState;
+}
+
 /** Re-plans the pending stops from the state at `now` and replaces the events (9.4.6, 9.5). */
 export function replanFlight(
   ctx: Context,
   flight: FlightRow,
   route: RouteStop[],
   now: number,
+  options: ReplanOptions = {},
 ): void {
   const pending = route
     .map((stop, index) => ({ stop, index }))
     .filter(({ stop }) => stop.status === 'pending');
+  const stored = JSON.parse(flight.profile) as FlightProfile;
+  const profile = options.newLeg && stored.ownUnits ? legProfile(ctx, flight, stored) : stored;
   const simulation = replan(
-    JSON.parse(flight.profile) as FlightProfile,
+    profile,
     planOf(flight),
     now,
-    pending.map(({ stop, index }) => ({ index, point: { lat: stop.lat, lon: stop.lon } })),
+    pending.map(({ stop, index }) => plannedStop(stop, index)),
     flightEnvironment(ctx),
+    options.adjust,
   );
   applyArrivals(route, simulation);
   saveRoute(ctx, flight, route, simulation);
+  if (profile !== stored) {
+    ctx.db.run('UPDATE flights SET profile = ? WHERE id = ?', JSON.stringify(profile), flight.id);
+  }
   scheduleStops(ctx, flight.id, route);
   for (const stop of route) {
-    if (stop.status !== 'pending' || stop.type !== 'deliver') continue;
+    if (stop.status !== 'pending') continue;
+    // v0.7: replies travel to the holder and arrive with the owl at home.
     ctx.db.run(
       "UPDATE letters SET arrives_at = ? WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
       stop.arrivesAt,
       flight.id,
-      stop.userId,
+      stop.type === 'home' ? flight.holder_id : stop.userId,
     );
   }
+}
+
+/** v0.7: the profile of the next leg – with the motivation the owl has now. */
+function legProfile(ctx: Context, flight: FlightRow, stored: FlightProfile): FlightProfile {
+  if (!flight.owl_id || stored.mode === 'chick') return stored;
+  const owl = ctx.db.get<{ motivation: number }>(
+    'SELECT motivation FROM owls WHERE id = ?',
+    flight.owl_id,
+  );
+  return owl ? profileFor(ctx, flight.owl_species, false, owl.motivation) : stored;
 }
 
 export function finishFlight(ctx: Context, flightId: string): void {
   ctx.db.run("UPDATE flights SET state = 'done' WHERE id = ?", flightId);
   ctx.db.run(
-    "DELETE FROM scheduled_events WHERE type = 'flight_stop' AND substr(ref, 1, 23) = ?",
+    "DELETE FROM scheduled_events WHERE type IN ('flight_stop', 'flight_rest_end') AND substr(ref, 1, 23) = ?",
     `${flightId}:`,
   );
 }
 
 type After = (work: () => void) => void;
+
+/**
+ * v0.7: the replies an owl brought home – letters to the holder handed to it by recipients
+ * while it rested there (8.4). Delivered now; returns how many.
+ */
+function deliverReplies(ctx: Context, flight: FlightRow, at: number, after: After): number {
+  const replies = ctx.db.all<{ id: string; sender_id: string }>(
+    "SELECT id, sender_id FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
+    flight.id,
+    flight.holder_id,
+  );
+  // An own owl at the window already shows itself (homecoming picture); a loan owl lands with
+  // the letters in the chat (arrival picture).
+  const seen = flight.owl_kind === 'own' ? 1 : 0;
+  const senders = new Map<string, number>();
+  for (const letter of replies) {
+    ctx.db.run(
+      "UPDATE letters SET status = 'delivered', arrives_at = ?, arrival_seen = ? WHERE id = ?",
+      at,
+      seen,
+      letter.id,
+    );
+    senders.set(letter.sender_id, (senders.get(letter.sender_id) ?? 0) + 1);
+  }
+  for (const [sender, count] of senders) {
+    ctx.db.run(
+      `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at, unread) VALUES (?, ?, 'user', ?, ?)
+       ON CONFLICT (owner_id, peer_id) DO UPDATE SET last_activity_at = excluded.last_activity_at,
+                                                     unread = unread + excluded.unread`,
+      flight.holder_id,
+      sender,
+      at,
+      count,
+    );
+    after(() => ctx.hub.notify(sender, 'chats'));
+  }
+  if (replies.length > 0) {
+    ctx.db.run(
+      `INSERT INTO stats_daily (day, human_letters) VALUES (?, ?)
+       ON CONFLICT (day) DO UPDATE SET human_letters = human_letters + excluded.human_letters`,
+      utcDay(at),
+      replies.length,
+    );
+  }
+  return replies.length;
+}
 
 /** Owl at home again: energy from the plan, gold of a returned transfer, system message. */
 function arriveHome(
@@ -330,6 +434,23 @@ function arriveHome(
   at: number,
   after: After,
 ): void {
+  const replies = deliverReplies(ctx, flight, at, after);
+  if (flight.owl_kind !== 'own') {
+    // v0.7: a loan owl only comes "home" with replies; it vanishes afterwards (9.6).
+    if (replies > 0) {
+      addSystemMessage(
+        ctx,
+        flight.holder_id,
+        'loan_back',
+        { owl: flight.owl_name, species: flight.owl_species, count: replies },
+        at,
+        after,
+      );
+      ctx.push.notify(flight.holder_id, 'letter_arrived', null, at, after);
+    }
+    after(() => ctx.hub.notify(flight.holder_id, 'owls', 'chats', 'map'));
+    return;
+  }
   if (flight.owl_id) {
     ctx.db.run(
       "UPDATE owls SET state = 'home', energy = ?, energy_at = ?, owner_id = ? WHERE id = ?",
@@ -344,16 +465,23 @@ function arriveHome(
     credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
     ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
   }
-  // With a picture of the owl at the window, by day or night at reading time (v0.3), and a push.
+  // v0.7: the picture of the owl at the window (by day or night where the user lives, at the
+  // moment it is shown) is an overlay when the homecoming is first seen; and a push – with
+  // replies on board, that is said (v0.7).
   addSystemMessage(
     ctx,
     flight.holder_id,
     'owl_home',
-    { owl: flight.owl_name, species: flight.owl_species },
+    {
+      owl: flight.owl_name,
+      species: flight.owl_species,
+      ...(replies > 0 ? { count: replies } : {}),
+    },
     at,
     after,
+    `${flight.owl_species}:home`,
   );
-  ctx.push.notify(flight.holder_id, 'owl_home', null, at, after);
+  ctx.push.notify(flight.holder_id, replies > 0 ? 'owl_home_letters' : 'owl_home', null, at, after);
   if (flight.owl_id) {
     const owl = ctx.db.get<{ is_chick: number; hatched_at: number | null }>(
       'SELECT is_chick, hatched_at FROM owls WHERE id = ?',
@@ -368,7 +496,7 @@ function arriveHome(
       afterReturnHome(ctx, flight.owl_id, at, after);
     }
   }
-  after(() => ctx.hub.notify(flight.holder_id, 'owls', 'profile', 'map'));
+  after(() => ctx.hub.notify(flight.holder_id, 'owls', 'profile', 'map', 'chats'));
 }
 
 /** Delivery at a recipient: letters, gold, gifted owl – exactly one push (SPEC 11.2). */
@@ -478,6 +606,124 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
   });
 }
 
+/** v0.7: the flight has no more stops to fly to – it ends (loan owls vanish, 9.6). */
+function endFlight(ctx: Context, flight: FlightRow, at: number): void {
+  finishFlight(ctx, flight.id);
+  // Loan owls vanish after the delivery (9.6).
+  if (flight.owl_kind === 'loan' && flight.owl_id) {
+    ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
+  }
+  const holder = ctx.db.get<{ state: string }>(
+    'SELECT state FROM users WHERE id = ?',
+    flight.holder_id,
+  );
+  if (holder?.state === 'deleting') {
+    // Owls of a deleted account vanish after their last delivery (7.7 item 3).
+    if (flight.owl_id) {
+      ctx.db.run('DELETE FROM owls WHERE id = ? AND owner_id = ?', flight.owl_id, flight.holder_id);
+    }
+    ctx.queue.schedule('account_purge', flight.holder_id, at);
+  }
+}
+
+function restEventRef(flightId: string, index: number): string {
+  return `${flightId}:${index}`;
+}
+
+/**
+ * v0.7: the owl takes off from a recipient where it rested – because the rest is over or the
+ * recipient handed it a reply. A loan owl with replies on board flies to the holder first;
+ * without them it vanishes after its last recipient. The next leg flies with the motivation
+ * the owl has now.
+ */
+export function endRest(
+  ctx: Context,
+  flight: FlightRow,
+  index: number,
+  at: number,
+  after: After,
+): void {
+  const route = routeOf(flight);
+  const stop = route[index];
+  if (!stop || stop.status !== 'resting') return;
+  stop.status = 'done';
+  delete stop.restUntil;
+  ctx.queue.cancel('flight_rest_end', restEventRef(flight.id, index));
+  const replies =
+    ctx.db.get<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
+      flight.id,
+      flight.holder_id,
+    )?.n ?? 0;
+  const hasHome = route.some((other) => other.type === 'home');
+  if (!hasHome && replies > 0) {
+    route.push({
+      userId: flight.holder_id,
+      ...homeOf(ctx, flight.holder_id),
+      type: 'home',
+      status: 'pending',
+      arrivesAt: 0,
+      energy: 0,
+    });
+  }
+  after(() => {
+    ctx.hub.notify(stop.userId, 'owls', 'chats');
+    ctx.hub.notify(flight.holder_id, 'owls', 'map');
+  });
+  if (!route.some((other) => other.status === 'pending')) {
+    saveRoute(ctx, flight, route);
+    endFlight(ctx, flight, at);
+    return;
+  }
+  // Departure now: the rest still in the plan ends here.
+  replanFlight(ctx, flight, route, at, { newLeg: true, adjust: withoutRest });
+}
+
+/** v0.7: the state without a running rest – the owl takes off now. */
+function withoutRest(state: FlightState): FlightState {
+  const { at, position, energy } = state;
+  return { at, position, energy };
+}
+
+/**
+ * v0.7: when a resting owl would be back with its holder if it took off now with a reply (the
+ * preview for the recipient writing it). Nothing is stored.
+ */
+export function previewReturn(ctx: Context, flight: FlightRow, index: number, now: number): number {
+  const route = routeOf(flight).map((stop) => ({ ...stop }));
+  const stop = route[index];
+  if (stop) stop.status = 'done';
+  if (!route.some((other) => other.type === 'home')) {
+    route.push({
+      userId: flight.holder_id,
+      ...homeOf(ctx, flight.holder_id),
+      type: 'home',
+      status: 'pending',
+      arrivesAt: 0,
+      energy: 0,
+    });
+  }
+  const stored = JSON.parse(flight.profile) as FlightProfile;
+  const simulation = replan(
+    stored.ownUnits ? legProfile(ctx, flight, stored) : stored,
+    planOf(flight),
+    now,
+    route
+      .map((other, i) => ({ other, i }))
+      .filter(({ other }) => other.status === 'pending')
+      .map(({ other, i }) => plannedStop(other, i)),
+    flightEnvironment(ctx),
+    withoutRest,
+  );
+  applyArrivals(route, simulation);
+  return route.find((other) => other.type === 'home')?.arrivesAt ?? now;
+}
+
+/** v0.7: the stop where the owl of this flight is resting right now, if any. */
+export function restingStop(route: readonly RouteStop[]): number {
+  return route.findIndex((stop) => stop.status === 'resting');
+}
+
 export function registerFlightHandlers(ctx: Context): void {
   ctx.queue.on('flight_stop', (event, tools) => {
     const [flightId, indexText] = event.ref.split(':');
@@ -488,33 +734,36 @@ export function registerFlightHandlers(ctx: Context): void {
     const stop = route[index];
     // Idempotent: every stop is handled once (SPEC 4.5).
     if (!stop || stop.status !== 'pending') return;
-    stop.status = 'done';
     stop.arrivesAt = event.logicalAt;
+    // v0.7: the owl rests at the recipient (letters between people only).
+    const rests = stop.type === 'deliver' && (stop.rest ?? 0) > 0 && flight.purpose === 'letter';
+    if (rests) {
+      stop.status = 'resting';
+      stop.restUntil = event.logicalAt + (stop.rest ?? 0) / ctx.flightTimeScale;
+      ctx.queue.schedule('flight_rest_end', restEventRef(flight.id, index), stop.restUntil);
+    } else {
+      stop.status = 'done';
+    }
     saveRoute(ctx, flight, route);
     if (stop.type === 'deliver') deliver(ctx, flight, stop, event.logicalAt, tools.after);
     else arriveHome(ctx, flight, stop, event.logicalAt, tools.after);
+    if (rests) return;
     if (!route.some((other) => other.status === 'pending')) {
-      finishFlight(ctx, flight.id);
-      // Loan owls vanish after the delivery (9.6).
-      if (flight.owl_kind === 'loan' && flight.owl_id) {
-        ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
-      }
-      const holder = ctx.db.get<{ state: string }>(
-        'SELECT state FROM users WHERE id = ?',
-        flight.holder_id,
-      );
-      if (holder?.state === 'deleting') {
-        // Owls of a deleted account vanish after their last delivery (7.7 item 3).
-        if (flight.owl_id) {
-          ctx.db.run(
-            'DELETE FROM owls WHERE id = ? AND owner_id = ?',
-            flight.owl_id,
-            flight.holder_id,
-          );
-        }
-        ctx.queue.schedule('account_purge', flight.holder_id, event.logicalAt);
-      }
+      endFlight(ctx, flight, event.logicalAt);
+    } else if (stop.type === 'deliver' && (JSON.parse(flight.profile) as FlightProfile).ownUnits) {
+      // v0.7: on to the next stop with the motivation the owl has now (per leg).
+      replanFlight(ctx, loadFlight(ctx, flight.id) ?? flight, route, event.logicalAt, {
+        newLeg: true,
+      });
     }
+  });
+
+  // v0.7: the rest at a recipient is over without a reply – the owl flies on by itself.
+  ctx.queue.on('flight_rest_end', (event, tools) => {
+    const [flightId, indexText] = event.ref.split(':');
+    const flight = flightId ? loadFlight(ctx, flightId) : undefined;
+    if (!flight || flight.state !== 'active') return;
+    endRest(ctx, flight, Number(indexText), event.logicalAt, tools.after);
   });
 }
 
@@ -525,17 +774,48 @@ export function registerFlightHandlers(ctx: Context): void {
  */
 export function turnBack(
   ctx: Context,
-  flight: FlightRow,
+  original: FlightRow,
   userId: string,
   now: number,
   after: After,
 ): boolean {
+  let flight = original;
   if (flight.state !== 'active') return false;
+  // v0.7: replies of this person on board are not delivered either.
+  const replies = ctx.db.run(
+    "UPDATE letters SET status = 'returned', recipient_has = 0 WHERE flight_id = ? AND sender_id = ? AND recipient_id = ? AND status = 'in_flight'",
+    flight.id,
+    userId,
+    flight.holder_id,
+  ).changes;
+  if (replies > 0) {
+    addSystemMessage(
+      ctx,
+      userId,
+      'letter_returned',
+      { name: displayName(ctx.db, flight.holder_id) ?? '', cargo: 'letter' },
+      now,
+      after,
+    );
+  }
+  // v0.7: an owl resting with this person flies on at once.
+  const resting = routeOf(flight).findIndex(
+    (stop) => stop.status === 'resting' && stop.userId === userId,
+  );
+  if (resting >= 0) {
+    endRest(ctx, flight, resting, now, after);
+    const fresh = loadFlight(ctx, flight.id);
+    if (!fresh || fresh.state !== 'active') return true;
+    flight = fresh;
+  }
   const route = routeOf(flight);
   const affected = route.filter(
     (stop) => stop.type === 'deliver' && stop.userId === userId && stop.status === 'pending',
   );
-  if (affected.length === 0) return false;
+  if (affected.length === 0) {
+    if (replies > 0) after(() => ctx.hub.notify(userId, 'chats'));
+    return resting >= 0 || replies > 0;
+  }
   for (const stop of affected) stop.status = 'skipped';
   const letters = ctx.db.all<{ id: string }>(
     "SELECT id FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",

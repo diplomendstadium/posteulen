@@ -45,6 +45,12 @@ export class EventHub {
     for (const stream of set) stream.write(data);
   }
 
+  /** v0.7: a hint to everybody connected (e.g. the daily gold, which reaches all accounts). */
+  notifyAll(...topics: Topic[]): void {
+    const data = `event: changed\ndata: ${JSON.stringify({ topics })}\n\n`;
+    for (const set of this.streams.values()) for (const stream of set) stream.write(data);
+  }
+
   /** Ends all streams of a user (logout, login elsewhere). */
   close(userId: string): void {
     for (const stream of this.streams.get(userId) ?? []) stream.end();

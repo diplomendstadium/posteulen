@@ -82,6 +82,7 @@ export default defineConfig({
               deletionBody: push.deletionBody,
               broadcastBody: push.broadcastBody,
               homeBody: push.homeBody,
+              homeLettersBody: push.homeLettersBody,
               newsBody: push.newsBody,
             },
           ];

@@ -14,7 +14,10 @@ export interface Country {
   readonly label: readonly [number, number] | null;
 }
 
-/** A city with more than 200 000 inhabitants (`big`: more than one million), largest first. */
+/**
+ * A city with more than 200 000 inhabitants in the section (`big`: more than one million), v0.7
+ * outside the section capitals only (always `big`); largest first.
+ */
 export interface City {
   readonly name: string;
   /** English name where it differs (v0.4). */
@@ -25,7 +28,12 @@ export interface City {
 }
 
 export interface MapData {
+  /** v0.7: the whole world (Equal Earth, km; SVG y downwards). */
   readonly viewBox: readonly [number, number, number, number];
+  /** v0.7: the European section, where homes are (registration and moving stay inside). */
+  readonly europe: readonly [number, number, number, number];
+  /** v0.7: the edge of the world (filled as sea). */
+  readonly outline: string;
   readonly countries: readonly Country[];
   readonly lakes: string;
   readonly cities: readonly City[];
@@ -34,7 +42,7 @@ export interface MapData {
 let data: Promise<MapData> | undefined;
 
 export function loadMapData(): Promise<MapData> {
-  data ??= import('./europe.json').then((module) => module.default as unknown as MapData);
+  data ??= import('./world.json').then((module) => module.default as unknown as MapData);
   return data;
 }
 

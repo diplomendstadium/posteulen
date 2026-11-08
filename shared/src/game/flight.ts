@@ -30,6 +30,17 @@ export interface FlightProfile {
    * faster and sleeps shorter), the energy rules stay the same. Never set on servers.
    */
   readonly timeScale?: number;
+  /**
+   * v0.7: energies of the plan (segments, arrivals, start state) are the owl's own energy, not
+   * the motivated one – so a re-plan can switch to another motivation at a stop (motivation
+   * counts per leg). Plans from before v0.7 have none: their energies are in motivated units.
+   */
+  readonly ownUnits?: boolean;
+  /**
+   * v0.7: energy regained per hour while resting at a recipient (as at home: 10 % of the
+   * maximum × recovery factor), in the units of `maxEnergy`.
+   */
+  readonly restRecoveryPerHour?: number;
 }
 
 export interface FlightEnvironment {
@@ -43,6 +54,8 @@ export interface FlightState {
   readonly energy: number;
   /** A sleep pause (adult) or rest (chick) that is still running at `at`. */
   readonly pausedUntil?: number;
+  /** v0.7: a rest at a recipient that is still running at `at` (the owl recovers as at home). */
+  readonly restUntil?: number;
   /** Chick: flight time already flown in the current one-hour block. */
   readonly chickFlownMs?: number;
 }
@@ -66,6 +79,15 @@ export type Segment =
       readonly e1: number;
     }
   | {
+      /** v0.7: the owl rests at a recipient (recovers as at home) before flying on. */
+      readonly kind: 'rest';
+      readonly t0: number;
+      readonly t1: number;
+      readonly at: Point;
+      readonly e0: number;
+      readonly e1: number;
+    }
+  | {
       readonly kind: 'stop';
       readonly t0: number;
       readonly t1: number;
@@ -79,6 +101,8 @@ export type Segment =
 export interface PlannedStop {
   readonly index: number;
   readonly point: Point;
+  /** v0.7: the owl rests this long at this stop (ms, before the time scale). */
+  readonly restMs?: number;
 }
 
 export interface Arrival {
@@ -138,9 +162,24 @@ export function simulate(
   stops: readonly PlannedStop[],
   env: FlightEnvironment,
 ): Simulation {
-  const result = run(profile, start, stops, env, false);
+  // v0.7: in and out in the owl's own energy; inside, the motivated units of this profile.
+  const unit = profile.ownUnits ? (profile.motivation ?? 1) : 1;
+  const result = run(profile, { ...start, energy: start.energy * unit }, stops, env, false);
   if (!result) throw new Error('simulation stopped');
-  return result;
+  return unit === 1 ? result : scaleEnergies(result, 1 / unit);
+}
+
+function scaleEnergies(result: Simulation, factor: number): Simulation {
+  const e = (value: number): number => roundEnergy(value * factor);
+  return {
+    segments: result.segments.map((segment) => ({
+      ...segment,
+      e0: e(segment.e0),
+      e1: e(segment.e1),
+    })),
+    arrivals: result.arrivals.map((arrival) => ({ ...arrival, energy: e(arrival.energy) })),
+    end: { ...result.end, energy: e(result.end.energy) },
+  };
 }
 
 /** `probe`: only checks whether the owl reaches the stops without sleeping (null if not). */
@@ -158,6 +197,8 @@ function run(
   const kmPerMs = speed / TIME.HOUR;
   const recoveryPerHour = profile.recoveryPerHour ?? profile.maxEnergy / LEGACY_SLEEP_HOURS;
   const regenPerMs = (recoveryPerHour * scale) / TIME.HOUR;
+  // v0.7: resting at a recipient, the owl recovers as at home (without the sleep's motivation).
+  const restRegenPerMs = ((profile.restRecoveryPerHour ?? recoveryPerHour) * scale) / TIME.HOUR;
   const precisionMs = SLEEP_PRECISION_MS / scale;
   const CHICK_FLY_MS = (FLIGHT.CHICK_FLY_HOURS * TIME.HOUR) / scale;
   const CHICK_REST_MS = (FLIGHT.CHICK_REST_HOURS * TIME.HOUR) / scale;
@@ -210,9 +251,33 @@ function run(
     return hi;
   };
 
+  /**
+   * v0.7: a rest at a recipient – recovers as at home up to the maximum. Once full, a second
+   * rest segment keeps the energy (so the energy between the stored points stays exact).
+   */
+  const rest = (until: number, at: Point): void => {
+    const fullAt =
+      restRegenPerMs > 0 ? t + Math.max(0, profile.maxEnergy - energy) / restRegenPerMs : until;
+    const parts = fullAt < until ? [fullAt, until] : [until];
+    for (const end of parts) {
+      const after = Math.min(profile.maxEnergy, energy + restRegenPerMs * (end - t));
+      segments.push({
+        kind: 'rest',
+        t0: Math.round(t),
+        t1: Math.round(end),
+        at: roundPoint(at),
+        e0: roundEnergy(energy),
+        e1: roundEnergy(after),
+      });
+      t = end;
+      energy = after;
+    }
+  };
+
   if (start.pausedUntil !== undefined && start.pausedUntil > t) {
     pause(start.pausedUntil, position, energy);
   }
+  if (start.restUntil !== undefined && start.restUntil > t) rest(start.restUntil, position);
 
   for (const stop of stops) {
     const from = position;
@@ -311,6 +376,7 @@ function run(
       e0: roundEnergy(energy),
       e1: roundEnergy(energy),
     });
+    if (adult && (stop.restMs ?? 0) > 0) rest(t + (stop.restMs ?? 0) / scale, to);
   }
   return {
     segments,
@@ -340,7 +406,8 @@ function findSegment(segments: readonly Segment[], at: number): number {
 export interface PositionInfo {
   readonly position: Point;
   readonly energy: number;
-  readonly phase: 'before' | 'fly' | 'sleep' | 'stop' | 'done';
+  /** v0.7: 'rest' – resting at a recipient. */
+  readonly phase: 'before' | 'fly' | 'sleep' | 'rest' | 'stop' | 'done';
 }
 
 /**
@@ -375,12 +442,12 @@ export function positionAt(segments: readonly Segment[], at: number): PositionIn
       phase: 'fly',
     };
   }
-  if (segment.kind === 'sleep') {
+  if (segment.kind === 'sleep' || segment.kind === 'rest') {
     const fraction = segment.t1 > segment.t0 ? (at - segment.t0) / (segment.t1 - segment.t0) : 1;
     return {
       position: segment.at,
       energy: segment.e0 + (segment.e1 - segment.e0) * fraction,
-      phase: 'sleep',
+      phase: segment.kind,
     };
   }
   return { position: segment.at, energy: segment.e0, phase: 'stop' };
@@ -397,6 +464,16 @@ export function stateAt(segments: readonly Segment[], at: number): FlightState |
   // energy so far the re-plan decides anew how long it still has to sleep (v0.5).
   if (segment && segment.kind === 'sleep' && at < segment.t1 && segment.e1 === segment.e0)
     pausedUntil = segment.t1;
+  // v0.7: a rest at a recipient continues until its last rest segment ends.
+  let restUntil: number | undefined;
+  if (segment && segment.kind === 'rest' && at < segment.t1) {
+    restUntil = segment.t1;
+    for (let i = index + 1; i < segments.length; i++) {
+      const next = segments[i];
+      if (!next || next.kind !== 'rest' || next.t0 !== restUntil) break;
+      restUntil = next.t1;
+    }
+  }
   // Chick: sum of flight time since the last rest (9.9).
   let chickFlownMs = 0;
   for (let i = index; i >= 0; i--) {
@@ -409,6 +486,7 @@ export function stateAt(segments: readonly Segment[], at: number): FlightState |
     position: info.position,
     energy: info.energy,
     ...(pausedUntil !== undefined ? { pausedUntil } : {}),
+    ...(restUntil !== undefined ? { restUntil } : {}),
     chickFlownMs: Math.max(0, chickFlownMs),
   };
 }
@@ -437,6 +515,10 @@ export function segmentsUntil(segments: readonly Segment[], at: number): Segment
     if (segment.kind === 'sleep' && segment.e1 !== segment.e0) {
       kept.push({ ...segment, t1: Math.round(at), e1: roundEnergy(info.energy) });
     }
+    // v0.7: a running rest is cut, too; the re-plan continues or ends it.
+    if (segment.kind === 'rest') {
+      kept.push({ ...segment, t1: Math.round(at), e1: roundEnergy(info.energy) });
+    }
     break;
   }
   return kept;
@@ -452,9 +534,15 @@ export function replan(
   at: number,
   stops: readonly PlannedStop[],
   env: FlightEnvironment,
+  /**
+   * v0.7: changes the state before planning on – e.g. a rest that ends now (departure after a
+   * reply) or more energy after the recipient fed the resting owl.
+   */
+  adjust: (state: FlightState) => FlightState = (state) => state,
 ): Simulation {
-  const state = stateAt(segments, at);
-  if (!state) throw new Error('flight has no plan');
+  const found = stateAt(segments, at);
+  if (!found) throw new Error('flight has no plan');
+  const state = adjust(found);
   const past = segmentsUntil(segments, at);
   const next = simulate(profile, state, stops, env);
   return { ...next, segments: [...past, ...next.segments] };

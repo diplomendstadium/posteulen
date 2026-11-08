@@ -73,11 +73,25 @@ export class EventQueue {
   ensureDailyJobs(): void {
     const now = this.now();
     for (const job of this.daily.values()) {
-      const exists = this.db.get(
-        'SELECT 1 FROM scheduled_events WHERE type = ?',
+      const exists = this.db.get<{ id: number; logical_at: number }>(
+        'SELECT id, logical_at FROM scheduled_events WHERE type = ?',
         `daily:${job.name}`,
       );
-      if (exists) continue;
+      if (exists) {
+        // v0.7: a job whose hour changed (daily gold 15:00 → 03:00) moves to the new hour of
+        // the same day – if that is already past, it runs now and nothing is skipped or paid
+        // twice (daily_job_runs).
+        const at = dayStart(utcDay(exists.logical_at)) + job.hourUtc * TIME.HOUR;
+        if (at !== exists.logical_at) {
+          this.db.run(
+            'UPDATE scheduled_events SET due_at = ?, logical_at = ? WHERE id = ?',
+            at,
+            at,
+            exists.id,
+          );
+        }
+        continue;
+      }
       this.db.run(
         'INSERT INTO scheduled_events (due_at, logical_at, type, ref) VALUES (?, ?, ?, ?)',
         nextRun(job.hourUtc, now),

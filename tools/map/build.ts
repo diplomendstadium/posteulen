@@ -1,16 +1,26 @@
 /**
  * Erzeugt die Kartendaten aus Natural Earth (SPEC 12.2, 12.3, D-09). Läuft nur auf dem
  * Entwicklungsrechner; die Ergebnisse liegen im Repository:
- *   shared/data/landmask.bin       Land/Wasser-Maske (0,02°)
- *   web/src/lib/map/europe.json    vereinfachte Ländergeometrie und Städte für die Anzeige (LAEA, km)
- * Aufruf: node tools/map/build.ts
+ *   shared/data/landmask.bin            Land/Wasser-Maske (0,02°) des Europa-Ausschnitts
+ *   web/src/lib/map/world.json          v0.7: vereinfachte Ländergeometrie der ganzen Welt und
+ *                                       Städte für die Anzeige (Equal Earth, km): im Europa-
+ *                                       Ausschnitt fein, außerhalb grob; außerhalb nur Hauptstädte
+ *   shared/src/map/timezones-data.ts    v0.7: Zeitzone je 0,1°-Feld des Europa-Ausschnitts (für die
+ *                                       Begrüßung nach Tageszeit am fiktiven Wohnort)
+ * Aufruf: node tools/map/build.ts (danach: npx prettier --write web/src/lib/map/world.json
+ *         shared/src/map/timezones-data.ts)
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { MAP } from '../../shared/src/constants.ts';
 import { MASK_BYTES, MASK_HEIGHT, MASK_WIDTH } from '../../shared/src/map/landmask.ts';
-import { project } from '../../shared/src/map/projection.ts';
+import {
+  CENTRAL_MERIDIAN,
+  project,
+  projectRelative,
+  relativeLongitude,
+} from '../../shared/src/map/projection.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const CACHE = path.join(import.meta.dirname, '.cache');
@@ -145,11 +155,10 @@ function clipRing(ring: Ring, w: number, s: number, e: number, n: number): Ring 
   return output;
 }
 
-/** Douglas–Peucker simplification in projected kilometres. */
+/** Douglas–Peucker simplification in projected kilometres (v0.7: tolerance per point). */
 function simplify(
-  points: { x: number; y: number }[],
-  tolerance: number,
-): { x: number; y: number }[] {
+  points: { x: number; y: number; tol: number }[],
+): { x: number; y: number; tol: number }[] {
   if (points.length < 4) return points;
   const keep = new Uint8Array(points.length);
   keep[0] = 1;
@@ -172,7 +181,9 @@ function simplify(
         index = i;
       }
     }
-    if (maxDistance > tolerance && index > 0) {
+    // v0.7: fine inside the European section, coarse elsewhere (the finer end decides).
+    const allowed = Math.min(pa.tol, pb.tol);
+    if (maxDistance > allowed && index > 0) {
       keep[index] = 1;
       stack.push([a, index], [index, b]);
     }
@@ -182,25 +193,55 @@ function simplify(
 
 /** Closed rings are split in two halves; otherwise both ends coincide and nothing is kept. */
 function simplifyRing(
-  points: { x: number; y: number }[],
-  tolerance: number,
-): { x: number; y: number }[] {
+  points: { x: number; y: number; tol: number }[],
+): { x: number; y: number; tol: number }[] {
   const mid = Math.floor(points.length / 2);
-  const first = simplify(points.slice(0, mid + 1), tolerance);
-  const second = simplify(points.slice(mid), tolerance);
+  const first = simplify(points.slice(0, mid + 1));
+  const second = simplify(points.slice(mid));
   return [...first, ...second.slice(1)];
 }
 
-function pathOf(rings: Ring[], tolerance: number): string {
+/** Fine inside the European section (with a generous margin), coarse elsewhere (v0.7). */
+const FINE_KM = 1.2;
+const COARSE_KM = 15;
+/** v0.7: outside the section, islands smaller than this (km²) are left out. */
+const MIN_COARSE_AREA_KM2 = 3000;
+function toleranceAt(lat: number, lon: number): number {
+  return lat >= MAP.SOUTH_LAT - 6 &&
+    lat <= MAP.NORTH_LAT + 6 &&
+    lon >= MAP.WEST_LON - 12 &&
+    lon <= MAP.EAST_LON + 12
+    ? FINE_KM
+    : COARSE_KM;
+}
+
+/** Rings in longitude relative to the central meridian (`[delta, lat]`), see `worldRings`. */
+function pathOf(rings: Ring[]): string {
   const parts: string[] = [];
   for (const ring of rings) {
     const projected = simplifyRing(
-      ring.map(([lon, lat]) => project(lat, lon)),
-      tolerance,
+      ring.map(([delta, lat]) => ({
+        ...projectRelative(lat, delta),
+        tol: toleranceAt(lat, delta + CENTRAL),
+      })),
     );
     if (projected.length < 3) continue;
+    const coarse = projected.every((p) => p.tol >= COARSE_KM);
+    if (coarse) {
+      let area = 0;
+      for (let i = 0; i < projected.length; i++) {
+        const a = projected[i]!;
+        const b = projected[(i + 1) % projected.length]!;
+        area += a.x * b.y - b.x * a.y;
+      }
+      if (Math.abs(area) / 2 < MIN_COARSE_AREA_KM2) continue;
+    }
+    // Whole kilometres are enough outside the section.
+    const digits = coarse ? 0 : 1;
     parts.push(
-      'M' + projected.map((p) => `${p.x.toFixed(1)} ${(-p.y).toFixed(1)}`).join('L') + 'Z',
+      'M' +
+        projected.map((p) => `${p.x.toFixed(digits)} ${(-p.y).toFixed(digits)}`).join('L') +
+        'Z',
     );
   }
   return parts.join('');
@@ -227,15 +268,47 @@ console.warn(
   `Maske: ${MASK_WIDTH}×${MASK_HEIGHT}, Land ${((100 * landCells) / (MASK_WIDTH * MASK_HEIGHT)).toFixed(1)} %`,
 );
 
-// ── Anzeige: Länder und Seen ──
-// Großzügiger Rand, damit der Zuschnitt außerhalb des sichtbaren Bereichs liegt.
-const margin = 12;
-const [w, s, e, n] = [
-  MAP.WEST_LON - margin,
-  MAP.SOUTH_LAT - 6,
-  MAP.EAST_LON + margin,
-  MAP.NORTH_LAT + 6,
-];
+// ── Anzeige (v0.7: ganze Welt) ──
+const CENTRAL = CENTRAL_MERIDIAN;
+
+/**
+ * Rings in longitude relative to the central meridian, cut at the edge of the world (±180°):
+ * each ring is unwrapped (no jumps of 360°), then clipped to −180…180 – also shifted by ±360°,
+ * so a ring across the edge becomes two pieces. A ring around a pole (Antarctica) is closed
+ * along the pole.
+ */
+function worldRings(rings: Ring[]): Ring[] {
+  const out: Ring[] = [];
+  for (const ring of rings) {
+    if (ring.length < 4) continue;
+    const unwrapped: Ring = [];
+    let previous: number | undefined;
+    for (const [lon, lat] of ring) {
+      let delta = relativeLongitude(lon);
+      if (previous !== undefined) {
+        while (delta - previous > 180) delta -= 360;
+        while (previous - delta > 180) delta += 360;
+      }
+      unwrapped.push([delta, lat]);
+      previous = delta;
+    }
+    const first = unwrapped[0]!;
+    const last = unwrapped[unwrapped.length - 1]!;
+    if (Math.abs(last[0] - first[0]) > 180) {
+      const pole = first[1] < 0 ? -90 : 90;
+      unwrapped.push([last[0], pole], [first[0], pole], first);
+    }
+    for (const shift of [-360, 0, 360]) {
+      const shifted = unwrapped.map(([x, y]): [number, number] => [x + shift, y]);
+      const box = ringBox(shifted);
+      if (box[2] < -180 || box[0] > 180) continue;
+      const clipped = clipRing(shifted, -180, -90, 180, 90);
+      if (clipped.length >= 3) out.push([...clipped, clipped[0]!]);
+    }
+  }
+  return out;
+}
+
 const countries = await load('ne_50m_admin_0_countries');
 // Das Vereinigte Königreich erscheint als England, Schottland, Wales und Nordirland (v0.2):
 // deren Umrisse stammen aus den „Map Units“ im selben Maßstab.
@@ -243,40 +316,28 @@ const mapUnits = await load('ne_50m_admin_0_map_units');
 const UK_PARTS = ['ENG', 'SCT', 'WLS', 'NIR'];
 const ukParts = mapUnits.filter((unit) => UK_PARTS.includes(String(unit.properties['GU_A3'])));
 if (ukParts.length !== UK_PARTS.length) throw new Error('Teile des Vereinigten Königreichs fehlen');
-const tolerance = 1.2;
-const outCountries = [];
-for (const [feature, id] of [
+const features: [Feature, string][] = [
   ...countries
     .filter((country) => country.properties['ADM0_A3'] !== 'GBR')
     .map((country): [Feature, string] => [country, String(country.properties['ADM0_A3'])]),
   ...ukParts.map((unit): [Feature, string] => [unit, String(unit.properties['GU_A3'])]),
-]) {
-  const rings = polygons(feature)
-    .flat()
-    .filter((ring) => intersects(ringBox(ring), margin))
-    .map((ring) => clipRing(ring, w, s, e, n))
-    .filter((ring) => ring.length >= 3)
-    .map((ring) => [...ring, ring[0]!] as Ring);
+];
+const outCountries = [];
+for (const [feature, id] of features) {
+  const rings = worldRings(polygons(feature).flat());
   if (rings.length === 0) continue;
   const props = feature.properties;
   const labelLon = Number(props['LABEL_X']);
   const labelLat = Number(props['LABEL_Y']);
   const label =
-    labelLat >= MAP.SOUTH_LAT &&
-    labelLat <= MAP.NORTH_LAT &&
-    labelLon >= MAP.WEST_LON &&
-    labelLon <= MAP.EAST_LON
-      ? project(labelLat, labelLon)
-      : null;
+    Number.isFinite(labelLat) && Number.isFinite(labelLon) ? project(labelLat, labelLon) : null;
   // Fläche in km² (flächentreue Projektion), damit die Anzeige kleine Länder erst beim
-  // Hineinzoomen beschriftet. Ringe nach RFC 7946: außen gegen, Löcher im Uhrzeigersinn.
+  // Hineinzoomen beschriftet.
   let area = 0;
-  for (const polygon of polygons(feature)) {
-    for (const ring of polygon) {
-      const pts = ring.map(([lon, lat]) => project(lat, lon));
-      for (let i = 0; i + 1 < pts.length; i++)
-        area += pts[i]!.x * pts[i + 1]!.y - pts[i + 1]!.x * pts[i]!.y;
-    }
+  for (const ring of rings) {
+    const pts = ring.map(([delta, lat]) => projectRelative(lat, delta));
+    for (let i = 0; i + 1 < pts.length; i++)
+      area += pts[i]!.x * pts[i + 1]!.y - pts[i + 1]!.x * pts[i]!.y;
   }
   outCountries.push({
     id,
@@ -284,7 +345,7 @@ for (const [feature, id] of [
     name: String(props['NAME_DE'] ?? props['NAME']),
     // v0.4: English name for the English view, only where it differs.
     ...englishName(String(props['NAME_DE'] ?? props['NAME']), props['NAME_EN'] ?? props['NAME']),
-    d: pathOf(rings, tolerance),
+    d: pathOf(rings),
     label: label ? [Number(label.x.toFixed(1)), Number((-label.y).toFixed(1))] : null,
   });
 }
@@ -295,24 +356,24 @@ function englishName(german: string, english: unknown): { nameEn?: string } {
   return name !== '' && name !== german ? { nameEn: name } : {};
 }
 
-// ── Städte (v0.2): über 200 000 Einwohner im Ausschnitt, größte zuerst ──
+const inSection = (lat: number, lon: number): boolean =>
+  lat >= MAP.SOUTH_LAT && lat <= MAP.NORTH_LAT && lon >= MAP.WEST_LON && lon <= MAP.EAST_LON;
+
+// ── Städte (v0.2): über 200 000 Einwohner im Ausschnitt, größte zuerst; v0.7: außerhalb des
+// Ausschnitts nur Hauptstädte (immer als „groß“, ihre Namen weichen wie alle Städte aus) ──
 // Einwohnerzahl ist POP_MAX (Ballungsraum); POP_MIN ist in Natural Earth für viele
 // Hauptstädte unbrauchbar (z. B. Paris 11 177).
 const places = await load('ne_10m_populated_places');
+const seen = new Set<string>();
 const outCities = places
   .flatMap((place) => {
     const geometry = place.geometry as unknown as { coordinates: [number, number] } | null;
     if (!geometry) return [];
     const [lon, lat] = geometry.coordinates;
     const population = Number(place.properties['POP_MAX']);
-    if (
-      !(population > MAP.CITY_MIN_POPULATION) ||
-      lat < MAP.SOUTH_LAT ||
-      lat > MAP.NORTH_LAT ||
-      lon < MAP.WEST_LON ||
-      lon > MAP.EAST_LON
-    )
-      return [];
+    const inside = inSection(lat, lon);
+    const capital = place.properties['FEATURECLA'] === 'Admin-0 capital';
+    if (inside ? !(population > MAP.CITY_MIN_POPULATION) : !capital) return [];
     const p = project(lat, lon);
     return [
       {
@@ -322,31 +383,54 @@ const outCities = places
           place.properties['NAME_EN'] || place.properties['NAME'],
         ),
         population,
+        big: !inside || population > MAP.CITY_BIG_POPULATION,
         x: Number(p.x.toFixed(1)),
         y: Number((-p.y).toFixed(1)),
       },
     ];
   })
   .sort((a, b) => b.population - a.population || a.name.localeCompare(b.name, 'de'))
+  .filter((city) => {
+    // Names are keys of the display: a later city with the same name is left out.
+    if (seen.has(city.name)) {
+      console.warn(`Stadt doppelt, ausgelassen: ${city.name}`);
+      return false;
+    }
+    seen.add(city.name);
+    return true;
+  })
   .map((city) => ({
     name: city.name,
     ...(city.nameEn ? { nameEn: city.nameEn } : {}),
-    big: city.population > MAP.CITY_BIG_POPULATION,
+    big: city.big,
     x: city.x,
     y: city.y,
   }));
-if (new Set(outCities.map((city) => city.name)).size !== outCities.length)
-  throw new Error('Städtenamen sind nicht eindeutig');
 
-const lakePaths = lakes
-  .flatMap(polygons)
-  .flat()
-  .filter((ring) => intersects(ringBox(ring), 0))
-  .map((ring) => clipRing(ring, w, s, e, n))
-  .filter((ring) => ring.length >= 3)
-  .map((ring) => [...ring, ring[0]!] as Ring);
+// Seen: im Ausschnitt alle, weltweit nur die größten (scalerank 0).
+const lakePaths = worldRings(
+  lakes
+    .filter((lake) => {
+      const rings = polygons(lake).flat();
+      return (
+        Number(lake.properties['scalerank']) === 0 ||
+        rings.some((ring) => intersects(ringBox(ring), 0))
+      );
+    })
+    .flatMap(polygons)
+    .flat(),
+);
 
-// Sichtbarer Ausschnitt: projizierte Hülle des Ausschnitts.
+// Umriss der Welt (Rand der Projektion): oben und unten die Pole als Linien, seitlich ±180°.
+const outlinePoints: { x: number; y: number }[] = [];
+for (let lat = 90; lat >= -90; lat -= 1) outlinePoints.push(projectRelative(lat, 180));
+for (let lat = -90; lat <= 90; lat += 1) outlinePoints.push(projectRelative(lat, -180));
+const outline =
+  'M' + outlinePoints.map((p) => `${p.x.toFixed(1)} ${(-p.y).toFixed(1)}`).join('L') + 'Z';
+const worldX = Math.max(...outlinePoints.map((p) => Math.abs(p.x)));
+const worldY = Math.max(...outlinePoints.map((p) => Math.abs(p.y)));
+
+// Europa-Ausschnitt: projizierte Hülle (Registrierung und Umzug bleiben darin, SPEC 12.4).
 const corners: { x: number; y: number }[] = [];
 for (let i = 0; i <= 20; i++) {
   const t = i / 20;
@@ -361,13 +445,165 @@ const minY = Math.min(...corners.map((p) => -p.y));
 const maxY = Math.max(...corners.map((p) => -p.y));
 const output = {
   source: 'Natural Earth 5.1.2 (gemeinfrei)',
-  viewBox: [minX, minY, maxX - minX, maxY - minY].map((v) => Number(v.toFixed(1))),
+  viewBox: [-worldX, -worldY, 2 * worldX, 2 * worldY].map((v) => Number(v.toFixed(1))),
+  europe: [minX, minY, maxX - minX, maxY - minY].map((v) => Number(v.toFixed(1))),
+  outline,
   countries: outCountries.sort((a, b) => a.name.localeCompare(b.name, 'de')),
-  lakes: pathOf(lakePaths, tolerance),
+  lakes: pathOf(lakePaths),
   cities: outCities,
 };
 fs.mkdirSync(path.join(ROOT, 'web/src/lib/map'), { recursive: true });
-fs.writeFileSync(path.join(ROOT, 'web/src/lib/map/europe.json'), JSON.stringify(output));
+fs.writeFileSync(path.join(ROOT, 'web/src/lib/map/world.json'), JSON.stringify(output));
 console.warn(
   `Karte: ${outCountries.length} Länder, ${outCities.length} Städte, ${(JSON.stringify(output).length / 1024).toFixed(0)} KiB`,
+);
+
+// ── Zeitzonen des Europa-Ausschnitts (v0.7, Begrüßung nach Ortszeit) ──
+// Je Land des Ausschnitts genau eine Zeitzone (IANA); Felder auf See nahe der Küste bekommen
+// die Zone des nächsten Landfelds (bis 0,5°), damit jeder Wohnort eine Zone hat.
+const ZONE_OF: Record<string, string> = {
+  ALB: 'Europe/Tirane',
+  ALD: 'Europe/Mariehamn',
+  AND: 'Europe/Andorra',
+  AUT: 'Europe/Vienna',
+  BEL: 'Europe/Brussels',
+  BGR: 'Europe/Sofia',
+  BIH: 'Europe/Sarajevo',
+  BLR: 'Europe/Minsk',
+  CHE: 'Europe/Zurich',
+  CZE: 'Europe/Prague',
+  DEU: 'Europe/Berlin',
+  DNK: 'Europe/Copenhagen',
+  DZA: 'Africa/Algiers',
+  ESP: 'Europe/Madrid',
+  EST: 'Europe/Tallinn',
+  FIN: 'Europe/Helsinki',
+  FRA: 'Europe/Paris',
+  ENG: 'Europe/London',
+  SCT: 'Europe/London',
+  WLS: 'Europe/London',
+  NIR: 'Europe/London',
+  GGY: 'Europe/Guernsey',
+  GRC: 'Europe/Athens',
+  HRV: 'Europe/Zagreb',
+  HUN: 'Europe/Budapest',
+  IMN: 'Europe/Isle_of_Man',
+  IRL: 'Europe/Dublin',
+  ITA: 'Europe/Rome',
+  JEY: 'Europe/Jersey',
+  KOS: 'Europe/Belgrade',
+  LIE: 'Europe/Vaduz',
+  LTU: 'Europe/Vilnius',
+  LUX: 'Europe/Luxembourg',
+  LVA: 'Europe/Riga',
+  MAR: 'Africa/Casablanca',
+  MCO: 'Europe/Monaco',
+  MKD: 'Europe/Skopje',
+  MLT: 'Europe/Malta',
+  MNE: 'Europe/Podgorica',
+  NLD: 'Europe/Amsterdam',
+  NOR: 'Europe/Oslo',
+  POL: 'Europe/Warsaw',
+  PRT: 'Europe/Lisbon',
+  ROU: 'Europe/Bucharest',
+  RUS: 'Europe/Kaliningrad',
+  SMR: 'Europe/San_Marino',
+  SRB: 'Europe/Belgrade',
+  SVK: 'Europe/Bratislava',
+  SVN: 'Europe/Ljubljana',
+  SWE: 'Europe/Stockholm',
+  TUN: 'Africa/Tunis',
+  UKR: 'Europe/Kiev',
+  VAT: 'Europe/Vatican',
+};
+const TZ_RES = 0.1;
+const TZ_W = Math.round((MAP.EAST_LON - MAP.WEST_LON) / TZ_RES);
+const TZ_H = Math.round((MAP.NORTH_LAT - MAP.SOUTH_LAT) / TZ_RES);
+const zones: string[] = [];
+const grid = new Int16Array(TZ_W * TZ_H).fill(-1);
+for (const [feature, id] of features) {
+  const rings = polygons(feature)
+    .flat()
+    .filter((ring) => intersects(ringBox(ring), 0.5));
+  if (rings.length === 0) continue;
+  const zone = ZONE_OF[id];
+  if (!zone) throw new Error(`Keine Zeitzone für ${id}`);
+  if (!zones.includes(zone)) zones.push(zone);
+  const index = zones.indexOf(zone);
+  for (let row = 0; row < TZ_H; row++) {
+    const lat = MAP.NORTH_LAT - (row + 0.5) * TZ_RES;
+    const xs: number[] = [];
+    for (const ring of rings) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const [x1, y1] = ring[i]!;
+        const [x2, y2] = ring[i + 1]!;
+        if (y1 === y2) continue;
+        if (lat < Math.min(y1, y2) || lat >= Math.max(y1, y2)) continue;
+        xs.push(x1 + ((lat - y1) * (x2 - x1)) / (y2 - y1));
+      }
+    }
+    xs.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < xs.length; k += 2) {
+      const from = Math.max(0, Math.ceil((xs[k]! - MAP.WEST_LON) / TZ_RES - 0.5));
+      const to = Math.min(TZ_W - 1, Math.floor((xs[k + 1]! - MAP.WEST_LON) / TZ_RES - 0.5));
+      for (let col = from; col <= to; col++) grid[row * TZ_W + col] = index;
+    }
+  }
+}
+for (let pass = 0; pass < 5; pass++) {
+  const before = grid.slice();
+  for (let row = 0; row < TZ_H; row++) {
+    for (let col = 0; col < TZ_W; col++) {
+      if (before[row * TZ_W + col] !== -1) continue;
+      for (const [dr, dc] of [
+        [0, 1],
+        [0, -1],
+        [1, 0],
+        [-1, 0],
+      ] as const) {
+        const r = row + dr;
+        const c = col + dc;
+        if (r < 0 || r >= TZ_H || c < 0 || c >= TZ_W) continue;
+        const value = before[r * TZ_W + c]!;
+        if (value !== -1) {
+          grid[row * TZ_W + col] = value;
+          break;
+        }
+      }
+    }
+  }
+}
+// Zeilen als Lauflängen: Zeichen der Zone ('-' = keine) und Länge, z. B. "-12a40b3".
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+if (zones.length > ALPHABET.length) throw new Error('zu viele Zeitzonen');
+const rows: string[] = [];
+for (let row = 0; row < TZ_H; row++) {
+  let text = '';
+  let col = 0;
+  while (col < TZ_W) {
+    const value = grid[row * TZ_W + col]!;
+    let end = col;
+    while (end < TZ_W && grid[row * TZ_W + end] === value) end++;
+    text += (value === -1 ? '-' : ALPHABET[value]) + String(end - col);
+    col = end;
+  }
+  rows.push(text);
+}
+const tzSource = `/**
+ * Generated by tools/map/build.ts from Natural Earth 5.1.2 (public domain) – do not edit.
+ * v0.7: time zone of every ${TZ_RES}° cell of the European map section, row by row from the north,
+ * as run lengths: a zone letter (index into ZONES, '-' = none) followed by the number of cells.
+ */
+export const TZ_RESOLUTION_DEG = ${TZ_RES};
+export const TZ_WIDTH = ${TZ_W};
+export const TZ_HEIGHT = ${TZ_H};
+export const TZ_ALPHABET = '${ALPHABET}';
+// prettier-ignore
+export const ZONES: readonly string[] = ${JSON.stringify(zones)};
+// prettier-ignore
+export const ZONE_ROWS: readonly string[] = ${JSON.stringify(rows)};
+`;
+fs.writeFileSync(path.join(ROOT, 'shared/src/map/timezones-data.ts'), tzSource);
+console.warn(
+  `Zeitzonen: ${zones.length} Zonen, ${TZ_W}×${TZ_H} Felder, ${(tzSource.length / 1024).toFixed(0)} KiB`,
 );

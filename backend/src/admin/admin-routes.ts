@@ -22,6 +22,8 @@ import { loginThrottle } from '../auth/user-routes.ts';
 import { checkRegistrationRecord, opaqueStep } from '../auth/opaque-guard.ts';
 import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
 import { createInvite, getRegistrationMode, listInvites, setRegistrationMode } from './settings.ts';
+import { createVoucher, listVouchers } from './vouchers.ts';
+import { VoucherCreate } from '@posteulen/shared/schemas/vouchers.ts';
 import { registerAdminOperations } from './operations.ts';
 
 const ADMIN_KEY = 'admin';
@@ -68,7 +70,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
       hash,
     );
     if (!row) throw new HttpError(401, 'unauthorized');
-    if (now - row.last_used_at > ACCOUNT.ADMIN_SESSION_IDLE_HOURS * TIME.HOUR) {
+    if (now - row.last_used_at > ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE) {
       ctx.db.run('DELETE FROM admin_sessions WHERE token_hash = ?', hash);
       throw new HttpError(401, 'unauthorized', { reason: 'session_expired' });
     }
@@ -139,7 +141,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     ctx.db.transaction(() => {
       ctx.db.run(
         'DELETE FROM admin_sessions WHERE last_used_at < ?',
-        now - ACCOUNT.ADMIN_SESSION_IDLE_HOURS * TIME.HOUR,
+        now - ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE,
       );
       ctx.db.run(
         'INSERT INTO admin_sessions (token_hash, created_at, last_used_at) VALUES (?, ?, ?)',
@@ -169,7 +171,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
       'SELECT last_used_at FROM admin_sessions WHERE token_hash = ?',
       sha256(token),
     );
-    if (!row || ctx.now() - row.last_used_at > ACCOUNT.ADMIN_SESSION_IDLE_HOURS * TIME.HOUR) {
+    if (!row || ctx.now() - row.last_used_at > ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE) {
       return { state: 'none' };
     }
     const admin = ctx.db.get<{ must_change_password: number }>(
@@ -301,6 +303,22 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   app.delete('/api/invites/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
     const id = parse(Id, (request.params as { id?: unknown }).id);
     const result = ctx.db.run('DELETE FROM invite_codes WHERE id = ?', id);
+    if (result.changes !== 1) throw new HttpError(404, 'not_found');
+    return { ok: true };
+  });
+
+  // ── Gutscheine für Gold oder eine Eule (v0.7, SPEC 13) ──
+  app.get('/api/vouchers', { preHandler: authenticated }, async () => ({
+    vouchers: listVouchers(ctx, ctx.now()),
+  }));
+
+  app.post('/api/vouchers', { preHandler: authenticated }, async (request) =>
+    createVoucher(ctx, parse(VoucherCreate, request.body), ctx.now()),
+  );
+
+  app.delete('/api/vouchers/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const id = parse(Id, (request.params as { id?: unknown }).id);
+    const result = ctx.db.run('DELETE FROM vouchers WHERE id = ?', id);
     if (result.changes !== 1) throw new HttpError(404, 'not_found');
     return { ok: true };
   });

@@ -17,7 +17,14 @@ export interface ApiLetter {
   /** v0.5: the recipient could not verify the letter. */
   readonly unreadable?: boolean;
   readonly arrivalSeen: boolean;
-  readonly owl: { readonly name: string; readonly species: string };
+  readonly owl: {
+    readonly name: string;
+    readonly species: string;
+    /** v0.7: whose owl carried it, seen from this account. */
+    readonly carrier?: 'own' | 'loan' | 'foreign';
+    /** v0.7: the holder of a visiting owl that carried my reply (null: not a contact). */
+    readonly holderName?: string | null;
+  };
   /** Cover letter to gold: the amount in tenths. */
   readonly coverGold?: number;
   readonly role: 'sender' | 'recipient';
@@ -54,8 +61,15 @@ export function prepare(
   recipients: readonly string[],
   parchment: Parchment,
   owlId: string,
+  /** v0.7: rest at each recipient (hours). */
+  rest = 0,
 ): Promise<Prepared> {
-  return api<Prepared>('POST', '/api/letters/prepare', { recipients, parchment, owlId });
+  return api<Prepared>('POST', '/api/letters/prepare', {
+    recipients,
+    parchment,
+    owlId,
+    ...(rest > 0 ? { rest } : {}),
+  });
 }
 
 /**

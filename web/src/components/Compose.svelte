@@ -21,6 +21,8 @@
   }: { peerId: string; onsent: () => void; bot?: boolean } = $props();
 
   let parchment = $state<Parchment>('small');
+  /** v0.7: how long the owl rests at each recipient (hours, letters to people only). */
+  let rest = $state<number>(LETTER.REST_HOURS_DEFAULT);
   let text = $state('');
   let smileyHint = $state(false);
   // svelte-ignore state_referenced_locally
@@ -33,6 +35,7 @@
   let error = $state<string | null>(null);
   let sentNotice = $state(false);
 
+  const guestChosen = $derived(prepared?.find((choice) => choice.id === owlId)?.guest === true);
   const count = $derived(countCodePoints(text));
   const max = $derived(maxChars(parchment));
   const nameOf = (id: string): string =>
@@ -102,7 +105,8 @@
     if (count > max) return void (error = t.letters.tooLong);
     busy = true;
     try {
-      prepared = await previewFlights(recipients);
+      prepared = await previewFlights(recipients, { rest: bot ? 0 : rest, guests: !bot });
+      // v0.7: a visiting owl of the recipient comes first and is preselected.
       owlId = prepared.find((choice) => !choice.offer)?.id ?? null;
     } catch (caught) {
       error = errorMessage(caught);
@@ -119,7 +123,11 @@
       // Bots: plain text, one recipient (SPEC 10.1); people: end-to-end encrypted (5.8).
       const result = bot
         ? await sendToBot(peerId, owlId, parchment, text)
-        : await sendPrepared(await prepare(recipients, parchment, owlId), parchment, text);
+        : await sendPrepared(
+            await prepare(recipients, parchment, owlId, guestChosen ? 0 : rest),
+            parchment,
+            text,
+          );
       showOwlImage(
         result.owl.species,
         'departure',
@@ -231,6 +239,23 @@
         </select>
       {/if}
     </fieldset>
+    <!-- v0.7: the owl may rest at each recipient and take a reply back. -->
+    <label for="rest">{t.letters.restLabel}</label>
+    <select
+      id="rest"
+      bind:value={rest}
+      onchange={() => (prepared = null)}
+      aria-describedby="rest-hint"
+    >
+      {#each LETTER.REST_HOURS_CHOICES as hours (hours)}
+        <option value={hours}
+          >{hours === 0 ? t.letters.restNone : fill(t.letters.restHours, { hours })}</option
+        >
+      {/each}
+    </select>
+    <p id="rest-hint" class="hint">
+      {guestChosen ? t.letters.restGuestHint : t.letters.restHint}
+    </p>
   {/if}
 
   <ErrorText message={error} />

@@ -17,7 +17,7 @@ import {
 import type { Context } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
-import { displayName } from '../contacts/model.ts';
+import { displayName, findContact } from '../contacts/model.ts';
 import { flightPosition, routeOf, type FlightRow } from '../flights/service.ts';
 
 export interface OwlRow {
@@ -154,7 +154,63 @@ export interface OwlView {
     readonly daylight: boolean;
     /** v0.5.1: asleep on the way right now (sleeping picture). */
     readonly sleeping: boolean;
+    /** v0.7: resting at a recipient right now – with whom (null: no contact) and until when. */
+    readonly resting: { readonly name: string | null; readonly until: number } | null;
   } | null;
+}
+
+/** v0.7: an owl of someone else resting here for a while (8.5) – it can be cared for. */
+export interface GuestView {
+  readonly id: string;
+  readonly name: string;
+  readonly species: string;
+  readonly sex: 'f' | 'm';
+  readonly loan: boolean;
+  readonly energy: number;
+  readonly maxEnergy: number;
+  readonly motivation: number;
+  readonly fedToday: boolean;
+  readonly pettedToday: boolean;
+  readonly wateredToday: boolean;
+  readonly snackedToday: boolean;
+  readonly caredAt: number | null;
+  /** Whose owl it is: their user ID and current name (null if no longer a contact). */
+  readonly holderId: string;
+  readonly holderName: string | null;
+  readonly restUntil: number;
+}
+
+export function guestView(
+  ctx: Context,
+  owl: OwlRow,
+  flight: FlightRow,
+  index: number,
+  now: number,
+): GuestView {
+  const today = utcDay(now);
+  const stop = routeOf(flight)[index];
+  return {
+    id: owl.id,
+    name: owl.name ?? flight.owl_name,
+    species: owl.species,
+    sex: owl.sex,
+    loan: owl.kind === 'loan',
+    energy: displayEnergy(currentEnergy(ctx, owl, now)),
+    maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
+    motivation: owl.motivation,
+    fedToday: owl.fed_on === today,
+    pettedToday: owl.petted_on === today,
+    wateredToday: owl.watered_on === today,
+    snackedToday: owl.snacked_on === today,
+    caredAt: owl.cared_at,
+    holderId: flight.holder_id,
+    holderName: stop
+      ? findContact(ctx.db, stop.userId, flight.holder_id)
+        ? displayName(ctx.db, flight.holder_id)
+        : null
+      : null,
+    restUntil: stop?.restUntil ?? now,
+  };
 }
 
 export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
@@ -168,9 +224,13 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
       const route = routeOf(flight);
       const info = flightPosition(flight, now);
       const position = info?.position;
+      const resting = route.find((stop) => stop.status === 'resting');
       absence = {
         daylight: position ? isDay(now, position.lat, position.lon) : true,
         sleeping: info?.phase === 'sleep',
+        resting: resting
+          ? { name: displayName(ctx.db, resting.userId), until: resting.restUntil ?? now }
+          : null,
         purpose: flight.purpose,
         recipients: route
           .filter((stop) => stop.type === 'deliver' && stop.status === 'pending')

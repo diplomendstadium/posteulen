@@ -36,7 +36,7 @@
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
   const typeTexts = t.finance as Record<string, string>;
-  // Local time of 15:00 UTC today (changes with daylight saving time).
+  // Local time of the pay hour (03:00 UTC since v0.7) today (changes with daylight saving time).
   const today = new Date();
   const dailyTime = time(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), GOLD.DAILY_HOUR_UTC),

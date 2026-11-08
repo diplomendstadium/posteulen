@@ -48,6 +48,7 @@ export const CHEAPEST_SPECIES: Species = SPECIES.reduce((a, b) => (b.price < a.p
  * v0.3: in flight by day/night (owl list) and back home by day/night (system message).
  * v0.5: drinking water and the favourite treat (13 kinds; the phoenix has no chick picture).
  * v0.5.1: asleep on the way at night / by day, and a nap at home by day (16 kinds).
+ * v0.7: brooding on its eggs (17 kinds; the phoenix lays no eggs and has 15).
  */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
@@ -66,21 +67,26 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'sleepNight', suffix: 'Nachtpause' },
   { kind: 'sleepDay', suffix: 'Tagschlaf-Unterwegs' },
   { kind: 'napHome', suffix: 'Tagschlaf-Zuhause' },
+  { kind: 'brooding', suffix: 'Brueten' },
 ] as const;
 
-/** The image kinds a species has (v0.5: no chick picture for mythical species). */
+/** The image kinds a species has (no chick or brooding picture for mythical species). */
 export function imageKindsOf(species: Pick<Species, 'mythical'>): readonly OwlImageKindEntry[] {
   return species.mythical
-    ? OWL_IMAGE_KINDS.filter((entry) => entry.kind !== 'chick')
+    ? OWL_IMAGE_KINDS.filter((entry) => entry.kind !== 'chick' && entry.kind !== 'brooding')
     : OWL_IMAGE_KINDS;
 }
 
 type OwlImageKindEntry = (typeof OWL_IMAGE_KINDS)[number];
 
-/** Pictures without a species (SPEC Anhang B): empty perch and the group picture. */
+/**
+ * Pictures without a species (SPEC Anhang B): empty perch, the group picture and (v0.7) the
+ * letters burning in the fireplace.
+ */
 export const SCENE_IMAGES = [
   { id: 'perch', file: 'Leere-Stange.png', sizes: [160, 480] },
   { id: 'group', file: 'Gruppenbild.png', sizes: [480, 960] },
+  { id: 'burn', file: 'Verbrennen.png', sizes: [480, 960] },
 ] as const;
 
 export type SceneId = (typeof SCENE_IMAGES)[number]['id'];
