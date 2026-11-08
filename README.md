@@ -36,6 +36,7 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
 - **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg.
+- **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
 - **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (bis zu 48 Stunden). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort los.
 - **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
 - **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen.
@@ -80,7 +81,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.7.0**.
+Stand: **Version 0.7.1**.
 
 **Kurzfassung**
 
@@ -161,6 +162,7 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
 - Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
+- Nachrichten der Nutzer (seit 0.7.1, ganz unten): Nutzer können aus den Einstellungen einmal am Tag eine kurze Nachricht (300 Zeichen) an den Admin schicken – für Probleme und Ideen. Sie sind nicht verschlüsselt, kommen ohne Absender an und werden nach 90 Tagen gelöscht.
 - Gutscheine (seit 0.7): für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.

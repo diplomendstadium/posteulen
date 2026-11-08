@@ -38,6 +38,7 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Forgotten password means: account gone.** Nobody can reset it, not even the operator. That is not a bug; it is the price of real encryption.
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route.
+- **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
 - **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (up to 48 hours). There it may be pampered and takes a reply back to you – with a reply on board it takes off at once.
 - **German or English:** a little flag in the top right corner switches the whole app to English (and back). Accounts remember their language; the pen friends then write in English too.
 - **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may.
@@ -84,7 +85,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.7.0**.
+Version: **0.7.1**.
 
 **In short**
 
@@ -164,6 +165,7 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - At the first login it must be changed (at least 15 characters); nothing else is possible before that.
 - Since 0.7 the admin panel signs you out after 10 minutes without activity.
 - Choose the registration mode: “geschlossen” (closed, default), “nur mit Einladungscode” (invitation code only) or “offen für alle” (open to everyone). Invitation codes are valid for 48 hours, can be used once and are only shown when created.
+- Messages from users (since 0.7.1, at the very bottom): once a day, users can send the admin a short message (300 characters) from the settings – for problems and ideas. They are not encrypted, arrive without the sender and are deleted after 90 days.
 - Vouchers (since 0.7): for gold (0.1 to 100) or an owl (species of your choice or random), redeemable once, valid for 90 days. The code is only shown when it is created; users redeem it in the settings of the app. PostEulen does not store who redeemed a voucher.
 - The error log shows understandable entries (without personal data) for 30 days after they last occurred. If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
 - Statistics: accounts created, existing and active, and letters (daily counters only).

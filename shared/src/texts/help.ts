@@ -18,6 +18,7 @@ import {
   MAP,
   MENAGERIE,
   OWL,
+  FEEDBACK,
   SECURITY,
   VOUCHER,
 } from '../constants.ts';
@@ -97,7 +98,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Dein Nutzername hat ${ACCOUNT.USER_NAME_MIN_CHARS} bis ${ACCOUNT.USER_NAME_MAX_CHARS} Zeichen: lateinische Buchstaben, Umlaute, ß, gängige Akzentbuchstaben, Ziffern und einzelne Leerzeichen. Groß- und Kleinschreibung und leicht verwechselbare Zeichen (0 und O, 1, l und I) zählen als gleich – so kann sich niemand als jemand anderes ausgeben.`,
       `Dein Passwort hat mindestens ${ACCOUNT.PASSWORD_MIN_CHARS} Zeichen. Ein Satz, den du dir gut merken kannst, ist ideal. Das Passwort verlässt nie dein Gerät und liegt nirgends auf dem Server. Deshalb gilt: Wenn du es vergisst, sind alle deine Daten unwiderruflich verloren. Niemand kann es zurücksetzen, auch der Admin nicht.`,
-      'Beim Erstellen setzt du einen fiktiven Wohnort per Pin auf die Karte – bitte nicht deine echte Adresse. Dort wohnen deine Eulen; von dort fliegen sie los.',
+      'Beim Erstellen setzt du einen fiktiven Wohnort per Pin auf die Karte – überlege sorgfältig, ob du deine echte Adresse wählen möchtest. Dort wohnen deine Eulen; von dort fliegen sie los.',
       'Du kannst immer nur auf einem Gerät angemeldet sein. Meldest du dich auf einem anderen Gerät an, endet die Sitzung auf dem alten. Nach mehrfach falschem Passwort musst du etwas warten und ein kleines Rechenrätsel lösen lassen (das macht dein Gerät automatisch).',
       `Ohne Nutzung endet die Anmeldung nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen. Beim Abmelden löscht PostEulen alle Schlüssel von deinem Gerät und vergisst auch alles, was es sich über deine Kontakte gemerkt hat – meldet sich danach jemand anderes im selben Fenster an, sieht er nichts davon. Beim nächsten Anmelden holt PostEulen deine Schlüssel verschlüsselt vom Server zurück.`,
     ],
@@ -110,7 +111,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Oben in der braunen Leiste siehst du deinen Goldstand. Ist neue Post da, hüpft dort „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
       'Was du schon gelesen hast, gilt sofort als gelesen – die Zähler in der Übersicht und in der Leiste gehen ohne Neuladen zurück.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
-      'Darunter begrüßt dich PostEulen mit deinem Namen – passend zur Tageszeit an deinem fiktiven Wohnort, also nach der Uhrzeit, die dort gerade gilt (mit Sommerzeit). Wer spät abends oder nachts vorbeischaut, wird als Nachteule begrüßt.',
+      'Darunter begrüßt dich PostEulen mit deinem Namen – passend zur Tageszeit an deinem fiktiven Wohnort, also nach der Uhrzeit, die dort gerade gilt (mit Sommerzeit). Wer spät abends oder nachts vorbeischaut, wird als Nachteule begrüßt. Auch alle anderen Uhrzeiten in der App – Ankunft, Heimkehr, Rast, Fristen – stehen in dieser Ortszeit deines Wohnorts.',
       'Oben rechts sitzt auf jeder Seite ein kleines Fähnchen. Ein Tipp auf die britische Flagge stellt PostEulen auf Englisch um, die deutsche Flagge stellt wieder zurück (siehe Sprache).',
     ],
   },
@@ -262,7 +263,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Hinter jeder deiner Eulen zieht sich eine dünne dunkelbraune Linie: der Weg, den sie schon geflogen ist. Wo sie übernachtet hat, steht ein kleines „Zzz“. Den Weg, der noch vor ihr liegt, zeigt die Karte nicht – Eulen lassen sich nicht gern in die Karten schauen.',
       'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch dein Wohnort, deine Kontakte und deine Eulen zu sehen sind (die Bots zählen dafür nicht). Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       `Die dunkle Fläche ist die Nacht. Positionen, Flugspuren und Nachtgrenze rechnet dein Gerät alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu aus, ohne den Server zu fragen.`,
-      'Die Karte ist immer quadratisch und so groß, dass sie ganz ins Fenster passt. Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus). Ganz herausgezoomt („Ganze Karte“) passt die ganze Welt ins Quadrat.',
+      'Die Karte ist immer quadratisch und so groß, dass sie ganz ins Fenster passt. Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus). Ganz herausgezoomt passt die ganze Welt ins Quadrat. Der Knopf unter Plus und Minus („Ansicht zurücksetzen“) springt zurück zur Ansicht beim Öffnen der Karte.',
       'Wohnen kannst du nur in Westeuropa: Bei der Anmeldung und beim Umzug bleibt die Karte deshalb im bisherigen Westeuropa-Ausschnitt.',
     ],
   },
@@ -371,6 +372,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Sprache: Deutsch oder Englisch, für dieses Konto auf jedem Gerät.',
         'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
+        `Nachricht an den Admin (ganz unten): Bei technischen Problemen oder Verbesserungsvorschlägen schickst du dem Admin deiner PostEulen-Instanz eine kurze Nachricht – höchstens ${FEEDBACK.MAX_CHARS} Zeichen, eine pro Tag (der Tag wechselt um Mitternacht UTC). Sie ist nicht verschlüsselt, liegt ohne deinen Namen lesbar auf dem Server und wird nach ${FEEDBACK.RETENTION_DAYS} Tagen gelöscht. Schreib also nichts Vertrauliches hinein.`,
         `Gutschein einlösen: Hast du von der Betreiberin oder dem Betreiber deiner PostEulen-Instanz einen Gutschein bekommen, tippst du hier den Code ein. Ein Gutschein bringt Gold oder eine neue Eule, gilt ${VOUCHER.VALID_DAYS} Tage und lässt sich einmal einlösen.`,
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
         'Abmelden: entfernt alle Schlüssel von diesem Gerät, und PostEulen vergisst alles über dein Konto, was es sich in diesem Fenster gemerkt hat.',
@@ -469,7 +471,11 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   {
     question: 'Kann ich einen Brief zurückholen oder bearbeiten?',
     answer:
-      'Nein, abgeschickt ist abgeschickt. Du kannst aber deinen Chat löschen – dein Gegenüber behält dann seine Kopie.',
+      'Nein, abgeschickt ist abgeschickt. Du kannst aber mit „Alle Briefe verbrennen“ deine Kopien eines Chats löschen – dein Gegenüber behält dann seine.',
+  },
+  {
+    question: 'Etwas funktioniert nicht, oder ich habe eine Idee. Wem sage ich das?',
+    answer: `Dem Admin deiner PostEulen-Instanz: Ganz unten in den Einstellungen steht „Nachricht an den Admin“. Dort schreibst du bis zu ${FEEDBACK.MAX_CHARS} Zeichen, eine Nachricht pro Tag. Sie ist nicht verschlüsselt und kommt ohne deinen Namen an – möchtest du eine Antwort, sag in der Nachricht, wie man dich erreicht (oder lieber nicht). Für Fragen zur Bedienung hilft dir auch der Erklärbär.`,
   },
 ];
 

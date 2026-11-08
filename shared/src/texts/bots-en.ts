@@ -38,7 +38,7 @@ Your finances show how much gold you have and your latest bookings. You can send
 
 In the Menagerie you buy your own owls or borrow one. Every day there are four new loan owls, and you can borrow each of them once that day. If you have an owl to spare, you can lend it to the Menagerie for 7 days and get 10 % of its price afterwards.
 
-By the way: the little flag in the top right corner switches PostEulen to German and back.
+By the way: the little flag in the top right corner switches PostEulen to German and back. Something not working, or an idea? At the very bottom of the settings you can send the admin a short message.
 
 Happy saving, your Explainer Bear`,
     day3: `Hello, today is all about owls!

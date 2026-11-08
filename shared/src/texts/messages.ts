@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.7.1',
+    title: 'Feinschliff im Eulenturm: Version 0.7.1',
+    paragraphs: [
+      'Nach dem großen Anbau haben die Eulenmeister die Späne zusammengefegt und ein paar Dinge geradegerückt:',
+      '• Uhrzeiten stehen jetzt überall in der Ortszeit deines Wohnorts – auch die Rast einer Eule bei deinen Freunden.',
+      '• Tippst du bei einer rastenden Gast-Eule auf „Antwort mitgeben“, ist sie gleich ausgewählt, und nichts anderes lenkt ab.',
+      '• Bevor eine Eule gekauft wird, fragt die Menagerie noch einmal nach – damit kein Goldstück aus Versehen davonflattert.',
+      '• Der Knopf unter Plus und Minus auf der Karte bringt dich zurück zur Ansicht vom Öffnen.',
+      '• Neu ganz unten in den Einstellungen: eine kurze Nachricht an den Admin, wenn etwas klemmt oder du eine Idee hast. Sie ist nicht verschlüsselt und kommt ohne deinen Namen an.',
+      'Weiterhin viel Freude mit deinen Eulen!',
+    ],
+  },
+  {
     version: '0.7.0',
     title: 'Eulen, die zum Plausch bleiben: Version 0.7',
     paragraphs: [
@@ -202,6 +215,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.7.1',
+    title: 'Polishing the owlery: version 0.7.1',
+    paragraphs: [
+      'After the big extension, the owl masters swept up the shavings and set a few things straight:',
+      '• Times are now shown everywhere in the local time where you live – including an owl’s rest with your friends.',
+      '• If you tap “Give it a reply” on a visiting owl, it is chosen straight away, and nothing else distracts you.',
+      '• Before an owl is bought, the Menagerie asks once more – so that no gold flutters away by mistake.',
+      '• The button below plus and minus on the map takes you back to the view it opened with.',
+      '• New at the very bottom of the settings: a short message to the admin if something is not working or you have an idea. It is not encrypted and arrives without your name.',
+      'Enjoy your owls!',
+    ],
+  },
   {
     version: '0.7.0',
     title: 'Owls that stay for a chat: version 0.7',

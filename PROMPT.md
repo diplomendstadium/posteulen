@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.7.0)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.7.1)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel und Skripte für Installation und Updates auf Debian 13.
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.7.0, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.7.1, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -58,7 +58,7 @@ Am Ende jeder Stufe lieferst du:
 2. **Start:** ein einziger Befehl, mit dem ich den Stand lokal starte, plus Testzugänge.
 3. **Server:** die Befehle für Installation auf einem frischen Debian 13 bzw. Update eines vorhandenen Stands, das Ergebnis deines Testlaufs (SPEC 16, 17.6) und die Hinweise für Betreiber aus `CHANGELOG.md`.
 4. **Testbericht:** Anzahl der Tests, alle grün?, Abdeckung der Module in `shared/src` (mindestens 90 % Zeilen je Datei, SPEC 17.5), Ergebnis von `npm audit` und `shellcheck`.
-5. **Screenshots** aller neuen oder geänderten Screens: Handy (390×844) und Desktop (1440×900), mindestens einer in Graustufen (SPEC 14, 17.4) – als Anhang zum Bericht, nicht im Repository.
+5. **Screenshots** aller neuen oder geänderten Screens: Handy (390×844) und Desktop (1440×900), mindestens einer in Graustufen (SPEC 14, 17.4; `POSTEULEN_SCREENSHOTS=1 npx playwright test e2e/screenshots.spec.ts --project=chromium-mobile --project=chromium-desktop`) – als Anhang zum Bericht, nicht im Repository.
 6. **Neue Einträge** in SPEC Anhang N.
 7. **Fehlende Eulenbilder:** Liste der Dateien, die im Ordner `images/` noch fehlen (SPEC Anhang B).
 8. **Offene Fragen, Risiken und Vorschläge** zur SPEC – jeweils mit Lösungsvorschlägen.
@@ -70,7 +70,7 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 1. **Verstehen:** SPEC, `CHANGELOG.md` und den Auftrag lesen; den aktuellen Stand lokal starten und die Tests laufen lassen.
 2. **Rückfragen vor dem Start:** Unklarheiten sammelst du und fragst sie gesammelt, bevor du anfängst – jede mit mehreren Optionen, deine Empfehlung zuerst. Ergeben sich unterwegs neue Fragen zu Spielregeln, Sicherheit oder Datenschutz, fragst du erneut; reine Fehlerkorrekturen ohne Regeländerung setzt du direkt um und berichtest sie.
 3. **Umsetzen** nach den Konventionen unten. Datenbankänderungen nur als neue, nummerierte Migration (`backend/migrations/NNNN_vXY.sql`), vorwärts, mit Bestandsdaten getestet. Bestehende Konten, Briefe und Eulen müssen das Update unbeschadet überstehen.
-4. **Prüfen:** alle Tests (`npm test`: Lint, Typen, Unit-Tests mit Abdeckung, `npm audit`, `shellcheck`, Build, Playwright in vier Profilen inkl. Barrierefreiheit und Layout in acht Breiten). Für neue Regeln neue Tests. Das Layout prüfst du zusätzlich selbst im Browser (Handy 320–390 px, Tablet, Desktop, Deutsch und Englisch). Den VM-Test (`npm run test:vm`) lässt du laufen, wenn sich Skripte, Migrationen, Abhängigkeiten oder der Betrieb ändern, oder wenn ich es verlange; sonst sag im Bericht, dass er nicht lief.
+4. **Prüfen – schlank (SPEC 17):** Während der Entwicklung nur gezielt die betroffenen Tests (einzelne Vitest-Dateien, einzelne E2E-Dateien in einem Profil). Am Ende **genau einmal** `npm test` komplett (Lint, Typen, Unit-Tests mit Abdeckung, `npm audit`, `shellcheck`, Build, Playwright in zwei Profilen inkl. Barrierefreiheit und Layout in vier Breiten). Für neue Regeln neue Tests; doppelte Prüfungen von Bekanntem vermeiden. Das Layout der geänderten Seiten prüfst du kurz selbst im Browser (Handy 320–390 px und Desktop, Deutsch und Englisch). Den VM-Test (`npm run test:vm`) lässt du nur laufen, wenn sich Skripte, Migrationen, Abhängigkeiten oder der Betrieb ändern, oder wenn ich es verlange; sonst sag im Bericht, dass er nicht lief. Screenshots (`POSTEULEN_SCREENSHOTS=1`) und README-Bilder (`POSTEULEN_README_SHOTS=1`) nur auf Anfrage oder wenn sich das Gezeigte deutlich ändert.
 5. **Update-Nachricht:** Jede neue Version bekommt einen Eintrag in `UPDATE_NOTES` und `UPDATE_NOTES_EN` (`shared/src/texts/messages.ts`) – siehe „Nicht verhandelbar“. Was der Auftraggeber ausdrücklich nicht ankündigen möchte (z. B. die Gutscheine in v0.7), bleibt dort unerwähnt; SPEC, Hilfe und README beschreiben es trotzdem.
 6. **Version** an genau einer Stelle erhöhen (`shared/src/version.ts`) nach Semantic Versioning.
 7. **Dokumentation in beiden Sprachen nachziehen:**

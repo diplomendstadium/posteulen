@@ -3,6 +3,39 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.7.1 – Feinschliff
+
+Pflegeversion nach 0.7.0 (SPEC Anhang Q, Entscheidungen D-207 bis D-215).
+
+- **Uhrzeiten** stehen überall in der Ortszeit des fiktiven Wohnorts (z. B. „Rastet bei … bis …“ zeigte
+  auf manchen Geräten UTC).
+- **Antwort mit der Gast-Eule:** „Antwort … mitgeben“ öffnet den Chat mit genau dieser Eule – ohne
+  andere Eulen und ohne Rast-Auswahl.
+- **Kaufen** nur nach Rückfrage.
+- **Nachricht an den Admin:** ganz unten in den Einstellungen, 300 Zeichen, eine pro UTC-Tag, nicht
+  verschlüsselt, ohne Absender, nach 90 Tagen gelöscht; im Adminpanel als letzter Punkt
+  („Nachrichten der Nutzer“). Hilfe, FAQ, Erklärbär und Datenschutzerklärung weisen darauf hin.
+- **Karte:** „Ansicht zurücksetzen“ springt zur Ansicht beim Öffnen zurück (statt zur ganzen Welt).
+- **Wohnort:** Hinweis „Überlege sorgfältig, ob du deine echte Adresse wählen möchtest.“
+- **Abstände:** nach „Gutschein einlösen“ (Einstellungen) und „Gutscheine“ (Adminpanel).
+- **Texte:** FAQ zum Zurückholen von Briefen nennt „Alle Briefe verbrennen“.
+- **Tests:** schlanker Ablauf – gezielt während der Entwicklung, `npm test` einmal am Ende; E2E in zwei
+  Profilen (Chromium-Desktop, WebKit-Handy) statt vier; Layout in vier statt acht Breiten;
+  Screenshot-Rundgang nur auf Anfrage (`POSTEULEN_SCREENSHOTS=1`). Neue Tests für die Änderungen
+  (`backend/test/v071.test.ts`, Ergänzungen in `admin.test.ts` und `e2e/v07.spec.ts`).
+- SPEC (Stand 0.7.1, Anhang Q), PROMPT (Testablauf), README, Hilfe, Erklärbär und Datenschutzerklärung
+  de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration `0015_v071.sql`** (Schema 15): Tabelle `feedback` und Spalte
+  `users.feedback_sent_on`. Läuft beim Update automatisch.
+- Die Datenschutzerklärung nennt jetzt die Nachrichten an den Admin – wer eigene Rechtstexte pflegt,
+  sollte das übernehmen.
+- Keine neuen Bilder, keine neuen npm-Pakete.
+- Update wie gewohnt: `sudo posteulen-update`.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.7.1.
+
 ## v0.7.0 – Eulen, die zum Plausch bleiben
 
 Funktionsversion (SPEC Anhang P, Entscheidungen D-184 bis D-206).

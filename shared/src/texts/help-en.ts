@@ -13,6 +13,7 @@ import {
   MAP,
   MENAGERIE,
   OWL,
+  FEEDBACK,
   SECURITY,
   VOUCHER,
 } from '../constants.ts';
@@ -78,7 +79,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       `Your user name has ${ACCOUNT.USER_NAME_MIN_CHARS} to ${ACCOUNT.USER_NAME_MAX_CHARS} characters: Latin letters, umlauts, ß, common accented letters, digits and single spaces. Upper and lower case and easily confused characters (0 and O, 1, l and I) count as the same – so nobody can pretend to be somebody else.`,
       `Your password has at least ${ACCOUNT.PASSWORD_MIN_CHARS} characters. A sentence you can remember easily is ideal. The password never leaves your device and is not stored anywhere on the server. So remember: if you forget it, all your data is lost for good. Nobody can reset it, not even the admin.`,
-      'When creating your account you set a fictional home on the map with a pin – please not your real address. That is where your owls live and where they take off from.',
+      'When creating your account you set a fictional home on the map with a pin – think carefully about whether you want to choose your real address. That is where your owls live and where they take off from.',
       'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
       `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device and also forgets everything it remembered about your contacts – if someone else then signs in in the same window, they see nothing of it. The next time you sign in, PostEulen fetches your keys back from the server, encrypted.`,
     ],
@@ -91,7 +92,7 @@ const SECTIONS: readonly HelpSection[] = [
       'In the brown bar at the top you see how much gold you have. When new post is there, “New post!” hops up and down there – tapping it takes you to your letters. On the overview, the version of the app is shown in small print next to the lettering. If notifications are not set up, a note below takes you to the settings. If it bothers you, hide it with “Hide until the next sign-in”.',
       'Whatever you have read counts as read straight away – the counters on the overview and in the bar go down without reloading.',
       'Under “News” the overview shows everything that did not reach you by notification – for example because your phone was off.',
-      'Below, PostEulen greets you by name – to suit the time of day at your fictional home, that is, by the time that applies there right now (with summer time). If you drop by late in the evening or at night, you are greeted as a night owl.',
+      'Below, PostEulen greets you by name – to suit the time of day at your fictional home, that is, by the time that applies there right now (with summer time). If you drop by late in the evening or at night, you are greeted as a night owl. All other times in the app – arrivals, homecomings, rests, deadlines – are shown in this local time at your home, too.',
       'In the top right corner of every page sits a little flag. Tapping the German flag switches PostEulen back to German, the British flag switches it to English (see Language).',
     ],
   },
@@ -243,7 +244,7 @@ const SECTIONS: readonly HelpSection[] = [
       'Behind each of your owls runs a thin dark brown line: the way it has already flown. Where it spent the night there is a small “Zzz”. The map does not show the way still ahead – owls do not like people looking at their maps.',
       'When you open it, the map zooms in just far enough that your home, your contacts and your owls are visible (the bots do not count for this). For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
       `The dark area is the night. Your device recalculates positions, flight tracks and the night boundary every ${MAP.CLIENT_REFRESH_MINUTES} minutes without asking the server.`,
-      'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus). Zoomed all the way out (“Whole map”), the whole world fits into the square.',
+      'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus). Zoomed all the way out, the whole world fits into the square. The button below plus and minus (“Reset view”) goes back to the view the map opened with.',
       'You can only live in Western Europe: when you sign up and when you move, the map therefore stays within the familiar Western Europe section.',
     ],
   },
@@ -354,6 +355,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Letters: have your own letters and system messages deleted after 30, 90 or 180 days instead of after one year; show letters in print instead of handwriting.',
         'Language: German or English, for this account on every device.',
         'Notifications: see the status and test them.',
+        `Message to the admin (at the very bottom): for technical problems or suggestions, send the admin of your PostEulen instance a short message – at most ${FEEDBACK.MAX_CHARS} characters, one a day (the day changes at midnight UTC). It is not encrypted, lies readable on the server without your name and is deleted after ${FEEDBACK.RETENTION_DAYS} days. So do not write anything confidential in it.`,
         `Redeem a voucher: if the operator of your PostEulen instance has given you a voucher, type its code here. A voucher brings gold or a new owl, is valid for ${VOUCHER.VALID_DAYS} days and can be redeemed once.`,
         `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
         'Sign out: removes all keys from this device, and PostEulen forgets everything about your account that it remembered in this window.',
@@ -453,7 +455,11 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Can I recall or edit a letter?',
     answer:
-      'No, sent is sent. But you can delete your chat – the other person then keeps their copy.',
+      'No, sent is sent. But with “Burn all letters” you can delete your copies of a chat – the other person keeps theirs.',
+  },
+  {
+    question: 'Something does not work, or I have an idea. Whom do I tell?',
+    answer: `The admin of your PostEulen instance: at the very bottom of the settings there is “Message to the admin”. There you write up to ${FEEDBACK.MAX_CHARS} characters, one message a day. It is not encrypted and arrives without your name – if you would like an answer, say in the message how to reach you (or better not). For questions about using the app, the Explainer Bear helps too.`,
   },
   {
     question: 'Why does the app have a German name?',

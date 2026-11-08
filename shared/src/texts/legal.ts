@@ -2,7 +2,7 @@
  * Privacy policy and imprint (SPEC 8.11): standard texts of the project. Whoever runs an
  * instance is responsible for adapting them on their own (SPEC 8.11, PROMPT).
  */
-import { ACCOUNT, LETTER, OPERATIONS } from '../constants.ts';
+import { ACCOUNT, FEEDBACK, LETTER, OPERATIONS } from '../constants.ts';
 import { de } from './de.ts';
 import type { HelpSection } from './help.ts';
 import {
@@ -30,10 +30,11 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
         'Briefe zwischen Menschen: nur verschlüsselt. Lesbar für den Server sind Absender, Empfänger, Zeitpunkte, Pergamentgröße, Zustell- und Lesestatus (nur ja/nein).',
         'Spielstand: Gold, die letzten 20 Buchungen, Eulen mit ihren Werten und Flügen.',
         'Bot-Chats und Systemnachrichten: im Klartext (siehe unten).',
+        `Nachrichten an den Admin (freiwillig, aus den Einstellungen): im Klartext und ohne Absender, ${FEEDBACK.RETENTION_DAYS} Tage lang. Am Konto steht nur der Tag der letzten Nachricht (für die Grenze von einer Nachricht pro Tag).`,
         'Benachrichtigungen: die Adresse deines Push-Abos und noch nicht bestätigte Benachrichtigungen (ohne Inhalte).',
         `Namenssperren: für gelöschte oder alte Namen nur ein nicht umkehrbarer Prüfwert, ${ACCOUNT.NAME_LOCK_DAYS} Tage lang.`,
       ],
-      'Der Admin sieht nur zusammengezählte Statistiken (zum Beispiel Anzahl der Konten und Briefe pro Tag) und ein Fehlerprotokoll ohne personenbezogene Daten. Er hat keine Nutzerliste, keinen Zugriff auf Briefe und kann nichts an Konten ändern. Die Datenbank selbst enthält die oben genannten Daten aber zwangsläufig lesbar.',
+      'Der Admin sieht nur zusammengezählte Statistiken (zum Beispiel Anzahl der Konten und Briefe pro Tag) ein Fehlerprotokoll ohne personenbezogene Daten und die Nachrichten, die Nutzer ihm freiwillig schicken (ohne Absender; was darin steht, entscheidest du). Er hat keine Nutzerliste, keinen Zugriff auf Briefe und kann nichts an Konten ändern. Die Datenbank selbst enthält die oben genannten Daten aber zwangsläufig lesbar.',
     ],
   },
   {

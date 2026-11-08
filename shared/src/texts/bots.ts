@@ -47,7 +47,7 @@ In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Go
 
 In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort vier neue Leiheulen, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
-Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück.
+Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück. Klemmt etwas, oder hast du eine Idee? Ganz unten in den Einstellungen schickst du dem Admin eine kurze Nachricht.
 
 Viel Spaß beim Sparen, dein Erklärbär`,
   day4: `Hallo, heute geht es um Kontakte!

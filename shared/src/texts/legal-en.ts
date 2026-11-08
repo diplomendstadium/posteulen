@@ -2,7 +2,7 @@
  * Privacy policy and imprint in English (v0.4): translation of the standard texts in
  * legal.ts, with the same section ids. Whoever runs an instance adapts both on their own.
  */
-import { ACCOUNT, LETTER, OPERATIONS } from '../constants.ts';
+import { ACCOUNT, FEEDBACK, LETTER, OPERATIONS } from '../constants.ts';
 import { en } from './en.ts';
 import type { HelpSection } from './help.ts';
 
@@ -24,10 +24,11 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
         'Letters between people: only encrypted. The server can read sender, recipient, times, parchment size, delivery and read status (only yes/no).',
         'Game state: gold, the last 20 bookings, owls with their values and flights.',
         'Bot chats and system messages: in plain text (see below).',
+        `Messages to the admin (voluntary, from the settings): in plain text and without the sender, for ${FEEDBACK.RETENTION_DAYS} days. The account only keeps the day of the last message (for the limit of one message a day).`,
         'Notifications: the address of your push subscription and notifications not yet confirmed (without content).',
         `Name locks: for deleted or old names only a non-reversible check value, for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
       ],
-      'The admin only sees totals (for example the number of accounts and letters per day) and an error log without personal data. The admin has no list of users, no access to letters and cannot change anything in accounts. The database itself, however, necessarily contains the data listed above in readable form.',
+      'The admin only sees totals (for example the number of accounts and letters per day) an error log without personal data and the messages users voluntarily send them (without the sender; what is in them is up to you). The admin has no list of users, no access to letters and cannot change anything in accounts. The database itself, however, necessarily contains the data listed above in readable form.',
     ],
   },
   {
