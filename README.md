@@ -14,7 +14,7 @@
 
 Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie ein Nickerchen – genau so lange, bis die Kraft bis zum nächsten Ziel reicht. Auf der Karte – die inzwischen die ganze Welt zeigt, auch wenn alle Eulenhalter in Westeuropa wohnen – kannst du ihr dabei zusehen.
 
-Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen die nächste Strecke schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, wartet sie auf dem Fensterbrett – tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
+Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen die nächste Strecke schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, sitzt sie auf dem Fensterbrett und wartet auf dich – bei Tageslicht oder bei Kerzenschein, sobald du die App das nächste Mal öffnest. Tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
 
 Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
 
@@ -47,7 +47,7 @@ PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen
 
 - **Kein Sog, keine Dauerbereitschaft.** Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt.
 - **Keine Fremden.** Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
-- Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie mit einem Tipp im Adressbuch.
+- Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
 
 ### Wie kommt PostEulen aufs Handy? Ganz ohne App-Store!
 
@@ -81,7 +81,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.7.1**.
+Stand: **Version 0.7.2**.
 
 **Kurzfassung**
 

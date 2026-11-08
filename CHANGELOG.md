@@ -3,6 +3,36 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.7.2 – Heimkehr ans Fensterbrett
+
+Pflegeversion (SPEC Anhang R, Entscheidungen D-216 bis D-222).
+
+- **Fehler behoben – unsichtbare Post:** Wer „Alle Briefe verbrennen“ wählte (oder einen Bot entfernte),
+  während noch ein Brief zu ihm unterwegs war, bekam diesen Brief unsichtbar zugestellt – „Neue Post!“
+  ohne sichtbaren Brief, vor allem bei Bots. Unterwegs befindliche Briefe verbrennen jetzt nicht mehr mit;
+  die Ungelesen-Zähler werden beim Update neu berechnet.
+- **Fehler behoben – Bots kehrten zurück:** Konten, die alle Bots entfernt hatten, bekamen beim Neustart
+  des Servers wieder alle drei. Entfernte Bots bleiben jetzt weg (`users.bots_created`).
+- **Bots** stehen nicht mehr im Adressbuch, nur im Briefwechsel und auf der Karte. Entfernen: einzeln im
+  Chat („[Name] entfernen“) oder alle auf einmal in den Einstellungen („Alle Bots entfernen“, inkl.
+  Erklärbär, unwiderruflich).
+- **Heimkehr:** keine Systemnachricht mehr, stattdessen jedes Mal das Heimkehr-Bild (Tag/Nacht) als
+  Einblendung – sofort bei offener App, sonst beim nächsten Öffnen oder Einloggen; mehrere Heimkehrer
+  nacheinander. Alte Heimkehr-Nachrichten werden ausgeblendet.
+- **Restzeiten** unter einer Stunde in Minuten („zurück in 40 Min.“, offene Kontaktanfragen).
+- **Geschlecht der Eulen** geprüft: gleich verteilt (49,99 % weiblich bei 200 000 Würfen); neuer Test.
+- Tests: `backend/test/v072.test.ts`, Ergänzungen in `bots.test.ts`, `owls.test.ts`, `v03.test.ts`,
+  `v07.test.ts`, `e2e/bots.spec.ts`, `e2e/v061.spec.ts`.
+- SPEC (Stand 0.7.2, Anhang R), PROMPT, README, Hilfe und Erklärbär de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration `0016_v072.sql`** (Schema 16): Spalte `users.bots_created`, Tabelle
+  `homecomings`, Neuberechnung der Ungelesen-Zähler. Läuft beim Update automatisch.
+- Keine neuen Bilder, keine neuen npm-Pakete, keine Änderungen an den Rechtstexten.
+- Update wie gewohnt: `sudo posteulen-update`.
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.7.2.
+
 ## v0.7.1 – Feinschliff
 
 Pflegeversion nach 0.7.0 (SPEC Anhang Q, Entscheidungen D-207 bis D-215).
