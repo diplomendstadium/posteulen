@@ -12,9 +12,9 @@
   <img src="docs/readme/gruppenbild.jpg" alt="Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand" width="520">
 </p>
 
-Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie ein Nickerchen – genau so lange, bis die Kraft bis zum nächsten Ziel reicht. Auf der Karte kannst du ihr dabei zusehen.
+Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie ein Nickerchen – genau so lange, bis die Kraft bis zum nächsten Ziel reicht. Auf der Karte – die inzwischen die ganze Welt zeigt, auch wenn alle Eulenhalter in Westeuropa wohnen – kannst du ihr dabei zusehen.
 
-Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen dann schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, wartet sie auf dem Fensterbrett – tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
+Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen die nächste Strecke schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, wartet sie auf dem Fensterbrett – tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
 
 Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
 
@@ -36,6 +36,7 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
 - **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg.
+- **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (bis zu 48 Stunden). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort los.
 - **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
 - **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen.
 
@@ -77,7 +78,9 @@ PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesun
 
 Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Schritt für Schritt, wie PostEulen auf einem eigenen Server (VPS) mit **Debian 13** per HTTPS läuft. Sie ist für Einsteiger geschrieben; jeder Schritt der Skripte ist erklärt, damit man ihn notfalls auch von Hand ausführen kann. Eulen sind nicht im Lieferumfang enthalten, die erzeugt die Software.
 
-Stand: **Version 0.6.1**.
+> **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
+
+Stand: **Version 0.7.0**.
 
 **Kurzfassung**
 
@@ -154,10 +157,11 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 ### 3. Erster Login im Adminpanel
 
 - Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das Admin-Erstpasswort. Damit unter `https://admin.posteulen.de` anmelden.
-- Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes.
+- Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes. Nach 10 Minuten ohne Aktivität meldet das Adminpanel dich ab (seit 0.7).
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
 - Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
+- Gutscheine (seit 0.7): für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
 - OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), Tageslimit (Standard 200 Aufrufe), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
@@ -280,7 +284,8 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte. Die
 - Benachrichtigungen kommen nicht an: In der App unter Einstellungen eine Test-Benachrichtigung schicken. Die Hilfe der App erklärt iPhone und Android ohne Google-Dienste. Der Server muss Push-Dienste über Port 443 erreichen können.
 - Nutzer sehen „Bitte neu laden“: Nach einem Update lädt die App selbst neu; ältere Tabs bekommen diese Aufforderung statt eines Fehlers.
 - Die App zeigt „Keine Verbindung“: Ist der Dienst gestartet (`systemctl status posteulen`) und Caddy erreichbar (`systemctl status caddy`)?
-- Alte Briefe sind weg: Das ist Absicht. Briefe und Systemnachrichten werden spätestens ein Jahr nach der Zustellung gelöscht (täglich um 04:00 UTC), auf Wunsch der Nutzer auch früher.
+- Alte Briefe sind weg: Das ist Absicht. Briefe und Systemnachrichten werden spätestens ein Jahr nach der Zustellung gelöscht (täglich um 04:00 UTC), auf Wunsch der Nutzer auch früher. Betroffene bekommen seit 0.7 eine Systemnachricht, wie viele Briefe aus welchen Chats gelöscht wurden.
+- „Fontconfig error: Cannot load default config file“ beim Build: harmlos (die Bildbibliothek sucht beim Umrechnen des Logos eine Schrift-Konfiguration, die ein frisches Debian nicht hat). Seit 0.7 bringt PostEulen für den Build eine eigene, minimale Konfiguration mit, und die Meldung erscheint nicht mehr.
 
 ### 8. Optional
 

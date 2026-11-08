@@ -45,7 +45,7 @@ Happy saving, your Explainer Bear`,
 
 Every owl has energy. At night it needs 1 point per kilometre, by day 1.5. When it is empty, it sleeps and recovers just as at home – but only until it has the strength for its next destination. Over water it keeps flying until it finds land.
 
-At home it recovers by itself. The map shows where your owls are right now, the way they have already flown and where it is night. A "Zzz" marks where an owl spent the night.
+At home it recovers by itself. When writing, you choose how long it rests with each recipient – then it can bring you a reply straight away. The map shows where your owls are right now, the way they have already flown and where it is night. A "Zzz" marks where an owl spent the night.
 
 See you soon, your Explainer Bear`,
     day4: `Hello, today is all about contacts!
@@ -61,7 +61,7 @@ By the way, letters to bots like me are not encrypted. And remember: after one y
 Your Explainer Bear`,
     day7: `Hello, today is all about care!
 
-Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly faster and further. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl is ill, nurse it back to health yourself or take it to the owl vet.
+Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people's owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl is ill, nurse it back to health yourself or take it to the owl vet.
 
 Sometimes an owl lays eggs. With two or three chicks, you give one of them to a contact.
 

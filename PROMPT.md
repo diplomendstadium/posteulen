@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.6.1)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.7.0)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel und Skripte für Installation und Updates auf Debian 13.
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.6.1, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.7.0, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -71,7 +71,7 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 2. **Rückfragen vor dem Start:** Unklarheiten sammelst du und fragst sie gesammelt, bevor du anfängst – jede mit mehreren Optionen, deine Empfehlung zuerst. Ergeben sich unterwegs neue Fragen zu Spielregeln, Sicherheit oder Datenschutz, fragst du erneut; reine Fehlerkorrekturen ohne Regeländerung setzt du direkt um und berichtest sie.
 3. **Umsetzen** nach den Konventionen unten. Datenbankänderungen nur als neue, nummerierte Migration (`backend/migrations/NNNN_vXY.sql`), vorwärts, mit Bestandsdaten getestet. Bestehende Konten, Briefe und Eulen müssen das Update unbeschadet überstehen.
 4. **Prüfen:** alle Tests (`npm test`: Lint, Typen, Unit-Tests mit Abdeckung, `npm audit`, `shellcheck`, Build, Playwright in vier Profilen inkl. Barrierefreiheit und Layout in acht Breiten). Für neue Regeln neue Tests. Das Layout prüfst du zusätzlich selbst im Browser (Handy 320–390 px, Tablet, Desktop, Deutsch und Englisch). Den VM-Test (`npm run test:vm`) lässt du laufen, wenn sich Skripte, Migrationen, Abhängigkeiten oder der Betrieb ändern, oder wenn ich es verlange; sonst sag im Bericht, dass er nicht lief.
-5. **Update-Nachricht:** Jede neue Version bekommt einen Eintrag in `UPDATE_NOTES` und `UPDATE_NOTES_EN` (`shared/src/texts/messages.ts`) – siehe „Nicht verhandelbar“.
+5. **Update-Nachricht:** Jede neue Version bekommt einen Eintrag in `UPDATE_NOTES` und `UPDATE_NOTES_EN` (`shared/src/texts/messages.ts`) – siehe „Nicht verhandelbar“. Was der Auftraggeber ausdrücklich nicht ankündigen möchte (z. B. die Gutscheine in v0.7), bleibt dort unerwähnt; SPEC, Hilfe und README beschreiben es trotzdem.
 6. **Version** an genau einer Stelle erhöhen (`shared/src/version.ts`) nach Semantic Versioning.
 7. **Dokumentation in beiden Sprachen nachziehen:**
    - `SPEC.md`: Regeln im Text anpassen, neuer Anhang „Änderungen in Version X“ (Tabelle Bereich – Änderung – Abschnitt), Entscheidungen in Anhang N, Stand im Kopf und in Abschnitt 1, Anhang L bei technischen Änderungen.
@@ -121,5 +121,6 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 - Zustand des angemeldeten Kontos, den der Browser im Arbeitsspeicher hält, meldet sich mit `onSignOut` (`web/src/lib/auth.svelte.ts`) zum Leeren an und prüft `accountGeneration()`, bevor er eine Serverantwort speichert (SPEC 5.5).
 - Wartungsversionen mit Schwerpunkt Sicherheit: jede gefundene Lücke bekommt einen Test, der ohne die Korrektur fehlschlägt (Gegenprobe), und einen Eintrag im Änderungsanhang der SPEC.
 - Jeder Stand lässt sich per Skript auf einem frischen Debian 13 installieren (Testmodus mit `tls internal`), ein zweiter Lauf überschreibt nichts, und er lässt sich vom Tag der vorigen Version aus ohne Datenverlust aktualisieren; ein absichtlich fehlschlagendes Update wird automatisch zurückgerollt, und `--rollback` funktioniert (SPEC 16, 17.6). Der VM-Test signiert seine Test-Tags mit einem eigenen Testschlüssel und prüft, dass unsignierte Tags abgelehnt werden; er testet nur den committeten Stand (HEAD). Steht dir keine Debian-13-VM zur Verfügung, sag das im Bericht, statt den Test stillschweigend auszulassen.
-- Die Eulenbilder liefere ich im Ordner `images/` (Dateinamen: SPEC Anhang B). Fehlen einzelne Bilder, verwende Platzhalter (der Build warnt, bricht aber nicht ab) und liste die fehlenden Dateien im Bericht auf. Logo und App-Icons sind einfache, austauschbare SVGs.
+- Die Eulenbilder liefere ich im Ordner `images/` (Dateinamen: SPEC Anhang B). Liefere ich neue Bilder mit anderen Namen (z. B. in einem eigenen Ordner), benennst du sie nach Anhang B um und verschiebst sie nach `images/`. Fehlen einzelne Bilder, verwende Platzhalter (der Build warnt, bricht aber nicht ab) und liste die fehlenden Dateien im Bericht auf. Logo und App-Icons sind einfache, austauschbare SVGs.
+- Kartendaten, Land/Wasser-Maske und Zeitzonen-Karte erzeugt `node tools/map/build.ts` aus Natural Earth (SHA-256 in `tools/map/sources.json`); danach `npx prettier --write web/src/lib/map/world.json shared/src/map/timezones-data.ts`. Die Ergebnisse liegen im Repository.
 - Das Repository liegt bei mir im Nextcloud-Ordner. Große erzeugte Ordner (`node_modules`, `dist`, `coverage`, `test-results`) sind in `.gitignore`; VM-Images liegen außerhalb des synchronisierten Ordners (z. B. `~/.cache/posteulen-vm`).

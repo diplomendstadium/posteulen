@@ -14,9 +14,9 @@
   <img src="docs/readme/gruppenbild.jpg" alt="Seventeen post owls of different species sit side by side on three wooden perches in front of a stone wall" width="520">
 </p>
 
-Remember how lovely it was to find a real letter in the letterbox? PostEulen brings that feeling back. Your messages do not dash through the net in milliseconds; they are brought by an owl – and the owl, being an owl, has a mind of its own: depending on distance, time of day and fitness, it is on its way for a few hours. It prefers flying at night (less tiring), it bravely keeps going over the sea, and when it really cannot go on, it takes a nap – just long enough to have the strength for its next destination. You can watch it on the map.
+Remember how lovely it was to find a real letter in the letterbox? PostEulen brings that feeling back. Your messages do not dash through the net in milliseconds; they are brought by an owl – and the owl, being an owl, has a mind of its own: depending on distance, time of day and fitness, it is on its way for a few hours. It prefers flying at night (less tiring), it bravely keeps going over the sea, and when it really cannot go on, it takes a nap – just long enough to have the strength for its next destination. You can watch it on the map – which now shows the whole world, even though all owl keepers live in Western Europe.
 
-You buy or borrow owls, name them, give them water, pet them and spoil them with owl biscuits or their favourite snack. Seventeen species live in the Menagerie, from the tiny Elf Owl to Blakiston’s Fish Owl – and lately a phoenix that one morning was simply sitting on the window sill. Each of them tells you a little about its character there. Cared-for owls are motivated and then fly faster and further; well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day. While an owl is on its way, the overview shows it flying – in sunshine or under the stars – and on the map it draws a fine trail behind it, with a “Zzz” at every place it spent the night. When it takes a nap on the way, you see it asleep, and when it comes home, it waits for you on the window sill – by day it likes to doze there too; owls are night birds, after all.
+You buy or borrow owls, name them, give them water, pet them and spoil them with owl biscuits or their favourite snack. Seventeen species live in the Menagerie, from the tiny Elf Owl to Blakiston’s Fish Owl – and lately a phoenix that one morning was simply sitting on the window sill. Each of them tells you a little about its character there. Cared-for owls are motivated and then fly their next leg faster and further; well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day. While an owl is on its way, the overview shows it flying – in sunshine or under the stars – and on the map it draws a fine trail behind it, with a “Zzz” at every place it spent the night. When it takes a nap on the way, you see it asleep, and when it comes home, it waits for you on the window sill – by day it likes to doze there too; owls are night birds, after all.
 
 You get gold every day (3 gold pieces during your first 30 days, 2 after that), and three pen friends join in: a patient **Explainer Bear**, a chatty **aunt** with a cauldron (she writes to you a few minutes after you sign up) and a wonderfully crazy **uncle** who occasionally inherits an offended goat.
 
@@ -38,6 +38,7 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Forgotten password means: account gone.** Nobody can reset it, not even the operator. That is not a bug; it is the price of real encryption.
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route.
+- **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (up to 48 hours). There it may be pampered and takes a reply back to you – with a reply on board it takes off at once.
 - **German or English:** a little flag in the top right corner switches the whole app to English (and back). Accounts remember their language; the pen friends then write in English too.
 - **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may.
 
@@ -79,9 +80,11 @@ PostEulen is a hobby project, put together out of curiosity, parchment and a hea
 
 You want to open your own owlery? Go ahead. This guide explains step by step how to run PostEulen on your own server (VPS) with **Debian 13** over HTTPS. It is written for beginners; every step of the scripts is explained so you could also do it by hand if necessary. Owls are not included – the software creates them.
 
+> **For the paranoid (in the best sense):** you do not have to trust this repository. You can rebuild PostEulen yourself at any time – with or without AI. All you need is [`PROMPT.md`](PROMPT.md) (the build brief), [`SPEC.md`](SPEC.md) (the specification) and the picture folder [`images/`](images/). Between ourselves: `SPEC.md` is really where the essence of all the thinking and the many tests that went into this project lives – the code is basically just its most diligent translation. An instance built from the SPEC stays compatible with the data of this one (SPEC appendix L).
+
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.6.1**.
+Version: **0.7.0**.
 
 **In short**
 
@@ -159,7 +162,9 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 
 - At the end of the installation (or of the update that added the admin panel) the initial admin password is shown once. Use it to sign in at `https://admin.posteulen.de`.
 - At the first login it must be changed (at least 15 characters); nothing else is possible before that.
+- Since 0.7 the admin panel signs you out after 10 minutes without activity.
 - Choose the registration mode: “geschlossen” (closed, default), “nur mit Einladungscode” (invitation code only) or “offen für alle” (open to everyone). Invitation codes are valid for 48 hours, can be used once and are only shown when created.
+- Vouchers (since 0.7): for gold (0.1 to 100) or an owl (species of your choice or random), redeemable once, valid for 90 days. The code is only shown when it is created; users redeem it in the settings of the app. PostEulen does not store who redeemed a voucher.
 - The error log shows understandable entries (without personal data) for 30 days after they last occurred. If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
 - Statistics: accounts created, existing and active, and letters (daily counters only).
 - Deletion period for inactivity: default 180 days, at least 60. Those affected are warned 30 days before; even shortening the period deletes nobody without this warning.
@@ -284,7 +289,8 @@ The logs deliberately contain no IP addresses, no names and no content. The owls
 - Notifications do not arrive: in the app, send a test notification from the settings. The app’s help explains iPhone and Android without Google services. The server must be able to reach push services on port 443.
 - Users see “Please reload”: after an update the app reloads by itself; older tabs get this request instead of an error.
 - The app shows “No connection”: is the service running (`systemctl status posteulen`) and is Caddy reachable (`systemctl status caddy`)?
-- Old letters are gone: that is on purpose. Letters and system messages are deleted one year after delivery at the latest (every day at 04:00 UTC), or sooner if users choose so.
+- Old letters are gone: that is on purpose. Letters and system messages are deleted one year after delivery at the latest (every day at 04:00 UTC), or sooner if users choose so. Since 0.7 those affected get a system message saying how many letters from which chats were deleted.
+- “Fontconfig error: Cannot load default config file” during the build: harmless (the image library looks for a font configuration while converting the logo, which a fresh Debian does not have). Since 0.7 PostEulen brings its own minimal configuration for the build, and the message no longer appears.
 
 ### 8. Optional
 

@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.7.0',
+    title: 'Eulen, die zum Plausch bleiben: Version 0.7',
+    paragraphs: [
+      'Im Eulenturm wurde ordentlich angebaut. Das Wichtigste zuerst: Deine Eulen dürfen jetzt bei deinen Freunden Rast machen.',
+      '• Beim Briefeschreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt: gar nicht, 1, 2, 24 oder 48 Stunden. Dort ruht sie sich aus wie zu Hause, lässt sich gern verwöhnen – und nimmt eine Antwort an dich mit. Bekommt sie einen Brief, fliegt sie sofort los. Kommt sie mit Post zurück, sagt sie es dir.',
+      '• Die Motivation einer Eule gilt jetzt nur noch für die nächste Strecke. Wer einer rastenden Eule Wasser oder ein Leckerli gibt, schickt sie also flinker weiter.',
+      '• Die Karte zeigt jetzt die ganze Welt. Wohnen kann man weiterhin nur im vertrauten Westeuropa – aber wer weiß, wohin es die Eulen eines Tages verschlägt.',
+      '• Auf der Übersicht begrüßt dich PostEulen nach der Tageszeit an deinem Wohnort, und der tägliche Goldsegen kommt jetzt schon um 3 Uhr morgens (UTC) – der Goldstand oben rechts zeigt ihn sofort an.',
+      '• Gesendete Briefe verraten, welche Eule sie getragen hat. „Chat löschen“ heißt jetzt „Alle Briefe verbrennen“ – mit Kaminfeuer. Und werden alte Briefe wegen der Löschfrist entfernt, erfährst du, wie viele und aus welchen Briefwechseln.',
+      '• Brütende Eulen sitzen jetzt sichtbar auf ihren Eiern, heimkehrende Eulen landen zuverlässig mit Bild auf dem Fensterbrett, und beim Kauf siehst du das Geschlecht, bevor du den Namen vergibst.',
+      '• Dazu viele Kleinigkeiten: Die Motivation steht in Prozent, Leiheulen wiederholen sich nicht mehr an zwei Tagen hintereinander, Briefwechsel öffnen sich beim ältesten ungelesenen Brief, und in den Einstellungen steht dein aktueller Name.',
+      'Viel Freude beim Schreiben – und beim Bewirten fremder Eulen!',
+    ],
+  },
+  {
     version: '0.6.1',
     title: 'Neue Schlösser für den Eulenturm: Version 0.6.1',
     paragraphs: [
@@ -187,6 +202,21 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.7.0',
+    title: 'Owls that stay for a chat: version 0.7',
+    paragraphs: [
+      'There has been some building work at the owlery. The most important news first: your owls may now take a rest with your friends.',
+      '• When writing a letter, you choose how long the owl stays with each recipient: not at all, 1, 2, 24 or 48 hours. There it rests as if at home, happily lets itself be pampered – and takes a reply back to you. Once it has a letter, it takes off at once. If it comes home with post, it tells you.',
+      '• An owl’s motivation now only counts for the next leg. Whoever gives a resting owl water or a treat sends it on its way more briskly.',
+      '• The map now shows the whole world. You can still only live in familiar Western Europe – but who knows where the owls will roam one day.',
+      '• On the overview PostEulen greets you according to the time of day where you live, and the daily gold now arrives as early as 3 in the morning (UTC) – the gold in the top right shows it at once.',
+      '• Sent letters tell you which owl carried them. “Delete chat” is now called “Burn all letters” – with a crackling fire. And when old letters are removed because of the deletion period, you learn how many and from which conversations.',
+      '• Brooding owls can now be seen sitting on their eggs, owls coming home reliably land on the window sill with a picture, and when you buy an owl you see its sex before you name it.',
+      '• Plus many small things: motivation is shown in per cent, loan owls no longer repeat on two days in a row, conversations open at the oldest unread letter, and the settings show your current name.',
+      'Happy writing – and happy hosting of other people’s owls!',
+    ],
+  },
   {
     version: '0.6.1',
     title: 'New locks for the owl tower: version 0.6.1',

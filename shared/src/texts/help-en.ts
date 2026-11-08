@@ -14,6 +14,7 @@ import {
   MENAGERIE,
   OWL,
   SECURITY,
+  VOUCHER,
 } from '../constants.ts';
 import { formatGold } from '../game/gold.ts';
 import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
@@ -24,7 +25,8 @@ const gold = (tenths: number): string => `${formatGold(tenths, '.')} gold`;
 const percent = (share: number): string => `${Math.round(share * 100)} %`;
 /** One decimal, rounded half up (v0.5). */
 const decimalEn = (value: number): string => (Math.round(value * 10 + 1e-9) / 10).toFixed(1);
-const dailyGoldTime = `${GOLD.DAILY_HOUR_UTC}:00 UTC (${GOLD.DAILY_HOUR_UTC}:00 in the UK in winter, ${GOLD.DAILY_HOUR_UTC + 1}:00 in summer)`;
+const hh = (hour: number): string => String(hour).padStart(2, '0');
+const dailyGoldTime = `${hh(GOLD.DAILY_HOUR_UTC)}:00 UTC (${hh(GOLD.DAILY_HOUR_UTC)}:00 in the UK in winter, ${hh(GOLD.DAILY_HOUR_UTC + 1)}:00 in summer)`;
 
 const INTRO =
   'Here you can find out at leisure how PostEulen works – no prior knowledge needed. Right at the top you can read how PostEulen gets onto your phone; after that every part of the app has its own section, and at the end there are frequently asked questions. Anything still unclear? Write a letter to the Explainer Bear – he knows this help by heart.';
@@ -89,6 +91,7 @@ const SECTIONS: readonly HelpSection[] = [
       'In the brown bar at the top you see how much gold you have. When new post is there, “New post!” hops up and down there – tapping it takes you to your letters. On the overview, the version of the app is shown in small print next to the lettering. If notifications are not set up, a note below takes you to the settings. If it bothers you, hide it with “Hide until the next sign-in”.',
       'Whatever you have read counts as read straight away – the counters on the overview and in the bar go down without reloading.',
       'Under “News” the overview shows everything that did not reach you by notification – for example because your phone was off.',
+      'Below, PostEulen greets you by name – to suit the time of day at your fictional home, that is, by the time that applies there right now (with summer time). If you drop by late in the evening or at night, you are greeted as a night owl.',
       'In the top right corner of every page sits a little flag. Tapping the German flag switches PostEulen back to German, the British flag switches it to English (see Language).',
     ],
   },
@@ -141,6 +144,8 @@ const SECTIONS: readonly HelpSection[] = [
       `How it works: choose the parchment, write the text, add more recipients if you like (at most ${LETTER.MAX_RECIPIENTS} in total), choose an owl and send. With several recipients, PostEulen sorts them so that the owl flies the shortest way – from you to all of them and back home. You can still change the order with the arrows. When you choose an owl, PostEulen shows you for every owl when it arrives at each recipient and when it is back home.`,
       `No owl at home? Then the owl choice offers you the loan owls of the day right away. They are only borrowed and paid for (${gold(GOLD.LOAN_PRICE)}) when you really send – your letter stays as it is.`,
       'With several recipients, the owl flies from one to the next. Everyone only sees their own letter and can only reply to you. This works with your own owls and with loan owls; a loan owl vanishes after the last recipient. Bots are never among several recipients.',
+      `A rest with the recipient: when writing, you choose how long the owl stays with each recipient before flying on – not at all, 1, 2, 24 or ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} hours (preselected: ${LETTER.REST_HOURS_DEFAULT} hour). During the rest it recovers as at home, and the recipient sees it under “Owls” with the clear note “Only here for a rest!”. They may look after it and hand it a reply to you – then it takes off at once. If the time runs out unused, it flies on by itself. With several recipients, each of them can give it a reply; the owl then comes home with several letters, and the message about its homecoming tells you how many. A loan owl without a reply vanishes after the last recipient; if it has replies on board, it brings them to you first and only then flies back to the Menagerie.`,
+      'When a contact’s owl is resting with you, you write your reply as usual in your chat: in the owl choice the visiting owl is at the top and already selected. It takes your letter straight to its holder – there is no rest on the way back.',
       'Letters are plain text. Parchment knows no smileys and emojis – they are removed. Links starting with http:// or https:// can be clicked and open in the browser; check the address shown before you tap.',
       `Beware of disguised addresses: some letters from other alphabets look just like ours (a Cyrillic “а” looks like an “a”). If the address of a link contains such characters, or a name with “@” in front of the actual address, PostEulen shows it in its technical form, such as “xn--pypal-4ve.com” instead of “pаypal.com”, and writes next to it: “${en.letters.linkWarning}” That way you see where the link really leads. Genuine addresses with accented letters (such as café.fr) look like that too.`,
       [
@@ -151,9 +156,10 @@ const SECTIONS: readonly HelpSection[] = [
         '“not readable”: the other person’s device could not confirm the letter as genuine and therefore does not show it.',
       ],
       'When an owl arrives at your place, you see its arrival picture the first time. It closes by itself after a few seconds, with a tap or with the Escape key.',
+      'Below every letter it says which owl brought it – for your own letters too (“On its way with …” while it is still flying). If it was not your own owl, the brackets say that it was a loan owl or whose owl it was.',
       'In the chat, letters appear as sheets of parchment with frayed edges: letters to you on light parchment, in German school handwriting and blue-black ink, your own on darker parchment, in flowing quill handwriting and sepia. Links and names are always in print so you can read them safely. If handwriting is too much effort, switch to print in the settings.',
-      'When you open a chat, it jumps straight down to the latest letter. Older letters are above it.',
-      'Deleting a chat removes your copies of all letters of this chat for good. The other person keeps theirs.',
+      'When you open a chat, it starts at the oldest letter you have not read yet. If everything is read, it jumps to the latest letter. Older letters are above it.',
+      '“Burn all letters” asks first and then removes your copies of all letters of this chat for good – they go up in flames in the fireplace. The other person keeps theirs.',
     ],
   },
   {
@@ -163,6 +169,7 @@ const SECTIONS: readonly HelpSection[] = [
       `Important: all letters and system messages are deleted automatically and for good ${LETTER.RETENTION_MAX_DAYS} days – that is, one year – after delivery at the latest. This applies to all accounts and to the bots’ letters too. Nobody can restore them.`,
       'In the settings under “Letters” you can have your own copies deleted after 30, 90 or 180 days – letters written and received. If you choose a shorter period, everything older is deleted immediately. The other person keeps their copy until their own period runs out.',
       'Letters still on their way are never deleted. If you want to keep something, write it down outside PostEulen.',
+      'If letters were removed because of the deletion period, a system message with a picture of the fire tells you how many there were and from which chats.',
     ],
   },
   {
@@ -170,7 +177,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'System messages',
     blocks: [
       'In the chat “System messages” PostEulen reports everything important right away: new contacts, gold or owls that have arrived, illnesses, eggs, chicks, name changes of your contacts, messages from the admin to everyone and more. You cannot reply there.',
-      'When one of your owls comes home from a flight, a message with a picture appears here: the owl sits on the window sill – in daylight or by candlelight, depending on whether it is light or dark at your home right now when you look at the message. If you have set up notifications, you get one of those too.',
+      'When one of your owls comes home from a flight, a message appears here – with replies on board it also tells you how many. The first time it is shown (here, under “News” or at once if the app is open when the owl lands), a picture appears: the owl sits on the window sill – in daylight or by candlelight, depending on whether it is light or dark at your home at that moment. If you have set up notifications, you get one of those too.',
       'After every update a message tells you what has changed. And every five weeks a small request for a voluntary donation arrives (see Frequently asked questions).',
     ],
   },
@@ -178,8 +185,9 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Your owls',
     blocks: [
-      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter” or “In the Menagerie until Fri, 14:00”.',
-      'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is taking a rest on the way, you see it asleep, by day or at night. If it is helping out in the Menagerie, you see its empty perch.',
+      'Under “Owls” you see all your owls, chicks and loan owls with picture, name, species, sex, energy, motivation and state – the loan owls at the top, your own below. If an owl is not there, it says why and until when, for example “Is flying a letter to Peter”, “Is asleep on the way home”, “Resting with Peter until 20:00” or “In the Menagerie until Fri, 14:00”.',
+      'The picture shows what the owl is doing right now: if it is on its way, you see it flying – in sunshine or under the stars, depending on whether it is light or dark where it is right now. If it is taking a rest on the way, you see it asleep, by day or at night. If it is brooding, it sits on its eggs in the nest. If it is helping out in the Menagerie, you see its empty perch.',
+      'If a contact’s owl is resting with you, it is right at the top under “Visiting you” – with the note that it is only here for a rest and until when. You can give it water, pet it and feed it (you pay for the biscuit and the snack) – that raises its motivation, and it flies on refreshed. “Give it a reply …” takes you straight to your chat.',
       'Owls are night birds: when it is light at your home, a healthy owl sometimes dozes – whether it is asleep is decided anew each time you open the owl overview, about every other time. At night and for ten minutes after you last looked after it, it is always awake. You can still care for it and send it off at any time.',
       'Each species has a price, a maximum energy, a speed factor and a recovery factor. Owls do not grow old and do not die.',
       [
@@ -210,10 +218,10 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'motivation',
     title: 'Motivation',
     blocks: [
-      'Besides its energy, each of your owls has a second bar: motivation. It is always between 0.8 and 1.2. Owls you buy come to you with 1.0, loan owls with 0.8 to 1.0.',
-      'Every night at midnight (UTC) it drops by 0.1 – even while the owl is on its way or helping out in the Menagerie. Water, petting, an owl biscuit and the favourite snack each raise it by 0.1 once a day. So if you care a little every day, you will soon have a highly motivated owl.',
-      'At take-off the motivation counts for the whole trip, there and back: with 1.2 the owl has 20 % more energy on the way, is 20 % faster and recovers 20 % faster while sleeping; with 0.8 it has 20 % less. At home the normal values of the species apply again.',
-      'In the owl overview, the speed in km/h and the recovery in percent per hour of the species are shown below the bars. If the motivation is not 1.0, a green “+10 %” or a red “−20 %” follows – that is how much changes on the next trip.',
+      'Besides its energy, each of your owls has a second bar: motivation. It is always between 80% and 120%. Owls you buy come to you with 100%, loan owls with 80% to 100%.',
+      'Every night at midnight (UTC) it drops by 10 percentage points – even while the owl is on its way or helping out in the Menagerie. Water, petting, an owl biscuit and the favourite snack each raise it by 10 percentage points once a day. So if you care a little every day, you will soon have a highly motivated owl.',
+      'The motivation always counts for the next leg: from home to the first recipient when it takes off, and from each recipient to its next destination when it flies on. With 120% the owl has 20% more energy on that leg, is 20% faster and recovers 20% faster while sleeping; with 80% it has 20% less. At home and while resting with a recipient the normal values of the species apply. So whoever looks after a resting owl sends it on more briskly.',
+      'In the owl overview, the speed in km/h and the recovery in percent per hour of the species are shown below the bars. If the motivation is not 100%, a green “+10 %” or a red “−20 %” follows – that is how much changes on the next leg.',
     ],
   },
   {
@@ -223,7 +231,7 @@ const SECTIONS: readonly HelpSection[] = [
       `Base speed ${FLIGHT.BASE_SPEED_KMH} km/h times the speed factor of the species – just as fast by day and by night.`,
       `Energy: at night ${FLIGHT.ENERGY_PER_KM_NIGHT} point per kilometre, by day ${FLIGHT.ENERGY_PER_KM_DAY} points. Twilight counts as day. Owls are night birds, after all.`,
       `When its energy is empty, the owl sleeps on the spot. It recovers just as at home: ${percent(OWL.REGEN_SHARE_PER_HOUR)} of its maximum energy times its recovery factor per hour. But it only sleeps until it has enough energy for the way to its next destination – the next recipient or its home – at most until it is full. Over water it does not sleep: it glides on without energy to the next coast and rests there. You can send off nearly empty owls too; the flight then simply starts with a nap.`,
-      'After the last delivery the owl flies home by the same rules. Loan owls do not fly back; owls and chicks given as gifts stay with the recipient.',
+      'If you chose a rest when writing, the owl stays that long with the recipient after the delivery and recovers there as at home (see Letters). After the last delivery the owl flies home by the same rules. Loan owls do not fly back – unless they have a reply for you on board; owls and chicks given as gifts stay with the recipient.',
       'If a recipient or you yourself move, the owl changes course at once. If the connection is cut or the recipient deletes their account, it turns back; with several recipients it leaves out the one affected.',
     ],
   },
@@ -231,11 +239,12 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'karte',
     title: 'The map',
     blocks: [
-      'The map shows Western Europe with your home, the homes of your contacts and bots, and your owls that are currently on their way for you. You never see other people’s owls – not even when they are flying to you. You find the Explainer Bear on the map as soon as you have written to him for the first time; the aunt and the uncle as soon as their first letter has reached you.',
+      'The map shows the whole world. Western Europe, where everyone lives, is drawn in detail, with cities; outside it you see borders and capitals. Shown are your home, the homes of your contacts and bots, and your owls that are currently on their way for you. You never see other people’s owls – not even when they are flying to you. You find the Explainer Bear on the map as soon as you have written to him for the first time; the aunt and the uncle as soon as their first letter has reached you.',
       'Behind each of your owls runs a thin dark brown line: the way it has already flown. Where it spent the night there is a small “Zzz”. The map does not show the way still ahead – owls do not like people looking at their maps.',
-      'When you open it, the map zooms in just far enough that all your places and owls are visible. For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
+      'When you open it, the map zooms in just far enough that your home, your contacts and your owls are visible (the bots do not count for this). For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
       `The dark area is the night. Your device recalculates positions, flight tracks and the night boundary every ${MAP.CLIENT_REFRESH_MINUTES} minutes without asking the server.`,
-      'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus) – but not beyond the edge of the map.',
+      'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus). Zoomed all the way out (“Whole map”), the whole world fits into the square.',
+      'You can only live in Western Europe: when you sign up and when you move, the map therefore stays within the familiar Western Europe section.',
     ],
   },
   {
@@ -253,9 +262,9 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Menagerie: buying and borrowing owls',
     blocks: [
       'At the top are the loan owls of the day, below them all owls for sale – sorted by price, the cheapest first. A short description of every owl for sale tells you where it comes from and what kind of character it is.',
-      `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name. Its sex is random; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there. The phoenix is never offered.`,
-      `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. It can be cared for like any owl, but not renamed or given away. Its motivation is between 0.8 and 1.0.`,
+      `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name – its randomly rolled sex is already shown then; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
+      `Borrowing: every day at midnight (UTC) there are ${MENAGERIE.OFFER_SPECIES_COUNT} species to borrow, for ${gold(GOLD.LOAN_PRICE)} per owl – each with a different name. Species and names do not repeat on the two following days – so you never meet the same loan owl two days in a row. You can borrow each owl on offer once a day, so up to ${MENAGERIE.LOANS_PER_DAY} a day – even if loan owls from yesterday are still waiting with you. As soon as new owls are offered at midnight, you can borrow all of them. You can borrow here or right when writing a letter if none of your own owls is there. The phoenix is never offered.`,
+      `A loan owl carries a letter to up to ${LETTER.MAX_RECIPIENTS} recipients one after another, or gold to one recipient, and is gone after the last one – it does not fly back. If you do not send it off within ${MENAGERIE.LOAN_EXPIRY_HOURS} hours, it vanishes again and the gold is spent. If you chose a rest and a recipient hands it a reply, it brings that to you first. It can be cared for like any owl, but not renamed or given away. Its motivation is between 80% and 100%.`,
       `Tip for the start: with ${gold(GOLD.START)} starting gold you borrow an owl for your first letter. For the cheapest owl of your own (${CHEAPEST.nameEn}, ${CHEAPEST.price} gold) you will have enough after a day or two.`,
     ],
   },
@@ -263,7 +272,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'arten',
     title: 'Owl species at a glance',
     blocks: [
-      'Price in gold, maximum energy, speed and recovery per hour (with motivation 1.0):',
+      'Price in gold, maximum energy, speed and recovery per hour (with motivation 100%):',
       SPECIES.map(
         (species) =>
           `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % per hour`,
@@ -339,12 +348,13 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Settings and account',
     blocks: [
       [
-        `Change user name: once per calendar year. Your contacts are told by system message; the old name is locked for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
+        `Change user name: once per calendar year. Your current name is shown right there. Your contacts are told by system message; the old name is locked for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
         `Change home: up to ${ACCOUNT.HOME_CHANGES_PER_MONTH} times per calendar month, however close together. Owls on their way change course.`,
         'Change password: old password once, new one twice. All letters stay readable.',
         'Letters: have your own letters and system messages deleted after 30, 90 or 180 days instead of after one year; show letters in print instead of handwriting.',
         'Language: German or English, for this account on every device.',
         'Notifications: see the status and test them.',
+        `Redeem a voucher: if the operator of your PostEulen instance has given you a voucher, type its code here. A voucher brings gold or a new owl, is valid for ${VOUCHER.VALID_DAYS} days and can be redeemed once.`,
         `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
         'Sign out: removes all keys from this device, and PostEulen forgets everything about your account that it remembered in this window.',
       ],
@@ -423,7 +433,7 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Why is my owl slower (or faster) than usual this time?',
     answer:
-      'That is its motivation: it drops a little every night and rises when you give your owl water, pet it, give it an owl biscuit or its favourite snack – each kind once a day. At take-off it is fixed for the whole trip. With 1.2 the owl flies 20 % faster and further, with 0.8 correspondingly slower.',
+      'That is its motivation: it drops a little every night and rises when you give your owl water, pet it, give it an owl biscuit or its favourite snack – each kind once a day. It counts for the next leg: at take-off from home and again whenever the owl flies on from a recipient. With 120% the owl flies 20% faster and further, with 80% correspondingly slower.',
   },
   {
     question: 'Can the operator read my letters?',

@@ -3,6 +3,60 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.7.0 – Eulen, die zum Plausch bleiben
+
+Funktionsversion (SPEC Anhang P, Entscheidungen D-184 bis D-205).
+
+- **Rast beim Empfänger:** Beim Schreiben wählt man, wie lange die Eule bei jedem Empfänger bleibt
+  (gar nicht, 1, 2, 24 oder 48 Stunden; vorgewählt 1 Stunde). Der Empfänger sieht sie als Gast in seiner
+  Eulenübersicht („Nur zur Rast hier!“), darf sie pflegen und ihr eine Antwort an den Absender mitgeben –
+  dann fliegt sie sofort los. Mehrere Empfänger können je eine Antwort mitgeben; die Eule bringt alle
+  heim (Heimkehr-Nachricht und Push nennen die Briefe). Leiheulen mit Antwort fliegen noch zum Absender.
+- **Motivation je Etappe:** Die Motivation zählt nur für die nächste Strecke und wird bei jedem Abflug von
+  einem Empfänger neu angewendet. Anzeige jetzt in Prozent (80–120 %).
+- **Weltkarte:** Die Karte zeigt die ganze Welt (Equal Earth), außerhalb Westeuropas mit Ländergrenzen und
+  Hauptstädten. Wohnorte gibt es weiterhin nur im Westeuropa-Ausschnitt (Registrierung und Umzug bleiben
+  darin). Der automatische Zoom berücksichtigt keine Bots mehr.
+- **Begrüßung:** Die Übersicht begrüßt nach der Tageszeit am fiktiven Wohnort (Zeitzone des Landes).
+- **Gutscheine:** Das Adminpanel erzeugt Gutscheine für Gold oder eine Eule (einmal einlösbar, 90 Tage);
+  Nutzer lösen sie in den Einstellungen ein.
+- **Adminpanel:** Die Anmeldung verfällt nach 10 Minuten ohne Aktivität (vorher 8 Stunden).
+- **Gold:** Das tägliche Gold kommt um 03:00 UTC (vorher 15:00); der Goldstand oben rechts aktualisiert
+  sich sofort.
+- **Briefe:** Gesendete Briefe nennen die überbringende Eule; „Chat löschen“ heißt „Alle Briefe
+  verbrennen“ (mit Rückfrage und Kaminbild); Chats öffnen beim ältesten ungelesenen Brief; nach dem
+  Löschen alter Briefe wegen der Löschfrist kommt eine Systemnachricht mit Anzahl und Chats.
+- **Bilder:** Brüten-Bilder für alle 17 Eulenarten; Bild „Verbrennen“. Das Heimkehr-Bild erscheint jetzt
+  zuverlässig als Einblendung (vorher nur im Systemchat, nicht bei „Neuigkeiten“ oder offener App).
+- **Kleinigkeiten:** „Schläft auf dem Weg zu …“/„Schläft auf dem Heimweg“ statt „Fliegt gerade …“, solange
+  die Eule schläft; Geschlecht schon beim Benennen; Leiheulen-Arten und -Namen wiederholen sich an zwei
+  Folgetagen nicht; aktueller Nutzername in den Einstellungen; Startseite mit gleich großer Anmelde-Box
+  und Gruppenbild; alle Fußzeilen-Links in einer Farbe.
+- **Betrieb:** Keine Meldung „Fontconfig error“ mehr beim Build (minimale fontconfig-Konfiguration).
+- **README:** Hinweis für Paranoide, dass man PostEulen mit `PROMPT.md`, `SPEC.md` und `images/` selbst
+  neu bauen kann.
+- **Tests:** neue Unit-Tests (`backend/test/v07.test.ts`, `shared/test/timezone.test.ts`, Ergänzungen in
+  Flug-, Karten-, Zufalls- und Admin-Tests) und E2E-Tests (`e2e/v07.spec.ts`, Gutschein im Adminpanel).
+- SPEC (Stand 0.7.0, Anhang P), PROMPT, README, Hilfe und Erklärbär de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Datenbank-Migration `0014_v07.sql`** (Schema 14): neue Tabelle `vouchers`. Läuft beim Update
+  automatisch.
+- **Neue Bilder** im Ordner `images/` (kommen mit dem Release): `<Art>-Brueten.png` für 17 Arten und
+  `Verbrennen.png` (zusammen 307 Bilddateien).
+- **Tägliches Gold um 03:00 UTC:** Der beim Update schon geplante Lauf um 15:00 wird auf 03:00 desselben
+  Tages verlegt; ist das schon vorbei, wird sofort gezahlt. Niemand bekommt einen Tag doppelt oder gar
+  nicht.
+- Flüge, die beim Update unterwegs sind, behalten bis zur Landung die alte Motivationsregel (ganze
+  Reise).
+- Admin-Sitzungen laufen jetzt nach 10 Minuten ohne Aktivität ab.
+- Neuer Server-Schlüssel `voucher` wird aus dem vorhandenen Geheimnis abgeleitet – die Geheimnis-Datei
+  bleibt unverändert.
+- Keine neuen npm-Pakete.
+- Update wie gewohnt: `sudo posteulen-update` (prüft die Tag-Signatur).
+- Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.7.0 (ohne Erwähnung der Gutscheine).
+
 ## v0.6.1 – Neue Schlösser
 
 Wartungsversion ohne neue Funktionen: Sicherheitsprüfung mit Schwerpunkt auf Kryptografie, Schutz
