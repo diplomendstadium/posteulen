@@ -83,6 +83,8 @@ test('README-Bilder', async ({ browser, page }) => {
   // Anna: a loan owl waiting at home, and her own tawny owl, which will set off tired.
   await page.goto('/app/menagerie');
   await page.getByTestId('loan-offer').first().getByRole('button').click();
+  // v0.7.1: a purchase is confirmed first.
+  page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
   await page.getByLabel('Name (2–20 Zeichen)').fill('Fiete');
   await page.getByRole('button', { name: 'Speichern' }).click();

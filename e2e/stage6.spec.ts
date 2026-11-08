@@ -122,6 +122,8 @@ test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async
   const me = await registerViaUi(page);
   setGold(me.name, 100);
   await page.goto('/app/menagerie');
+  // v0.7.1: a purchase is confirmed first.
+  page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
   await page.getByLabel('Name (2–20 Zeichen)').fill('Waldi');
   await page.getByRole('button', { name: 'Speichern' }).click();

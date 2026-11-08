@@ -6,6 +6,7 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
 import { borrowViaUi, registerViaUi } from './account-helpers.ts';
+import { setGold } from './db-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
   await page.goto('/app/adressbuch');
@@ -58,13 +59,14 @@ test.describe('Version 0.7', () => {
     await other.goto('/app/eulen');
     await expect(other.getByTestId('guest-owl')).toBeVisible({ timeout: 60_000 });
     await expect(other.getByTestId('guest-owl')).toContainText('Nur zur Rast hier!');
-    await other.getByRole('link', { name: `Antwort an ${anna.name} mitgeben` }).click();
+    await other.getByRole('button', { name: `Antwort an ${anna.name} mitgeben` }).click();
     await other.getByLabel('Text').fill('Gern, hier ist meine Antwort.');
+    // v0.7.1: replying with the visiting owl – no rest option, no other owls.
+    await expect(other.getByLabel('Rast bei jedem Empfänger')).toBeHidden();
     await other.getByRole('button', { name: 'Eule wählen' }).click();
-    // The visiting owl is preselected (Ben's own loan offers may have the same name).
     const guestChoice = other.locator('input[name="letter-owl"][value^="guest:"]');
     await expect(guestChoice).toBeChecked();
-    await expect(other.getByRole('radio', { checked: true, name: new RegExp(owl) })).toHaveCount(1);
+    await expect(other.locator('input[name="letter-owl"]')).toHaveCount(1);
     await expect(other.getByText(/Rastet gerade bei dir/)).toBeVisible();
     await other.getByRole('button', { name: 'Absenden' }).click();
     await expect(other.getByTestId('owl-overlay')).toContainText(`${owl} fliegt los`);
@@ -90,19 +92,58 @@ test.describe('Version 0.7', () => {
     await otherContext.close();
   });
 
-  test('Weltkarte: ganz herausgezoomt passt die Welt ins Quadrat', async ({ page }) => {
+  test('Weltkarte: ganz herausgezoomt passt die Welt ins Quadrat; Zurücksetzen auf die Startansicht', async ({
+    page,
+  }) => {
     await registerViaUi(page);
     await page.goto('/app/karte');
     await expect(page.locator('path.country').first()).toBeAttached();
-    await page.getByRole('button', { name: 'Ganze Karte' }).click();
-    const box = await page.locator('.map svg').evaluate((svg) => {
-      const [, , w, h] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number);
-      return { w, h, countries: svg.querySelectorAll('path.country').length };
-    });
+    const viewBox = () =>
+      page.locator('.map svg').evaluate((svg) => {
+        const [, , w, h] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number);
+        return {
+          w,
+          h,
+          view: svg.getAttribute('viewBox'),
+          countries: svg.querySelectorAll('path.country').length,
+        };
+      });
+    await expect.poll(async () => (await viewBox()).w).toBeLessThan(30_000);
+    const start = await viewBox();
+    for (let i = 0; i < 20; i++) await page.getByRole('button', { name: 'Verkleinern' }).click();
+    const box = await viewBox();
     expect(box.w).toBe(box.h);
     // About 34 500 km wide: the whole world.
     expect(box.w).toBeGreaterThan(30_000);
     expect(box.countries).toBeGreaterThan(200);
+    // v0.7.1: the reset button goes back to the view the map opened with.
+    await page.getByRole('button', { name: 'Ansicht zurücksetzen' }).click();
+    expect((await viewBox()).view).toBe(start.view);
+  });
+
+  test('v0.7.1: Kaufen nur nach Rückfrage; Nachricht an den Admin einmal am Tag', async ({
+    page,
+  }) => {
+    const me = await registerViaUi(page);
+    setGold(me.name, 300);
+    await page.goto('/app/menagerie');
+    page.once('dialog', (dialog) => {
+      expect(dialog.message()).toContain('Waldkauz wirklich für 6,0 Gold kaufen?');
+      void dialog.dismiss();
+    });
+    await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
+    await expect(page).toHaveURL(/\/app\/menagerie$/);
+
+    await page.goto('/app/einstellungen');
+    const feedback = page.getByTestId('feedback');
+    await expect(feedback).toContainText('nicht verschlüsselt');
+    await feedback
+      .getByLabel('Deine Nachricht')
+      .fill('Die Eulen sind toll, nur die Karte lädt langsam.');
+    await feedback.getByRole('button', { name: 'An den Admin schicken' }).click();
+    await expect(feedback).toContainText('Danke! Deine Nachricht ist beim Admin angekommen.');
+    await expect(feedback).toContainText('Heute hast du schon eine Nachricht geschickt.');
+    await expect(feedback.getByLabel('Deine Nachricht')).toBeHidden();
   });
 
   test('Startseite: Anmeldung und Gruppenbild gleich groß, Fußzeile in einer Farbe', async ({

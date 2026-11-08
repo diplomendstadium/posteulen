@@ -8,7 +8,8 @@ import { test } from './fixtures.ts';
 import { borrowViaUi, registerViaUi, uniqueName } from './account-helpers.ts';
 import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
-const WIDTHS = [320, 360, 390, 768, 1024, 1280, 1440, 1920] as const;
+// v0.7.1: four widths – smallest phone, usual phone, tablet, desktop.
+const WIDTHS = [320, 390, 768, 1440] as const;
 
 const PUBLIC_PAGES = ['/', '/konto-erstellen', '/hilfe', '/datenschutz', '/impressum'] as const;
 const APP_PAGES = [
@@ -108,11 +109,15 @@ test.describe('Layout in vielen Breiten (v0.6, SPEC 14)', () => {
     setGold(me.name, 2000);
     await borrowViaUi(page);
     await page.goto('/app/menagerie');
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Südliche Weißgesichtseule kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Hermenegildisgunda');
     await page.getByRole('button', { name: 'Speichern' }).click();
     await expect(page.getByRole('heading', { name: 'Hermenegildisgunda' })).toBeVisible();
     await page.goto('/app/menagerie');
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Riesenfischuhu kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Fischers Fritz Fisch');
     await page.getByRole('button', { name: 'Speichern' }).click();

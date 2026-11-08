@@ -192,6 +192,23 @@ describe('admin (SPEC 13)', () => {
       expect(listVouchers(app.ctx, app.clock.now + 90 * TIME.DAY + 1)).toEqual([]);
     });
 
+    it('lists and deletes messages of users, without sender (v0.7.1)', async () => {
+      const user = new Agent(app.userApi, USER_ORIGIN);
+      await register(user, 'Hanna', 'ein sehr langes Passwort');
+      expect((await user.json('POST', '/api/feedback', { text: 'Bitte mehr Eulen!' })).status).toBe(
+        200,
+      );
+      const list = await admin.json<{ messages: { id: string; text: string }[] }>(
+        'GET',
+        '/api/feedback',
+      );
+      expect(list.body.messages).toEqual([expect.objectContaining({ text: 'Bitte mehr Eulen!' })]);
+      expect(JSON.stringify(list.body)).not.toContain('Hanna');
+      const id = list.body.messages[0]!.id;
+      expect((await admin.json('DELETE', `/api/feedback/${id}`)).status).toBe(200);
+      expect((await admin.json('DELETE', `/api/feedback/${id}`)).status).toBe(404);
+    });
+
     it('shows, marks and deletes error log entries; keeps 30 days', async () => {
       logError(
         app.db,

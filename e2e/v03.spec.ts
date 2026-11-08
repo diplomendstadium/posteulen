@@ -178,6 +178,8 @@ test.describe('Version 0.3', () => {
     await page.goto('/app/menagerie');
     await page.getByTestId('loan-offer').first().getByRole('button').click();
     await expect(page.getByText(/wartet jetzt bei deinen Eulen/)).toBeVisible();
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
     await expect(page).toHaveURL(/\/app\/eulen$/);
     await page.getByLabel('Name (2–20 Zeichen)').fill('Federchen');

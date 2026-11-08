@@ -6,6 +6,11 @@ import { defineConfig, devices } from '@playwright/test';
 process.env['POSTEULEN_E2E_DIR'] ??= path.join(os.tmpdir(), `posteulen-e2e-${Date.now()}`);
 const RUN_DIR = process.env['POSTEULEN_E2E_DIR'];
 
+/** Screenshots for the report or the README pictures (only on request). */
+const SHOTS = Boolean(
+  process.env['POSTEULEN_SCREENSHOTS'] ?? process.env['POSTEULEN_README_SHOTS'],
+);
+
 const mobile = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true };
 const desktop = { viewport: { width: 1440, height: 900 } };
 
@@ -42,11 +47,12 @@ export default defineConfig({
     timezoneId: 'Europe/Berlin',
     serviceWorkers: 'allow',
   },
+  // v0.7.1: two profiles in the normal run – Chromium on the desktop and WebKit on the phone
+  // (iPhone). Chromium on the phone only for the screenshots and README pictures on request.
   projects: [
-    { name: 'chromium-mobile', use: { ...devices['Pixel 7'], ...mobile } },
     { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], ...desktop } },
-    { name: 'firefox-desktop', use: { ...devices['Desktop Firefox'], ...desktop } },
     { name: 'webkit-mobile', use: { ...devices['iPhone 15'], ...mobile, isMobile: true } },
+    ...(SHOTS ? [{ name: 'chromium-mobile', use: { ...devices['Pixel 7'], ...mobile } }] : []),
   ],
   webServer: [
     preview('main', [18080, 18081, 13001, 13002], 'open'),

@@ -3,6 +3,11 @@ import { shoot } from './screenshot-helpers.ts';
 import { borrowViaUi, registerViaUi } from './account-helpers.ts';
 import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
+// v0.7.1: the screenshot tour is not part of the normal run (the same flows are tested elsewhere,
+// accessibility of all pages in stage6.spec.ts). On request:
+//   POSTEULEN_SCREENSHOTS=1 npx playwright test e2e/screenshots.spec.ts --project=chromium-mobile --project=chromium-desktop
+test.skip(!process.env['POSTEULEN_SCREENSHOTS'], 'nur auf Anfrage');
+
 test.describe('Screenshots', () => {
   test.beforeEach(({ browserName }) => {
     test.skip(browserName !== 'chromium', 'Screenshots für den Bericht nur aus Chromium');
@@ -95,12 +100,16 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     setGold(anna.name, 600);
     await page.goto('/app/menagerie');
     await shoot(page, info, 'menagerie', true);
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Schneeeule kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').waitFor();
     await shoot(page, info, 'eule-benennen');
     await page.getByLabel('Name (2–20 Zeichen)').fill('Wilma');
     await page.getByRole('button', { name: 'Speichern' }).click();
     await page.goto('/app/menagerie');
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Waldi');
     await page.getByRole('button', { name: 'Speichern' }).click();
@@ -149,6 +158,8 @@ test.describe('Screenshots Stufe 4', () => {
     const me = await registerViaUi(page);
     setGold(me.name, 300);
     await page.goto('/app/menagerie');
+    // v0.7.1: a purchase is confirmed first.
+    page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Bartkauz kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Grummel');
     await page.getByRole('button', { name: 'Speichern' }).click();

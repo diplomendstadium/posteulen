@@ -25,6 +25,8 @@ async function pair(browser: Browser, page: Page, options: { benKeys?: string[] 
 
 async function buyAndName(page: Page, species: string, name: string): Promise<void> {
   await page.goto('/app/menagerie');
+  // v0.7.1: a purchase is confirmed first.
+  page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: `${species} kaufen` }).click();
   await expect(page).toHaveURL(/\/app\/eulen$/);
   await expect(
