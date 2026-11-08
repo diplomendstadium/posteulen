@@ -10,7 +10,7 @@ import {
   MASK_WIDTH,
   roundHome,
 } from '../src/map/landmask.ts';
-import { project, unproject } from '../src/map/projection.ts';
+import { project, projectRelative, relativeLongitude, unproject } from '../src/map/projection.ts';
 
 const mask = new Uint8Array(
   fs.readFileSync(path.resolve(import.meta.dirname, '../data/landmask.bin')),
@@ -50,12 +50,12 @@ describe('land/water mask (SPEC 12.3)', () => {
   });
 });
 
-describe('LAEA projection', () => {
-  it('round-trips every point of the map section (property)', () => {
+describe('Equal Earth projection (v0.7: the whole world)', () => {
+  it('round-trips every point of the world (property)', () => {
     fc.assert(
       fc.property(
-        fc.double({ min: 35.8, max: 60.6, noNaN: true }),
-        fc.double({ min: -10.7, max: 24, noNaN: true }),
+        fc.double({ min: -89.9, max: 89.9, noNaN: true }),
+        fc.double({ min: -179.9, max: 179.9, noNaN: true }),
         (lat, lon) => {
           const p = project(lat, lon);
           const back = unproject(p.x, p.y);
@@ -66,8 +66,32 @@ describe('LAEA projection', () => {
     );
   });
 
-  it('is centred on 52° N, 10° E', () => {
-    expect(project(52, 10)).toEqual({ x: 0, y: 0 });
-    expect(unproject(0, 0)).toEqual({ lat: 52, lon: 10 });
+  it('is centred on 10° E and the equator', () => {
+    expect(project(0, 10)).toEqual({ x: 0, y: 0 });
+    expect(unproject(0, 0)).toEqual({ lat: 0, lon: 10 });
+    expect(project(52, 10).x).toBe(0);
+    expect(project(52, 10).y).toBeGreaterThan(0);
+  });
+
+  it('keeps the edge of the world on its side and wraps longitudes', () => {
+    expect(relativeLongitude(190)).toBe(180);
+    expect(relativeLongitude(-170)).toBe(180);
+    expect(relativeLongitude(-169)).toBe(-179);
+    expect(projectRelative(0, 180).x).toBeCloseTo(-projectRelative(0, -180).x, 9);
+    expect(project(0, -170).x).toBeGreaterThan(0);
+    // The world is about twice as wide as high (Equal Earth: 2.05).
+    const width = 2 * projectRelative(0, 180).x;
+    const height = 2 * projectRelative(90, 0).y;
+    expect(width / height).toBeCloseTo(2.05, 2);
+  });
+
+  it('is equal-area: one square degree at the equator and at 60° N', () => {
+    const area = (lat: number): number => {
+      const a = project(lat, 10);
+      const b = project(lat + 0.01, 10.01);
+      return Math.abs((b.x - a.x) * (b.y - a.y));
+    };
+    // Spherical area ratio of the two cells: cos 60° (shear makes the box a small overestimate).
+    expect(area(60) / area(0)).toBeCloseTo(Math.cos((60 * Math.PI) / 180), 1);
   });
 });

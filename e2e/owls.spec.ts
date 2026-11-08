@@ -65,7 +65,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(page.locator('.gold')).toContainText('3,9 Gold');
 
     // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
-    await expect(card.getByTestId('owl-motivation')).toContainText('Motivation 1,2');
+    await expect(card.getByTestId('owl-motivation')).toContainText('Motivation 120 %');
     await expect(card).toContainText('Geschwindigkeit 27,5 km/h +20 %');
     await card.getByRole('button', { name: 'Wasser geben' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'drinking');
@@ -210,7 +210,9 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
       page.getByText(/Kartenkauz: Brief – .*nächster Halt|Kartenkauz: Brief – .*zurück/),
     ).toBeVisible();
     await page.goto('/app/eulen');
-    await expect(page.getByText(/Fliegt gerade einen Brief zu|Fliegt nach Hause/)).toBeVisible();
+    await expect(
+      page.getByText(/Fliegt gerade einen Brief zu|Fliegt nach Hause|Schläft auf dem|Rastet bei/),
+    ).toBeVisible();
     await other.goto('/app/briefe');
     await expect(other.getByRole('link', { name: /Eule/ }).first()).toBeVisible({
       timeout: 60_000,

@@ -7,6 +7,7 @@ import {
   loanIdentity,
   menagerieWage,
   pastGracePeriod,
+  loanNamesOn,
   pickOffer,
   randomOwlName,
   rollsSick,
@@ -116,5 +117,35 @@ describe('loan identities of a day (v0.2)', () => {
   it('energy share in [0, 1)', () => {
     expect(loanIdentity(new Uint8Array([0, 0, 0, 0, 255, 255])).energyShare).toBeLessThan(1);
     expect(loanIdentity(new Uint8Array([])).energyShare).toBe(0);
+  });
+});
+
+describe('locks for loan owls (v0.7, SPEC 9.6)', () => {
+  it('leaves out the species of the two days before', () => {
+    const recent = ['waldkauz', 'schleiereule', 'bartkauz', 'elfenkauz', 'milchuhu'];
+    for (let seed = 1; seed < 30; seed++) {
+      const offer = pickOffer(seeded(seed), recent);
+      expect(offer).toHaveLength(4);
+      for (const species of offer) expect(recent).not.toContain(species);
+    }
+    // With (impossibly) too many recent species, any species may come again.
+    expect(
+      pickOffer(
+        seeded(1),
+        SPECIES.map((s) => s.id),
+      ),
+    ).toHaveLength(4);
+  });
+
+  it('rotates the names in three groups by day', () => {
+    const days = ['2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08'];
+    const groups = days.map((day) => loanNamesOn(day));
+    expect(groups[0]!.length).toBeGreaterThan(40);
+    for (const name of groups[0]!) {
+      expect(groups[1]).not.toContain(name);
+      expect(groups[2]).not.toContain(name);
+    }
+    expect(groups[3]).toEqual(groups[0]);
+    expect(loanNamesOn('1969-12-31', ['a', 'b', 'c'])).toHaveLength(1);
   });
 });

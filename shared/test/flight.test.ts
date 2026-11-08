@@ -470,3 +470,91 @@ describe('with the real land mask and sun (SPEC 12.3, 17.2)', () => {
     expect(JSON.stringify(result.segments).length).toBeLessThan(40_000);
   });
 });
+
+describe('rest at recipients and own energy units (v0.7)', () => {
+  const resting: FlightProfile = { ...owl, restRecoveryPerHour: 10 };
+
+  it('rests at a stop, recovers as at home up to the maximum and flies on afterwards', () => {
+    const result = simulate(
+      resting,
+      { at: T0, position: home, energy: 100 },
+      [
+        { index: 0, point: east(50), restMs: 10 * TIME.HOUR },
+        { index: 1, point: home },
+      ],
+      night,
+    );
+    const rests = result.segments.filter((segment) => segment.kind === 'rest');
+    // 50 energy left; +10 per hour: full after 5 hours, then a flat rest segment.
+    expect(rests).toHaveLength(2);
+    expect(rests[0]).toMatchObject({
+      t0: T0 + 2 * TIME.HOUR,
+      t1: T0 + 7 * TIME.HOUR,
+      e0: 50,
+      e1: 100,
+    });
+    expect(rests[1]).toMatchObject({ t1: T0 + 12 * TIME.HOUR, e0: 100, e1: 100 });
+    expect(result.arrivals[1]?.at).toBe(T0 + 14 * TIME.HOUR);
+    expect(positionAt(result.segments, T0 + 4 * TIME.HOUR)).toMatchObject({
+      phase: 'rest',
+      energy: 70,
+    });
+    // A re-plan during the rest keeps the whole rest (both segments).
+    expect(stateAt(result.segments, T0 + 3 * TIME.HOUR)?.restUntil).toBe(T0 + 12 * TIME.HOUR);
+    const again = replan(
+      resting,
+      result.segments,
+      T0 + 3 * TIME.HOUR,
+      [{ index: 1, point: home }],
+      night,
+    );
+    expectTime(again.arrivals[0]?.at, T0 + 14 * TIME.HOUR);
+    // … unless the rest ends now (a reply: the owl takes off at once).
+    const off = replan(
+      resting,
+      result.segments,
+      T0 + 3 * TIME.HOUR,
+      [{ index: 1, point: home }],
+      night,
+      ({ at, position, energy }) => ({ at, position, energy }),
+    );
+    expectTime(off.arrivals[0]?.at, T0 + 5 * TIME.HOUR);
+    expect(segmentsUntil(result.segments, T0 + 3 * TIME.HOUR).at(-1)).toMatchObject({
+      kind: 'rest',
+      t1: T0 + 3 * TIME.HOUR,
+      e1: 60,
+    });
+  });
+
+  it('chicks never rest at a stop', () => {
+    const chick: FlightProfile = { speedKmh: 10, maxEnergy: 100, mode: 'chick' };
+    const result = simulate(
+      chick,
+      { at: T0, position: home, energy: 100 },
+      [{ index: 0, point: east(5), restMs: TIME.HOUR }],
+      night,
+    );
+    expect(result.segments.some((segment) => segment.kind === 'rest')).toBe(false);
+  });
+
+  it('takes and gives the owl’s own energy with ownUnits, flying with the motivated one', () => {
+    const motivated: FlightProfile = {
+      speedKmh: 25 * 1.2,
+      maxEnergy: 100 * 1.2,
+      mode: 'adult',
+      recoveryPerHour: 12 * 1.2,
+      motivation: 1.2,
+      ownUnits: true,
+    };
+    const result = simulate(
+      motivated,
+      { at: T0, position: home, energy: 50 },
+      [{ index: 0, point: east(30) }],
+      night,
+    );
+    // 50 own = 60 motivated; 30 km at night = 30 motivated = 25 own.
+    expect(result.arrivals[0]?.energy).toBeCloseTo(25, 1);
+    expect(result.segments[0]?.e0).toBeCloseTo(50, 1);
+    expect(result.end.energy).toBeCloseTo(25, 1);
+  });
+});

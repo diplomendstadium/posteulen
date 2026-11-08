@@ -123,7 +123,9 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.getByTestId('map-owl').waitFor();
     await shoot(page, info, 'karte', true);
     await page.goto('/app/eulen');
-    await page.getByText(/Fliegt gerade einen Brief zu|Fliegt nach Hause/).waitFor();
+    await page
+      .getByText(/Fliegt gerade einen Brief zu|Fliegt nach Hause|Schläft auf dem|Rastet bei/)
+      .waitFor();
     await shoot(page, info, 'eulen-unterwegs');
 
     await page.goto('/app/finanzen');

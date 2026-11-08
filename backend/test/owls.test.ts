@@ -646,18 +646,21 @@ describe('owl gifts (SPEC 9.2.7)', () => {
 });
 
 describe('daily gold (SPEC 9.1.1, 4.5)', () => {
-  it('pays the daily wage at 15:00 UTC to active accounts only, once per day, and catches up', async () => {
+  it('pays the daily wage at 03:00 UTC (v0.7) to active accounts only, once per day, and catches up', async () => {
     app.ctx.queue.ensureDailyJobs();
     app.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', '2026-10-01', ben.id);
-    advanceTo(app, Date.UTC(2026, 10, 5, 15));
+    // The test clock starts at 12:00 – the next pay day is tomorrow at 03:00.
+    advanceTo(app, Date.UTC(2026, 10, 6, 2, 59));
+    expect(gold(anna)).toBe(GOLD.START);
+    advanceTo(app, Date.UTC(2026, 10, 6, 3));
     expect(gold(anna)).toBe(GOLD.START + GOLD.DAILY);
     expect(gold(ben)).toBe(GOLD.START);
     // The same day again: nothing.
-    app.ctx.queue.schedule('daily:daily_gold', 'daily_gold', Date.UTC(2026, 10, 5, 15, 30));
-    advanceTo(app, Date.UTC(2026, 10, 5, 16));
+    app.ctx.queue.schedule('daily:daily_gold', 'daily_gold', Date.UTC(2026, 10, 6, 3, 30));
+    advanceTo(app, Date.UTC(2026, 10, 6, 4));
     expect(gold(anna)).toBe(GOLD.START + GOLD.DAILY);
     // Two days of downtime: one payment per missed day.
-    advanceTo(app, Date.UTC(2026, 10, 8, 16));
+    advanceTo(app, Date.UTC(2026, 10, 9, 4));
     expect(gold(anna)).toBe(GOLD.START + 4 * GOLD.DAILY);
     const finance = await anna.agent.json<{ transactions: { type: string; at: number }[] }>(
       'GET',

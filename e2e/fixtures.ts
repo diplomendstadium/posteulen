@@ -77,4 +77,22 @@ export { expect };
 export async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // A smooth scroll (e.g. to a letter just sent) must have come to rest: five frames unchanged.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        let last = -1;
+        let stable = 0;
+        const tick = (): void => {
+          if (window.scrollY === last) stable++;
+          else {
+            stable = 0;
+            last = window.scrollY;
+          }
+          if (stable >= 5) resolve();
+          else requestAnimationFrame(tick);
+        };
+        tick();
+      }),
+  );
 }

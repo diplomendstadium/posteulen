@@ -4,6 +4,7 @@ import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { TIME } from '@posteulen/shared/constants.ts';
 import { setInitialAdminPassword } from '../src/admin/admin-auth.ts';
 import { logError } from '../src/ops/error-log.ts';
+import { listVouchers } from '../src/admin/vouchers.ts';
 import {
   ADMIN_ORIGIN,
   Agent,
@@ -151,6 +152,46 @@ describe('admin (SPEC 13)', () => {
       expect((await admin.json('DELETE', '/api/invites/kaputt')).status).toBe(400);
     });
 
+    it('creates vouchers for gold or an owl, stored only as HMAC, 90 days valid (v0.7)', async () => {
+      const gold = await admin.json<{ id: string; code: string; expiresAt: number }>(
+        'POST',
+        '/api/vouchers',
+        { kind: 'gold', gold: 55 },
+      );
+      expect(gold.status).toBe(200);
+      expect(gold.body.code).toMatch(/^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/);
+      expect(gold.body.expiresAt - app.clock.now).toBe(90 * TIME.DAY);
+      const owl = await admin.json<{ id: string }>('POST', '/api/vouchers', {
+        kind: 'owl',
+        species: 'phoenix',
+      });
+      expect(owl.status).toBe(200);
+      expect(JSON.stringify(app.db.all('SELECT * FROM vouchers'))).not.toContain(
+        gold.body.code.replace(/-/g, ''),
+      );
+      for (const bad of [
+        { kind: 'gold', gold: 0 },
+        { kind: 'gold', gold: 1001 },
+        { kind: 'gold', gold: 1.5 },
+        { kind: 'owl', species: 'drache' },
+        { kind: 'gold', gold: 10, species: 'waldkauz' },
+      ]) {
+        expect((await admin.json('POST', '/api/vouchers', bad)).status).toBe(400);
+      }
+      const list = await admin.json<{ vouchers: { id: string; hint: string; kind: string }[] }>(
+        'GET',
+        '/api/vouchers',
+      );
+      expect(list.body.vouchers).toHaveLength(2);
+      expect(list.body.vouchers).toContainEqual(
+        expect.objectContaining({ id: gold.body.id, hint: gold.body.code.slice(-4), kind: 'gold' }),
+      );
+      expect((await admin.json('DELETE', `/api/vouchers/${owl.body.id}`)).status).toBe(200);
+      expect((await admin.json('DELETE', `/api/vouchers/${owl.body.id}`)).status).toBe(404);
+      // Expired vouchers disappear from the list (the admin session would have expired, too).
+      expect(listVouchers(app.ctx, app.clock.now + 90 * TIME.DAY + 1)).toEqual([]);
+    });
+
     it('shows, marks and deletes error log entries; keeps 30 days', async () => {
       logError(
         app.db,
@@ -198,10 +239,16 @@ describe('admin (SPEC 13)', () => {
       });
     });
 
-    it('expires the admin session after 8 hours without use', async () => {
-      app.clock.now += 7 * TIME.HOUR;
+    it('expires the admin session after 10 minutes without activity (v0.7)', async () => {
+      app.clock.now += 9 * TIME.MINUTE;
       expect((await admin.json('GET', '/api/me')).status).toBe(200);
-      app.clock.now += 8 * TIME.HOUR + 1;
+      // Every request counts as activity: 9 more minutes are fine again …
+      app.clock.now += 9 * TIME.MINUTE;
+      expect((await admin.json('GET', '/api/me')).status).toBe(200);
+      expect((await admin.json('GET', '/api/session')).body).toMatchObject({ state: 'active' });
+      // … but not 10 minutes and one millisecond without any.
+      app.clock.now += 10 * TIME.MINUTE + 1;
+      expect((await admin.json('GET', '/api/session')).body).toEqual({ state: 'none' });
       expect((await admin.json('GET', '/api/me')).status).toBe(401);
     });
   });

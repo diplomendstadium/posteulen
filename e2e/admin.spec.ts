@@ -90,6 +90,25 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     await expect(page.getByLabel('Neuer API-Key')).toHaveValue('');
     await user.goto(`${ISOLATED_WEB_URL}/app/briefe/system`);
     await expect(user.getByText('Heute Abend fliegen die Eulen später.')).toBeVisible();
+    // v0.7: a voucher for gold, redeemed once in the settings of the app.
+    await page.getByLabel('Betrag in Gold (0,1 bis 100)').fill('2,5');
+    await page.getByRole('button', { name: 'Gutschein erzeugen' }).click();
+    const voucherText = await page.getByText(/^Neuer Gutschein:/).textContent();
+    const voucher = /([A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4})/.exec(voucherText ?? '')?.[1] ?? '';
+    expect(voucher).not.toBe('');
+    await user.goto(`${ISOLATED_WEB_URL}/app/einstellungen`);
+    await user.getByLabel('Gutscheincode').fill(voucher);
+    await user.getByRole('button', { name: 'Einlösen' }).click();
+    await expect(
+      user.getByText('Eingelöst: 2,5 Gold sind deinem Konto gutgeschrieben.'),
+    ).toBeVisible();
+    await user.getByLabel('Gutscheincode').fill(voucher);
+    await user.getByRole('button', { name: 'Einlösen' }).click();
+    await expect(
+      user.getByText('Dieser Gutschein ist ungültig, abgelaufen oder schon eingelöst.'),
+    ).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(/Gutschein …\w{4}: 2,5 Gold – eingelöst/)).toBeVisible();
     await page.getByRole('button', { name: 'Abmelden' }).click();
     await expect(page.getByRole('heading', { name: 'Anmeldung für die Verwaltung' })).toBeVisible();
   });

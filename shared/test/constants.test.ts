@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SPECIES, OWL_IMAGE_KINDS, owlImageFileName } from '../src/species.ts';
+import {
+  SPECIES,
+  OWL_IMAGE_KINDS,
+  SCENE_IMAGES,
+  imageKindsOf,
+  owlImageFileName,
+} from '../src/species.ts';
 import { GOLD, LETTER, MAP, SECURITY } from '../src/constants.ts';
 import { OWL_NAMES, AUNT_NAMES, UNCLE_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
@@ -44,7 +50,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(16);
+    expect(OWL_IMAGE_KINDS).toHaveLength(17);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -65,7 +71,17 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Nachtpause.png',
       'Schleiereule-Tagschlaf-Unterwegs.png',
       'Schleiereule-Tagschlaf-Zuhause.png',
+      'Schleiereule-Brueten.png',
     ]);
+  });
+
+  it('gives the phoenix neither a chick nor a brooding picture (v0.7)', () => {
+    const phoenix = SPECIES.find((s) => s.mythical);
+    const owl = SPECIES.find((s) => !s.mythical);
+    expect(phoenix && imageKindsOf(phoenix).map((k) => k.kind)).not.toContain('brooding');
+    expect(phoenix && imageKindsOf(phoenix)).toHaveLength(15);
+    expect(owl && imageKindsOf(owl)).toHaveLength(17);
+    expect(SCENE_IMAGES.map((scene) => scene.file)).toContain('Verbrennen.png');
   });
 });
 
