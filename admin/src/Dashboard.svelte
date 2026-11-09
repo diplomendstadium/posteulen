@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from './lib/i18n.svelte.ts';
+  import { locale } from './lib/i18n.svelte.ts';
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
   import PasswordForm from './PasswordForm.svelte';
@@ -38,7 +39,7 @@
   let passwordChanged = $state(false);
 
   const time = (ms: number): string =>
-    new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
       new Date(ms),
     );
 
@@ -100,37 +101,37 @@
 <OpenAi />
 
 <section class="card" aria-labelledby="reg-title">
-  <h2 id="reg-title">{de.admin.registrationTitle}</h2>
+  <h2 id="reg-title">{t.admin.registrationTitle}</h2>
   <select aria-labelledby="reg-title" value={mode} onchange={(event) => void saveMode(event)}>
-    <option value="closed">{de.admin.modeClosed}</option>
-    <option value="invite">{de.admin.modeInvite}</option>
-    <option value="open">{de.admin.modeOpen}</option>
+    <option value="closed">{t.admin.modeClosed}</option>
+    <option value="invite">{t.admin.modeInvite}</option>
+    <option value="open">{t.admin.modeOpen}</option>
   </select>
-  {#if modeSaved}<p role="status">✔ {de.admin.modeSaved}</p>{/if}
+  {#if modeSaved}<p role="status">✔ {t.admin.modeSaved}</p>{/if}
 </section>
 
 <section class="card" aria-labelledby="inv-title">
-  <h2 id="inv-title">{de.admin.invitesTitle}</h2>
-  <p>{de.admin.invitesIntro}</p>
+  <h2 id="inv-title">{t.admin.invitesTitle}</h2>
+  <p>{t.admin.invitesIntro}</p>
   <button class="button" type="button" onclick={() => void createInvite()}
-    >{de.admin.inviteCreate}</button
+    >{t.admin.inviteCreate}</button
   >
   {#if fresh}
     <p class="code" role="status">
-      {fill(de.admin.inviteNew, { code: fresh.code, until: time(fresh.expiresAt) })}
+      {fill(t.admin.inviteNew, { code: fresh.code, until: time(fresh.expiresAt) })}
     </p>
   {/if}
   {#if invites.length === 0}
-    <p>{de.admin.invitesNone}</p>
+    <p>{t.admin.invitesNone}</p>
   {:else}
     <ul class="list">
       {#each invites as invite (invite.id)}
         <li>
           <span
-            >{fill(de.admin.inviteHint, { hint: invite.hint, until: time(invite.expiresAt) })}</span
+            >{fill(t.admin.inviteHint, { hint: invite.hint, until: time(invite.expiresAt) })}</span
           >
           <button class="button secondary" type="button" onclick={() => void revoke(invite.id)}
-            >{de.admin.inviteRevoke}</button
+            >{t.admin.inviteRevoke}</button
           >
         </li>
       {/each}
@@ -141,33 +142,33 @@
 <Vouchers />
 
 <section class="card" aria-labelledby="err-title">
-  <h2 id="err-title">{de.admin.errorsTitle}</h2>
+  <h2 id="err-title">{t.admin.errorsTitle}</h2>
   {#if entries.length === 0}
-    <p>{de.admin.errorsNone}</p>
+    <p>{t.admin.errorsNone}</p>
   {:else}
     <ul class="list errors">
       {#each entries as entry (entry.id)}
         <li>
           <div>
             <p class="what">
-              <strong>{de.admin[`severity_${entry.severity}`]}</strong> · {time(entry.at)} · {entry.component}
-              {#if !entry.read}<span class="badge">{de.admin.unread}</span>{/if}
+              <strong>{t.admin[`severity_${entry.severity}`]}</strong> · {time(entry.at)} · {entry.component}
+              {#if !entry.read}<span class="badge">{t.admin.unread}</span>{/if}
             </p>
             {#if entry.count > 1}<p class="repeated">
-                {fill(de.admin.errorRepeated, { count: entry.count, time: time(entry.lastAt) })}
+                {fill(t.admin.errorRepeated, { count: entry.count, time: time(entry.lastAt) })}
               </p>{/if}
             <p>{entry.what}</p>
-            <p><strong>{de.admin.errorCause}:</strong> {entry.cause}</p>
-            <p><strong>{de.admin.errorAction}:</strong> {entry.action}</p>
+            <p><strong>{t.admin.errorCause}:</strong> {entry.cause}</p>
+            <p><strong>{t.admin.errorAction}:</strong> {entry.action}</p>
           </div>
           <div class="buttons">
             {#if !entry.read}<button
                 class="button secondary"
                 type="button"
-                onclick={() => void markRead(entry.id)}>{de.admin.errorRead}</button
+                onclick={() => void markRead(entry.id)}>{t.admin.errorRead}</button
               >{/if}
             <button class="button secondary" type="button" onclick={() => void remove(entry.id)}
-              >{de.admin.errorDelete}</button
+              >{t.admin.errorDelete}</button
             >
           </div>
         </li>
@@ -177,9 +178,9 @@
 </section>
 
 <section class="card" aria-labelledby="pw-title">
-  <h2 id="pw-title">{de.admin.passwordTitle}</h2>
+  <h2 id="pw-title">{t.admin.passwordTitle}</h2>
   <PasswordForm ondone={() => (passwordChanged = true)} />
-  {#if passwordChanged}<p role="status">✔ {de.admin.changed}</p>{/if}
+  {#if passwordChanged}<p role="status">✔ {t.admin.changed}</p>{/if}
 </section>
 
 <!-- v0.7.1: last item: messages of users, without sender. -->

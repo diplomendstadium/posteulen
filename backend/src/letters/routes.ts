@@ -16,7 +16,8 @@ import { randomId, utcDay } from '../security/ids.ts';
 import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
-import { ownBot } from '../bots/service.ts';
+import { playerBot } from '../bots/registry.ts';
+import { countStat } from '../central/model.ts';
 import { balance, debit } from '../gold/ledger.ts';
 import {
   checkLetters,
@@ -188,7 +189,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       chats: chats.map((chat) => {
         const contact =
           chat.peer_kind === 'bot'
-            ? ownBot(ctx, me, chat.peer_id)
+            ? playerBot(ctx, me, chat.peer_id)
             : findContact(ctx.db, me, chat.peer_id);
         return {
           peerId: chat.peer_id,
@@ -227,6 +228,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       plaintext: string | null;
       flight_owl_kind: string | null;
       flight_holder: string | null;
+      media: string | null;
     }>(
       `SELECT l.*, f.gold AS cover_gold, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
@@ -258,7 +260,10 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
             name: row.owl_name,
             species: row.owl_species,
             ...carrierOf(me, row, (id) =>
-              findContact(ctx.db, me, id) ? (displayName(ctx.db, id) ?? null) : null,
+              // v0.8: a reply handed to the owl of a bot names the bot.
+              findContact(ctx.db, me, id) || playerBot(ctx, me, id)
+                ? (displayName(ctx.db, id) ?? null)
+                : null,
             ),
           },
           // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl.
@@ -267,6 +272,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           ciphertext: row.ciphertext ? toBase64Url(row.ciphertext) : null,
           // Letters to and from bots are plain text (SPEC 10.1).
           plaintext: row.plaintext,
+          // v0.8: up to two pictures of a control-centre bot (IDs for /api/bot-media/:id).
+          media: row.media ? (JSON.parse(row.media) as string[]) : [],
           wrap: mine
             ? row.wrap_sender
               ? toBase64Url(row.wrap_sender)
@@ -287,8 +294,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const senders = new Set<string>();
     ctx.db.transaction(() => {
       for (const id of ids) {
-        const letter = ctx.db.get<{ sender_id: string }>(
-          "SELECT sender_id FROM letters WHERE id = ? AND recipient_id = ? AND status = 'delivered' AND read = 0",
+        const letter = ctx.db.get<{ sender_id: string; bot_event_id: string | null }>(
+          "SELECT sender_id, bot_event_id FROM letters WHERE id = ? AND recipient_id = ? AND status = 'delivered' AND read = 0",
           id,
           me,
         );
@@ -298,6 +305,9 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           unreadable ? 1 : 0,
           id,
         );
+        // v0.8: aggregated read counter of a control-centre bot (no personal statistics).
+        if (ctx.db.get('SELECT 1 FROM central_bots WHERE id = ?', letter.sender_id))
+          countStat(ctx, letter.sender_id, 'read', ctx.now(), letter.bot_event_id);
         senders.add(letter.sender_id);
       }
       for (const sender of senders) {
@@ -338,7 +348,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const peer = parse(Id, (request.params as { peer?: unknown }).peer);
     const me = userOf(request).id;
     ctx.db.transaction(() => {
-      if (ownBot(ctx, me, peer, true)) {
+      if (playerBot(ctx, me, peer, true)) {
         // A bot keeps no copies: the conversation and its summary go entirely (SPEC 8.4).
         ctx.db.run(
           "DELETE FROM letters WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)) AND status != 'in_flight'",
@@ -351,6 +361,11 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           'UPDATE chats SET bot_summary = NULL, bot_summarized_until = NULL WHERE owner_id = ? AND peer_id = ?',
           me,
           peer,
+        );
+        // v0.8: burnt letters no longer wait for an answer of the bot.
+        ctx.db.run(
+          'DELETE FROM central_bot_inbox WHERE user_id = ? AND letter_id NOT IN (SELECT id FROM letters)',
+          me,
         );
       }
       ctx.db.run(
@@ -424,6 +439,27 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     for (const id of body.ids)
       ctx.db.run('DELETE FROM homecomings WHERE id = ? AND user_id = ?', id, me);
     return { ok: true };
+  });
+
+  /**
+   * v0.8: a picture of a control-centre bot – only for a player who has a letter with it
+   * (normalised WebP without metadata, SPEC 10.11).
+   */
+  app.get('/api/bot-media/:id', { preHandler: authenticated }, async (request, reply) => {
+    const id = parse(Id, (request.params as { id?: unknown }).id);
+    const me = userOf(request).id;
+    const visible = ctx.db.get(
+      "SELECT 1 FROM letters WHERE recipient_id = ? AND recipient_has = 1 AND status = 'delivered' AND media IS NOT NULL AND instr(media, ?) > 0",
+      me,
+      `"${id}"`,
+    );
+    const media = visible
+      ? ctx.db.get<{ data: Uint8Array }>('SELECT data FROM central_bot_media WHERE id = ?', id)
+      : undefined;
+    if (!media) throw new HttpError(404, 'not_found');
+    void reply.header('Content-Type', 'image/webp');
+    void reply.header('Cache-Control', 'private, max-age=86400');
+    return reply.send(Buffer.from(media.data));
   });
 
   /** The arrival image of a delivery without a letter has been shown (SPEC 9.2.6). */

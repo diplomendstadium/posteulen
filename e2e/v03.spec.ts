@@ -103,7 +103,7 @@ test.describe('Version 0.3', () => {
     // Back via the bottom bar: the counter is gone at once, without a reload.
     await page.locator('nav a[href="/app/briefe"]').last().click();
     await expect(page.getByRole('link', { name: /Erklärbär/ })).not.toContainText('ungelesen');
-    // Read whatever else has arrived meanwhile (the aunt writes after 5 minutes, sped up here),
+    // Read whatever else has arrived meanwhile (bot letters may land meanwhile),
     // always returning via the bottom bar: "Neue Post!" disappears without a reload.
     const unread = page.locator('ul.chats a').filter({ hasText: 'ungelesen' });
     while ((await unread.count()) > 0) {

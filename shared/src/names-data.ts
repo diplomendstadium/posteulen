@@ -44,23 +44,3 @@ export const OWL_NAMES_EN: readonly string[] = [
 export function owlNames(language: 'de' | 'en'): readonly string[] {
   return language === 'en' ? OWL_NAMES_EN : OWL_NAMES;
 }
-
-/** SPEC Anhang E: first names for the uncle bot. */
-// prettier-ignore
-export const UNCLE_NAMES: readonly string[] = [
-  'Alexander', 'Maximilian', 'Lukas', 'Leon', 'Paul', 'Felix', 'Jonas', 'Noah', 'David', 'Daniel',
-  'Thomas', 'Michael', 'Andreas', 'Martin', 'Stefan', 'Peter', 'Christian', 'Sebastian', 'Julian', 'Florian',
-  'Simon', 'Benjamin', 'Samuel', 'Gabriel', 'Oliver', 'William', 'James', 'George', 'Jack', 'Harry',
-  'Louis', 'Arthur', 'Hugo', 'Lucas', 'Matteo', 'Marco', 'Luca', 'Giovanni', 'Antonio', 'Francesco',
-  'Lorenzo', 'Alessandro', 'Carlos', 'Miguel', 'Javier', 'Diego', 'Pablo', 'Jan', 'Erik', 'Adam',
-];
-
-/** SPEC Anhang E: first names for the aunt bot. */
-// prettier-ignore
-export const AUNT_NAMES: readonly string[] = [
-  'Emma', 'Sophia', 'Sofia', 'Emilia', 'Mia', 'Anna', 'Hannah', 'Lina', 'Lena', 'Laura',
-  'Julia', 'Sarah', 'Marie', 'Maria', 'Sophie', 'Charlotte', 'Clara', 'Ella', 'Mila', 'Isabella',
-  'Olivia', 'Amelia', 'Emily', 'Alice', 'Grace', 'Lily', 'Lucy', 'Victoria', 'Elizabeth', 'Catherine',
-  'Louise', 'Camille', 'Chloé', 'Manon', 'Léa', 'Giulia', 'Chiara', 'Francesca', 'Alessia', 'Valentina',
-  'Martina', 'Elena', 'Lucia', 'Carmen', 'Paula', 'Alba', 'Sara', 'Nora', 'Eva',
-];

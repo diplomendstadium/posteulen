@@ -8,10 +8,18 @@ import path from 'node:path';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { setInitialAdminPassword } from '../src/admin/admin-auth.ts';
-import { ADMIN_ORIGIN, Agent, person, testApp, USER_ORIGIN, type TestApp } from './auth-helpers.ts';
+import {
+  ADMIN_ORIGIN,
+  Agent,
+  BOTS_ORIGIN,
+  person,
+  testApp,
+  USER_ORIGIN,
+  type TestApp,
+} from './auth-helpers.ts';
 
 interface Route {
-  readonly api: 'user' | 'admin';
+  readonly api: 'user' | 'admin' | 'bots';
   readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   readonly url: string;
   readonly protectedRoute: boolean;
@@ -20,6 +28,10 @@ interface Route {
 
 const SOURCE = path.resolve(import.meta.dirname, '../src');
 const ADMIN_FILES = new Set(['admin/admin-routes.ts', 'admin/operations.ts']);
+/** v0.8: the bots control centre is a third API. */
+const BOTS_FILES = new Set(['central/routes.ts']);
+/** Login of admin panel and control centre: the same routes on both APIs. */
+const PANEL_FILES = new Set(['admin/panel-auth.ts']);
 
 function sourceFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -37,13 +49,22 @@ function inventory(): Route[] {
     const pattern = /app\.(get|post|put|patch|delete)\(\s*'([^']+)'\s*,\s*(\{[^}]*\})?/g;
     for (const match of text.matchAll(pattern)) {
       const options = match[3] ?? '';
-      routes.push({
-        api: ADMIN_FILES.has(relative) ? 'admin' : 'user',
-        method: match[1]!.toUpperCase() as Route['method'],
-        url: match[2]!,
-        protectedRoute: options.includes('preHandler'),
-        emptyBody: options.includes('emptyBody'),
-      });
+      const apis: Route['api'][] = PANEL_FILES.has(relative)
+        ? ['admin', 'bots']
+        : ADMIN_FILES.has(relative)
+          ? ['admin']
+          : BOTS_FILES.has(relative)
+            ? ['bots']
+            : ['user'];
+      for (const api of apis) {
+        routes.push({
+          api,
+          method: match[1]!.toUpperCase() as Route['method'],
+          url: match[2]!,
+          protectedRoute: options.includes('preHandler'),
+          emptyBody: options.includes('emptyBody'),
+        });
+      }
     }
   }
   return routes;
@@ -55,6 +76,10 @@ const PUBLIC = [
   'admin GET /api/session',
   'admin POST /api/login/finish',
   'admin POST /api/login/start',
+  'bots GET /api/altcha/challenge',
+  'bots GET /api/session',
+  'bots POST /api/login/finish',
+  'bots POST /api/login/start',
   'user GET /api/altcha/challenge',
   'user GET /api/health',
   'user GET /api/registration',
@@ -70,7 +95,7 @@ const PUBLIC = [
 const concrete = (url: string): string =>
   url
     .replace(/:id\b/g, url.startsWith('/api/errors') ? '1' : 'AAAAAAAAAAAAAAAAAAAAAA')
-    .replace(/:(peer|contactId)\b/g, 'AAAAAAAAAAAAAAAAAAAAAA');
+    .replace(/:(peer|contactId|event)\b/g, 'AAAAAAAAAAAAAAAAAAAAAA');
 const label = (route: Route): string => `${route.api} ${route.method} ${route.url}`;
 
 let app: TestApp;
@@ -82,9 +107,11 @@ afterAll(async () => {
   await app.close();
 });
 
-async function adminAgent(): Promise<Agent> {
-  const password = await setInitialAdminPassword(app.db, app.secrets.opaqueServerSetup);
-  const admin = new Agent(app.adminApi, ADMIN_ORIGIN);
+async function adminAgent(panel: 'admin' | 'bots' = 'admin'): Promise<Agent> {
+  const table = panel === 'admin' ? 'admin' : 'bots_admin';
+  const password = await setInitialAdminPassword(app.db, app.secrets.opaqueServerSetup, table);
+  const admin =
+    panel === 'admin' ? new Agent(app.adminApi, ADMIN_ORIGIN) : new Agent(app.botsApi, BOTS_ORIGIN);
   await client.ready();
   const start = client.startLogin(password);
   const first = await admin.json<{ attemptId: string; loginResponse: string }>(
@@ -97,7 +124,7 @@ async function adminAgent(): Promise<Agent> {
     attemptId: first.body.attemptId,
     finishLoginRequest: result.finishRequest,
   });
-  app.db.run('UPDATE admin SET must_change_password = 0');
+  app.db.run(`UPDATE ${table} SET must_change_password = 0`);
   return admin;
 }
 
@@ -114,10 +141,12 @@ describe('Routen-Inventar (SPEC 6, 17.3)', () => {
   it.each(ROUTES.filter((route) => route.protectedRoute).map((route) => [label(route), route]))(
     '%s → 401 ohne Sitzung',
     async (_name, route) => {
-      const agent = new Agent(
-        route.api === 'user' ? app.userApi : app.adminApi,
-        route.api === 'user' ? USER_ORIGIN : ADMIN_ORIGIN,
-      );
+      const agent =
+        route.api === 'user'
+          ? new Agent(app.userApi, USER_ORIGIN)
+          : route.api === 'admin'
+            ? new Agent(app.adminApi, ADMIN_ORIGIN)
+            : new Agent(app.botsApi, BOTS_ORIGIN);
       const response = await agent.request(
         route.method as 'GET',
         concrete(route.url),
@@ -130,12 +159,13 @@ describe('Routen-Inventar (SPEC 6, 17.3)', () => {
   it('Endpunkte ohne Nutzdaten lehnen unbekannte Felder ab, akzeptieren aber {}', async () => {
     const someone = await person(app, 'Leerkörper');
     const admin = await adminAgent();
+    const bots = await adminAgent('bots');
     const empty = ROUTES.filter((route) => route.emptyBody);
     // v0.3: releasing an owl now carries the typed name.
     expect(empty.length).toBeGreaterThanOrEqual(17);
     for (const route of empty) {
       if (route.url.endsWith('/logout')) continue; // would end the session for the next checks
-      const agent = route.api === 'user' ? someone.agent : admin;
+      const agent = route.api === 'user' ? someone.agent : route.api === 'admin' ? admin : bots;
       const response = await agent.request(route.method as 'POST', concrete(route.url), {
         unbekannt: 1,
       });

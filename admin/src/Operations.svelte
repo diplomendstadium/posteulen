@@ -1,7 +1,8 @@
 <script lang="ts">
   /** Statistics, inactivity period and broadcasts (SPEC 13 items 1, 2, 4, 6). */
   import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from './lib/i18n.svelte.ts';
+  import { locale } from './lib/i18n.svelte.ts';
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
 
@@ -26,7 +27,7 @@
   let busy = $state(false);
 
   const time = (ms: number): string =>
-    new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
       new Date(ms),
     );
 
@@ -62,7 +63,7 @@
 
   async function broadcast(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    if (busy || text.trim() === '' || !confirm(de.admin.broadcastConfirm)) return;
+    if (busy || text.trim() === '' || !confirm(t.admin.broadcastConfirm)) return;
     busy = true;
     try {
       sentCount = (await api<{ recipients: number }>('POST', '/api/broadcasts', { text }))
@@ -80,24 +81,24 @@
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
 
 <section class="card" aria-labelledby="stats-title">
-  <h2 id="stats-title">{de.admin.statsTitle}</h2>
+  <h2 id="stats-title">{t.admin.statsTitle}</h2>
   {#if stats}
     <ul class="plain" data-testid="admin-stats">
-      <li>{fill(de.admin.statsCreated, { count: stats.accounts.created })}</li>
-      <li>{fill(de.admin.statsCurrent, { count: stats.accounts.current })}</li>
-      <li>{fill(de.admin.statsActive, { count: stats.accounts.active30 })}</li>
+      <li>{fill(t.admin.statsCreated, { count: stats.accounts.created })}</li>
+      <li>{fill(t.admin.statsCurrent, { count: stats.accounts.current })}</li>
+      <li>{fill(t.admin.statsActive, { count: stats.accounts.active30 })}</li>
       <li>
-        {fill(de.admin.statsLetters, { total: stats.letters.total, last7: stats.letters.last7 })}
+        {fill(t.admin.statsLetters, { total: stats.letters.total, last7: stats.letters.last7 })}
       </li>
     </ul>
   {/if}
 </section>
 
 <section class="card" aria-labelledby="inactivity-title">
-  <h2 id="inactivity-title">{de.admin.inactivityTitle}</h2>
-  <p>{de.admin.inactivityIntro}</p>
+  <h2 id="inactivity-title">{t.admin.inactivityTitle}</h2>
+  <p>{t.admin.inactivityIntro}</p>
   <form onsubmit={(event) => void saveDays(event)}>
-    <label for="inactivity-days">{de.admin.inactivityDays}</label>
+    <label for="inactivity-days">{t.admin.inactivityDays}</label>
     <input
       id="inactivity-days"
       type="number"
@@ -107,26 +108,26 @@
       bind:value={days}
       required
     />
-    <button class="button" type="submit">{de.admin.inactivitySave}</button>
-    {#if daysSaved}<p role="status">✔ {de.admin.modeSaved}</p>{/if}
+    <button class="button" type="submit">{t.admin.inactivitySave}</button>
+    {#if daysSaved}<p role="status">✔ {t.admin.modeSaved}</p>{/if}
   </form>
 </section>
 
 <section class="card" aria-labelledby="broadcast-title">
-  <h2 id="broadcast-title">{de.admin.broadcastTitle}</h2>
-  <p>{de.admin.broadcastIntro}</p>
+  <h2 id="broadcast-title">{t.admin.broadcastTitle}</h2>
+  <p>{t.admin.broadcastIntro}</p>
   <form onsubmit={(event) => void broadcast(event)}>
-    <label for="broadcast-text">{de.admin.broadcastText}</label>
+    <label for="broadcast-text">{t.admin.broadcastText}</label>
     <textarea id="broadcast-text" rows="5" maxlength="3000" bind:value={text} required></textarea>
     <button class="button" type="submit" disabled={busy || text.trim() === ''}
-      >{de.admin.broadcastSend}</button
+      >{t.admin.broadcastSend}</button
     >
     {#if sentCount !== null}<p role="status">
-        ✔ {fill(de.admin.broadcastSent, { count: sentCount })}
+        ✔ {fill(t.admin.broadcastSent, { count: sentCount })}
       </p>{/if}
   </form>
   {#if sent.length === 0}
-    <p>{de.admin.broadcastsNone}</p>
+    <p>{t.admin.broadcastsNone}</p>
   {:else}
     <ul class="plain sent">
       {#each sent as item (item.id)}

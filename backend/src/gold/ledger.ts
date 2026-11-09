@@ -19,8 +19,8 @@ export type TransactionType =
   | 'loan'
   | 'treatment'
   | 'menagerie_wage'
-  | 'aunt_gift'
-  | 'uncle_inheritance'
+  /** v0.8: gold gift of a control-centre bot (event). */
+  | 'bot_gift'
   /** v0.7 */
   | 'voucher';
 

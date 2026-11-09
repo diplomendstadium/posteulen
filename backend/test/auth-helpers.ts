@@ -17,6 +17,7 @@ import { tempDir } from './helpers.ts';
 
 export const USER_ORIGIN = 'https://posteulen.test';
 export const ADMIN_ORIGIN = 'https://admin.posteulen.test';
+export const BOTS_ORIGIN = 'https://bots.posteulen.test';
 export const BERLIN = { lat: 52.52, lon: 13.405 };
 export const HAMBURG = { lat: 53.55, lon: 9.99 };
 export const PARIS = { lat: 48.86, lon: 2.35 };
@@ -86,6 +87,17 @@ export class Agent {
     this.api = api;
     this.origin = origin;
     this.ip = ip;
+  }
+
+  /** v0.8: a request with a raw body (pictures, ZIP files of the control centre). */
+  async raw(url: string, contentType: string, body: Buffer): Promise<LightMyRequestResponse> {
+    const headers: Record<string, string> = {
+      origin: this.origin,
+      'x-posteulen': '1',
+      'content-type': contentType,
+    };
+    if (this.cookie) headers['cookie'] = this.cookie;
+    return this.api.inject({ method: 'POST', url, headers, remoteAddress: this.ip, payload: body });
   }
 
   async request(

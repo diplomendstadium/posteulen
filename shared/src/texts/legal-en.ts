@@ -47,7 +47,8 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
       en.bots.notice,
       'To reply, the server sends the bot’s role text, a short summary of your letters, the last 6 letters and your new letter to OpenAI (OpenAI, L.L.C., USA or OpenAI Ireland Ltd.). Names, user IDs or other identifiers are not transmitted, and storage at OpenAI is switched off as far as the interface allows (store: false). OpenAI may still keep requests for a limited time to detect abuse. So do not write anything personal to bots.',
       'The summary is stored in plain text with the bot chat. It is deleted when you delete the chat, remove the bot or your account is deleted.',
-      'If you do not want this, simply do not write to the bots or remove them in the address book.',
+      'Besides the Explainer Bear there are bots that the operator creates in the bots control centre. Their planned letters go to all accounts that have not removed bots; if you have written to such a bot, the AI adapts its next letter to you. In the control centre the operator only sees totals (letters sent, delivered, read, replies) and, on a map, where bot owls are flying or resting right now – without names, but a resting owl sits at your fictional home. The daily backup of the bots only contains their settings, planned letters and pictures, no letters of players.',
+      'If you do not want this, simply do not write to the bots or remove them in their chat – or all of them, future ones included, in the settings.',
     ],
   },
   {

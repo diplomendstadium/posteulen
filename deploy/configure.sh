@@ -22,6 +22,7 @@ mv "$PE_SERVICE_ENV.new" "$PE_SERVICE_ENV"
 install -d -m 0755 "$PE_LOCAL"
 [[ -e $PE_LOCAL/global-00-leer.caddy ]] || printf '# Eigene globale Caddy-Blöcke hier oder in weiteren global-*.caddy-Dateien.\n' >"$PE_LOCAL/global-00-leer.caddy"
 [[ -e $PE_LOCAL/admin-00-leer.caddy ]] || printf '# Eigene Regeln für admin.%s hier oder in weiteren admin-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/admin-00-leer.caddy"
+[[ -e $PE_LOCAL/bots-00-leer.caddy ]] || printf '# Eigene Regeln für bots.%s hier oder in weiteren bots-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/bots-00-leer.caddy"
 
 # systemd-Units
 for unit in posteulen.service posteulen-backup.service posteulen-backup.timer; do

@@ -33,3 +33,35 @@ export function isLand(mask: Uint8Array, lat: number, lon: number): boolean {
 export function roundHome(lat: number, lon: number): { latE2: number; lonE2: number } {
   return { latE2: Math.round(lat * 100), lonE2: Math.round(lon * 100) };
 }
+
+/** v0.8: the coarse world mask (0.1°, row 0 = 90° N, column 0 = 180° W), SPEC 12.3. */
+const WORLD_RES = MAP.WORLD_MASK_RESOLUTION_DEG;
+export const WORLD_MASK_WIDTH = Math.round(360 / WORLD_RES);
+export const WORLD_MASK_HEIGHT = Math.round(180 / WORLD_RES);
+export const WORLD_MASK_BYTES = Math.ceil((WORLD_MASK_WIDTH * WORLD_MASK_HEIGHT) / 8);
+
+/** Cell index in the world mask, or -1 for an invalid coordinate. */
+export function worldCellIndex(lat: number, lon: number): number {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90) return -1;
+  const wrapped = ((((lon + 180) % 360) + 360) % 360) - 180;
+  const col = Math.min(WORLD_MASK_WIDTH - 1, Math.floor((wrapped + 180) / WORLD_RES));
+  const row = Math.min(WORLD_MASK_HEIGHT - 1, Math.floor((90 - lat) / WORLD_RES));
+  return row * WORLD_MASK_WIDTH + col;
+}
+
+/**
+ * v0.8: land anywhere in the world – inside the map section with the fine mask, outside with
+ * the coarse world mask (sleeping owls, homes of bots).
+ */
+export function isLandAnywhere(
+  sectionMask: Uint8Array,
+  worldMask: Uint8Array,
+  lat: number,
+  lon: number,
+): boolean {
+  if (insideSection(lat, lon)) return isLand(sectionMask, lat, lon);
+  if (worldMask.length !== WORLD_MASK_BYTES) throw new Error('world mask has the wrong size');
+  const index = worldCellIndex(lat, lon);
+  if (index < 0) return false;
+  return ((worldMask[index >> 3] ?? 0) & (1 << (index & 7))) !== 0;
+}

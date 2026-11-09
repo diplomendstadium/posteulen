@@ -47,6 +47,15 @@ account() {
 }
 has_previous_marker() { [[ $(sql "SELECT value FROM settings WHERE key = 'vmtest-vorher'") == *bleibt* ]]; }
 has_account_support() { [[ -f /opt/posteulen/current/deploy/test/vm-account.ts ]]; }
+# v0.8: das Bots-Kontrollzentrum (bots.<domain>) mit eigenem Zugang.
+has_bots_support() { grep -q 'bots-init' /opt/posteulen/current/backend/src/cli.ts 2>/dev/null; }
+bots_health() { curl -s --insecure --resolve "bots.$DOMAIN:443:127.0.0.1" "https://bots.$DOMAIN/api/health" | grep -q '"api":"bots"'; }
+bots_access() { sql "SELECT opaque_record FROM bots_admin" | sha256sum | cut -d' ' -f1; }
+bots_backup_ok() {
+  local zip
+  zip=$(find /var/backups/posteulen -name 'posteulen-bots-*-taeglich.zip' | sort | tail -1)
+  [[ -n $zip && $(head -c 2 "$zip") == PK && $(stat -c %a "$zip") == 600 ]]
+}
 has_letter_support() { grep -q 'letters-check' /opt/posteulen/current/deploy/test/vm-account.ts 2>/dev/null; }
 letters() {
   NODE_EXTRA_CA_CERTS=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt \
@@ -75,7 +84,7 @@ apt-get update -qq && apt-get install -y -qq git >/dev/null
 git clone --quiet --bare /tmp/posteulen.bundle /srv/posteulen.git
 git -C /srv/posteulen.git config uploadpack.allowFilter true
 git clone --quiet /srv/posteulen.git /root/posteulen
-printf '127.0.0.1 %s admin.%s\n' "$DOMAIN" "$DOMAIN" >>/etc/hosts
+printf '127.0.0.1 %s admin.%s bots.%s\n' "$DOMAIN" "$DOMAIN" "$DOMAIN" >>/etc/hosts
 
 if [[ -n $previous ]]; then
   echo "── 0. Installation der vorigen Stufe ($previous) und Update auf $v1"
@@ -110,6 +119,13 @@ fi
 git -C /root/posteulen checkout --quiet "$v1"
 if has_account_support; then
   check "Adminzugang angelegt" bash -c "posteulen-cli admin-init | grep -q 'vorhanden'"
+fi
+if has_bots_support; then
+  check "Zugang zum Bots-Kontrollzentrum angelegt" bash -c "posteulen-cli bots-init | grep -q 'vorhanden'"
+  check "bots.$DOMAIN antwortet" bots_health
+  bots_before=$(bots_access)
+fi
+if has_account_support; then
   sql "UPDATE settings SET value = 'open' WHERE key = 'registration_mode'" >/dev/null
   if [[ $account_registered -eq 0 ]]; then
     check "Testkonto registrieren (über HTTPS)" account register
@@ -150,6 +166,7 @@ check "Version $v2 antwortet" test "$(api_version)" = "${v2#v}"
 check "Daten erhalten" has_marker
 check "Geheimnisse unverändert" test "$(fingerprint)" = "$before"
 check "Verschlüsselte Sicherung vor dem Update" update_backup_exists
+has_bots_support && check "Passwort des Kontrollzentrums beim Update unverändert" test "$(bots_access)" = "$bots_before"
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
 
@@ -175,6 +192,7 @@ has_letter_support && check "Brief nach --rollback für beide lesbar" letters le
 
 echo "── 6. Sicherung und Wiederherstellung nach README.md"
 check "Sicherung manuell" systemctl start posteulen-backup.service
+has_bots_support && check "Tägliche Bot-Sicherung als ZIP (0600)" bots_backup_ok
 latest=$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)
 check "Sicherung ist verschlüsselt (kein SQLite-Klartext)" bash -c "! head -c 16 \"\$1\" | grep -q 'SQLite format'" _ "$latest"
 sql "DELETE FROM settings WHERE key = 'vmtest-marker'" >/dev/null

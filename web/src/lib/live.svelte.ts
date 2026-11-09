@@ -32,7 +32,10 @@ export interface Contact {
 export interface BotContact {
   readonly userId: string;
   readonly name: string;
-  readonly type: 'explainer' | 'aunt' | 'uncle';
+  /** v0.8: the Erklärbär or a bot of the control centre. */
+  readonly type: 'explainer' | 'central';
+  /** Own and loan owls of the player may fly to it (control-centre bots decide). */
+  readonly playerOwls: boolean;
   /** Writing again possible from (24 hours after the last letter, SPEC 10.1). */
   readonly writableFrom: number | null;
 }
@@ -51,6 +54,8 @@ export const live = $state<{
   bots: BotContact[];
   /** v0.7.2: all bots of the account (also those not known yet). */
   allBots: number;
+  /** v0.8: "Alle Bots entfernen" chosen – no bot ever writes again. */
+  botsDisabled: boolean;
   requests: { id: string; label: string; expiresAt: number }[];
   news: NewsItem[];
   pushState: string;
@@ -65,6 +70,7 @@ export const live = $state<{
   contacts: [],
   bots: [],
   allBots: 0,
+  botsDisabled: false,
   requests: [],
   news: [],
   pushState: 'none',
@@ -81,6 +87,7 @@ onSignOut(() => {
   live.contacts = [];
   live.bots = [];
   live.allBots = 0;
+  live.botsDisabled = false;
   live.requests = [];
   live.news = [];
   live.pushState = 'none';
@@ -199,12 +206,14 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
         contacts: Contact[];
         bots: BotContact[];
         allBots?: number;
+        botsDisabled?: boolean;
         requests: { id: string; label: string; expiresAt: number }[];
       }>('GET', '/api/contacts').then(async (result) => {
         if (!current()) return;
         live.contacts = result.contacts;
         live.bots = result.bots;
         live.allBots = result.allBots ?? result.bots.length;
+        live.botsDisabled = result.botsDisabled ?? false;
         live.requests = result.requests;
         await syncVault(result.contacts);
       }),

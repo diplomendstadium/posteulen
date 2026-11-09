@@ -161,4 +161,6 @@ export const OpenAiKey = v.strictObject({
 export const OpenAiSettings = v.strictObject({
   model: v.pipe(v.string(), v.minLength(1), v.maxLength(100), v.regex(/^[A-Za-z0-9._:-]+$/)),
   dailyLimit: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(100_000)),
+  /** v0.8: quota of the control-centre bots (the Erklärbär has its own). */
+  botsDailyLimit: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(100_000))),
 });

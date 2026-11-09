@@ -1,6 +1,6 @@
 import { helpAsText } from '@posteulen/shared/texts/help.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { BOTS, GOLD, LETTER, TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, LETTER, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { distanceKm } from '@posteulen/shared/game/geo.ts';
 import { EXPLAINER_LETTERS } from '@posteulen/shared/texts/bots.ts';
@@ -55,8 +55,6 @@ beforeEach(async () => {
   ai = new FakeAi();
   app = await testApp({ aiClient: ai });
   anna = await person(app, 'Anna');
-  // The aunt appears with her welcome letter five minutes after registration (v0.3).
-  advanceTo(app, app.clock.now + BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES * TIME.MINUTE);
 });
 afterEach(async () => {
   await app.ctx.botReplies.idle();
@@ -66,7 +64,7 @@ afterEach(async () => {
 interface Bot {
   userId: string;
   name: string;
-  type: 'explainer' | 'aunt' | 'uncle';
+  type: 'explainer' | 'central';
   writableFrom: number | null;
 }
 
@@ -97,10 +95,6 @@ async function botLetters(who: Person, botId: string) {
   ).body.letters;
 }
 
-function gold(who: Person): number {
-  return app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', who.id)?.gold ?? 0;
-}
-
 async function writeToBot(who: Person, botId: string, text: string) {
   const owl = await borrowOwl(who);
   return who.agent.json<{ letters: { arrivesAt: number }[] }>('POST', '/api/bot-letters/send', {
@@ -112,7 +106,7 @@ async function writeToBot(who: Person, botId: string, text: string) {
 }
 
 describe('bots of a new account (SPEC 10, 17.2)', () => {
-  it('first only the Erklärbär; the aunt comes with her letter after 5 minutes (v0.3)', async () => {
+  it('only the Erklärbär (v0.8: no aunt, no uncle); on the map once written to', async () => {
     const paula = await person(app, 'Paula', PARIS);
     const mapBots = async () =>
       (
@@ -121,6 +115,9 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
         .filter((c) => c.bot)
         .map((c) => c.name);
     expect((await bots(paula)).map((bot) => bot.type)).toEqual(['explainer']);
+    expect(app.db.all('SELECT type FROM bots WHERE owner_id = ?', paula.id)).toEqual([
+      { type: 'explainer' },
+    ]);
     const explainer = (await bots(paula))[0]!;
     expect(await botLetters(paula, explainer.userId)).toEqual([
       expect.objectContaining({
@@ -135,21 +132,18 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
     expect(chats.body.chats).toEqual([
       expect.objectContaining({ peerKind: 'bot', name: 'Erklärbär', unread: 1 }),
     ]);
-    // Nobody on the map yet: the Erklärbär only once written to, the aunt with her letter.
     expect(await mapBots()).toEqual([]);
-    const aunt = botRow(paula, 'aunt');
-    const arrival = app.db.get<{ arrives_at: number; sent_at: number }>(
-      'SELECT arrives_at, sent_at FROM letters WHERE sender_id = ?',
-      aunt.id,
-    )!;
-    expect(arrival.arrives_at - arrival.sent_at).toBe(5 * TIME.MINUTE);
-    advanceTo(app, arrival.arrives_at);
-    const list = await bots(paula);
-    expect(list.map((bot) => bot.type)).toEqual(['explainer', 'aunt']);
-    expect(list[1]!.name).toBe(`Tante ${aunt.first_name}`);
-    expect(await mapBots()).toEqual([`Tante ${aunt.first_name}`]);
+    advanceTo(app, app.clock.now + 30 * TIME.DAY);
+    expect((await bots(paula)).map((bot) => bot.type)).toEqual(['explainer']);
     expect(await writeToBot(paula, explainer.userId, 'Hallo Bär!')).toMatchObject({ status: 200 });
-    expect((await mapBots()).sort()).toEqual(['Erklärbär', `Tante ${aunt.first_name}`].sort());
+    expect(await mapBots()).toEqual(['Erklärbär']);
+    // The database refuses aunt and uncle (v0.8).
+    expect(() =>
+      app.db.run(
+        "INSERT INTO bots (id, owner_id, type, home_lat, home_lon, in_addressbook) VALUES ('x', ?, 'aunt', 0, 0, 0)",
+        paula.id,
+      ),
+    ).toThrow();
     // Bot letters are plain text by design (SPEC 10.1) – and nothing of them is encrypted.
     expect(
       app.db.get<{ n: number }>(
@@ -183,61 +177,18 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
     ]);
   });
 
-  it('aunt: 4.0 gold after 2 days, only once, also to inactive accounts', async () => {
-    app.db.run('UPDATE users SET last_active_date = ? WHERE id = ?', '2026-09-01', anna.id);
-    const aunt = botRow(anna, 'aunt');
-    advanceTo(app, app.clock.now + 2 * TIME.DAY);
-    // A duplicate event does nothing twice (idempotency).
-    app.ctx.queue.schedule('bot_gold', aunt.id, app.clock.now);
-    advanceTo(app, app.clock.now + 5 * TIME.DAY);
-    expect(gold(anna)).toBe(GOLD.START + GOLD.AUNT_GIFT);
-    const finance = app.db.all<{ type: string; amount: number; counterpart_label: string }>(
-      "SELECT type, amount, counterpart_label FROM transactions WHERE user_id = ? AND type = 'aunt_gift'",
-      anna.id,
-    );
-    expect(finance).toEqual([
-      { type: 'aunt_gift', amount: 40, counterpart_label: `Tante ${aunt.first_name}` },
-    ]);
-    const letters = await botLetters(anna, aunt.id);
-    expect(letters.map((l) => l.kind)).toEqual(['letter', 'cover_gold']);
-    const system = await anna.agent.json<{
-      messages: { type: string; params: Record<string, unknown> }[];
-    }>('GET', '/api/system-messages');
-    expect(system.body.messages).toContainEqual(
-      expect.objectContaining({
-        type: 'gold_arrived',
-        params: expect.objectContaining({ amount: 40 }),
-      }),
-    );
-  });
-
-  it('uncle: first letter after 14 days, then in the address book; 10.0 gold after 21 days', async () => {
-    const uncle = botRow(anna, 'uncle');
-    advanceTo(app, app.clock.now + 13 * TIME.DAY);
-    expect((await bots(anna)).map((b) => b.type)).not.toContain('uncle');
-    advanceTo(app, app.clock.now + 4 * TIME.DAY);
-    expect((await bots(anna)).map((b) => b.type)).toContain('uncle');
-    advanceTo(app, app.clock.now + 10 * TIME.DAY);
-    expect(gold(anna)).toBe(GOLD.START + GOLD.AUNT_GIFT + GOLD.UNCLE_INHERITANCE + 25 * 0);
-    const transactions = app.db.all<{ counterpart_label: string }>(
-      "SELECT counterpart_label FROM transactions WHERE user_id = ? AND type = 'uncle_inheritance'",
-      anna.id,
-    );
-    expect(transactions).toEqual([{ counterpart_label: `Onkel ${uncle.first_name}` }]);
-  });
-
   it('accounts from before stage 5 get their bots once', async () => {
     app.db.run('DELETE FROM bots');
     app.db.run('UPDATE users SET bots_created = 0');
     expect(ensureBotsForAllUsers(app.ctx)).toBe(1);
     expect(ensureBotsForAllUsers(app.ctx)).toBe(0);
-    expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toHaveLength(3);
+    expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toHaveLength(1);
   });
 
   it('removed bots never come back, also not after a restart (v0.7.2)', async () => {
     expect(
       (await anna.agent.json<{ removed: number }>('POST', '/api/bots/remove-all', {})).body,
-    ).toEqual({ removed: 3 });
+    ).toEqual({ removed: 1 });
     expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toEqual([]);
     expect(ensureBotsForAllUsers(app.ctx)).toBe(0);
     expect(app.db.all('SELECT 1 FROM bots WHERE owner_id = ?', anna.id)).toEqual([]);
@@ -248,36 +199,41 @@ describe('bots of a new account (SPEC 10, 17.2)', () => {
       'GET',
       '/api/contacts',
     );
-    expect(contacts.body).toMatchObject({ bots: [], allBots: 0 });
+    expect(contacts.body).toMatchObject({ bots: [], allBots: 0, botsDisabled: true });
   });
 });
 
 describe('removing a bot (SPEC 10.1, 8.8)', () => {
-  it('is final: chat, planned gold and the owl on its way vanish; own owls turn back', async () => {
-    const aunt = botRow(anna, 'aunt');
-    // The aunt's gift sets off now and is still flying when she is removed.
-    app.ctx.queue.schedule('bot_gold', aunt.id, app.clock.now);
-    advanceTo(app, app.clock.now);
-    expect(app.db.all('SELECT 1 FROM bot_shipments WHERE bot_id = ?', aunt.id)).toHaveLength(1);
+  it('is final: chat and planned letters vanish; own owls on their way turn back', async () => {
+    const explainer = botRow(anna, 'explainer');
     setGold(app, anna, 200);
     const owl = await buyOwl(app, anna);
     app.db.run('UPDATE owls SET energy = 540 WHERE id = ?', owl);
     expect(
       (
         await anna.agent.json('POST', '/api/bot-letters/send', {
-          botId: aunt.id,
+          botId: explainer.id,
           owlId: owl,
           parchment: 'small',
-          text: 'Hallo Tante!',
+          text: 'Hallo Bär!',
         })
       ).status,
     ).toBe(200);
-    expect((await anna.agent.json('DELETE', `/api/contacts/${aunt.id}`)).status).toBe(200);
-    expect(app.db.get('SELECT 1 FROM bots WHERE id = ?', aunt.id)).toBeUndefined();
+    expect((await anna.agent.json('DELETE', `/api/contacts/${explainer.id}`)).status).toBe(200);
+    expect(app.db.get('SELECT 1 FROM bots WHERE id = ?', explainer.id)).toBeUndefined();
     expect(
-      app.db.all('SELECT 1 FROM letters WHERE sender_id = ? OR recipient_id = ?', aunt.id, aunt.id),
+      app.db.all(
+        'SELECT 1 FROM letters WHERE sender_id = ? OR recipient_id = ?',
+        explainer.id,
+        explainer.id,
+      ),
     ).toEqual([]);
-    expect(app.db.all('SELECT 1 FROM scheduled_events WHERE ref = ?', aunt.id)).toEqual([]);
+    expect(
+      app.db.all(
+        "SELECT 1 FROM scheduled_events WHERE type = 'bot_letter' AND ref LIKE ?",
+        `${explainer.id}:%`,
+      ),
+    ).toEqual([]);
     const flight = app.db.get<{ route: string }>(
       "SELECT route FROM flights WHERE state = 'active'",
     );
@@ -290,10 +246,7 @@ describe('removing a bot (SPEC 10.1, 8.8)', () => {
       ['deliver', 'skipped'],
       ['home', 'pending'],
     ]);
-    advanceTo(app, app.clock.now + 30 * TIME.DAY);
-    // Only the uncle's inheritance arrived; the aunt's gift is gone with her.
-    expect(gold(anna)).toBe(200 - 60 + GOLD.UNCLE_INHERITANCE);
-    expect((await bots(anna)).map((b) => b.type)).toEqual(['explainer', 'uncle']);
+    expect(await bots(anna)).toEqual([]);
   });
 });
 
@@ -302,7 +255,7 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
     await storeApiKey(app.ctx, 'sk-test-0000000000000000', app.clock.now);
   });
 
-  it('plain text, one recipient, once in 24 hours; no gold and no gifts to bots', async () => {
+  it('plain text, one recipient, once per UTC day (v0.8); no gold and no gifts to bots', async () => {
     const explainer = botRow(anna, 'explainer');
     const ben = await person(app, 'Ben');
     await couple(anna, ben);
@@ -343,14 +296,18 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
       'Wie füttere ich',
     );
     const lock = (await bots(anna)).find((b) => b.userId === explainer.id)!;
-    expect(lock.writableFrom).toBe(app.clock.now + 24 * TIME.HOUR);
+    // v0.8: one letter per calendar day (UTC) – writable again at the next midnight.
+    const midnight =
+      Date.parse(`${new Date(app.clock.now).toISOString().slice(0, 10)}T00:00:00Z`) + TIME.DAY;
+    expect(lock.writableFrom).toBe(midnight);
     expect((await writeToBot(anna, explainer.id, 'Noch eine Frage')).body).toMatchObject({
       code: 'bot_write_lock',
     });
+    advanceTo(app, midnight);
     expect(
       (
         await anna.agent.json('POST', '/api/bot-letters/send', {
-          botId: botRow(anna, 'aunt').id,
+          botId: explainer.id,
           owlId: owl,
           parchment: 'small',
           text: 'x'.repeat(LETTER.SMALL_MAX_CHARS + 1),
@@ -444,10 +401,10 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
 
   it('daily limit: the reply moves to the next day; without key: again in 24 hours', async () => {
     const explainer = botRow(anna, 'explainer');
-    const aunt = botRow(anna, 'aunt');
+    const bea = await person(app, 'Bea');
     app.db.run("INSERT INTO settings (key, value) VALUES ('ai_daily_limit', '1')");
     const first = await writeToBot(anna, explainer.id, 'Frage eins');
-    const second = await writeToBot(anna, aunt.id, 'Hallo Tante');
+    const second = await writeToBot(bea, botRow(bea, 'explainer').id, 'Hallo Bär, Frage zwei');
     const due =
       Math.max(first.body.letters[0]!.arrivesAt, second.body.letters[0]!.arrivesAt) + 2 * TIME.HOUR;
     advanceTo(app, due);
@@ -472,7 +429,7 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
     expect(log).toContainEqual(
       expect.objectContaining({ what: 'Eine Bot-Antwort konnte nicht erzeugt werden.' }),
     );
-    expect(JSON.stringify(log)).not.toContain('Hallo Tante');
+    expect(JSON.stringify(log)).not.toContain('Frage zwei');
 
     // API errors are retried as well.
     await storeApiKey(app.ctx, 'sk-test-0000000000000000', app.clock.now);

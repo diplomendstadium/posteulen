@@ -7,7 +7,7 @@ import {
   owlImageFileName,
 } from '../src/species.ts';
 import { GOLD, LETTER, MAP, SECURITY } from '../src/constants.ts';
-import { OWL_NAMES, AUNT_NAMES, UNCLE_NAMES } from '../src/names-data.ts';
+import { OWL_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
@@ -109,11 +109,9 @@ describe('constants (SPEC Anhang A)', () => {
     expect(MAP.SOUTH_LAT).toBeLessThan(MAP.NORTH_LAT);
   });
 
-  it('has the name lists of Anhang D and E', () => {
+  it('has the name list of Anhang D (v0.8: no names of aunt and uncle any more)', () => {
     expect(OWL_NAMES).toHaveLength(130);
     expect(new Set(OWL_NAMES).size).toBe(OWL_NAMES.length);
-    expect(UNCLE_NAMES).toHaveLength(50);
-    expect(AUNT_NAMES).toHaveLength(49);
   });
 
   it('has a semantic version', () => {

@@ -24,12 +24,14 @@ import { botById, dispatchBotLetter, type BotRow } from './service.ts';
 const REPLY_TOKENS = 4000;
 const SUMMARY_TOKENS = 4000;
 
-/** Cleans the AI text with the letter rules and cuts it to 500 characters at a sentence end. */
-export function finishReply(raw: string): string {
+/**
+ * Cleans the AI text with the letter rules and cuts it at a sentence end: 500 characters for
+ * the Erklärbär; v0.8: other bots only at the size of a large parchment.
+ */
+export function finishReply(raw: string, max: number = BOTS.EXPLAINER_REPLY_MAX_CHARS): string {
   const text = sanitizeLetterText(raw)
     .text.replace(/\n{3,}/g, '\n\n')
     .trim();
-  const max = BOTS.REPLY_MAX_CHARS;
   if (countCodePoints(text) <= max) return text;
   const head = Array.from(text).slice(0, max).join('');
   const end = Math.max(
@@ -222,7 +224,7 @@ export class BotReplies {
       if (!botById(ctx, bot.id)) return;
       // A letter to a bot counts as read once the bot has written its reply (SPEC 8.4).
       ctx.db.run('UPDATE letters SET read = 1 WHERE id = ?', letter.id);
-      dispatchBotLetter(ctx, bot, text, 0, now);
+      dispatchBotLetter(ctx, bot, text, now);
       ctx.db.run('DELETE FROM bot_jobs WHERE letter_id = ?', letter.id);
       after.push(() => ctx.hub.notify(bot.owner_id, 'chats'));
     });

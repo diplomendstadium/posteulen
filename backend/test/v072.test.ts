@@ -2,7 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { randomSex } from '@posteulen/shared/game/owls.ts';
 import { secureRandom } from '../src/context.ts';
-import { advanceTo, person, testApp, type Person, type TestApp } from './auth-helpers.ts';
+import { TIME } from '@posteulen/shared/constants.ts';
+import { advanceTo, PARIS, person, testApp, type Person, type TestApp } from './auth-helpers.ts';
 
 let app: TestApp;
 let anna: Person;
@@ -17,11 +18,14 @@ afterEach(async () => {
 
 describe('burning a chat while a letter is on its way (v0.7.2)', () => {
   it('the letter still arrives visibly; the unread counter matches what is shown', async () => {
+    // v0.8: the Erklärbär's letter of day 1 is on its way (aunt and uncle are gone).
+    const paula = await person(app, 'Paula', PARIS);
+    anna = paula;
     const aunt = app.db.get<{ id: string }>(
-      "SELECT id FROM bots WHERE owner_id = ? AND type = 'aunt'",
+      "SELECT id FROM bots WHERE owner_id = ? AND type = 'explainer'",
       anna.id,
     )!;
-    // The aunt's welcome letter is on its way (5 minutes after registration).
+    advanceTo(app, app.clock.now + TIME.DAY);
     const flying = app.db.get<{ id: string; arrives_at: number }>(
       "SELECT id, arrives_at FROM letters WHERE sender_id = ? AND status = 'in_flight'",
       aunt.id,
@@ -38,6 +42,7 @@ describe('burning a chat while a letter is on its way (v0.7.2)', () => {
       `/api/chats/${aunt.id}/letters`,
     );
     expect(letters.body.letters.map((letter) => letter.id)).toEqual([flying.id]);
+    // The Erklärbär keeps no copies: the burnt day-0 letter is gone for good.
     expect(chats.body.chats.find((chat) => chat.peerId === aunt.id)?.unread).toBe(1);
   });
 });

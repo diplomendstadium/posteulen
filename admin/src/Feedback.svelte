@@ -4,7 +4,8 @@
    * Shown as plain text only.
    */
   import { onMount } from 'svelte';
-  import { de } from '@posteulen/shared/texts/de.ts';
+  import { t } from './lib/i18n.svelte.ts';
+  import { locale } from './lib/i18n.svelte.ts';
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
 
@@ -18,7 +19,7 @@
   let error = $state<string | null>(null);
 
   const time = (ms: number): string =>
-    new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
       new Date(ms),
     );
 
@@ -43,11 +44,11 @@
 </script>
 
 <section class="card" aria-labelledby="feedback-title">
-  <h2 id="feedback-title">{de.admin.feedbackTitle}</h2>
-  <p>{de.admin.feedbackIntro}</p>
+  <h2 id="feedback-title">{t.admin.feedbackTitle}</h2>
+  <p>{t.admin.feedbackIntro}</p>
   {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
   {#if entries.length === 0}
-    <p>{de.admin.feedbackNone}</p>
+    <p>{t.admin.feedbackNone}</p>
   {:else}
     <ul class="list">
       {#each entries as entry (entry.id)}
@@ -55,7 +56,7 @@
           <span class="when">{time(entry.createdAt)}</span>
           <p class="text">{entry.text}</p>
           <button class="button secondary" type="button" onclick={() => void remove(entry.id)}
-            >{de.admin.feedbackDelete}</button
+            >{t.admin.feedbackDelete}</button
           >
         </li>
       {/each}

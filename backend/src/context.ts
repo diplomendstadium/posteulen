@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
 import { SECURITY } from '@posteulen/shared/constants.ts';
-import { MASK_BYTES } from '@posteulen/shared/map/landmask.ts';
+import { MASK_BYTES, WORLD_MASK_BYTES } from '@posteulen/shared/map/landmask.ts';
 import type { Config } from './config.ts';
 import type { Database } from './db/database.ts';
 import { deriveServerKey, type Secrets } from './secrets.ts';
@@ -22,7 +22,7 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
 export interface LoginAttempt {
-  readonly kind: 'user' | 'admin' | 'reauth' | 'admin-reauth';
+  readonly kind: 'user' | 'admin' | 'reauth' | 'admin-reauth' | 'bots' | 'bots-reauth';
   readonly userId: string | null;
   readonly nameKey: string;
   readonly ipKey: string;
@@ -55,12 +55,16 @@ export interface Context {
     readonly loanName: Uint8Array;
   };
   readonly landMask: Uint8Array;
+  /** v0.8: coarse land/water mask of the whole world (bots live anywhere on land). */
+  readonly worldMask: Uint8Array;
   readonly altcha: Altcha;
   now(): number;
   readonly guards: {
     readonly names: LoginGuard;
     readonly ips: LoginGuard;
     readonly admin: LoginGuard;
+    /** v0.8: the control centre has its own login guard. */
+    readonly bots: LoginGuard;
   };
   readonly limits: {
     readonly general: RateLimiter;
@@ -68,6 +72,8 @@ export interface Context {
     readonly registration: RateLimiter;
     readonly session: RateLimiter;
     readonly admin: RateLimiter;
+    /** v0.8: everything on the control-centre host. */
+    readonly bots: RateLimiter;
     /** Push subscription changes and tests per account (v0.6.1). */
     readonly push: RateLimiter;
   };
@@ -83,6 +89,8 @@ export interface Context {
   readonly ai: import('./bots/ai.ts').AiClient;
   /** Set right after creation: runs due bot replies outside of transactions. */
   botReplies: import('./bots/replies.ts').BotReplies;
+  /** v0.8: set right after creation – deliveries of the control-centre bots (AI outside of transactions). */
+  centralBots: import('./central/runner.ts').CentralRunner;
   /** Only for automated local tests: flights run this many times faster (1 on servers). */
   readonly flightTimeScale: number;
   /** Uniform random number in [0, 1) – tests inject a fixed sequence (SPEC 17.2). */
@@ -118,6 +126,7 @@ export function secureRandom(): number {
 }
 
 export const LAND_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/landmask.bin');
+export const WORLD_MASK_FILE = path.resolve(import.meta.dirname, '../../shared/data/worldmask.bin');
 
 export interface ContextOptions {
   readonly now?: () => number;
@@ -142,6 +151,8 @@ export async function createContext(
 ): Promise<Context> {
   const landMask = new Uint8Array(fs.readFileSync(LAND_MASK_FILE));
   if (landMask.length !== MASK_BYTES) throw new Error('land mask has the wrong size');
+  const worldMask = new Uint8Array(fs.readFileSync(WORLD_MASK_FILE));
+  if (worldMask.length !== WORLD_MASK_BYTES) throw new Error('world mask has the wrong size');
   const altchaKey = await deriveServerKey(secrets, SERVER_CONTEXTS.ALTCHA);
   const now = options.now ?? Date.now;
   return {
@@ -156,6 +167,7 @@ export async function createContext(
       loanName: await deriveServerKey(secrets, SERVER_CONTEXTS.LOAN_NAME),
     },
     landMask,
+    worldMask,
     altcha: new Altcha(Buffer.from(altchaKey).toString('hex'), options.altchaMaxCounter ?? 50_000),
     now,
     guards: {
@@ -165,6 +177,7 @@ export async function createContext(
       // per-IP delay never starts; per name everything stays as in production.
       ips: options.relaxedLimits ? new LoginGuard(10_000, 10) : new LoginGuard(20, 10),
       admin: new LoginGuard(),
+      bots: new LoginGuard(),
     },
     limits: options.relaxedLimits
       ? {
@@ -173,6 +186,7 @@ export async function createContext(
           registration: new RateLimiter(100_000, HOUR),
           session: new RateLimiter(100_000, MINUTE),
           admin: new RateLimiter(100_000, MINUTE),
+          bots: new RateLimiter(100_000, MINUTE),
           push: new RateLimiter(100_000, HOUR),
         }
       : {
@@ -181,6 +195,7 @@ export async function createContext(
           registration: new RateLimiter(5, HOUR),
           session: new RateLimiter(300, MINUTE),
           admin: new RateLimiter(120, MINUTE),
+          bots: new RateLimiter(600, MINUTE),
           push: new RateLimiter(SECURITY.PUSH_CHANGES_PER_HOUR, HOUR),
         },
     attempts: new Ephemeral(),
@@ -192,6 +207,7 @@ export async function createContext(
     push: undefined as unknown as PushService,
     ai: options.aiClient ?? openAiClient,
     botReplies: undefined as unknown as import('./bots/replies.ts').BotReplies,
+    centralBots: undefined as unknown as import('./central/runner.ts').CentralRunner,
     flightTimeScale: options.flightTimeScale ?? 1,
     random: options.random ?? secureRandom,
   };

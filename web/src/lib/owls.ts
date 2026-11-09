@@ -66,6 +66,8 @@ export interface GuestOwl {
   readonly holderId: string;
   readonly holderName: string | null;
   readonly restUntil: number;
+  /** v0.8: the owl of a control-centre bot – no care, only a reply. */
+  readonly bot?: boolean;
 }
 
 export interface OwlChoice {

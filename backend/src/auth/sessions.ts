@@ -22,7 +22,10 @@ export interface CookieSpec {
  * __Host- cookies require HTTPS. The local preview runs on http://localhost, where the
  * prefix is not allowed in every browser; there the cookie is called pe_* (never on servers).
  */
-export function cookieSpec(origin: string, base: 'pe_session' | 'pe_admin'): CookieSpec {
+export function cookieSpec(
+  origin: string,
+  base: 'pe_session' | 'pe_admin' | 'pe_bots',
+): CookieSpec {
   const secure = origin.startsWith('https://');
   const name = secure ? `__Host-${base}` : base;
   return base === 'pe_session'

@@ -1,21 +1,19 @@
 /**
- * Bots (SPEC 10): every user has an Erklärbär, an aunt and an uncle of their own. Their letters
- * are plain text (the exception of SPEC 3), they travel with bot owls (not shown on the map)
- * and always arrive, also at inactive accounts.
+ * The Erklärbär (SPEC 10.2): every account has one of its own, hard-coded – unlike the bots of
+ * the control centre (v0.8, `central/`). His letters are plain text (the exception of SPEC 3),
+ * they travel with his owls (not shown on the map) and always arrive, also at inactive accounts.
+ * Until v0.7.2 there were also an aunt and an uncle per account; they are gone (relatives.ts).
  */
-import { BOTS, GOLD, MAP, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { simulate, type FlightProfile } from '@posteulen/shared/game/flight.ts';
-import { AUNT_NAMES, owlNames, UNCLE_NAMES } from '@posteulen/shared/names-data.ts';
+import { owlNames } from '@posteulen/shared/names-data.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import { botLetters } from '@posteulen/shared/texts/bots.ts';
 import { fill } from '@posteulen/shared/texts/de.ts';
 import type { Language } from '@posteulen/shared/i18n.ts';
 import { languageOf } from '../accounts/language.ts';
-import { isLand } from '@posteulen/shared/map/landmask.ts';
 import type { Context } from '../context.ts';
 import { randomId } from '../security/ids.ts';
-import { credit } from '../gold/ledger.ts';
-import { addSystemMessage } from '../messages/system.ts';
 import { flightEnvironment, routeOf, turnBack, type FlightRow } from '../flights/service.ts';
 import type { BotType } from './prompts.ts';
 
@@ -48,7 +46,7 @@ export function botById(ctx: Context, id: string): BotRow | undefined {
   return ctx.db.get<BotRow>('SELECT * FROM bots WHERE id = ?', id);
 }
 
-/** A bot of this user (in the address book unless `any`). */
+/** The Erklärbär of this user (unless `any`: only while he is in the letters, v0.7.2). */
 export function ownBot(
   ctx: Context,
   userId: string,
@@ -60,11 +58,7 @@ export function ownBot(
   return any || bot.in_addressbook === 1 ? bot : undefined;
 }
 
-/**
- * "Erklärbär", "Tante Emma", "Onkel Paul" (SPEC 10.3, 10.4) – or "Explainer Bear",
- * "Aunt Emma", "Uncle Paul" for an account in English (v0.4). Bots belong to one account,
- * so the owner's language decides.
- */
+/** "Erklärbär" – or "Explainer Bear" for an account in English (v0.4). */
 export function botTitle(
   ctx: Context,
   bot: Pick<BotRow, 'type' | 'first_name' | 'owner_id'>,
@@ -80,39 +74,14 @@ function pick<T>(ctx: Context, list: readonly T[]): T {
   return item;
 }
 
-/** A random place on land within the map (SPEC 10.3), rounded to 0.01°. */
-function randomHome(ctx: Context): { latE2: number; lonE2: number } {
-  for (let attempt = 0; attempt < 10_000; attempt++) {
-    const lat = MAP.SOUTH_LAT + ctx.random() * (MAP.NORTH_LAT - MAP.SOUTH_LAT);
-    const lon = MAP.WEST_LON + ctx.random() * (MAP.EAST_LON - MAP.WEST_LON);
-    const latE2 = Math.round(lat * 100);
-    const lonE2 = Math.round(lon * 100);
-    if (isLand(ctx.landMask, latE2 / 100, lonE2 / 100)) return { latE2, lonE2 };
-  }
+function profileOf(ctx: Context): FlightProfile {
   return {
-    latE2: Math.round(BOTS.EXPLAINER_HOME.lat * 100),
-    lonE2: Math.round(BOTS.EXPLAINER_HOME.lon * 100),
+    speedKmh: BOTS.EXPLAINER_SPEED_KMH,
+    maxEnergy: 0,
+    mode: 'adult',
+    unlimitedEnergy: true,
+    ...(ctx.flightTimeScale !== 1 ? { timeScale: ctx.flightTimeScale } : {}),
   };
-}
-
-function profileOf(ctx: Context, type: BotType): FlightProfile {
-  const scale = ctx.flightTimeScale !== 1 ? { timeScale: ctx.flightTimeScale } : {};
-  return type === 'explainer'
-    ? {
-        speedKmh: BOTS.EXPLAINER_SPEED_KMH,
-        maxEnergy: 0,
-        mode: 'adult',
-        unlimitedEnergy: true,
-        ...scale,
-      }
-    : {
-        speedKmh: BOTS.AUNT_UNCLE_SPEED_KMH,
-        maxEnergy: BOTS.AUNT_UNCLE_ENERGY,
-        // v0.5: sleeping on the way like every owl, 10 % per hour (no species factor).
-        recoveryPerHour: BOTS.AUNT_UNCLE_ENERGY * OWL.REGEN_SHARE_PER_HOUR,
-        mode: 'adult',
-        ...scale,
-      };
 }
 
 function userHome(ctx: Context, userId: string): { lat: number; lon: number } {
@@ -124,26 +93,19 @@ function userHome(ctx: Context, userId: string): { lat: number; lon: number } {
   return { lat: row.home_lat / 100, lon: row.home_lon / 100 };
 }
 
-function letterText(bot: BotRow, text: string): string {
-  return fill(text, { aunt: bot.first_name ?? '', uncle: bot.first_name ?? '' });
-}
-
 /**
- * A bot sends a letter (and gold) with one of its owls: random species and name, flight rules
- * of SPEC 9.4 with the bot values; delivery is an event, the owl is not shown on any map.
+ * The Erklärbär sends a letter with one of his owls: random species and name, 200 km/h with
+ * unlimited energy; delivery is an event, the owl is not shown on any map.
  */
 export function dispatchBotLetter(
   ctx: Context,
   bot: BotRow,
   text: string,
-  gold: number,
   now: number,
-  /** Fixed landing time instead of the simulated flight (the aunt's welcome letter, v0.3). */
-  fixedArrival?: number,
 ): { letterId: string; arrivesAt: number } {
   const species = pick(ctx, BOT_OWL_SPECIES).id;
   const owlName = pick(ctx, owlNames(languageOf(ctx, bot.owner_id)));
-  const profile = profileOf(ctx, bot.type);
+  const profile = profileOf(ctx);
   const simulation = simulate(
     profile,
     {
@@ -154,7 +116,7 @@ export function dispatchBotLetter(
     [{ index: 0, point: userHome(ctx, bot.owner_id) }],
     flightEnvironment(ctx),
   );
-  const arrivesAt = fixedArrival ?? simulation.arrivals[0]?.at ?? now;
+  const arrivesAt = simulation.arrivals[0]?.at ?? now;
   const letterId = randomId();
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
@@ -163,7 +125,7 @@ export function dispatchBotLetter(
     letterId,
     bot.id,
     bot.owner_id,
-    gold > 0 ? 'cover_gold' : 'letter',
+    'letter',
     now,
     arrivesAt,
     text,
@@ -177,7 +139,7 @@ export function dispatchBotLetter(
     bot.id,
     bot.owner_id,
     letterId,
-    gold,
+    0,
     arrivesAt,
   );
   ctx.queue.schedule('bot_deliver', shipment, arrivesAt);
@@ -202,55 +164,34 @@ function upsertBotChat(
   );
 }
 
-/** Three bots for a new account (SPEC 10), the day-0 letter already delivered (10.2). */
+/** The Erklärbär of a new account (SPEC 10.2), his day-0 letter already delivered. */
 export function createBots(ctx: Context, userId: string, now: number): void {
-  // v0.7.2: only once per account – removed bots never come back.
+  // v0.7.2: only once per account – a removed Erklärbär never comes back.
   const done = ctx.db.run(
     'UPDATE users SET bots_created = 1 WHERE id = ? AND bots_created = 0',
     userId,
   );
   if (done.changes !== 1) return;
-  const exists = ctx.db.get('SELECT 1 FROM bots WHERE owner_id = ?', userId);
-  if (exists) return;
-  const insert = (
-    type: BotType,
-    firstName: string | null,
-    home: { latE2: number; lonE2: number },
-  ) => {
-    const id = randomId();
-    ctx.db.run(
-      `INSERT INTO bots (id, owner_id, type, first_name, home_lat, home_lon, in_addressbook)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      id,
-      userId,
-      type,
-      firstName,
-      home.latE2,
-      home.lonE2,
-      // Aunt and uncle appear in the address book and on the map with their first letter.
-      type === 'explainer' ? 1 : 0,
-    );
-    const bot = botById(ctx, id);
-    if (!bot) throw new Error('bot not created');
-    return bot;
-  };
-  const explainer = insert('explainer', null, {
-    latE2: Math.round(BOTS.EXPLAINER_HOME.lat * 100),
-    lonE2: Math.round(BOTS.EXPLAINER_HOME.lon * 100),
-  });
-  const aunt = insert('aunt', pick(ctx, AUNT_NAMES), randomHome(ctx));
-  const uncle = insert('uncle', pick(ctx, UNCLE_NAMES), randomHome(ctx));
+  if (ctx.db.get('SELECT 1 FROM bots WHERE owner_id = ?', userId)) return;
+  const id = randomId();
+  ctx.db.run(
+    `INSERT INTO bots (id, owner_id, type, first_name, home_lat, home_lon, in_addressbook)
+     VALUES (?, ?, 'explainer', NULL, ?, ?, 1)`,
+    id,
+    userId,
+    Math.round(BOTS.EXPLAINER_HOME.lat * 100),
+    Math.round(BOTS.EXPLAINER_HOME.lon * 100),
+  );
   // v0.4: fixed letters in the language the account was created in.
   const language: Language = languageOf(ctx, userId);
   const letters = botLetters(language);
-
   // Day 0: already in the letter box, "brought" by an owl of the Erklärbär (SPEC 10.2).
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
                           status, owl_name, owl_species)
      VALUES (?, ?, ?, 'letter', 'small', ?, ?, ?, 'delivered', ?, ?)`,
     randomId(),
-    explainer.id,
+    id,
     userId,
     now,
     now,
@@ -258,29 +199,13 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     pick(ctx, owlNames(language)),
     pick(ctx, BOT_OWL_SPECIES).id,
   );
-  upsertBotChat(ctx, userId, explainer.id, now, 1);
+  upsertBotChat(ctx, userId, id, now, 1);
   for (const day of BOTS.EXPLAINER_LETTER_DAYS.filter((day) => day > 0)) {
-    ctx.queue.schedule('bot_letter', `${explainer.id}:day${day}`, now + day * TIME.DAY);
+    ctx.queue.schedule('bot_letter', `${id}:day${day}`, now + day * TIME.DAY);
   }
-  // The aunt's welcome letter lands five minutes after registration (v0.3).
-  dispatchBotLetter(
-    ctx,
-    aunt,
-    letterText(aunt, letters.aunt.welcome),
-    0,
-    now,
-    now + (BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES * TIME.MINUTE) / ctx.flightTimeScale,
-  );
-  ctx.queue.schedule('bot_gold', aunt.id, now + GOLD.AUNT_GIFT_AFTER_DAYS * TIME.DAY);
-  ctx.queue.schedule(
-    'bot_letter',
-    `${uncle.id}:first`,
-    now + BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS * TIME.DAY,
-  );
-  ctx.queue.schedule('bot_gold', uncle.id, now + GOLD.UNCLE_INHERITANCE_AFTER_DAYS * TIME.DAY);
 }
 
-/** Accounts from before stage 5 get their bots once, with the schedule starting now (D-82). */
+/** Accounts from before stage 5 get their Erklärbär once, with the schedule starting now (D-82). */
 export function ensureBotsForAllUsers(ctx: Context): number {
   const users = ctx.db.all<{ id: string }>(
     // v0.7.2: only accounts that never had bots (not those that removed them).
@@ -312,40 +237,8 @@ function deliverShipment(ctx: Context, shipmentId: string, at: number, after: Af
       shipment.letter_id,
     );
   }
-  if (bot.in_addressbook === 0) {
-    // Aunt and uncle appear with their first letter (SPEC 8.8, v0.3).
-    ctx.db.run('UPDATE bots SET in_addressbook = 1 WHERE id = ?', bot.id);
-    after(() => ctx.hub.notify(bot.owner_id, 'contacts', 'map'));
-  }
   upsertBotChat(ctx, bot.owner_id, bot.id, at, shipment.letter_id ? 1 : 0);
-  if (shipment.gold > 0) {
-    // Gifts of the game, not transfers (SPEC 10.1).
-    credit(
-      ctx.db,
-      bot.owner_id,
-      bot.type === 'uncle' ? 'uncle_inheritance' : 'aunt_gift',
-      shipment.gold,
-      at,
-      null,
-      botTitle(ctx, bot),
-    );
-    addSystemMessage(
-      ctx,
-      bot.owner_id,
-      'gold_arrived',
-      { name: botTitle(ctx, bot), amount: shipment.gold, owl: '' },
-      at,
-      after,
-    );
-    after(() => ctx.hub.notify(bot.owner_id, 'profile', 'finance'));
-  }
-  ctx.push.notify(
-    bot.owner_id,
-    shipment.gold > 0 ? 'gold_arrived' : 'letter_arrived',
-    shipment.letter_id,
-    at,
-    after,
-  );
+  ctx.push.notify(bot.owner_id, 'letter_arrived', shipment.letter_id, at, after);
   after(() => ctx.hub.notify(bot.owner_id, 'chats'));
 }
 
@@ -398,29 +291,11 @@ export function registerBotHandlers(ctx: Context): void {
   ctx.queue.on('bot_letter', (event) => {
     const [botId, which] = event.ref.split(':');
     const bot = botId ? botById(ctx, botId) : undefined;
-    if (!bot || !which) return;
-    const letters = botLetters(languageOf(ctx, bot.owner_id));
-    const text =
-      bot.type === 'explainer'
-        ? letters.explainer[which as keyof typeof letters.explainer]
-        : bot.type === 'uncle' && which === 'first'
-          ? letters.uncle.first
-          : undefined;
+    if (bot?.type !== 'explainer' || !which) return;
+    const letters = botLetters(languageOf(ctx, bot.owner_id)).explainer;
+    const text = letters[which as keyof typeof letters] as string | undefined;
     if (!text || !claimFixed(ctx, bot, which)) return;
-    dispatchBotLetter(ctx, bot, letterText(bot, text), 0, event.logicalAt);
-  });
-  ctx.queue.on('bot_gold', (event) => {
-    const bot = botById(ctx, event.ref);
-    if (!bot || bot.type === 'explainer' || !claimFixed(ctx, bot, 'gold')) return;
-    const aunt = bot.type === 'aunt';
-    const letters = botLetters(languageOf(ctx, bot.owner_id));
-    dispatchBotLetter(
-      ctx,
-      bot,
-      letterText(bot, aunt ? letters.aunt.gold : letters.uncle.gold),
-      aunt ? GOLD.AUNT_GIFT : GOLD.UNCLE_INHERITANCE,
-      event.logicalAt,
-    );
+    dispatchBotLetter(ctx, bot, text, event.logicalAt);
   });
   ctx.queue.on('bot_deliver', (event, tools) =>
     deliverShipment(ctx, event.ref, event.logicalAt, tools.after),

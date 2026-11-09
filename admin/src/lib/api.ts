@@ -21,6 +21,12 @@ export class ApiError extends Error {
  */
 export const SESSION_ENDED_EVENT = 'posteulen-admin-session-ended';
 let idleTimer: ReturnType<typeof setTimeout> | undefined;
+/** v0.8: the bots control centre (same code) expires after 12 hours instead. */
+let idleMs = ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE;
+
+export function setIdleTime(ms: number): void {
+  idleMs = ms;
+}
 
 function sessionEnded(): void {
   if (idleTimer !== undefined) clearTimeout(idleTimer);
@@ -31,9 +37,7 @@ function sessionEnded(): void {
 /** (Re)starts the idle timer after an answer of a logged-in session; `stop` clears it. */
 export function touchSession(stop = false): void {
   if (idleTimer !== undefined) clearTimeout(idleTimer);
-  idleTimer = stop
-    ? undefined
-    : setTimeout(sessionEnded, ACCOUNT.ADMIN_SESSION_IDLE_MINUTES * TIME.MINUTE);
+  idleTimer = stop ? undefined : setTimeout(sessionEnded, idleMs);
 }
 
 export async function api<T>(
@@ -71,4 +75,55 @@ export async function api<T>(
     path === '/api/session' || path === '/api/logout' || path.startsWith('/api/login');
   if (!sessionCall && !path.startsWith('/api/altcha')) touchSession();
   return data as T;
+}
+
+/** v0.8: a raw body (picture, ZIP file) to the control centre. */
+export async function apiRaw<T>(path: string, contentType: string, body: Blob): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: { 'x-posteulen': '1', 'content-type': contentType },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body,
+    });
+  } catch {
+    throw new ApiError(0, { code: 'offline' });
+  }
+  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (response.status === 401) sessionEnded();
+  if (!response.ok) throw new ApiError(response.status, data);
+  touchSession();
+  return data as T;
+}
+
+/** v0.8: downloads a file the server creates (export as ZIP). */
+export async function download(path: string, body: unknown, fallbackName: string): Promise<void> {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'x-posteulen': '1', 'content-type': 'application/json' },
+    credentials: 'same-origin',
+    cache: 'no-store',
+    body: JSON.stringify(body),
+  });
+  if (response.status === 401) sessionEnded();
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      (await response.json().catch(() => ({}))) as Record<string, unknown>,
+    );
+  }
+  touchSession();
+  const name =
+    /filename="([^"]+)"/.exec(response.headers.get('content-disposition') ?? '')?.[1] ??
+    fallbackName;
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

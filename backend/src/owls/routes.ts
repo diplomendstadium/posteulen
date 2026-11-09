@@ -29,7 +29,6 @@ import {
   FlightPreview,
   GiftPrepare,
   Loan,
-  GUEST_REF_PREFIX,
   LOAN_REF_PREFIX,
   OwlBuy,
   OwlName,
@@ -51,7 +50,7 @@ import {
   replanFlight,
   routeOf,
 } from '../flights/service.ts';
-import { ownBot } from '../bots/service.ts';
+import { isBotId } from '../bots/registry.ts';
 import {
   checkLetters,
   checkRecipients,
@@ -59,6 +58,7 @@ import {
   chooseOwl,
   depart,
   guestFlight,
+  guestRef,
   guestsOf,
   newLetters,
   publicKeys,
@@ -67,6 +67,7 @@ import {
 import {
   currentEnergy,
   facts,
+  botGuestView,
   guestView,
   isReady,
   ownOwl,
@@ -95,6 +96,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     );
     // v0.7: owls of others resting here for a while.
     const guests = guestsOf(ctx, me).flatMap(({ flight, index }) => {
+      // v0.8: the owl of a control-centre bot (no owl row; not cared for by players).
+      if (flight.holder_kind === 'bot') return [botGuestView(ctx, flight, index, now)];
       const owl = flight.owl_id
         ? ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', flight.owl_id)
         : undefined;
@@ -277,10 +280,11 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     // v0.7: a visiting owl of the only recipient comes first – it takes the reply straight back.
     if (body.guests && body.recipients.length === 1) {
       for (const guest of guestsOf(ctx, me)) {
-        if (guest.flight.holder_id !== body.recipients[0] || !guest.flight.owl_id) continue;
-        const owl = chooseOwl(ctx, me, `${GUEST_REF_PREFIX}${guest.flight.owl_id}`, now);
+        if (guest.flight.holder_id !== body.recipients[0]) continue;
+        const ref = guestRef(guest.flight);
+        const owl = chooseOwl(ctx, me, ref, now);
         owls.push({
-          id: `${GUEST_REF_PREFIX}${guest.flight.owl_id}`,
+          id: ref,
           kind: owl.kind,
           guest: true,
           name: owl.name,
@@ -308,7 +312,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         returnsHome: owl.returnsHome,
         now,
         // v0.7: the rest at each person is part of the preview (not with bots).
-        restMs: body.recipients.some((id) => ownBot(ctx, me, id)) ? 0 : body.rest * TIME.HOUR,
+        restMs: body.recipients.some((id) => isBotId(ctx, id)) ? 0 : body.rest * TIME.HOUR,
       });
       owls.push({
         id: owlId,

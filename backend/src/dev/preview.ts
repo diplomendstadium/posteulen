@@ -20,6 +20,8 @@ import { setRegistrationMode, type RegistrationMode } from '../admin/settings.ts
 const ROOT = path.resolve(import.meta.dirname, '../../..');
 const WEB_PORT = Number(process.env['POSTEULEN_PREVIEW_WEB_PORT'] ?? 8080);
 const ADMIN_PORT = Number(process.env['POSTEULEN_PREVIEW_ADMIN_PORT'] ?? 8081);
+/** v0.8: the bots control centre. */
+const BOTS_PORT = Number(process.env['POSTEULEN_PREVIEW_BOTS_PORT'] ?? 8082);
 const DATA_DIR = path.resolve(process.env['POSTEULEN_DATA_DIR'] ?? path.join(ROOT, 'data'));
 
 const TYPES: Record<string, string> = {
@@ -86,7 +88,7 @@ function staticServer(distDir: string, apiPort: number): http.Server {
   });
 }
 
-for (const dist of ['web/dist', 'admin/dist']) {
+for (const dist of ['web/dist', 'admin/dist', 'bots/dist']) {
   if (!fs.existsSync(path.join(ROOT, dist, 'index.html'))) {
     console.error(`${dist} fehlt – bitte zuerst „npm run build“ ausführen.`);
     process.exit(1);
@@ -99,12 +101,14 @@ await createSecretsFileIfMissing(secretsFile);
 const config = loadConfig({
   POSTEULEN_USER_PORT: process.env['POSTEULEN_USER_PORT'] ?? '3001',
   POSTEULEN_ADMIN_PORT: process.env['POSTEULEN_ADMIN_PORT'] ?? '3002',
+  POSTEULEN_BOTS_PORT: process.env['POSTEULEN_BOTS_PORT'] ?? '3003',
   ...process.env,
   POSTEULEN_ENV: 'development',
   POSTEULEN_DATA_DIR: DATA_DIR,
   POSTEULEN_SECRETS_FILE: secretsFile,
   POSTEULEN_USER_ORIGIN: `http://localhost:${WEB_PORT}`,
   POSTEULEN_ADMIN_ORIGIN: `http://localhost:${ADMIN_PORT}`,
+  POSTEULEN_BOTS_ORIGIN: `http://localhost:${BOTS_PORT}`,
   POSTEULEN_LOG_LEVEL: process.env['POSTEULEN_LOG_LEVEL'] ?? 'warn',
 });
 const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
@@ -122,6 +126,15 @@ if (!adminExists(app.db)) {
   fs.writeFileSync(path.join(DATA_DIR, 'admin-erstpasswort.txt'), `${password}\n`, { mode: 0o600 });
   console.warn(`Admin-Erstpasswort (lokal): ${password}`);
 }
+if (!adminExists(app.db, 'bots_admin')) {
+  const password = await setInitialAdminPassword(
+    app.db,
+    app.secrets.opaqueServerSetup,
+    'bots_admin',
+  );
+  fs.writeFileSync(path.join(DATA_DIR, 'bots-erstpasswort.txt'), `${password}\n`, { mode: 0o600 });
+  console.warn(`Erstpasswort des Bots-Kontrollzentrums (lokal): ${password}`);
+}
 const mode = process.env['POSTEULEN_PREVIEW_REGISTRATION'];
 if (mode === 'open' || mode === 'invite' || mode === 'closed') {
   setRegistrationMode(app.db, mode as RegistrationMode);
@@ -136,13 +149,18 @@ const admin = staticServer(path.join(ROOT, 'admin/dist'), config.adminPort).list
   ADMIN_PORT,
   '127.0.0.1',
 );
+const bots = staticServer(path.join(ROOT, 'bots/dist'), config.botsPort).listen(
+  BOTS_PORT,
+  '127.0.0.1',
+);
 console.warn(
-  `PostEulen läuft lokal:\n  App:         http://localhost:${WEB_PORT}\n  Verwaltung:  http://localhost:${ADMIN_PORT}\n  Daten:       ${DATA_DIR}\nBeenden mit Strg+C.`,
+  `PostEulen läuft lokal:\n  App:         http://localhost:${WEB_PORT}\n  Verwaltung:  http://localhost:${ADMIN_PORT}\n  Bots:        http://localhost:${BOTS_PORT}\n  Daten:       ${DATA_DIR}\nBeenden mit Strg+C.`,
 );
 
 const stop = (): void => {
   web.close();
   admin.close();
+  bots.close();
   void app.close().finally(() => process.exit(0));
 };
 process.on('SIGINT', stop);

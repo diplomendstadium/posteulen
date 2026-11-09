@@ -53,7 +53,8 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
       de.bots.notice,
       'Zum Beantworten schickt der Server den Rollentext des Bots, eine kurze Zusammenfassung eures Briefwechsels, die letzten 6 Briefe und deinen neuen Brief an OpenAI (OpenAI, L.L.C., USA bzw. OpenAI Ireland Ltd.). Namen, Nutzer-IDs oder andere Kennungen werden nicht übermittelt, und die Speicherung bei OpenAI ist abgeschaltet, soweit die Schnittstelle das erlaubt (store: false). OpenAI kann Anfragen trotzdem für eine begrenzte Zeit zur Missbrauchserkennung aufbewahren. Schreib Bots deshalb nichts Persönliches.',
       'Die Zusammenfassung liegt im Klartext beim Bot-Chat. Sie wird gelöscht, wenn du den Chat löschst, den Bot entfernst oder dein Konto gelöscht wird.',
-      'Möchtest du das nicht, schreib den Bots einfach nicht oder entferne sie im Adressbuch.',
+      'Neben dem Erklärbär gibt es Bots, die der Betreiber im Bots-Kontrollzentrum anlegt. Ihre geplanten Briefe gehen an alle Konten, die Bots nicht entfernt haben; hast du einem solchen Bot geschrieben, passt die KI seinen nächsten Brief an dich an. Im Kontrollzentrum sieht der Betreiber nur zusammengezählte Zahlen (Briefe abgeschickt, zugestellt, gelesen, Antworten) und auf einer Karte, wo Bot-Eulen gerade fliegen oder rasten – ohne Namen, aber eine rastende Eule steht an deinem fiktiven Wohnort. Die tägliche Sicherung der Bots enthält nur ihre Einstellungen, geplanten Briefe und Bilder, keine Briefe von Spielern.',
+      'Möchtest du das nicht, schreib den Bots einfach nicht oder entferne sie in ihrem Chat – oder alle, auch künftige, in den Einstellungen.',
     ],
   },
   {

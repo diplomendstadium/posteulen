@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { t, fill, goldText, i18n } from '../lib/i18n.svelte.ts';
+  import { t, fill, goldText, i18n, speciesName } from '../lib/i18n.svelte.ts';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
   import { DONATION } from '@posteulen/shared/constants.ts';
@@ -67,6 +67,9 @@
       return fill(texts[key] ?? message.type, params);
     }
     if (typeof params['amount'] === 'number') params['amount'] = goldText(params['amount']);
+    // v0.8: an owl given by a bot names its species.
+    if (message.type === 'bot_owl_gift' && typeof params['species'] === 'string')
+      params['species'] = speciesName(params['species']);
     // Returned gold or gift has its own wording (SPEC 9.5, Anhang C).
     const variant = params['cargo']
       ? texts[`${message.type}_${String(params['cargo'])}`]

@@ -1,8 +1,8 @@
-import { de } from '@posteulen/shared/texts/de.ts';
+import { t } from './i18n.svelte.ts';
 import { ApiError } from './api.ts';
 
 export function message(error: unknown): string {
   if (error instanceof ApiError)
-    return (de.errors as Record<string, string>)[error.code] ?? de.errors.internal;
-  return de.errors.internal;
+    return (t.errors as Record<string, string>)[error.code] ?? t.errors.internal;
+  return t.errors.internal;
 }

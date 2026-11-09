@@ -70,17 +70,22 @@ describe('Caddyfile (SPEC 2.2, 16.2)', () => {
     testMode: false,
     webRoot: '/opt/posteulen/current/web/dist',
     adminRoot: '/opt/posteulen/current/admin/dist',
+    botsRoot: '/opt/posteulen/current/bots/dist',
     localDir: '/etc/posteulen/local',
     userPort: 3001,
     adminPort: 3002,
+    botsPort: 3003,
   };
 
-  it('serves both hosts with security headers and without access log or IPs', () => {
+  it('serves all three hosts (v0.8: bots.<domain>) with security headers and without access log or IPs', () => {
     const caddyfile = generateCaddyfile(options);
     expect(caddyfile).toContain('posteulen.de {');
     expect(caddyfile).toContain('admin.posteulen.de {');
     expect(caddyfile).toContain('reverse_proxy 127.0.0.1:3001');
     expect(caddyfile).toContain('reverse_proxy 127.0.0.1:3002');
+    expect(caddyfile).toContain('bots.posteulen.de {');
+    expect(caddyfile).toContain('reverse_proxy 127.0.0.1:3003');
+    expect(caddyfile).toContain('import /etc/posteulen/local/bots-*.caddy');
     expect(caddyfile).toContain(CSP_APP);
     expect(caddyfile).toContain('Strict-Transport-Security');
     expect(caddyfile).toContain('request>remote_ip delete');

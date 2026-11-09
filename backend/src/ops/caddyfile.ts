@@ -11,9 +11,12 @@ export interface CaddyfileOptions {
   readonly testMode: boolean;
   readonly webRoot: string;
   readonly adminRoot: string;
+  /** v0.8: the bots control centre (bots.<domain>). */
+  readonly botsRoot: string;
   readonly localDir: string;
   readonly userPort: number;
   readonly adminPort: number;
+  readonly botsPort: number;
 }
 
 const DOMAIN_PATTERN = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
@@ -68,13 +71,13 @@ ${headerBlock({ 'Content-Security-Policy': appHeaders({ hsts: true })['Content-S
 }
 
 /**
- * Generates the Caddyfile (SPEC 16.2): both hosts, automatic HTTPS, no access log, error log
+ * Generates the Caddyfile (SPEC 16.2): all three hosts (v0.8: bots.<domain>), automatic HTTPS, no access log, error log
  * without IP addresses or headers (SPEC 2.2), security headers from the shared definition.
  * Local adjustments live in `localDir` and are only imported, never written (SPEC 16.3).
  */
 export function generateCaddyfile(options: CaddyfileOptions): string {
   if (!DOMAIN_PATTERN.test(options.domain)) throw new Error('invalid domain');
-  for (const p of [options.webRoot, options.adminRoot, options.localDir]) {
+  for (const p of [options.webRoot, options.adminRoot, options.botsRoot, options.localDir]) {
     if (!PATH_PATTERN.test(p)) throw new Error(`invalid path: ${p}`);
   }
   const global = `# Erzeugt von posteulen-cli caddyfile. Nicht von Hand ändern:
@@ -106,6 +109,13 @@ import ${options.localDir}/global-*.caddy
       options.adminPort,
       options,
       `${options.localDir}/admin-*.caddy`,
+    ),
+    site(
+      `bots.${options.domain}`,
+      options.botsRoot,
+      options.botsPort,
+      options,
+      `${options.localDir}/bots-*.caddy`,
     ),
   ].join('\n');
 }

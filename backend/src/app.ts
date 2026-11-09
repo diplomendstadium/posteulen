@@ -28,6 +28,10 @@ import {
 import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
+import { removeRelatives } from './bots/relatives.ts';
+import { CentralRunner } from './central/runner.ts';
+import { registerCentralHandlers } from './central/service.ts';
+import { registerBotsCentreRoutes } from './central/routes.ts';
 
 export interface App {
   readonly config: Config;
@@ -35,6 +39,8 @@ export interface App {
   readonly secrets: Secrets;
   readonly userApi: FastifyInstance;
   readonly adminApi: FastifyInstance;
+  /** v0.8: the bots control centre. */
+  readonly botsApi: FastifyInstance;
   readonly ctx: Context;
   close(): Promise<void>;
 }
@@ -86,15 +92,20 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   const ctx = await createContext(config, db, secrets, options);
   const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
+  const botsApi = buildApi({ kind: 'bots', origin: config.botsOrigin, db, hsts, logLevel });
   ctx.push = new PushService(ctx, options.pushSender);
   ctx.botReplies = new BotReplies(ctx, ctx.ai);
+  ctx.centralBots = new CentralRunner(ctx, ctx.ai);
   registerLetterHandlers(ctx);
   registerFlightHandlers(ctx);
   registerLifecycleHandlers(ctx);
   registerAccountHandlers(ctx);
   registerBotHandlers(ctx);
   registerReplyHandler(ctx);
-  // Accounts from before stage 5 get their bots once (D-82).
+  registerCentralHandlers(ctx);
+  // v0.8: aunt and uncle are gone – at every start, so also again after a rollback (SPEC Anhang T).
+  removeRelatives(ctx);
+  // Accounts from before stage 5 get their Erklärbär once (D-82).
   ensureBotsForAllUsers(ctx);
   // v0.3: donation requests every five weeks, notes about an update for every account.
   registerDonationHandler(ctx);
@@ -111,6 +122,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerAccountRoutes(userApi, ctx);
   registerBotRoutes(userApi, ctx);
   registerAdminRoutes(adminApi, ctx);
+  registerBotsCentreRoutes(botsApi, ctx);
 
   return {
     config,
@@ -118,11 +130,12 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
     secrets,
     userApi,
     adminApi,
+    botsApi,
     ctx,
     async close() {
       ctx.queue.stop();
       ctx.hub.shutdown();
-      await Promise.allSettled([userApi.close(), adminApi.close()]);
+      await Promise.allSettled([userApi.close(), adminApi.close(), botsApi.close()]);
       db.close();
     },
   };
@@ -132,10 +145,12 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
 export function startWorkers(app: App): void {
   app.ctx.queue.start();
   app.ctx.botReplies.kick();
+  app.ctx.centralBots.kick();
   app.ctx.push.resendPending(app.ctx.now());
 }
 
 export async function listen(app: App): Promise<void> {
   await app.userApi.listen({ host: app.config.host, port: app.config.userPort });
   await app.adminApi.listen({ host: app.config.host, port: app.config.adminPort });
+  await app.botsApi.listen({ host: app.config.host, port: app.config.botsPort });
 }

@@ -3,8 +3,11 @@
  * The answer to a contact request never reveals whether the name exists.
  */
 import { botTitle, ownBot, removeBot, type BotRow } from '../bots/service.ts';
+import { playerBot, writableFrom } from '../bots/registry.ts';
+import { removeCentralBotForPlayer } from '../central/service.ts';
+import type { CentralBotRow } from '../central/model.ts';
 import type { FastifyInstance } from 'fastify';
-import { ACCOUNT, BOTS, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { normalizeName } from '@posteulen/shared/names.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
@@ -158,13 +161,21 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       me,
       now,
     );
-    const bots = ctx.db.all<BotRow>(
-      "SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1 ORDER BY CASE type WHEN 'explainer' THEN 0 WHEN 'aunt' THEN 1 ELSE 2 END",
+    const explainer = ctx.db.all<BotRow>(
+      'SELECT * FROM bots WHERE owner_id = ? AND in_addressbook = 1',
       me,
     );
-    // v0.7.2: all bots of the account, also the uncle before his first letter (settings).
-    const allBots =
-      ctx.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM bots WHERE owner_id = ?', me)?.n ?? 0;
+    // v0.8: bots of the control centre once their first letter has arrived (SPEC 10.7).
+    const central = ctx.db.all<CentralBotRow>(
+      `SELECT b.* FROM central_bots b JOIN central_bot_players p ON p.bot_id = b.id
+        WHERE p.user_id = ? AND p.known = 1 AND p.removed = 0 AND b.state != 'draft'
+        ORDER BY b.name_key`,
+      me,
+    );
+    const disabled =
+      ctx.db.get<{ bots_disabled: number }>('SELECT bots_disabled FROM users WHERE id = ?', me)
+        ?.bots_disabled === 1;
+    const allBots = explainer.length + central.length;
     return {
       allBots,
       contacts: rows.map((row) => ({
@@ -174,16 +185,24 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
         active: isActiveDate(row.last_active_date, now),
         keyWarning: row.warn_mine === 1 || row.warn_theirs === 1,
       })),
-      // Own bots, clearly marked (SPEC 8.8, 10.1); writable again 24 hours after the last letter.
-      bots: bots.map((bot) => ({
-        userId: bot.id,
-        name: botTitle(ctx, bot),
-        type: bot.type,
-        writableFrom:
-          bot.last_user_letter_at === null
-            ? null
-            : bot.last_user_letter_at + BOTS.WRITE_LOCK_HOURS * TIME.HOUR,
-      })),
+      // v0.8: never in the address book – the letters and the settings use this list.
+      botsDisabled: disabled,
+      bots: [
+        ...explainer.map((bot) => ({
+          userId: bot.id,
+          name: botTitle(ctx, bot),
+          type: 'explainer' as const,
+          playerOwls: true,
+          writableFrom: writableFrom(ctx, me, { kind: 'explainer', row: bot }, now),
+        })),
+        ...central.map((bot) => ({
+          userId: bot.id,
+          name: bot.name,
+          type: 'central' as const,
+          playerOwls: bot.player_owls === 1,
+          writableFrom: writableFrom(ctx, me, { kind: 'central', bot }, now),
+        })),
+      ],
       requests: requests.map((row) => ({
         id: row.id,
         label: row.label,
@@ -200,6 +219,11 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       const bot = ownBot(ctx, me, other, true);
       if (bot) {
         removeBot(ctx, me, bot, ctx.now(), (work) => after.push(work));
+        return;
+      }
+      // v0.8: a bot of the control centre – removed for this player for good.
+      if (playerBot(ctx, me, other)?.kind === 'central') {
+        removeCentralBotForPlayer(ctx, me, other, ctx.now(), (work) => after.push(work));
         return;
       }
       if (!findContact(ctx.db, me, other)) throw new HttpError(404, 'not_found');

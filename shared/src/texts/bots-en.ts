@@ -1,15 +1,12 @@
 /**
  * Fixed letters of the bots in English (v0.4) – the same letters as in bots.ts, for accounts
  * using the English view. Small parchment (at most 800 characters), no names of the user.
- * Placeholders: {aunt}, {uncle} (first names of the bots), {name} in the titles.
  */
 import type { BotLetters } from './bots.ts';
 
 export const BOT_LETTERS_EN: BotLetters = {
   titles: {
     explainer: 'Explainer Bear',
-    aunt: 'Aunt {name}',
-    uncle: 'Uncle {name}',
   },
   explainer: {
     day0: `Hello and welcome to PostEulen!
@@ -68,37 +65,5 @@ Sometimes an owl lays eggs. With two or three chicks, you give one of them to a 
 That was the last letter of my series. I am happy to answer your questions!
 
 Your Explainer Bear`,
-  },
-  aunt: {
-    welcome: `Hello, my dear!
-
-This is your Aunt {aunt} writing. We are distantly related, through a few branches of the family tree and an old cauldron.
-
-My little cottage is often quiet, and to be honest I am a little bored. If you are looking for someone to chat with: write to me! I am happy to reply.
-
-Warmly, your Aunt {aunt}`,
-    gold: `Hello, my dear!
-
-I hear you would like to buy your very first owl soon. So I am putting 4 gold in this letter. I hope it helps a little.
-
-Take good care of your owl, and tell me what it is called!
-
-Your Aunt {aunt}`,
-  },
-  uncle: {
-    first: `Well, hello there!
-
-This is your Uncle {uncle}. Yes, that one! We haven't seen each other for ages, which is probably my fault.
-
-I have a lot of time right now and even more ideas. If you like, write to me. I promise to reply most of the time.
-
-Your Uncle {uncle}`,
-    gold: `Well, hello there!
-
-Imagine: a great-uncle three times removed left me something. Sadly it was not a castle but a sack of gold and a very offended goat.
-
-I am keeping the goat. The whole family gets some of the gold, so you get 10 gold. Spend it wisely. Or foolishly, as long as it makes you happy!
-
-Your Uncle {uncle}`,
   },
 };

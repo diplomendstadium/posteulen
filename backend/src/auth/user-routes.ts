@@ -80,10 +80,15 @@ interface Throttle {
  */
 async function loginThrottle(
   ctx: Context,
-  keys: { name: string; ip: string; admin?: boolean },
+  keys: { name: string; ip: string; admin?: boolean; panel?: 'admin' | 'bots' },
   altcha: Parameters<Context['altcha']['verify']>[0] | undefined,
 ): Promise<Throttle | null> {
-  const nameGuard = keys.admin ? ctx.guards.admin : ctx.guards.names;
+  // v0.8: admin panel and bots control centre each have their own guard.
+  const nameGuard = keys.panel
+    ? ctx.guards[keys.panel]
+    : keys.admin
+      ? ctx.guards.admin
+      : ctx.guards.names;
   const waiting = (): Throttle | null => {
     const now = ctx.now();
     const wait = Math.max(nameGuard.waitMs(keys.name, now), ctx.guards.ips.waitMs(keys.ip, now));
@@ -135,6 +140,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     if (typeof name === 'string') throw new HttpError(400, `name_${name}`);
     const taken =
       ctx.db.get('SELECT 1 FROM users WHERE name_key = ?', name.key) !== undefined ||
+      // v0.8: nobody may be called like a bot of the control centre.
+      ctx.db.get('SELECT 1 FROM central_bots WHERE name_key = ?', name.key) !== undefined ||
       nameLocked(ctx, name.key, now) ||
       ctx.reservations.values(now).some((r) => r.key === name.key);
     if (taken) throw new HttpError(409, 'name_unavailable');
@@ -176,7 +183,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
 
     const today = utcDay(now);
     const token = ctx.db.transaction(() => {
-      if (ctx.db.get('SELECT 1 FROM users WHERE name_key = ?', reservation.key)) {
+      if (
+        ctx.db.get(
+          'SELECT 1 FROM users WHERE name_key = ? UNION SELECT 1 FROM central_bots WHERE name_key = ?',
+          reservation.key,
+          reservation.key,
+        )
+      ) {
         throw new HttpError(409, 'name_unavailable');
       }
       if (reservation.inviteHmac) {

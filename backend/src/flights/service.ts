@@ -21,7 +21,7 @@ import {
 import type { Point } from '@posteulen/shared/game/geo.ts';
 import { speciesById } from '@posteulen/shared/game/owls.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
-import { isLand } from '@posteulen/shared/map/landmask.ts';
+import { isLandAnywhere } from '@posteulen/shared/map/landmask.ts';
 import { backHome } from '../owls/care.ts';
 import type { Context } from '../context.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -53,6 +53,9 @@ export interface RouteStop {
 export interface FlightRow {
   readonly id: string;
   readonly holder_id: string;
+  /** v0.8: 'bot' – an owl of a control-centre bot, flying to `bot_peer_id`. */
+  readonly holder_kind?: 'user' | 'bot';
+  readonly bot_peer_id?: string | null;
   readonly owl_id: string | null;
   readonly owl_kind: OwlKind;
   readonly owl_name: string;
@@ -70,7 +73,8 @@ export interface FlightRow {
 
 export function flightEnvironment(ctx: Context): FlightEnvironment {
   return {
-    isLand: (lat, lon) => isLand(ctx.landMask, lat, lon),
+    // v0.8: owls also sleep on land outside Europe (coarse world mask), SPEC 12.3.
+    isLand: (lat, lon) => isLandAnywhere(ctx.landMask, ctx.worldMask, lat, lon),
     isDay,
   };
 }
@@ -84,6 +88,11 @@ export function homeOf(ctx: Context, userId: string): Point {
     ) ??
     ctx.db.get<{ home_lat: number; home_lon: number }>(
       'SELECT home_lat, home_lon FROM bots WHERE id = ?',
+      userId,
+    ) ??
+    // v0.8: bots of the control centre (anywhere on land).
+    ctx.db.get<{ home_lat: number; home_lon: number }>(
+      'SELECT home_lat, home_lon FROM central_bots WHERE id = ? AND home_lat IS NOT NULL',
       userId,
     );
   if (!row) throw new Error('unknown user');
@@ -159,6 +168,8 @@ export interface PlanRequest {
   readonly chick?: boolean;
   /** v0.7: rest at each recipient (ms; letters between people only). */
   readonly restMs?: number;
+  /** v0.8: the holder is a control-centre bot flying to this player. */
+  readonly botPeerId?: string;
 }
 
 export interface PlannedFlight {
@@ -252,11 +263,13 @@ export function startFlight(
 ): { id: string; route: RouteStop[] } {
   const id = randomId();
   ctx.db.run(
-    `INSERT INTO flights (id, holder_id, owl_id, owl_kind, owl_name, owl_species, purpose, gold, gold_state,
-                          profile, route, plan, started_at, ends_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO flights (id, holder_id, holder_kind, bot_peer_id, owl_id, owl_kind, owl_name, owl_species,
+                          purpose, gold, gold_state, profile, route, plan, started_at, ends_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     request.holderId,
+    request.botPeerId ? 'bot' : 'user',
+    request.botPeerId ?? null,
     request.owl.id,
     request.owl.kind,
     request.owl.name,
@@ -381,6 +394,32 @@ export function finishFlight(ctx: Context, flightId: string): void {
 type After = (work: () => void) => void;
 
 /**
+ * v0.8: what happens with flights of control-centre bots and letters to them (central/flights.ts).
+ * Set at start-up; kept here as hooks so the flight engine does not depend on the bots.
+ */
+export interface CentralFlightHooks {
+  /** A bot owl reached its player. */
+  deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, after: After): void;
+  /** A bot owl is back at its bot (with replies of the player on board). */
+  arriveHome(ctx: Context, flight: FlightRow, at: number, after: After): void;
+  /** Letters of a player reached a bot (with the player's own or loan owl). */
+  lettersArrived(ctx: Context, botId: string, letterIds: readonly string[], at: number): void;
+  /** A flight of a bot ended (its owl is free again, the event may go to the archive). */
+  flightEnded(ctx: Context, flight: FlightRow, at: number): void;
+  isCentralBot(ctx: Context, id: string): boolean;
+}
+
+let central: CentralFlightHooks | undefined;
+
+export function setCentralFlightHooks(hooks: CentralFlightHooks): void {
+  central = hooks;
+}
+
+function isBotFlight(flight: FlightRow): boolean {
+  return flight.holder_kind === 'bot';
+}
+
+/**
  * v0.7: the replies an owl brought home – letters to the holder handed to it by recipients
  * while it rested there (8.4). Delivered now; returns how many.
  */
@@ -434,6 +473,10 @@ function arriveHome(
   at: number,
   after: After,
 ): void {
+  if (isBotFlight(flight)) {
+    central?.arriveHome(ctx, flight, at, after);
+    return;
+  }
   const replies = deliverReplies(ctx, flight, at, after);
   if (flight.owl_kind !== 'own') {
     // v0.7: a loan owl only comes "home" with replies; it vanishes afterwards (9.6).
@@ -500,6 +543,33 @@ function arriveHome(
 /** Delivery at a recipient: letters, gold, gifted owl – exactly one push (SPEC 11.2). */
 function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, after: After): void {
   const recipient = stop.userId;
+  if (isBotFlight(flight)) {
+    central?.deliver(ctx, flight, stop, at, after);
+    return;
+  }
+  if (central?.isCentralBot(ctx, recipient)) {
+    // v0.8: a letter of a player reached a control-centre bot (no push, no statistics).
+    const letters = ctx.db.all<{ id: string }>(
+      "SELECT id FROM letters WHERE flight_id = ? AND recipient_id = ? AND status = 'in_flight'",
+      flight.id,
+      recipient,
+    );
+    for (const letter of letters) {
+      ctx.db.run(
+        "UPDATE letters SET status = 'delivered', arrives_at = ? WHERE id = ?",
+        at,
+        letter.id,
+      );
+    }
+    central.lettersArrived(
+      ctx,
+      recipient,
+      letters.map((letter) => letter.id),
+      at,
+    );
+    after(() => ctx.hub.notify(flight.holder_id, 'chats', 'map', 'owls'));
+    return;
+  }
   const bot = ctx.db.get<{ id: string }>('SELECT id FROM bots WHERE id = ?', recipient);
   if (bot) {
     // A letter to a bot: no push, no statistics; the reply is due 2 hours later (SPEC 10.1).
@@ -607,6 +677,10 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
 /** v0.7: the flight has no more stops to fly to – it ends (loan owls vanish, 9.6). */
 function endFlight(ctx: Context, flight: FlightRow, at: number): void {
   finishFlight(ctx, flight.id);
+  if (isBotFlight(flight)) {
+    central?.flightEnded(ctx, flight, at);
+    return;
+  }
   // Loan owls vanish after the delivery (9.6).
   if (flight.owl_kind === 'loan' && flight.owl_id) {
     ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
@@ -824,6 +898,7 @@ export function turnBack(
     ctx.db.run("UPDATE letters SET status = 'returned', recipient_has = 0 WHERE id = ?", letter.id);
   }
   const hasHome = flight.owl_kind === 'own' || flight.owl_kind === 'bot';
+  // v0.8: a bot's own owl flies back to its bot (its route already ends there).
   if (flight.purpose === 'gold' && flight.gold_state === 'carried') {
     if (hasHome) {
       ctx.db.run("UPDATE flights SET gold_state = 'returning' WHERE id = ?", flight.id);
@@ -843,17 +918,20 @@ export function turnBack(
       energy: 0,
     });
   }
-  addSystemMessage(
-    ctx,
-    flight.holder_id,
-    'letter_returned',
-    {
-      name: displayName(ctx.db, userId) ?? '',
-      cargo: flight.purpose === 'gift' && isChickFlight(flight) ? 'chick' : flight.purpose,
-    },
-    now,
-    after,
-  );
+  // v0.8: a bot gets no system message (its owl simply flies back or vanishes).
+  if (!isBotFlight(flight)) {
+    addSystemMessage(
+      ctx,
+      flight.holder_id,
+      'letter_returned',
+      {
+        name: displayName(ctx.db, userId) ?? '',
+        cargo: flight.purpose === 'gift' && isChickFlight(flight) ? 'chick' : flight.purpose,
+      },
+      now,
+      after,
+    );
+  }
   const fresh = {
     ...flight,
     gold_state: loadFlight(ctx, flight.id)?.gold_state ?? flight.gold_state,
@@ -867,11 +945,13 @@ export function turnBack(
     if (flight.owl_kind === 'loan' && flight.owl_id) {
       ctx.db.run('DELETE FROM owls WHERE id = ?', flight.owl_id);
     }
+    if (isBotFlight(flight)) central?.flightEnded(ctx, flight, now);
   } else if (stillPending) {
     replanFlight(ctx, fresh, route, now);
   } else {
     saveRoute(ctx, fresh, route);
     finishFlight(ctx, flight.id);
+    if (isBotFlight(flight)) central?.flightEnded(ctx, flight, now);
   }
   after(() => ctx.hub.notify(flight.holder_id, 'chats', 'map', 'owls', 'profile'));
   return true;

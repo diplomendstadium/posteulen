@@ -25,10 +25,6 @@ export const GOLD = {
   SNACK_PRICE: 2,
   SELF_CARE_PRICE: 2,
   VET_PRICE: 10,
-  AUNT_GIFT: 40,
-  AUNT_GIFT_AFTER_DAYS: 2,
-  UNCLE_INHERITANCE: 100,
-  UNCLE_INHERITANCE_AFTER_DAYS: 21,
   TRANSFER_MIN: 1,
   TRANSFER_MAX: 200,
   /** Balance after a transfer must be strictly greater than this. */
@@ -165,6 +161,8 @@ export const ACCOUNT = {
   USER_SESSION_IDLE_DAYS: 30,
   /** v0.7: an admin login expires after 10 minutes without activity (was 8 hours). */
   ADMIN_SESSION_IDLE_MINUTES: 10,
+  /** v0.8: a login to the bots control centre expires after 12 hours without activity. */
+  BOTS_SESSION_IDLE_HOURS: 12,
   REGISTRATION_RESERVATION_MINUTES: 10,
   INVITE_CODE_VALID_HOURS: 48,
   REAUTH_TOKEN_MINUTES: 5,
@@ -191,21 +189,53 @@ export const SECURITY = {
 } as const;
 
 export const BOTS = {
-  AUNT_UNCLE_SPEED_KMH: 30,
-  AUNT_UNCLE_ENERGY: 3000,
+  /** The Erklärbär (SPEC 10.2): hard-coded, one per account. */
   EXPLAINER_SPEED_KMH: 200,
   EXPLAINER_HOME: { lat: 52.52, lon: 13.405 },
   REPLY_AFTER_HOURS: 2,
-  REPLY_MAX_CHARS: 500,
-  WRITE_LOCK_HOURS: 24,
+  /** v0.8: replies of the Erklärbär have at most 500 characters; other bots have no limit. */
+  EXPLAINER_REPLY_MAX_CHARS: 500,
   AI_RETRY_HOURS: 24,
+  /** Daily AI calls of the Erklärbär (own quota since v0.8, SPEC 10.5). */
   AI_DAILY_LIMIT_DEFAULT: 200,
+  /** v0.8: daily AI calls of all control-centre bots together. */
+  CENTRAL_AI_DAILY_LIMIT_DEFAULT: 500,
   SUMMARY_MAX_WORDS: 250,
   CONTEXT_LETTERS: 6,
   EXPLAINER_LETTER_DAYS: [0, 1, 2, 3, 4, 7],
-  UNCLE_FIRST_LETTER_AFTER_DAYS: 14,
-  /** The aunt's welcome letter lands this long after registration; she appears with it (v0.3). */
-  AUNT_FIRST_LETTER_AFTER_MINUTES: 5,
+} as const;
+
+/** v0.8: bots of the control centre (SPEC 10.6 ff.). */
+export const CENTRAL_BOTS = {
+  NAME_MIN_CHARS: 3,
+  NAME_MAX_CHARS: 20,
+  CHARACTER_MAX_CHARS: 8000,
+  CONTEXT_MAX_CHARS: 8000,
+  /** Permanent motivation of bot owls in tenths: 0.5 to 20.0. */
+  MOTIVATION_MIN: 5,
+  MOTIVATION_MAX: 200,
+  MOTIVATION_DEFAULT: 10,
+  /** How long a bot owl waits at the player before it flies back (hours). */
+  REST_HOURS_MAX: 168,
+  REST_HOURS_DEFAULT: 24,
+  /** Spontaneous AI reply only if no letter event is planned within this many days. */
+  SPONTANEOUS_WINDOW_DAYS: 28,
+  REPLY_AFTER_HOURS: 2,
+  /** Up to two pictures per letter, uploads of at most 2 MB each (JPEG, PNG, WebP). */
+  MEDIA_PER_LETTER: 2,
+  MEDIA_MAX_UPLOAD_BYTES: 2 * 1024 * 1024,
+  MEDIA_MAX_INPUT_PIXELS: 40_000_000,
+  MEDIA_MAX_EDGE_PX: 1600,
+  /** Gifts in events: like vouchers, 0.1 to 100 gold per player (tenths). */
+  GIFT_GOLD_MIN: 1,
+  GIFT_GOLD_MAX: 1000,
+  /** Export/import (SPEC Anhang S). */
+  EXPORT_FORMAT: 'posteulen-bots',
+  EXPORT_VERSION: 1,
+  IMPORT_MAX_BYTES: 64 * 1024 * 1024,
+  IMPORT_MAX_FILES: 2000,
+  /** The archive and the list of letters shown per event. */
+  STATS_RECENT_DAYS: 30,
 } as const;
 
 /** Friendly request for donations as a system message (v0.3), on every server. */
@@ -237,6 +267,8 @@ export const MAP = {
   SOUTH_LAT: 35.8,
   NORTH_LAT: 60.6,
   LAND_MASK_RESOLUTION_DEG: 0.02,
+  /** v0.8: coarse land/water mask of the whole world (bots live anywhere on land). */
+  WORLD_MASK_RESOLUTION_DEG: 0.1,
   CLIENT_REFRESH_MINUTES: 5,
   /** Cities on the map (v0.2): from this population when zoomed in, … */
   CITY_MIN_POPULATION: 200_000,

@@ -1,16 +1,13 @@
 /**
- * Fixed letters of the bots (SPEC 10.2–10.4): small parchment (at most 800 characters), short,
+ * Fixed letters of the Erklärbär (SPEC 10.2): small parchment (at most 800 characters), short,
  * friendly, simple. They contain no names of the user on purpose – the bot chats are sent to
  * OpenAI as context, and requests must not carry names (SPEC 10.5).
- * Placeholders: {aunt}, {uncle} (first names of the bots).
  * v0.4: the English letters live in bots-en.ts; `botLetters()` picks by language.
  */
 import { BOT_LETTERS_EN } from './bots-en.ts';
 
 export const BOT_TITLES = {
   explainer: 'Erklärbär',
-  aunt: 'Tante {name}',
-  uncle: 'Onkel {name}',
 } as const;
 
 export const EXPLAINER_LETTERS = {
@@ -72,52 +69,14 @@ Das war mein letzter Brief der Reihe. Fragen beantworte ich gern!
 Dein Erklärbär`,
 } as const;
 
-export const AUNT_LETTERS = {
-  welcome: `Hallo, mein Herzchen!
-
-Hier schreibt dir deine Tante {aunt}. Wir sind entfernt verwandt, über ein paar Ecken und einen alten Zauberkessel.
-
-In meinem Häuschen ist es oft still, und ehrlich gesagt langweile ich mich ein wenig. Wenn du jemanden zum Plaudern suchst: Schreib mir! Ich antworte gern.
-
-Herzlich, deine Tante {aunt}`,
-  gold: `Hallo, mein Herzchen!
-
-Ich habe gehört, dass du bald deine erste eigene Eule kaufen möchtest. Dafür lege ich dir 4 Gold bei. Ich hoffe, es hilft dir ein bisschen.
-
-Pass gut auf deine Eule auf, und erzähl mir, wie sie heißt!
-
-Deine Tante {aunt}`,
-} as const;
-
-export const UNCLE_LETTERS = {
-  first: `Na, du!
-
-Hier ist dein Onkel {uncle}. Ja, genau der! Wir haben uns ewig nicht gesehen, was vermutlich an mir liegt.
-
-Ich habe gerade sehr viel Zeit und noch mehr Ideen. Wenn du Lust hast, schreib mir. Ich verspreche, meistens zu antworten.
-
-Dein Onkel {uncle}`,
-  gold: `Na, du!
-
-Stell dir vor: Ein Großonkel dritten Grades hat mir etwas vererbt. Leider war es kein Schloss, sondern ein Sack Gold und eine sehr beleidigte Ziege.
-
-Die Ziege behalte ich. Vom Gold bekommt die ganze Familie etwas ab, du also 10 Gold. Gib es weise aus. Oder unvernünftig, Hauptsache mit Freude!
-
-Dein Onkel {uncle}`,
-} as const;
-
 export type BotLetters = {
-  readonly titles: Readonly<Record<'explainer' | 'aunt' | 'uncle', string>>;
+  readonly titles: Readonly<Record<'explainer', string>>;
   readonly explainer: Readonly<Record<keyof typeof EXPLAINER_LETTERS, string>>;
-  readonly aunt: Readonly<Record<keyof typeof AUNT_LETTERS, string>>;
-  readonly uncle: Readonly<Record<keyof typeof UNCLE_LETTERS, string>>;
 };
 
 const GERMAN: BotLetters = {
   titles: BOT_TITLES,
   explainer: EXPLAINER_LETTERS,
-  aunt: AUNT_LETTERS,
-  uncle: UNCLE_LETTERS,
 };
 
 /** Fixed letters and titles in the language of the account (v0.4). */

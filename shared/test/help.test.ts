@@ -124,11 +124,7 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       expect([...letter].length).toBeLessThanOrEqual(LETTER.SMALL_MAX_CHARS);
     // v0.4: the English letters fit on small parchment as well.
     const english = botLetters('en');
-    for (const letter of [
-      ...Object.values(english.explainer),
-      ...Object.values(english.aunt),
-      ...Object.values(english.uncle),
-    ])
+    for (const letter of Object.values(english.explainer))
       expect([...letter].length).toBeLessThanOrEqual(LETTER.SMALL_MAX_CHARS);
   });
 

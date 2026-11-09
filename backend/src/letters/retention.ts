@@ -9,7 +9,7 @@ import { LETTER, TIME } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { addSystemMessage } from '../messages/system.ts';
-import { ownBot } from '../bots/service.ts';
+import { playerBot } from '../bots/registry.ts';
 
 type After = (work: () => void) => void;
 
@@ -69,7 +69,8 @@ export function purgeOldLetters(ctx: Context, at: number, userId?: string, after
   ctx.db.run(
     `DELETE FROM letters
       WHERE status != 'in_flight' AND (sender_has = 0 OR recipient_has = 0)
-        AND (sender_id IN (SELECT id FROM bots) OR recipient_id IN (SELECT id FROM bots))`,
+        AND (sender_id IN (SELECT id FROM bots UNION SELECT id FROM central_bots)
+             OR recipient_id IN (SELECT id FROM bots UNION SELECT id FROM central_bots))`,
   );
   // One year at most for everyone, whatever the flags say.
   ctx.db.run(
@@ -99,8 +100,8 @@ export function purgeOldLetters(ctx: Context, at: number, userId?: string, after
     const names: string[] = [];
     for (const [peer, n] of chats) {
       count += n;
-      // Current name while connected (bots: while in the address book), otherwise "unknown".
-      const known = ownBot(ctx, owner, peer, true) ?? findContact(ctx.db, owner, peer);
+      // Current name while connected (bots: while the player has them), otherwise "unknown".
+      const known = playerBot(ctx, owner, peer, true) ?? findContact(ctx.db, owner, peer);
       names.push(known ? (displayName(ctx.db, peer) ?? '') : '');
     }
     names.sort((a, b) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b)));

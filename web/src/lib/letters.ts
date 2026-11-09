@@ -32,6 +32,8 @@ export interface ApiLetter {
   readonly wrap: string | null;
   /** Letters to and from bots are plain text (SPEC 10.1). */
   readonly plaintext: string | null;
+  /** v0.8: pictures of a control-centre bot (IDs for /api/bot-media/:id). */
+  readonly media?: readonly string[];
 }
 
 export interface ShownLetter extends ApiLetter {

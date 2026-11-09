@@ -122,7 +122,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'PostEulen gibt es auf Deutsch und auf Englisch. Deutsch ist immer der Standard. Mit dem Fähnchen oben rechts schaltest du jederzeit um: die britische Flagge für Englisch, die deutsche für Deutsch.',
       'Bist du nicht angemeldet, merkt sich dein Gerät deine Wahl. Erstellst du ein Konto in der englischen Ansicht, gilt Englisch auch für dein Konto. Nach jeder Anmeldung zeigt PostEulen dann die Sprache deines Kontos, auf jedem Gerät.',
       'Angemeldet speichert das Fähnchen die Sprache gleich im Konto. Du findest sie auch in den Einstellungen unter „Sprache“.',
-      'Die Sprache gilt für alles, was PostEulen selbst schreibt: Menüs, Hilfe, Systemnachrichten, Benachrichtigungen und die Briefe von Erklärbär, Tante und Onkel. Leiheulen und Küken bekommen dann englische Namen. Briefe von Menschen bleiben natürlich, wie sie geschrieben wurden, und Bot-Briefe, die schon angekommen sind, ebenfalls.',
+      'Die Sprache gilt für alles, was PostEulen selbst schreibt: Menüs, Hilfe, Systemnachrichten, Benachrichtigungen und die Briefe der Bots. Leiheulen und Küken bekommen dann englische Namen. Briefe von Menschen bleiben natürlich, wie sie geschrieben wurden, und Bot-Briefe, die schon angekommen sind, ebenfalls.',
     ],
   },
   {
@@ -138,7 +138,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         '„Schlüsselwarnung“: etwas stimmt mit den Schlüsseln nicht – nichts mehr senden, siehe Verschlüsselung.',
       ],
       'Entfernst du einen Kontakt, müsst ihr euch neu koppeln. Eulen, die zwischen euch unterwegs sind, kehren sofort um. Der Chat bleibt erhalten, zeigt aber „unbekannt“ als Namen, bis ihr euch wieder verbindet.',
-      'Im Adressbuch stehen nur echte Menschen. Erklärbär, Tante und Onkel findest du im Briefwechsel; dort schreibst du ihnen auch (siehe Bots).',
+      'Im Adressbuch stehen nur echte Menschen. Den Erklärbär und andere Bots findest du im Briefwechsel; dort schreibst du ihnen auch (siehe Bots).',
     ],
   },
   {
@@ -259,7 +259,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'karte',
     title: 'Die Karte',
     blocks: [
-      'Die Karte zeigt die ganze Welt. Westeuropa, wo alle wohnen, ist genau gezeichnet, mit Städten; außerhalb davon siehst du Ländergrenzen und Hauptstädte. Eingezeichnet sind dein Wohnort, die Wohnorte deiner Kontakte und Bots und deine Eulen, die gerade für dich unterwegs sind. Eulen anderer Leute siehst du nie – auch nicht, wenn sie zu dir fliegen. Den Erklärbären findest du auf der Karte, sobald du ihm zum ersten Mal geschrieben hast; die Tante und den Onkel, sobald ihr erster Brief bei dir ist.',
+      'Die Karte zeigt die ganze Welt. Westeuropa, wo alle wohnen, ist genau gezeichnet, mit Städten; außerhalb davon siehst du Ländergrenzen und Hauptstädte. Eingezeichnet sind dein Wohnort, die Wohnorte deiner Kontakte und Bots und deine Eulen, die gerade für dich unterwegs sind. Eulen anderer Leute siehst du nie – auch nicht, wenn sie zu dir fliegen. Den Erklärbären findest du auf der Karte, sobald du ihm zum ersten Mal geschrieben hast; andere Bots, sobald ihr erster Brief bei dir ist – sie können überall auf der Welt wohnen.',
       'Hinter jeder deiner Eulen zieht sich eine dünne dunkelbraune Linie: der Weg, den sie schon geflogen ist. Wo sie übernachtet hat, steht ein kleines „Zzz“. Den Weg, der noch vor ihr liegt, zeigt die Karte nicht – Eulen lassen sich nicht gern in die Karten schauen.',
       'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch dein Wohnort, deine Kontakte und deine Eulen zu sehen sind (die Bots zählen dafür nicht). Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       `Die dunkle Fläche ist die Nacht. Positionen, Flugspuren und Nachtgrenze rechnet dein Gerät alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu aus, ohne den Server zu fragen.`,
@@ -271,7 +271,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'gold',
     title: 'Gold und Finanzen',
     blocks: [
-      `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Die Tante schenkt dir nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen ${gold(GOLD.AUNT_GIFT)}, der Onkel nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ${gold(GOLD.UNCLE_INHERITANCE)}.`,
+      `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Manchmal schickt dir auch ein Bot Gold oder sogar eine Eule.`,
       `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, großes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
       `Die Finanzübersicht zeigt deinen Goldstand und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
       `Gold verschicken: ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} per Eule an einen Kontakt, gern mit kurzem Begleitbrief. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
@@ -331,18 +331,19 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'bots',
-    title: 'Erklärbär, Tante und Onkel',
+    title: 'Bots: der Erklärbär und andere Brieffiguren',
     blocks: [
-      'Jedes Konto hat drei eigene Bots. Du findest sie im Briefwechsel, deutlich mit „Bot“ gekennzeichnet, und als Raute auf der Karte – im Adressbuch stehen sie nicht. Schreiben kannst du ihnen in ihrem Chat. Sie antworten per KI.',
+      'Bots sind Brieffiguren, die per KI schreiben. Du findest sie im Briefwechsel, deutlich mit „Bot“ gekennzeichnet, und als Raute auf der Karte – im Adressbuch stehen sie nie. Schreiben kannst du ihnen in ihrem Chat.',
       [
-        `Erklärbär: wohnt in Berlin und schickt dir in der ersten Woche kurze Anleitungen. Er beantwortet Fragen zu PostEulen – aber nur die. Seine Eulen fliegen ${BOTS.EXPLAINER_SPEED_KMH} km/h. Auf der Karte erscheint er, sobald du ihm zum ersten Mal schreibst.`,
-        `Tante: eine entfernt verwandte Hexe, die gern plaudert. Ihr erster Brief kommt etwa ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} Minuten nach deiner Anmeldung; erst dann steht sie im Briefwechsel und auf der Karte. Nach ${GOLD.AUNT_GIFT_AFTER_DAYS} Tagen schickt sie dir ${gold(GOLD.AUNT_GIFT)} für deine erste Eule.`,
-        `Onkel: ein etwas verrückter, launischer Verwandter. Er meldet sich nach ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} Tagen und teilt nach ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} Tagen ein Erbe von ${gold(GOLD.UNCLE_INHERITANCE)} mit dir.`,
+        `Erklärbär: dein eigener Bot von Anfang an. Er wohnt in Berlin, schickt dir in der ersten Woche kurze Anleitungen und beantwortet Fragen zu PostEulen – aber nur die. Seine Eulen fliegen ${BOTS.EXPLAINER_SPEED_KMH} km/h. Etwa ${BOTS.REPLY_AFTER_HOURS} Stunden nach der Ankunft deines Briefs schreibt er zurück, höchstens ${BOTS.EXPLAINER_REPLY_MAX_CHARS} Zeichen. Auf der Karte erscheint er, sobald du ihm zum ersten Mal schreibst.`,
+        'Andere Bots: Figuren, die die Betreiberin oder der Betreiber deiner PostEulen-Instanz im Bots-Kontrollzentrum anlegt. Sie können überall auf der Welt wohnen und auch umziehen. Ein solcher Bot taucht bei dir erst auf, wenn sein erster Brief bei dir angekommen ist. Seine Briefe schreibt er zu festen Zeitpunkten an alle Spielerinnen und Spieler; manchmal hängen bis zu zwei Bilder daran, manchmal bringt er Gold oder eine Eule mit.',
       ],
-      `Einem Bot kannst du einen Brief in ${BOTS.WRITE_LOCK_HOURS} Stunden schreiben; die App zeigt, ab wann wieder. Etwa ${BOTS.REPLY_AFTER_HOURS} Stunden nach der Ankunft deines Briefs schreibt er zurück (höchstens ${BOTS.REPLY_MAX_CHARS} Zeichen). Ist das Tageslimit des Servers erreicht, antwortet er am nächsten Tag.`,
+      'Jedem Bot kannst du einen Brief pro Kalendertag schreiben (der Tag wechselt um Mitternacht UTC); die App zeigt, ab wann wieder. Das gilt auch für den Erklärbär.',
+      `Wie andere Bots antworten: Meist gehen sie in ihrem nächsten geplanten Brief auf deine Zeilen ein – der Brief bleibt derselbe, bekommt aber einen persönlichen Teil für dich. Haben sie in den nächsten vier Wochen nichts geplant, antworten sie dir nach etwa ${BOTS.REPLY_AFTER_HOURS} Stunden direkt.`,
+      'Bots haben eigene Eulen oder schicken Leiheulen. Die Eule eines Bots wartet oft eine Weile bei dir („Zu Gast bei dir“ unter „Eulen“). Solange sie da ist, kannst du ihr eine Antwort mitgeben – dann fliegt sie sofort los. Ob du einem Bot auch mit deinen eigenen Eulen oder Leiheulen schreiben kannst, legt der Bot fest; der Chat sagt es dir. Füttern kannst du Bot-Eulen nicht, sie sind bestens versorgt.',
       de.bots.notice,
-      'An OpenAI gehen nur die Texte, keine Namen und keine Kennungen. Bots merken sich eine kurze Zusammenfassung eures Briefwechsels; sie verschwindet, wenn du den Chat löschst.',
-      'Einen Bot entfernst du in seinem Chat („… entfernen“). Alle drei auf einmal – auch den Erklärbär – entfernst du in den Einstellungen mit „Alle Bots entfernen“. Beides ist endgültig: Chat, Zusammenfassung und noch ausstehende Briefe und Goldsendungen sind dann weg, und die Bots kommen nie wieder.',
+      'An OpenAI gehen nur die Texte, keine Namen und keine Kennungen. Jeder Bot merkt sich eine kurze Zusammenfassung eures Briefwechsels – nur deines; sie verschwindet, wenn du den Chat löschst.',
+      'Einen Bot entfernst du in seinem Chat („… entfernen“). Alle auf einmal – auch den Erklärbär und alle Bots, die es künftig geben wird – entfernst du in den Einstellungen mit „Alle Bots entfernen“. Beides ist endgültig: Chat, Zusammenfassung und noch ausstehende Briefe und Geschenke sind dann weg, und die Bots schreiben dir nie wieder. Löscht die Betreiberin oder der Betreiber einen Bot, bekommst du eine Systemnachricht, falls du mit ihm Kontakt hattest.',
     ],
   },
   {
@@ -372,7 +373,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Sprache: Deutsch oder Englisch, für dieses Konto auf jedem Gerät.',
         'Briefe: eigene Briefe und Systemnachrichten schon nach 30, 90 oder 180 Tagen löschen lassen statt nach einem Jahr; Briefe in Druckschrift statt Handschrift anzeigen.',
         'Benachrichtigungen: Status ansehen und testen.',
-        'Bots: „Alle Bots entfernen“ nimmt Erklärbär, Tante und Onkel endgültig aus deinem Spiel – mit ihren Chats. Das lässt sich nicht rückgängig machen.',
+        'Bots: „Alle Bots entfernen“ nimmt den Erklärbär und alle anderen Bots endgültig aus deinem Spiel – mit ihren Chats, auch Bots, die es erst später gibt. Das lässt sich nicht rückgängig machen.',
         `Nachricht an den Admin (ganz unten): Bei technischen Problemen oder Verbesserungsvorschlägen schickst du dem Admin deiner PostEulen-Instanz eine kurze Nachricht – höchstens ${FEEDBACK.MAX_CHARS} Zeichen, eine pro Tag (der Tag wechselt um Mitternacht UTC). Sie ist nicht verschlüsselt, liegt ohne deinen Namen lesbar auf dem Server und wird nach ${FEEDBACK.RETENTION_DAYS} Tagen gelöscht. Schreib also nichts Vertrauliches hinein.`,
         `Gutschein einlösen: Hast du von der Betreiberin oder dem Betreiber deiner PostEulen-Instanz einen Gutschein bekommen, tippst du hier den Code ein. Ein Gutschein bringt Gold oder eine neue Eule, gilt ${VOUCHER.VALID_DAYS} Tage und lässt sich einmal einlösen.`,
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
@@ -411,7 +412,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   {
     question: 'Ist PostEulen etwas für Kinder?',
     answer:
-      'Gut möglich – PostEulen eignet sich prima, um Kinder behutsam an Messenger heranzuführen. Weil Briefe Stunden unterwegs sind, gibt es kein Dauer-Tippen und keinen Sog, ständig nachzusehen. Und schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat: Fremde können dein Kind nicht anschreiben. Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI; wer das nicht möchte, entfernt sie in den Einstellungen mit „Alle Bots entfernen“.',
+      'Gut möglich – PostEulen eignet sich prima, um Kinder behutsam an Messenger heranzuführen. Weil Briefe Stunden unterwegs sind, gibt es kein Dauer-Tippen und keinen Sog, ständig nachzusehen. Und schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat: Fremde können dein Kind nicht anschreiben. Die Brieffreunde – Erklärbär und andere Bots – antworten per KI; wer das nicht möchte, entfernt sie in den Einstellungen mit „Alle Bots entfernen“.',
   },
   {
     question: 'Was kostet PostEulen?',

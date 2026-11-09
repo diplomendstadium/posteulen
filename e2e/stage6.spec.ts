@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { ADMIN_URL, expect, test } from './fixtures.ts';
+import { ADMIN_URL, BOTS_URL, expect, test } from './fixtures.ts';
 import { registerViaUi } from './account-helpers.ts';
 import { expectAccessible } from './a11y-helpers.ts';
 import { setGold } from './db-helpers.ts';
@@ -71,6 +71,12 @@ test.describe('Barrierefreiheit (SPEC 14)', () => {
     }
     await page.goto(ADMIN_URL);
     await expectAccessible(page, 'Verwaltung');
+    // v0.8: the bots control centre.
+    await page.goto(BOTS_URL);
+    await expect(
+      page.getByRole('heading', { name: 'Anmeldung im Bots-Kontrollzentrum' }),
+    ).toBeVisible();
+    await expectAccessible(page, 'Bots-Kontrollzentrum');
   });
 
   test('alle Bereiche nach dem Login', async ({ page }) => {
@@ -146,7 +152,5 @@ test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async
     await page.goto(path);
     await page.getByText('Erklärbär').first().waitFor();
     expect(await inDisplayFont(page, 'Erklärbär'), path).toEqual([]);
-    expect(await inDisplayFont(page, 'Tante '), path).toEqual([]);
   }
-  await expect(page.getByText(/Tante /).first()).toBeVisible();
 });

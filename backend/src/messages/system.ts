@@ -34,7 +34,10 @@ export type SystemMessageType =
   | 'donation'
   | 'update_notes'
   | 'letters_purged'
-  | 'loan_back';
+  | 'loan_back'
+  /** v0.8: a bot of the control centre gave an owl (event) / was deleted by the operator. */
+  | 'bot_owl_gift'
+  | 'bot_deleted';
 
 export function addSystemMessage(
   ctx: Context,

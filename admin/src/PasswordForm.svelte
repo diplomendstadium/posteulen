@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from './lib/i18n.svelte.ts';
   import { checkPassword } from '@posteulen/shared/names.ts';
   import { changePassword } from './lib/auth.ts';
   import { message } from './lib/messages.ts';
@@ -17,11 +17,11 @@
     const lengthError = checkPassword(next);
     error =
       lengthError === 'too_short'
-        ? de.register.tooShort
+        ? t.register.tooShort
         : lengthError === 'too_long'
-          ? de.register.tooLong
+          ? t.register.tooLong
           : next !== repeat
-            ? de.register.mismatch
+            ? t.register.mismatch
             : null;
     if (error) return;
     busy = true;
@@ -30,8 +30,8 @@
       if (outcome === 'ok') {
         currentPassword = next = repeat = '';
         ondone();
-      } else if (outcome === 'wrong') error = de.admin.wrong;
-      else error = fill(de.start.wait, { seconds: outcome.wait });
+      } else if (outcome === 'wrong') error = t.admin.wrong;
+      else error = fill(t.start.wait, { seconds: outcome.wait });
     } catch (caught) {
       error = message(caught);
     } finally {
@@ -42,7 +42,7 @@
 
 <form onsubmit={submit} novalidate>
   {#if !current}
-    <label for="admin-current">{de.admin.currentPassword}</label>
+    <label for="admin-current">{t.admin.currentPassword}</label>
     <input
       id="admin-current"
       type="password"
@@ -50,12 +50,12 @@
       bind:value={currentPassword}
     />
   {/if}
-  <label for="admin-new">{de.admin.newPassword}</label>
+  <label for="admin-new">{t.admin.newPassword}</label>
   <input id="admin-new" type="password" autocomplete="new-password" bind:value={next} />
-  <label for="admin-repeat">{de.admin.newPasswordRepeat}</label>
+  <label for="admin-repeat">{t.admin.newPasswordRepeat}</label>
   <input id="admin-repeat" type="password" autocomplete="new-password" bind:value={repeat} />
   {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
-  <p><button class="button" type="submit" disabled={busy}>{de.admin.save}</button></p>
+  <p><button class="button" type="submit" disabled={busy}>{t.admin.save}</button></p>
 </form>
 
 <style>

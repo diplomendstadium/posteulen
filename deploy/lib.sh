@@ -104,7 +104,7 @@ switch_symlink() {
 # Funktionsprüfung über HTTPS (SPEC 16.2 Schritt 5). $1 = Domain, $2 = Testmodus (0|1).
 health_check() {
   local domain=$1 test_mode=$2 attempt host url headers
-  local -a curl_opts=(--silent --show-error --fail --max-time 10 --resolve "$domain:443:127.0.0.1" --resolve "admin.$domain:443:127.0.0.1")
+  local -a curl_opts=(--silent --show-error --fail --max-time 10 --resolve "$domain:443:127.0.0.1" --resolve "admin.$domain:443:127.0.0.1" --resolve "bots.$domain:443:127.0.0.1")
   if [[ $test_mode -eq 1 ]]; then
     local ca=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
     [[ -f $ca ]] && curl_opts+=(--cacert "$ca") || curl_opts+=(--insecure)
@@ -132,6 +132,11 @@ health_check() {
   health=$(curl "${curl_opts[@]}" "https://$domain/api/health") || return 1
   grep -q '"status":"ok"' <<<"$health" || { warn "Unerwartete Antwort: $health"; return 1; }
   ok "Funktionsprüfung bestanden: Website, Verwaltung, Health-Endpunkt und Sicherheits-Header."
+  # v0.8: das Bots-Kontrollzentrum (bots.<domain>). Fehlt dort noch der DNS-Eintrag, gibt es
+  # kein Zertifikat – das ist kein Grund für einen Rückfall, nur ein Hinweis.
+  if ! curl "${curl_opts[@]}" "https://bots.$domain/api/health" >/dev/null 2>&1; then
+    warn "https://bots.$domain antwortet (noch) nicht. Für das Bots-Kontrollzentrum braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server."
+  fi
 }
 
 # Neueste Version (Tag) im Repository $1. Nach Semantic Versioning ist eine Vorabversion älter

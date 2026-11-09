@@ -2,8 +2,8 @@
  * Common steps of every transport (letter, gold, gift): choosing the owl, preparing letter
  * IDs and keys, checking the encrypted letters, and the departure itself.
  */
-import { BOTS, LETTER, TIME } from '@posteulen/shared/constants.ts';
-import { ownBot } from '../bots/service.ts';
+import { LETTER, TIME } from '@posteulen/shared/constants.ts';
+import { isBotId, lastLetterDay, playerBot } from '../bots/registry.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
@@ -17,6 +17,7 @@ import { activeFlightOf, currentEnergy, isReady, type OwlRow } from '../owls/mod
 import { leftHome } from '../owls/care.ts';
 import {
   endRest,
+  flightPosition,
   previewReturn,
   routeOf,
   startFlight,
@@ -56,7 +57,14 @@ export function guestFlight(
   userId: string,
   owlId: string,
 ): { flight: FlightRow; index: number } | undefined {
-  const flight = activeFlightOf(ctx, owlId);
+  // v0.8: the owl of a control-centre bot has no owl row – its reference is the flight ID.
+  const flight =
+    activeFlightOf(ctx, owlId) ??
+    ctx.db.get<FlightRow>(
+      "SELECT * FROM flights WHERE id = ? AND holder_kind = 'bot' AND bot_peer_id = ? AND state = 'active'",
+      owlId,
+      userId,
+    );
   if (!flight || flight.purpose !== 'letter') return undefined;
   const index = routeOf(flight).findIndex(
     (stop) => stop.type === 'deliver' && stop.status === 'resting' && stop.userId === userId,
@@ -68,7 +76,7 @@ export function guestFlight(
 export function guestsOf(ctx: Context, userId: string): { flight: FlightRow; index: number }[] {
   return ctx.db
     .all<FlightRow>(
-      "SELECT * FROM flights WHERE state = 'active' AND purpose = 'letter' AND owl_id IS NOT NULL AND instr(route, ?) > 0",
+      "SELECT * FROM flights WHERE state = 'active' AND purpose = 'letter' AND (owl_id IS NOT NULL OR holder_kind = 'bot') AND instr(route, ?) > 0",
       `"userId":"${userId}"`,
     )
     .flatMap((flight) => {
@@ -92,6 +100,23 @@ export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: num
   const guestOwl = guestRefOwl(owlRef);
   if (guestOwl !== null) {
     const guest = guestFlight(ctx, userId, guestOwl);
+    if (guest?.flight.holder_kind === 'bot') {
+      // v0.8: the visiting owl of a control-centre bot (no owl row, energy from its flight).
+      const info = flightPosition(guest.flight, now);
+      return {
+        id: null,
+        kind: guest.flight.owl_kind,
+        name: guest.flight.owl_name,
+        species: guest.flight.owl_species,
+        energy: info?.energy ?? 0,
+        motivation: Math.round(
+          ((JSON.parse(guest.flight.profile) as { motivation?: number }).motivation ?? 1) * 10,
+        ),
+        maxRecipients: 1,
+        returnsHome: true,
+        guest,
+      };
+    }
     const owl = ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', guestOwl);
     if (!guest || !owl) throw new HttpError(400, 'owl_not_ready');
     return {
@@ -143,9 +168,14 @@ export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: num
   };
 }
 
+/** v0.8: the reference of a visiting owl for the owl choice (bots: the flight). */
+export function guestRef(flight: FlightRow): string {
+  return `${GUEST_REF_PREFIX}${flight.owl_id ?? flight.id}`;
+}
+
 /**
  * People: confirmed, active contacts with intact keys. Bots only where allowed (letters), only
- * as the single recipient and at most once in 24 hours (SPEC 10.1).
+ * as the single recipient and at most once per calendar day (UTC, v0.8; before: 24 hours).
  */
 export function checkRecipients(
   ctx: Context,
@@ -155,14 +185,11 @@ export function checkRecipients(
   options: { allowBots?: boolean } = {},
 ): void {
   for (const recipientId of recipients) {
-    const bot = ownBot(ctx, senderId, recipientId);
+    const bot = playerBot(ctx, senderId, recipientId);
     if (bot) {
       if (!options.allowBots || recipients.length > 1)
         throw new HttpError(400, 'recipient_invalid', { recipientId });
-      if (
-        bot.last_user_letter_at !== null &&
-        now - bot.last_user_letter_at < BOTS.WRITE_LOCK_HOURS * TIME.HOUR
-      ) {
+      if (lastLetterDay(ctx, senderId, bot) === utcDay(now)) {
         throw new HttpError(400, 'bot_write_lock', { recipientId });
       }
       continue;
@@ -303,7 +330,7 @@ export function depart(
     chick: token.chick === true,
     // v0.7: rest at each recipient – letters to people only (not to bots).
     restMs:
-      token.purpose === 'letter' && !ownBot(ctx, token.senderId, token.recipients[0] ?? '')
+      token.purpose === 'letter' && !isBotId(ctx, token.recipients[0] ?? '')
         ? (token.restHours ?? 0) * TIME.HOUR
         : 0,
   });
@@ -331,7 +358,7 @@ export function depart(
     );
     ctx.db.run(
       `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at)
-       VALUES (?, ?, CASE WHEN EXISTS (SELECT 1 FROM bots WHERE id = ?2) THEN 'bot' ELSE 'user' END, ?)
+       VALUES (?, ?, CASE WHEN EXISTS (SELECT 1 FROM bots WHERE id = ?2 UNION SELECT 1 FROM central_bots WHERE id = ?2) THEN 'bot' ELSE 'user' END, ?)
        ON CONFLICT (owner_id, peer_id) DO UPDATE SET last_activity_at = excluded.last_activity_at`,
       token.senderId,
       letter.recipientId,
@@ -387,6 +414,44 @@ function departWithReply(
   endRest(ctx, guest.flight, guest.index, now, after);
   const fresh = ctx.db.get<FlightRow>('SELECT * FROM flights WHERE id = ?', guest.flight.id);
   return { flightId: guest.flight.id, route: fresh ? routeOf(fresh) : [], owl };
+}
+
+/**
+ * v0.8: a reply to a control-centre bot handed to its owl resting at the player – plain text like
+ * every letter to a bot; the owl takes off at once (SPEC 10.7).
+ */
+export function departWithBotReply(
+  ctx: Context,
+  senderId: string,
+  botId: string,
+  owlRef: string,
+  parchment: 'small' | 'large',
+  text: string,
+  now: number,
+  after: (work: () => void) => void,
+): { flightId: string; letterId: string; arrivesAt: number; owl: ChosenOwl } {
+  const owl = chooseOwl(ctx, senderId, owlRef, now);
+  const guest = owl.guest;
+  if (!guest || guest.flight.holder_id !== botId) throw new HttpError(400, 'owl_recipients');
+  const arrivesAt = previewReturn(ctx, guest.flight, guest.index, now);
+  const letterId = randomId();
+  ctx.db.run(
+    `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
+                          status, owl_name, owl_species, flight_id)
+     VALUES (?, ?, ?, 'letter', ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+    letterId,
+    senderId,
+    botId,
+    parchment,
+    now,
+    arrivesAt,
+    text,
+    guest.flight.owl_name,
+    guest.flight.owl_species,
+    guest.flight.id,
+  );
+  endRest(ctx, guest.flight, guest.index, now, after);
+  return { flightId: guest.flight.id, letterId, arrivesAt, owl };
 }
 
 // The lot of the chick gift (9.9) starts a gift flight without a cover letter.

@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from './lib/i18n.svelte.ts';
   import { api, SESSION_ENDED_EVENT, touchSession } from './lib/api.ts';
   import { login } from './lib/auth.ts';
   import { message } from './lib/messages.ts';
   import Dashboard from './Dashboard.svelte';
   import PasswordForm from './PasswordForm.svelte';
+  import LanguageSwitch from './LanguageSwitch.svelte';
+  import { panel } from './lib/i18n.svelte.ts';
 
   let view = $state<'loading' | 'login' | 'change' | 'ready'>('loading');
   let password = $state('');
@@ -35,7 +37,7 @@
       view = 'login';
       password = '';
       initial = '';
-      error = de.admin.sessionExpired;
+      error = t.admin.sessionExpired;
     };
     window.addEventListener(SESSION_ENDED_EVENT, ended);
     return () => window.removeEventListener(SESSION_ENDED_EVENT, ended);
@@ -51,8 +53,8 @@
         initial = password;
         password = '';
         await check();
-      } else if (outcome === 'wrong') error = de.admin.wrong;
-      else error = fill(de.start.wait, { seconds: outcome.wait });
+      } else if (outcome === 'wrong') error = t.admin.wrong;
+      else error = fill(t.start.wait, { seconds: outcome.wait });
     } catch (caught) {
       error = message(caught);
     } finally {
@@ -68,42 +70,45 @@
 </script>
 
 <header class="topbar">
-  <span class="brand">{de.admin.title}</span>
-  {#if view === 'ready' || view === 'change'}
-    <button class="button secondary" type="button" onclick={() => void logout()}
-      >{de.admin.logout}</button
-    >
-  {/if}
+  <span class="brand">{t.admin.title}</span>
+  <span class="tools">
+    <LanguageSwitch />
+    {#if view === 'ready' || view === 'change'}
+      <button class="button secondary" type="button" onclick={() => void logout()}
+        >{t.admin.logout}</button
+      >
+    {/if}
+  </span>
 </header>
-<main id="main" class="page">
-  {#if view === 'login'}
-    <section class="card" aria-labelledby="admin-login">
-      <h1 id="admin-login">{de.admin.loginHeading}</h1>
-      <form onsubmit={submit} novalidate>
-        <label for="admin-password">{de.admin.password}</label>
-        <input
-          id="admin-password"
-          type="password"
-          autocomplete="current-password"
-          bind:value={password}
-        />
-        {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
-        <p class="actions">
-          <button class="button" type="submit" disabled={busy}>{de.admin.login}</button>
-        </p>
-      </form>
-    </section>
-  {:else if view === 'change'}
-    <section class="card" aria-labelledby="admin-change">
-      <h1 id="admin-change">{de.admin.changeTitle}</h1>
-      <p>{de.admin.changeIntro}</p>
-      <PasswordForm current={initial} ondone={() => void check()} />
-    </section>
-  {:else if view === 'ready'}
-    <h1 class="visually-hidden">{de.admin.title}</h1>
-    <Dashboard />
-  {/if}
-</main>
+{#key panel.lang}<main id="main" class="page">
+    {#if view === 'login'}
+      <section class="card" aria-labelledby="admin-login">
+        <h1 id="admin-login">{t.admin.loginHeading}</h1>
+        <form onsubmit={submit} novalidate>
+          <label for="admin-password">{t.admin.password}</label>
+          <input
+            id="admin-password"
+            type="password"
+            autocomplete="current-password"
+            bind:value={password}
+          />
+          {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
+          <p class="actions">
+            <button class="button" type="submit" disabled={busy}>{t.admin.login}</button>
+          </p>
+        </form>
+      </section>
+    {:else if view === 'change'}
+      <section class="card" aria-labelledby="admin-change">
+        <h1 id="admin-change">{t.admin.changeTitle}</h1>
+        <p>{t.admin.changeIntro}</p>
+        <PasswordForm current={initial} ondone={() => void check()} />
+      </section>
+    {:else if view === 'ready'}
+      <h1 class="visually-hidden">{t.admin.title}</h1>
+      <Dashboard />
+    {/if}
+  </main>{/key}
 
 <style>
   .topbar {
@@ -119,6 +124,12 @@
 
   .topbar .button {
     background: var(--paper);
+  }
+
+  .tools {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
 
   .page {

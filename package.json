@@ -2,7 +2,7 @@
   "name": "posteulen",
   "private": true,
   "type": "module",
-  "description": "PostEulen.de – Ende-zu-Ende-verschlüsselte Briefe per Eule",
+  "description": "PostEulen.de \u2013 Ende-zu-Ende-verschl\u00fcsselte Briefe per Eule",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=26.0.0 <27.0.0"
@@ -11,16 +11,17 @@
     "shared",
     "backend",
     "web",
-    "admin"
+    "admin",
+    "bots"
   ],
   "scripts": {
     "start": "node scripts/start.ts",
     "dev": "node scripts/dev.ts",
-    "build": "npm run build -w web && npm run build -w admin",
+    "build": "npm run build -w web && npm run build -w admin && npm run build -w bots",
     "preview": "node backend/src/dev/preview.ts",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc -p tsconfig.json && npm run typecheck -w web && npm run typecheck -w admin",
+    "typecheck": "tsc -p tsconfig.json && npm run typecheck -w web && npm run typecheck -w admin && npm run typecheck -w bots",
     "test": "node scripts/test-all.ts",
     "test:unit": "vitest run --coverage",
     "test:e2e": "playwright test",
@@ -44,7 +45,6 @@
     "globals": "17.13.0",
     "prettier": "3.9.10",
     "prettier-plugin-svelte": "4.1.1",
-    "sharp": "0.35.5",
     "svelte-check": "4.7.7",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0",

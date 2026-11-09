@@ -105,6 +105,9 @@ export function registerAdminOperations(
       model: aiModel(ctx.db),
       dailyLimit: aiDailyLimit(ctx.db),
       usedToday: usedToday(ctx.db, now),
+      // v0.8: own quota for the bots of the control centre.
+      botsDailyLimit: aiDailyLimit(ctx.db, 'bots'),
+      botsUsedToday: usedToday(ctx.db, now, 'bots'),
     };
   });
 
@@ -114,6 +117,7 @@ export function registerAdminOperations(
     // Replies that waited for a key are tried at once.
     ctx.db.run('UPDATE bot_jobs SET due_at = ? WHERE attempts > 0', ctx.now());
     ctx.botReplies.kick();
+    ctx.centralBots.kick();
     return { keySince: keySince(ctx.db) };
   });
 
@@ -126,7 +130,12 @@ export function registerAdminOperations(
     const body = parse(OpenAiSettings, request.body);
     setAiModel(ctx.db, body.model);
     setAiDailyLimit(ctx.db, body.dailyLimit);
-    return { model: body.model, dailyLimit: body.dailyLimit };
+    if (body.botsDailyLimit !== undefined) setAiDailyLimit(ctx.db, body.botsDailyLimit, 'bots');
+    return {
+      model: body.model,
+      dailyLimit: body.dailyLimit,
+      botsDailyLimit: aiDailyLimit(ctx.db, 'bots'),
+    };
   });
 
   /** Model list from the API; the admin may still type a model by hand. */

@@ -48,8 +48,18 @@ if [[ $reason == update ]]; then
   printf '%s\n' "$snapshot" >"$PE_STATE/last-snapshot"
 fi
 
+# v0.8: alle Bot-Definitionen und Events mit Bildern als importierbare ZIP-Datei, unverschlüsselt
+# (enthält keine Briefe von Spielern), SPEC Anhang S. Ein Fehler hier bricht die Sicherung nicht ab.
+bots_zip="$PE_BACKUPS/posteulen-bots-$stamp-$reason.zip"
+if as_service node "$RELEASE/backend/src/cli.ts" bots-export --out "$tmp/bots.zip" >/dev/null; then
+  install -m 0600 -o root -g root "$tmp/bots.zip" "$bots_zip"
+else
+  warn "Export der Bots fehlgeschlagen – die Datenbanksicherung ist trotzdem da."
+fi
+
 # Aufbewahrung: höchstens 7 Tage (SPEC 8.11, 16.3).
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-*.sqlite.age' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
+find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-bots-*.zip' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 find "$PE_SNAPSHOTS" -maxdepth 1 -name 'vor-update-*.sqlite' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 
 ok "Sicherung erstellt: $target"

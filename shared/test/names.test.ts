@@ -1,6 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  checkBotName,
   checkOwlName,
   checkPassword,
   checkUserName,
@@ -81,25 +82,25 @@ describe('user names (SPEC 7.1)', () => {
     'PostEule',
     'Systemnachrichten',
     'Unbekannt',
-    'Tante',
-    'Tante Emma',
-    'onkel Paul',
     'Bot',
     'Papeterie',
     'Menagerie',
     'Support',
     'Moderator',
-    // v0.6: the bots' names in the English view.
+    // v0.6: the Erklärbär's name in the English view (v0.8: aunt and uncle are gone).
     'Explainer Bear',
     'ExplainerBear',
-    'Aunt',
-    'Aunt Emma',
-    'uncle Paul',
     'System messages',
     'Unknown',
   ])('rejects the reserved name %s', (name) => {
     expect(isReservedName(name)).toBe(true);
     expect(checkUserName(name)).toBe('reserved');
+  });
+
+  it('v0.8: names of the former aunt and uncle are free; bot names follow the user rules', () => {
+    expect(checkUserName('Tante Emma')).toMatchObject({ display: 'Tante Emma' });
+    expect(checkBotName('Kapitän Ahoi')).toMatchObject({ display: 'Kapitän Ahoi' });
+    expect(checkBotName('Erklärbär')).toBe('reserved');
   });
 
   it('allows names that only contain a reserved word later', () => {

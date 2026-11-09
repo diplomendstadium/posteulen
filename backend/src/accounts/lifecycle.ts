@@ -3,6 +3,7 @@
  * 24-hour grace period, final deletion, inactivity warnings and automatic deletion, and the
  * daily clean-up.
  */
+import { pruneMedia } from '../central/media.ts';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { pruneCareHistory } from '../owls/care.ts';
 import { purgeOldLetters } from '../letters/retention.ts';
@@ -132,6 +133,8 @@ export function purgeIfIdle(ctx: Context, userId: string): boolean {
     "DELETE FROM scheduled_events WHERE ref = ? AND type IN ('account_delete', 'account_purge')",
     userId,
   );
+  // v0.8: flights have no foreign key on the holder any more (bots fly, too).
+  ctx.db.run('DELETE FROM flights WHERE holder_id = ? OR bot_peer_id = ?', userId, userId);
   // Everything else hangs on the user row (ON DELETE CASCADE).
   ctx.db.run('DELETE FROM users WHERE id = ?', userId);
   return true;
@@ -184,6 +187,12 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   pruneFeedback(ctx, at);
   // v0.7.2: homecomings nobody looked at (overlay) go after 60 days.
   ctx.db.run('DELETE FROM homecomings WHERE created_at < ?', at - 60 * TIME.DAY);
+  // v0.8: pictures of bots that no event and no letter uses any more (SPEC 10.11).
+  pruneMedia(ctx, at);
+  ctx.db.run(
+    'DELETE FROM bots_admin_sessions WHERE last_used_at < ?',
+    at - ACCOUNT.BOTS_SESSION_IDLE_HOURS * TIME.HOUR,
+  );
 }
 
 export function registerAccountHandlers(ctx: Context): void {

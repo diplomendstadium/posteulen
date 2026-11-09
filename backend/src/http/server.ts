@@ -12,7 +12,8 @@ import { loggerOptions } from '../log.ts';
 import { logError } from '../ops/error-log.ts';
 import { HttpError } from './errors.ts';
 
-export type ApiKind = 'user' | 'admin';
+/** v0.8: the bots control centre is a third API of its own (SPEC 10.12). */
+export type ApiKind = 'user' | 'admin' | 'bots';
 
 export interface ApiOptions {
   readonly kind: ApiKind;
@@ -125,7 +126,12 @@ export function buildApi(options: ApiOptions): FastifyInstance {
         logError(
           options.db,
           {
-            component: options.kind === 'user' ? 'Nutzer-API' : 'Admin-API',
+            component:
+              options.kind === 'user'
+                ? 'Nutzer-API'
+                : options.kind === 'admin'
+                  ? 'Admin-API'
+                  : 'Bots-API',
             severity: 'error',
             what: `Unerwarteter Fehler bei ${request.method} ${request.routeOptions.url ?? 'unbekannter Pfad'}`,
             cause: 'Programmfehler oder unerwarteter Zustand der Datenbank.',

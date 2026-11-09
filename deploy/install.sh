@@ -95,7 +95,7 @@ fi
 
 if [[ $test_mode -eq 0 ]]; then
   addresses=$(ip -o addr show scope global | awk '{print $4}' | cut -d/ -f1)
-  for host in "$domain" "admin.$domain"; do
+  for host in "$domain" "admin.$domain" "bots.$domain"; do
     resolved=$(getent ahosts "$host" | awk '{print $1}' | sort -u || true)
     match=0
     for address in $resolved; do grep -qxF "$address" <<<"$addresses" && match=1; done
@@ -294,6 +294,9 @@ as_service node "$release/backend/src/cli.ts" migrate
 # Adminzugang mit Erstpasswort, nur wenn noch keiner existiert (SPEC 13).
 admin_output=$(as_service node "$release/backend/src/cli.ts" admin-init)
 admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
+# v0.8: eigener Zugang zum Bots-Kontrollzentrum, ebenfalls nur einmal (SPEC 10.12).
+bots_output=$(as_service node "$release/backend/src/cli.ts" bots-init)
+bots_password=$(sed -n 's/^BOTS-ERSTPASSWORT: //p' <<<"$bots_output")
 
 switch_symlink "$release" "$PE_CURRENT"
 "$PE_CURRENT/deploy/configure.sh"
@@ -307,7 +310,7 @@ health_check "$domain" "$test_mode" || die "Die Funktionsprüfung ist fehlgeschl
 # ───────────────────────── 6. Zusammenfassung ─────────────────────────
 version=$(release_version "$(readlink -f "$PE_CURRENT")")
 printf '\n%s\n' "${PE_GREEN}${PE_BOLD}PostEulen $version läuft.${PE_RESET}"
-printf '  Website:      https://%s\n  Verwaltung:   https://admin.%s\n  Updates:      sudo posteulen-update\n' "$domain" "$domain"
+printf '  Website:      https://%s\n  Verwaltung:   https://admin.%s\n  Bots:         https://bots.%s\n  Updates:      sudo posteulen-update\n' "$domain" "$domain" "$domain"
 messages=(
   "WICHTIG: Jetzt die Geheimnis-Datei außerhalb des Servers sichern:"
   "  $PE_SECRETS"
@@ -328,6 +331,14 @@ if [[ -n $admin_password ]]; then
     "Admin-Erstpasswort (wird nur jetzt angezeigt): $admin_password"
     "Anmelden unter https://admin.$domain – beim ersten Login muss es geändert werden."
     "Vergessen? „sudo posteulen-cli admin-reset“ erzeugt ein neues."
+  )
+fi
+if [[ -n $bots_password ]]; then
+  messages+=(
+    ""
+    "Erstpasswort des Bots-Kontrollzentrums (wird nur jetzt angezeigt): $bots_password"
+    "Anmelden unter https://bots.$domain – beim ersten Login muss es geändert werden."
+    "Vergessen? „sudo posteulen-cli bots-reset“ erzeugt ein neues."
   )
 fi
 banner "${messages[@]}"

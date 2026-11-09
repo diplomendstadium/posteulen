@@ -103,7 +103,7 @@ const SECTIONS: readonly HelpSection[] = [
       'PostEulen is available in German and in English. German is always the default. With the flag in the top right corner you can switch at any time: the British flag for English, the German flag for German.',
       'When you are not signed in, your device remembers your choice. If you create an account in the English view, English applies to your account too. After every sign-in PostEulen then shows the language of your account, on every device.',
       'When you are signed in, the flag saves the language in your account right away. You can also find it in the settings under “Language”.',
-      'The language applies to everything PostEulen writes itself: menus, help, system messages, notifications and the letters from the Explainer Bear, the aunt and the uncle. Loan owls and chicks then get English names. Letters from people of course stay as they were written, and so do bot letters that have already arrived.',
+      'The language applies to everything PostEulen writes itself: menus, help, system messages, notifications and the letters of the bots. Loan owls and chicks then get English names. Letters from people of course stay as they were written, and so do bot letters that have already arrived.',
     ],
   },
   {
@@ -119,7 +119,7 @@ const SECTIONS: readonly HelpSection[] = [
         '“Key warning”: something is wrong with the keys – do not send anything any more, see Encryption.',
       ],
       'If you remove a contact, you have to pair again. Owls on their way between you turn back immediately. The chat stays, but shows “unknown” as the name until you connect again.',
-      'Only real people are in the address book. You find the Explainer Bear, the aunt and the uncle in your correspondence; that is also where you write to them (see Bots).',
+      'Only real people are in the address book. You find the Explainer Bear and other bots in your correspondence; that is also where you write to them (see Bots).',
     ],
   },
   {
@@ -240,7 +240,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'karte',
     title: 'The map',
     blocks: [
-      'The map shows the whole world. Western Europe, where everyone lives, is drawn in detail, with cities; outside it you see borders and capitals. Shown are your home, the homes of your contacts and bots, and your owls that are currently on their way for you. You never see other people’s owls – not even when they are flying to you. You find the Explainer Bear on the map as soon as you have written to him for the first time; the aunt and the uncle as soon as their first letter has reached you.',
+      'The map shows the whole world. Western Europe, where everyone lives, is drawn in detail, with cities; outside it you see borders and capitals. Shown are your home, the homes of your contacts and bots, and your owls that are currently on their way for you. You never see other people’s owls – not even when they are flying to you. You find the Explainer Bear on the map as soon as you have written to him for the first time; other bots as soon as their first letter has reached you – they can live anywhere in the world.',
       'Behind each of your owls runs a thin dark brown line: the way it has already flown. Where it spent the night there is a small “Zzz”. The map does not show the way still ahead – owls do not like people looking at their maps.',
       'When you open it, the map zooms in just far enough that your home, your contacts and your owls are visible (the bots do not count for this). For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
       `The dark area is the night. Your device recalculates positions, flight tracks and the night boundary every ${MAP.CLIENT_REFRESH_MINUTES} minutes without asking the server.`,
@@ -252,7 +252,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'gold',
     title: 'Gold and finances',
     blocks: [
-      `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. The aunt gives you ${gold(GOLD.AUNT_GIFT)} after ${GOLD.AUNT_GIFT_AFTER_DAYS} days, the uncle ${gold(GOLD.UNCLE_INHERITANCE)} after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
+      `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. Sometimes a bot sends you gold or even an owl, too.`,
       `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}, large parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
       `The finances show how much gold you have and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
       `Sending gold: ${gold(GOLD.TRANSFER_MIN)} to ${gold(GOLD.TRANSFER_MAX)} by owl to a contact, with a short cover letter if you like. Afterwards you must have more than ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} left. The gold is debited when the owl takes off and arrives with the owl. If it turns back, you get it back as soon as it is home again. You cannot send gold to bots.`,
@@ -312,19 +312,20 @@ const SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'bots',
-    title: 'Explainer Bear, aunt and uncle',
+    title: 'Bots: the Explainer Bear and other pen friends',
     blocks: [
-      'Every account has three bots of its own. You find them in your correspondence, clearly marked “Bot”, and as a diamond on the map – they are not in the address book. You write to them in their chat. They reply using AI.',
+      'Bots are pen friends who write using AI. You find them in your correspondence, clearly marked “Bot”, and as a diamond on the map – they are never in the address book. You write to them in their chat.',
       [
-        `Explainer Bear: lives in Berlin and sends you short guides during the first week. He answers questions about PostEulen – but only those. His owls fly at ${BOTS.EXPLAINER_SPEED_KMH} km/h. He appears on the map as soon as you write to him for the first time.`,
-        `Aunt: a distantly related witch who loves a chat. Her first letter arrives about ${BOTS.AUNT_FIRST_LETTER_AFTER_MINUTES} minutes after you sign up; only then is she in your correspondence and on the map. After ${GOLD.AUNT_GIFT_AFTER_DAYS} days she sends you ${gold(GOLD.AUNT_GIFT)} for your first owl.`,
-        `Uncle: a slightly crazy, moody relative. He gets in touch after ${BOTS.UNCLE_FIRST_LETTER_AFTER_DAYS} days and shares an inheritance of ${gold(GOLD.UNCLE_INHERITANCE)} with you after ${GOLD.UNCLE_INHERITANCE_AFTER_DAYS} days.`,
+        `Explainer Bear: your own bot from the start. He lives in Berlin, sends you short guides during the first week and answers questions about PostEulen – but only those. His owls fly at ${BOTS.EXPLAINER_SPEED_KMH} km/h. About ${BOTS.REPLY_AFTER_HOURS} hours after your letter arrives, he writes back, at most ${BOTS.EXPLAINER_REPLY_MAX_CHARS} characters. He appears on the map as soon as you write to him for the first time.`,
+        'Other bots: characters created by the operator of your PostEulen instance in the bots control centre. They can live anywhere in the world and even move house. Such a bot only appears for you once its first letter has reached you. It writes its letters to all players at set times; sometimes up to two pictures come with them, sometimes it brings gold or an owl.',
       ],
-      `You can write one letter to a bot every ${BOTS.WRITE_LOCK_HOURS} hours; the app shows from when again. About ${BOTS.REPLY_AFTER_HOURS} hours after your letter arrives, it writes back (at most ${BOTS.REPLY_MAX_CHARS} characters). If the server’s daily limit has been reached, it replies the next day.`,
+      'You can write one letter a calendar day to every bot (the day changes at midnight UTC); the app shows from when again. That also applies to the Explainer Bear.',
+      `How other bots reply: usually they take up your lines in their next planned letter – the letter stays the same but gets a personal part for you. If they have nothing planned for the next four weeks, they reply to you directly after about ${BOTS.REPLY_AFTER_HOURS} hours.`,
+      'Bots have owls of their own or send loan owls. A bot’s owl often waits with you for a while (“Visiting you” under “Owls”). While it is there, you can hand it a reply – then it takes off at once. Whether you can also write to a bot with your own owls or loan owls is up to the bot; the chat tells you. You cannot feed bot owls – they are well looked after.',
       'The bots write to you in the language of your account. Letters that have already arrived stay in the language they were written in.',
       en.bots.notice,
-      'Only the texts go to OpenAI, no names and no identifiers. Bots remember a short summary of your letters; it disappears when you delete the chat.',
-      'You remove a bot in its chat (“Remove …”). All three at once – the Explainer Bear too – you remove in the settings with “Remove all bots”. Both are final: chat, summary and any letters and gold still outstanding are gone then, and the bots never come back.',
+      'Only the texts go to OpenAI, no names and no identifiers. Every bot remembers a short summary of your letters – only yours; it disappears when you delete the chat.',
+      'You remove a bot in its chat (“Remove …”). All of them at once – the Explainer Bear and every bot there will ever be, too – you remove in the settings with “Remove all bots”. Both are final: chat, summary and any letters and gifts still outstanding are gone then, and the bots never write to you again. If the operator deletes a bot, you get a system message if you had contact with it.',
     ],
   },
   {
@@ -355,7 +356,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Letters: have your own letters and system messages deleted after 30, 90 or 180 days instead of after one year; show letters in print instead of handwriting.',
         'Language: German or English, for this account on every device.',
         'Notifications: see the status and test them.',
-        'Bots: “Remove all bots” takes the Explainer Bear, the aunt and the uncle out of your game for good – with their chats. This cannot be undone.',
+        'Bots: “Remove all bots” takes the Explainer Bear and all other bots out of your game for good – with their chats, also bots that only come later. This cannot be undone.',
         `Message to the admin (at the very bottom): for technical problems or suggestions, send the admin of your PostEulen instance a short message – at most ${FEEDBACK.MAX_CHARS} characters, one a day (the day changes at midnight UTC). It is not encrypted, lies readable on the server without your name and is deleted after ${FEEDBACK.RETENTION_DAYS} days. So do not write anything confidential in it.`,
         `Redeem a voucher: if the operator of your PostEulen instance has given you a voucher, type its code here. A voucher brings gold or a new owl, is valid for ${VOUCHER.VALID_DAYS} days and can be redeemed once.`,
         `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
@@ -394,7 +395,7 @@ const FAQ: readonly HelpQuestion[] = [
   {
     question: 'Is PostEulen suitable for children?',
     answer:
-      'Quite possibly – PostEulen is a great way to introduce children gently to messengers. Because letters take hours to arrive, there is no constant typing and no pull to keep checking. And only people who have entered each other with the exact name in the address book can write: strangers cannot contact your child. The three pen friends Explainer Bear, aunt and uncle reply using AI; if you do not want that, remove them in the settings with “Remove all bots”.',
+      'Quite possibly – PostEulen is a great way to introduce children gently to messengers. Because letters take hours to arrive, there is no constant typing and no pull to keep checking. And only people who have entered each other with the exact name in the address book can write: strangers cannot contact your child. The pen friends – the Explainer Bear and other bots – reply using AI; if you do not want that, remove them in the settings with “Remove all bots”.',
   },
   {
     question: 'What does PostEulen cost?',

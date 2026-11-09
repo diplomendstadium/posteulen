@@ -86,35 +86,40 @@
     <p class="hint">{fill(t.owls.guestHint, { name: holder })}</p>
     <ErrorText message={error} />
     <div class="actions">
-      <button
-        class="button secondary"
-        type="button"
-        disabled={busy || guest.wateredToday || !status.online}
-        onclick={() => void care('water', 'drinking', fill(t.owls.drinking, { name: guest.name }))}
-        >{guest.wateredToday ? t.owls.wateredToday : t.owls.water}</button
-      >
-      <button
-        class="button secondary"
-        type="button"
-        disabled={busy || !status.online}
-        onclick={() => void care('pet', 'petting', fill(t.owls.petting, { name: guest.name }))}
-        >{t.owls.pet}</button
-      >
-      <button
-        class="button secondary"
-        type="button"
-        disabled={busy || guest.fedToday || !status.online}
-        onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
-        >{guest.fedToday ? t.owls.fedToday : t.owls.feed}</button
-      >
-      <button
-        class="button secondary"
-        type="button"
-        disabled={busy || guest.snackedToday || !status.online}
-        onclick={() =>
-          void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
-        >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
-      >
+      {#if guest.bot}
+        <p class="hint">{t.owls.guestBotHint}</p>
+      {:else}
+        <button
+          class="button secondary"
+          type="button"
+          disabled={busy || guest.wateredToday || !status.online}
+          onclick={() =>
+            void care('water', 'drinking', fill(t.owls.drinking, { name: guest.name }))}
+          >{guest.wateredToday ? t.owls.wateredToday : t.owls.water}</button
+        >
+        <button
+          class="button secondary"
+          type="button"
+          disabled={busy || !status.online}
+          onclick={() => void care('pet', 'petting', fill(t.owls.petting, { name: guest.name }))}
+          >{t.owls.pet}</button
+        >
+        <button
+          class="button secondary"
+          type="button"
+          disabled={busy || guest.fedToday || !status.online}
+          onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
+          >{guest.fedToday ? t.owls.fedToday : t.owls.feed}</button
+        >
+        <button
+          class="button secondary"
+          type="button"
+          disabled={busy || guest.snackedToday || !status.online}
+          onclick={() =>
+            void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
+          >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
+        >
+      {/if}
       {#if guest.holderName !== null}
         <!-- v0.7.1: opens the chat with exactly this owl chosen. -->
         <button

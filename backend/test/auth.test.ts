@@ -94,7 +94,7 @@ describe('registration (SPEC 5.2, 7.1, 13)', () => {
       ).toMatchObject({ code: 'name_unavailable' });
     }
     expect(
-      (await register(new Agent(app.userApi, USER_ORIGIN), 'Tante Emma', PASSWORD)).body,
+      (await register(new Agent(app.userApi, USER_ORIGIN), 'Erklärbär', PASSWORD)).body,
     ).toMatchObject({ code: 'name_reserved' });
     expect(
       (await register(new Agent(app.userApi, USER_ORIGIN), 'Иван', PASSWORD)).body,

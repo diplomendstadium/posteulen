@@ -36,29 +36,41 @@ export async function registerAdminPassword(
   return client.finishRegistration(password, start.state, registrationResponse).record;
 }
 
-export function adminExists(db: Database): boolean {
-  return db.get('SELECT 1 FROM admin WHERE id = 1') !== undefined;
+/** v0.8: the admin panel and the bots control centre have separate passwords (SPEC 10.12). */
+export type PanelTable = 'admin' | 'bots_admin';
+
+const SESSIONS: Record<PanelTable, string> = {
+  admin: 'admin_sessions',
+  bots_admin: 'bots_admin_sessions',
+};
+
+export function adminExists(db: Database, table: PanelTable = 'admin'): boolean {
+  return db.get(`SELECT 1 FROM ${table} WHERE id = 1`) !== undefined;
 }
 
 /**
  * Sets a new one-time password (setup or reset). Ends all admin sessions; user data is not
  * touched (SPEC 13).
  */
-export async function setInitialAdminPassword(db: Database, serverSetup: string): Promise<string> {
+export async function setInitialAdminPassword(
+  db: Database,
+  serverSetup: string,
+  table: PanelTable = 'admin',
+): Promise<string> {
   const password = generateInitialPassword();
   const existing = db.get<{ credential_id: string }>(
-    'SELECT credential_id FROM admin WHERE id = 1',
+    `SELECT credential_id FROM ${table} WHERE id = 1`,
   );
   const credentialId = existing?.credential_id ?? randomId();
   const record = await registerAdminPassword(serverSetup, credentialId, password);
   db.transaction(() => {
     db.run(
-      `INSERT INTO admin (id, credential_id, opaque_record, must_change_password) VALUES (1, ?, ?, 1)
+      `INSERT INTO ${table} (id, credential_id, opaque_record, must_change_password) VALUES (1, ?, ?, 1)
        ON CONFLICT (id) DO UPDATE SET opaque_record = excluded.opaque_record, must_change_password = 1`,
       credentialId,
       record,
     );
-    db.run('DELETE FROM admin_sessions');
+    db.run(`DELETE FROM ${SESSIONS[table]}`);
   });
   return password;
 }

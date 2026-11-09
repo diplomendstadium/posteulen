@@ -158,28 +158,45 @@ export function setAiModel(db: Database, model: string): void {
   putSetting(db, 'openai_model', model);
 }
 
-export function aiDailyLimit(db: Database): number {
-  const value = Number(setting(db, 'ai_daily_limit'));
-  return Number.isInteger(value) && value >= 0 ? value : BOTS.AI_DAILY_LIMIT_DEFAULT;
+/** v0.8: two quotas – the Erklärbär has its own, all control-centre bots share one. */
+export type AiPool = 'explainer' | 'bots';
+
+const LIMIT_SETTING: Record<AiPool, string> = {
+  explainer: 'ai_daily_limit',
+  bots: 'ai_daily_limit_bots',
+};
+
+export function aiDailyLimit(db: Database, pool: AiPool = 'explainer'): number {
+  const value = Number(setting(db, LIMIT_SETTING[pool]));
+  const fallback =
+    pool === 'explainer' ? BOTS.AI_DAILY_LIMIT_DEFAULT : BOTS.CENTRAL_AI_DAILY_LIMIT_DEFAULT;
+  return Number.isInteger(value) && value >= 0 && setting(db, LIMIT_SETTING[pool]) !== undefined
+    ? value
+    : fallback;
 }
 
-export function setAiDailyLimit(db: Database, limit: number): void {
-  putSetting(db, 'ai_daily_limit', String(limit));
+export function setAiDailyLimit(db: Database, limit: number, pool: AiPool = 'explainer'): void {
+  putSetting(db, LIMIT_SETTING[pool], String(limit));
 }
 
-export function usedToday(db: Database, now: number): number {
+export function usedToday(db: Database, now: number, pool: AiPool = 'explainer'): number {
   return (
-    db.get<{ calls: number }>('SELECT calls FROM ai_usage WHERE day = ?', utcDay(now))?.calls ?? 0
+    db.get<{ calls: number }>(
+      'SELECT calls FROM ai_usage WHERE day = ? AND pool = ?',
+      utcDay(now),
+      pool,
+    )?.calls ?? 0
   );
 }
 
-/** Reserves one call of today's budget; false if the limit is reached (SPEC 10.5). */
-export function reserveCall(db: Database, now: number): boolean {
-  if (usedToday(db, now) >= aiDailyLimit(db)) return false;
+/** Reserves one call of today's budget of the pool; false if it is used up (SPEC 10.5). */
+export function reserveCall(db: Database, now: number, pool: AiPool = 'explainer'): boolean {
+  if (usedToday(db, now, pool) >= aiDailyLimit(db, pool)) return false;
   db.run(
-    `INSERT INTO ai_usage (day, calls) VALUES (?, 1)
-     ON CONFLICT (day) DO UPDATE SET calls = calls + 1`,
+    `INSERT INTO ai_usage (day, pool, calls) VALUES (?, ?, 1)
+     ON CONFLICT (day, pool) DO UPDATE SET calls = calls + 1`,
     utcDay(now),
+    pool,
   );
   return true;
 }

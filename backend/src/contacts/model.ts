@@ -35,16 +35,19 @@ export function isActiveDate(lastActiveDate: string, now: number): boolean {
   return lastActiveDate >= utcDay(now - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY);
 }
 
-/** Current name of a person, or the title of a bot ("Tante Emma", SPEC 10.3). */
+/** Current name of a person, or the name of a bot (SPEC 10). */
 export function displayName(db: Database, userId: string): string | null {
   const user = db.get<{ name_display: string }>(
     'SELECT name_display FROM users WHERE id = ?',
     userId,
   );
   if (user) return user.name_display;
-  // A bot is named in the language of its owner (v0.4).
+  // v0.8: a bot of the control centre has one name for everybody.
+  const central = db.get<{ name: string }>('SELECT name FROM central_bots WHERE id = ?', userId);
+  if (central) return central.name;
+  // The Erklärbär is named in the language of his owner (v0.4).
   const bot = db.get<{
-    type: 'explainer' | 'aunt' | 'uncle';
+    type: 'explainer';
     first_name: string | null;
     language: string | null;
   }>(

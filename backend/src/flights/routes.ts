@@ -50,6 +50,24 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
               lat: bot.home_lat / 100,
               lon: bot.home_lon / 100,
             })),
+        )
+        .concat(
+          // v0.8: bots of the control centre from their first letter on, at their current home.
+          ctx.db
+            .all<{ id: string; name: string; home_lat: number; home_lon: number }>(
+              `SELECT b.id, b.name, b.home_lat, b.home_lon FROM central_bots b
+                 JOIN central_bot_players p ON p.bot_id = b.id
+                WHERE p.user_id = ? AND p.known = 1 AND p.removed = 0 AND b.state != 'draft'
+                  AND b.home_lat IS NOT NULL`,
+              me,
+            )
+            .map((bot) => ({
+              id: bot.id,
+              name: bot.name,
+              bot: true,
+              lat: bot.home_lat / 100,
+              lon: bot.home_lon / 100,
+            })),
         ),
       flights: flights.map((flight) => ({
         id: flight.id,

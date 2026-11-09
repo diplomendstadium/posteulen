@@ -48,12 +48,24 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.0',
+    title: 'Neue Federn im Eulenturm: Version 0.8',
+    paragraphs: [
+      'Im Eulenturm ist es lebhafter geworden:',
+      '• Ab jetzt können neue Brieffiguren auftauchen. Sie schreiben allen Eulenfreunden zu besonderen Zeitpunkten, manchmal mit Bildern, manchmal mit einem kleinen Geschenk. Wer ihnen antwortet, bekommt im nächsten Brief eine ganz persönliche Antwort.',
+      '• Diese Figuren wohnen überall auf der Welt – ihre Eulen fliegen also auch mal über Ozeane und warten dann eine Weile bei dir. Solange sie rastet, kannst du ihr eine Antwort mitgeben.',
+      '• Zwei langjährige Brieffreunde haben sich in den wohlverdienten Ruhestand verabschiedet; ihre Briefe sind mit ihnen gegangen. Geschenktes Gold bleibt natürlich deins.',
+      '• Jedem Bot, auch dem Erklärbär, kannst du einen Brief pro Kalendertag schreiben. Und wer in den Einstellungen alle Bots entfernt, bekommt auch von künftigen keine Post.',
+      'Viel Freude mit den neuen Brieffreunden!',
+    ],
+  },
+  {
     version: '0.7.2',
     title: 'Ordnung im Eulenturm: Version 0.7.2',
     paragraphs: [
       'Die Eulenmeister haben ein paar Ecken des Turms aufgeräumt:',
       '• Kehrt eine deiner Eulen heim, landet sie jetzt jedes Mal mit ihrem Bild auf dem Fensterbrett – sofort oder beim nächsten Öffnen der App. Eine Systemnachricht dazu gibt es nicht mehr.',
-      '• Erklärbär, Tante und Onkel wohnen nicht mehr im Adressbuch. Du findest sie im Briefwechsel; dort lassen sie sich auch einzeln entfernen. In den Einstellungen kannst du alle Bots auf einmal verabschieden.',
+      '• Die Bots wohnen nicht mehr im Adressbuch. Du findest sie im Briefwechsel; dort lassen sie sich auch einzeln entfernen. In den Einstellungen kannst du alle Bots auf einmal verabschieden.',
       '• Wer alle Briefe eines Bots verbrannt hatte, bekam danach manchmal unsichtbare Post. Das ist behoben.',
       '• Kurze Zeiten unter einer Stunde stehen jetzt in Minuten.',
       'Fröhliches Weiterschreiben!',
@@ -109,7 +121,7 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
       '• Lange Überschriften wie „Benachrichtigungen“ brechen sauber um, und die Leiste am unteren Rand passt auch aufs kleinste Display.',
       '• Die Hilfe ist wieder auf dem neuesten Stand. Dort stand zum Beispiel noch, dass müde Eulen stur zehn Stunden schlafen – das tun sie schon seit Version 0.5 nicht mehr.',
       '• Viele kleine Texte sind poliert, auf Deutsch wie auf Englisch. Wohnorte westlich von Greenwich heißen jetzt richtig „° W“.',
-      '• Niemand kann sich mehr so nennen wie die Bots in der englischen Ansicht („Aunt …“, „Uncle …“, „Explainer Bear“). Verwechslungen ausgeschlossen.',
+      '• Niemand kann sich mehr so nennen wie die Bots in der englischen Ansicht („Explainer Bear“). Verwechslungen ausgeschlossen.',
       'Viel Freude beim Schreiben – in einem frisch geputzten Turm!',
     ],
   },
@@ -145,7 +157,7 @@ export const UPDATE_NOTES: readonly UpdateNote[] = [
     title: 'Ein Turm voller Neuigkeiten: Version 0.4',
     paragraphs: [
       'Die Eulenmeister haben einen langen Abend im Turm verbracht, und die Eulen haben eifrig Vokabeln gelernt. Das ist neu:',
-      '• PostEulen spricht jetzt auch Englisch. Oben rechts sitzt ein kleines britisches Fähnchen: ein Tipp darauf, und alles erscheint auf Englisch – die Hilfe, die Systemnachrichten und sogar neue Briefe von Erklärbär, Tante und Onkel. Das deutsche Fähnchen bringt dich wieder zurück. In den Einstellungen unter „Sprache“ legst du fest, welche Sprache dein Konto bevorzugt.',
+      '• PostEulen spricht jetzt auch Englisch. Oben rechts sitzt ein kleines britisches Fähnchen: ein Tipp darauf, und alles erscheint auf Englisch – die Hilfe, die Systemnachrichten und sogar neue Briefe der Bots. Das deutsche Fähnchen bringt dich wieder zurück. In den Einstellungen unter „Sprache“ legst du fest, welche Sprache dein Konto bevorzugt.',
       '• Mehr Gold aus der Schatzkammer: In den ersten 30 Tagen nach der Kontoerstellung gibt es jeden Tag 3 Gold, danach 2 Gold – doppelt so viel wie bisher.',
       '• Leiheulen sind fleißiger geworden: Auch sie fliegen jetzt bis zu fünf Freunde nacheinander an, bevor sie sich verabschieden.',
       '• Öffnest du einen Briefwechsel, landest du gleich beim neuesten Brief – kein langes Blättern mehr durch alte Pergamente.',
@@ -228,12 +240,24 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
   {
+    version: '0.8.0',
+    title: 'New feathers in the owlery: version 0.8',
+    paragraphs: [
+      'The owlery has become livelier:',
+      '• From now on new pen friends may turn up. They write to all owl friends at special moments, sometimes with pictures, sometimes with a small gift. If you reply, their next letter has a very personal answer for you.',
+      '• These characters live anywhere in the world – so their owls sometimes fly across oceans and then wait with you for a while. While one is resting, you can hand it a reply.',
+      '• Two long-standing pen friends have gone into well-earned retirement; their letters have gone with them. Gold they gave you is of course still yours.',
+      '• You can write one letter a calendar day to every bot, the Explainer Bear too. And if you remove all bots in the settings, future ones will not write to you either.',
+      'Enjoy your new pen friends!',
+    ],
+  },
+  {
     version: '0.7.2',
     title: 'Tidying the owlery: version 0.7.2',
     paragraphs: [
       'The owl masters have tidied up a few corners of the owlery:',
       '• When one of your owls comes home, it now lands on the window sill with its picture every time – at once or the next time you open the app. There is no system message about it any more.',
-      '• The Explainer Bear, the aunt and the uncle no longer live in the address book. You find them under Letters, where you can also remove them one by one. In the settings you can say goodbye to all bots at once.',
+      '• The bots no longer live in the address book. You find them under Letters, where you can also remove them one by one. In the settings you can say goodbye to all bots at once.',
       '• Anyone who had burnt all letters of a bot sometimes got invisible post afterwards. That is fixed.',
       '• Short times under an hour are now shown in minutes.',
       'Happy writing!',
@@ -289,7 +313,7 @@ export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
       '• Long headings wrap neatly, and the bar at the bottom fits even the smallest display.',
       '• The help is up to date again. It still said, for example, that tired owls stubbornly sleep for ten hours – they have not done that since version 0.5.',
       '• Lots of small texts have been polished, in English and in German. Homes west of Greenwich are now shown properly with “° W”.',
-      '• Nobody can call themselves like the bots any more (“Aunt …”, “Uncle …”, “Explainer Bear”). No more mix-ups.',
+      '• Nobody can call themselves like the bots any more (“Explainer Bear”). No more mix-ups.',
       'Enjoy writing – in a freshly cleaned tower!',
     ],
   },
@@ -325,7 +349,7 @@ export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
     title: 'A tower full of news: version 0.4',
     paragraphs: [
       'The owl masters have spent a long evening in the tower, and the owls have been busy learning vocabulary. Here is what is new:',
-      '• PostEulen now speaks English too. A little British flag sits in the top right corner: one tap and everything appears in English – the help, the system messages and even new letters from the Explainer Bear, the aunt and the uncle. The German flag takes you back. In the settings under “Language” you choose which language your account prefers.',
+      '• PostEulen now speaks English too. A little British flag sits in the top right corner: one tap and everything appears in English – the help, the system messages and even new letters of the bots. The German flag takes you back. In the settings under “Language” you choose which language your account prefers.',
       '• More gold from the treasury: during the first 30 days after creating your account you get 3 gold every day, and 2 gold after that – twice as much as before.',
       '• Loan owls have become more hard-working: they too now fly to up to five friends one after another before they say goodbye.',
       '• When you open a conversation, you land right at the latest letter – no more leafing through old parchments.',

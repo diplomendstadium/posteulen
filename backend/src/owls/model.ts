@@ -213,6 +213,51 @@ export function guestView(
   };
 }
 
+/**
+ * v0.8: the owl of a control-centre bot resting at the player (SPEC 10.7): it has no owl row –
+ * name, species and motivation come from its flight, the sex from the bot. Players cannot care
+ * for it (`bot`), but can hand it a reply.
+ */
+export function botGuestView(
+  ctx: Context,
+  flight: FlightRow,
+  index: number,
+  now: number,
+): GuestView & { readonly bot: true } {
+  const stop = routeOf(flight)[index];
+  const bot = ctx.db.get<{ name: string; owl_sex: 'f' | 'm' }>(
+    'SELECT name, owl_sex FROM central_bots WHERE id = ?',
+    flight.holder_id,
+  );
+  const profile = JSON.parse(flight.profile) as { motivation?: number };
+  const info = flightPosition(flight, now);
+  return {
+    id: flight.id,
+    name: flight.owl_name,
+    species: flight.owl_species,
+    // A loan owl of a bot gets a sex from its flight ID (stable on every view).
+    sex:
+      flight.owl_kind === 'bot'
+        ? (bot?.owl_sex ?? 'f')
+        : flight.id.charCodeAt(0) % 2 === 0
+          ? 'f'
+          : 'm',
+    loan: flight.owl_kind === 'loan',
+    energy: displayEnergy(info?.energy ?? 0),
+    maxEnergy: speciesById(flight.owl_species)?.maxEnergy ?? 0,
+    motivation: Math.round((profile.motivation ?? 1) * 10),
+    fedToday: true,
+    pettedToday: true,
+    wateredToday: true,
+    snackedToday: true,
+    caredAt: null,
+    holderId: flight.holder_id,
+    holderName: bot?.name ?? null,
+    restUntil: stop?.restUntil ?? now,
+    bot: true,
+  };
+}
+
 export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
   const species = speciesById(owl.species);
   const today = utcDay(now);

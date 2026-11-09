@@ -21,8 +21,9 @@ test.describe('Bots (Stufe 5, SPEC 10)', () => {
     // v0.7.2: bots are not in the address book; they are written to in their chat.
     await page.goto('/app/adressbuch');
     await expect(page.getByText(/Erklärbär|Tante/)).toHaveCount(0);
+    // v0.8: there is no aunt (and no uncle) any more.
     await page.goto('/app/briefe');
-    await expect(page.getByRole('link', { name: /Tante \S+/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('link', { name: /Tante|Onkel/ })).toHaveCount(0);
     await page.getByRole('link', { name: /Erklärbär/ }).click();
     await page.getByLabel('Text').fill('Wie füttere ich meine Eule?');
     await page.getByRole('button', { name: 'Eule wählen' }).click();
@@ -33,21 +34,24 @@ test.describe('Bots (Stufe 5, SPEC 10)', () => {
       timeout: 30_000,
     });
 
-    // Removing a bot is final – a single one in its chat …
-    await page.goto('/app/briefe');
-    await page.getByRole('link', { name: /Tante \S+/ }).click();
-    page.once('dialog', (dialog) => void dialog.accept());
-    await page.getByRole('button', { name: /^Tante \S+ entfernen$/ }).click();
-    await expect(page).toHaveURL(/\/app\/briefe$/);
-    await expect(page.getByRole('link', { name: /Tante/ })).toHaveCount(0);
     await page.goto('/app/karte');
     await expect(page.getByText(/Erklärbär \(Bot\)/)).toBeAttached();
-    // … all of them in the settings (v0.7.2).
+    // Removing all bots is final (v0.7.2; v0.8: also for bots created later).
     await page.goto('/app/einstellungen');
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Alle Bots entfernen' }).click();
     await expect(page.getByTestId('bot-settings')).toContainText('Alle Bots sind entfernt.');
     await page.goto('/app/briefe');
+    await expect(page.getByRole('link', { name: /Erklärbär/ })).toHaveCount(0);
+  });
+
+  test('Einen Bot im Chat entfernen (v0.7.2)', async ({ page }) => {
+    await registerViaUi(page);
+    await page.goto('/app/briefe');
+    await page.getByRole('link', { name: /Erklärbär/ }).click();
+    page.once('dialog', (dialog) => void dialog.accept());
+    await page.getByRole('button', { name: 'Erklärbär entfernen' }).click();
+    await expect(page).toHaveURL(/\/app\/briefe$/);
     await expect(page.getByRole('link', { name: /Erklärbär/ })).toHaveCount(0);
   });
 });

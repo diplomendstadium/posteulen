@@ -68,6 +68,6 @@ describe('language of the account (v0.4)', () => {
     expect(systemPrompt('explainer', 'en')).toContain('Antworte auf Englisch');
     expect(systemPrompt('explainer', 'en')).toContain('Explainer Bear');
     expect(systemPrompt('explainer', 'de')).toContain('Antworte auf Deutsch');
-    expect(systemPrompt('aunt', 'en')).toContain('Samaritans');
+    expect(systemPrompt('explainer', 'en')).toContain('Samaritans');
   });
 });

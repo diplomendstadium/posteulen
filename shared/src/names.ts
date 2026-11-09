@@ -54,20 +54,14 @@ const RESERVED = [
   'posteule',
   'erklärbär',
   'erklaerbaer',
-  'tante',
-  'onkel',
   'bot',
   'papeterie',
   'menagerie',
-  // v0.6: the bots' names in the English view (8.12), so nobody looks like a bot there either.
+  // v0.6: the Erklärbär's name in the English view (8.12), so nobody looks like him there either.
   'explainer bear',
-  'aunt',
-  'uncle',
   'system messages',
   'unknown',
 ].map((name) => normalizeName(name).replace(/ /g, ''));
-
-const RESERVED_FIRST_WORDS = ['tante', 'onkel', 'aunt', 'uncle'].map(normalizeName);
 
 function checkCharacters(display: string, min: number, max: number): NameError | null {
   const length = countCodePoints(display);
@@ -82,9 +76,7 @@ function checkCharacters(display: string, min: number, max: number): NameError |
 
 export function isReservedName(name: string): boolean {
   const key = normalizeName(name);
-  if (RESERVED.includes(key.replace(/ /g, ''))) return true;
-  const firstWord = key.split(' ')[0] ?? '';
-  return RESERVED_FIRST_WORDS.includes(firstWord);
+  return RESERVED.includes(key.replace(/ /g, ''));
 }
 
 /** Validates a user name (SPEC 7.1). Uniqueness and lock periods are checked by the server. */
@@ -94,6 +86,14 @@ export function checkUserName(input: string): NameCheck | NameError {
   if (error) return error;
   if (isReservedName(display)) return 'reserved';
   return { display, key: normalizeName(display) };
+}
+
+/**
+ * v0.8: name of a control-centre bot – the rules of user names (SPEC 7.1); uniqueness against
+ * players and other bots is checked by the server.
+ */
+export function checkBotName(input: string): NameCheck | NameError {
+  return checkUserName(input);
 }
 
 /** Validates an owl name (SPEC 9.2.4): same characters as user names, not unique, not reserved. */

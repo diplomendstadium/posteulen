@@ -19,10 +19,13 @@
     onsent,
     bot = false,
     guestOwl = null,
+    guestOnly = false,
   }: {
     peerId: string;
     onsent: () => void;
     bot?: boolean;
+    /** v0.8: a bot that only takes replies with its own owl resting here. */
+    guestOnly?: boolean;
     /** v0.7.1: reply with exactly this visiting owl (no other owls, no rest option). */
     guestOwl?: string | null;
   } = $props();
@@ -117,7 +120,8 @@
     try {
       const choices = await previewFlights(recipients, {
         rest: bot || replying ? 0 : rest,
-        guests: !bot,
+        // v0.8: also the resting owl of a control-centre bot.
+        guests: true,
       });
       if (replying) {
         // v0.7.1: only the visiting owl the reply was started with.
@@ -127,6 +131,9 @@
           error = t.letters.guestGone;
         }
         prepared = guest.length > 0 ? guest : choices;
+      } else if (guestOnly) {
+        prepared = choices.filter((choice) => choice.id.startsWith('guest:'));
+        if (prepared.length === 0) error = t.bots.botOwlOnly;
       } else {
         prepared = choices;
       }

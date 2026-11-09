@@ -10,9 +10,12 @@ export interface Config {
   /** Exact origins each API accepts (SPEC 4.3). */
   readonly userOrigin: string;
   readonly adminOrigin: string;
+  /** v0.8: bots control centre (bots.<domain>, SPEC 10.12). */
+  readonly botsOrigin: string;
   readonly host: '127.0.0.1';
   readonly userPort: number;
   readonly adminPort: number;
+  readonly botsPort: number;
   readonly logLevel: string;
 }
 
@@ -45,8 +48,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const userOrigin = env['POSTEULEN_USER_ORIGIN'] ?? (domain ? `https://${domain}` : undefined);
   const adminOrigin =
     env['POSTEULEN_ADMIN_ORIGIN'] ?? (domain ? `https://admin.${domain}` : undefined);
-  if (userOrigin === undefined || adminOrigin === undefined) {
-    throw new Error('POSTEULEN_DOMAIN (oder beide Origins) muss gesetzt sein.');
+  const botsOrigin =
+    env['POSTEULEN_BOTS_ORIGIN'] ?? (domain ? `https://bots.${domain}` : undefined);
+  if (userOrigin === undefined || adminOrigin === undefined || botsOrigin === undefined) {
+    throw new Error('POSTEULEN_DOMAIN (oder alle drei Origins) muss gesetzt sein.');
   }
   return {
     env: environment,
@@ -55,9 +60,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     secretsFile: path.resolve(env['POSTEULEN_SECRETS_FILE'] ?? '/etc/posteulen/secrets.json'),
     userOrigin: new URL(userOrigin).origin,
     adminOrigin: new URL(adminOrigin).origin,
+    botsOrigin: new URL(botsOrigin).origin,
     host: '127.0.0.1',
     userPort: readPort(env['POSTEULEN_USER_PORT'], 3001),
     adminPort: readPort(env['POSTEULEN_ADMIN_PORT'], 3002),
+    botsPort: readPort(env['POSTEULEN_BOTS_PORT'], 3003),
     logLevel: env['POSTEULEN_LOG_LEVEL'] ?? 'info',
   };
 }

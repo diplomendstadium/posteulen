@@ -1,14 +1,18 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 export const ADMIN_URL = 'http://localhost:18081';
+/** v0.8: the bots control centre. */
+export const BOTS_URL = 'http://localhost:18082';
 /** Second instance for admin tests (SPEC Anhang L.8). */
 export const ISOLATED_WEB_URL = 'http://localhost:18090';
 export const ISOLATED_ADMIN_URL = 'http://localhost:18091';
 const ALLOWED_HOSTS = new Set([
   'localhost:18080',
   'localhost:18081',
+  'localhost:18082',
   'localhost:18090',
   'localhost:18091',
+  'localhost:18092',
 ]);
 
 interface Guard {

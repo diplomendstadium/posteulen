@@ -59,6 +59,8 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
       if (name.key !== user.name_key) {
         const taken =
           ctx.db.get('SELECT 1 FROM users WHERE name_key = ?', name.key) !== undefined ||
+          // v0.8: nobody may be called like a bot of the control centre.
+          ctx.db.get('SELECT 1 FROM central_bots WHERE name_key = ?', name.key) !== undefined ||
           nameLocked(ctx, name.key, now) ||
           ctx.reservations.values(now).some((r) => r.key === name.key);
         if (taken) throw new HttpError(409, 'name_unavailable');
@@ -145,7 +147,7 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     const body = parse(LanguageSetting, request.body);
     const me = userOf(request).id;
     ctx.db.run('UPDATE users SET language = ? WHERE id = ?', body.language, me);
-    // Bot names (aunt/uncle) and loan owl names follow the language.
+    // The Erklärbär's name and loan owl names follow the language.
     ctx.hub.notify(me, 'profile', 'contacts', 'owls', 'map');
     return { profile: profileOf(ctx, me) };
   });

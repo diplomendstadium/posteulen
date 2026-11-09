@@ -4,7 +4,8 @@
    * shown only once; the server keeps its HMAC and the last four characters.
    */
   import { onMount } from 'svelte';
-  import { de, fill } from '@posteulen/shared/texts/de.ts';
+  import { t, fill } from './lib/i18n.svelte.ts';
+  import { locale } from './lib/i18n.svelte.ts';
   import { VOUCHER } from '@posteulen/shared/constants.ts';
   import { SPECIES, speciesName } from '@posteulen/shared/species.ts';
   import { api } from './lib/api.ts';
@@ -28,16 +29,16 @@
   let error = $state<string | null>(null);
 
   const time = (ms: number): string =>
-    new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
       new Date(ms),
     );
   const goldText = (tenths: number): string =>
-    `${(tenths / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Gold`;
+    `${(tenths / 10).toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Gold`;
   const contentOf = (voucher: Voucher): string =>
     voucher.kind === 'gold'
       ? goldText(voucher.gold ?? 0)
       : voucher.species === 'random'
-        ? de.admin.voucherRandom
+        ? t.admin.voucherRandom
         : speciesName(voucher.species ?? '');
 
   async function load(): Promise<void> {
@@ -57,7 +58,7 @@
     error = null;
     const tenths = Math.round(Number(gold.replace(',', '.')) * 10);
     if (kind === 'gold' && !(tenths >= VOUCHER.GOLD_MIN && tenths <= VOUCHER.GOLD_MAX)) {
-      error = de.admin.voucherGoldRange;
+      error = t.admin.voucherGoldRange;
       return;
     }
     try {
@@ -81,40 +82,40 @@
 </script>
 
 <section class="card" aria-labelledby="voucher-title">
-  <h2 id="voucher-title">{de.admin.vouchersTitle}</h2>
-  <p>{de.admin.vouchersIntro}</p>
+  <h2 id="voucher-title">{t.admin.vouchersTitle}</h2>
+  <p>{t.admin.vouchersIntro}</p>
   <form onsubmit={create}>
     <fieldset>
-      <legend>{de.admin.voucherKind}</legend>
-      <label><input type="radio" value="gold" bind:group={kind} /> {de.admin.voucherGold}</label>
-      <label><input type="radio" value="owl" bind:group={kind} /> {de.admin.voucherOwl}</label>
+      <legend>{t.admin.voucherKind}</legend>
+      <label><input type="radio" value="gold" bind:group={kind} /> {t.admin.voucherGold}</label>
+      <label><input type="radio" value="owl" bind:group={kind} /> {t.admin.voucherOwl}</label>
     </fieldset>
     {#if kind === 'gold'}
-      <label for="voucher-gold">{de.admin.voucherAmount}</label>
+      <label for="voucher-gold">{t.admin.voucherAmount}</label>
       <input id="voucher-gold" type="text" inputmode="decimal" bind:value={gold} />
     {:else}
-      <label for="voucher-species">{de.admin.voucherSpecies}</label>
+      <label for="voucher-species">{t.admin.voucherSpecies}</label>
       <select id="voucher-species" bind:value={species}>
-        <option value="random">{de.admin.voucherRandom}</option>
+        <option value="random">{t.admin.voucherRandom}</option>
         {#each SPECIES as entry (entry.id)}<option value={entry.id}>{entry.name}</option>{/each}
       </select>
     {/if}
-    <p><button class="button" type="submit">{de.admin.voucherCreate}</button></p>
+    <p><button class="button" type="submit">{t.admin.voucherCreate}</button></p>
   </form>
   {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
   {#if fresh}
     <p class="code" role="status">
-      {fill(de.admin.voucherNew, { code: fresh.code, until: time(fresh.expiresAt) })}
+      {fill(t.admin.voucherNew, { code: fresh.code, until: time(fresh.expiresAt) })}
     </p>
   {/if}
   {#if vouchers.length === 0}
-    <p>{de.admin.vouchersNone}</p>
+    <p>{t.admin.vouchersNone}</p>
   {:else}
     <ul class="list">
       {#each vouchers as voucher (voucher.id)}
         <li>
           <span
-            >{fill(voucher.redeemed ? de.admin.voucherHintRedeemed : de.admin.voucherHint, {
+            >{fill(voucher.redeemed ? t.admin.voucherHintRedeemed : t.admin.voucherHint, {
               hint: voucher.hint,
               what: contentOf(voucher),
               until: time(voucher.expiresAt),
@@ -122,7 +123,7 @@
           >
           {#if !voucher.redeemed}
             <button class="button secondary" type="button" onclick={() => void revoke(voucher.id)}
-              >{de.admin.inviteRevoke}</button
+              >{t.admin.inviteRevoke}</button
             >
           {/if}
         </li>

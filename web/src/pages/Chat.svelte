@@ -188,6 +188,18 @@
         </p>
         {#if letter.text !== null}
           <LetterText text={letter.text} />
+          {#if letter.media && letter.media.length > 0 && letter.role === 'recipient'}
+            <!-- v0.8: pictures of a control-centre bot, below the letter, without file names. -->
+            <div class="pictures">
+              {#each letter.media as id, index (id)}
+                <img
+                  src={`/api/bot-media/${id}`}
+                  alt={fill(t.bots.pictureAlt, { n: index + 1, name })}
+                  loading="lazy"
+                />
+              {/each}
+            </div>
+          {/if}
         {:else}
           <p class="invalid">
             <span aria-hidden="true">⚠</span> <strong>{t.letters.invalid}</strong> – {t.letters
@@ -233,10 +245,16 @@
       >
     </p>
   {:else}
+    {#if bot.type === 'central' && !bot.playerOwls}
+      <p class="notice"><span aria-hidden="true">🦉</span><span>{t.bots.botOwlOnly}</span></p>
+    {/if}
     <Compose
       {peerId}
       bot
+      guestOnly={bot.type === 'central' && !bot.playerOwls}
+      guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
       onsent={() => {
+        clearReplyWith();
         jump = 'smooth';
         void load();
         void refreshTopics('contacts');
@@ -257,6 +275,19 @@
 </p>
 
 <style>
+  .pictures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .pictures img {
+    max-width: 100%;
+    max-height: 20rem;
+    border-radius: 0.25rem;
+  }
+
   .bot-label {
     display: inline-flex;
     gap: 0.25rem;
