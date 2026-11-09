@@ -1,8 +1,8 @@
-# PostEulen.de – Spezifikation v0.8.0
+# PostEulen.de – Spezifikation v0.8.1
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Zusammen mit `PROMPT.md` (Bauauftrag) reicht sie aus, um PostEulen auf dem aktuellen Stand neu zu bauen.
 >
-> **Stand: Version 0.8.0.** Eingearbeitet sind alle Entscheidungen bis D-260 und die Änderungen der Versionen 0.2 bis 0.8.0 (Übersicht in Anhang F bis K, M, O, P, Q, R und U; Exportformat der Bots in Anhang S, Abbau von Tante und Onkel in Anhang T). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
+> **Stand: Version 0.8.1.** Eingearbeitet sind alle Entscheidungen bis D-262 und die Änderungen der Versionen 0.2 bis 0.8.1 (Übersicht in Anhang F bis K, M, O, P, Q, R, U und V; Exportformat der Bots in Anhang S, Abbau von Tante und Onkel in Anhang T). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## 1. Projekt
 
-- **Name:** PostEulen.de, **Version:** 0.8 (Stand 0.8.0)
+- **Name:** PostEulen.de, **Version:** 0.8 (Stand 0.8.1)
 - **Idee:** Ein moderner, sicherer, Ende-zu-Ende-verschlüsselter Messenger, der liebevoll so tut, als würde man keine schnöden Nachrichten, sondern Briefe per Eule verschicken. Man kauft, leiht und pflegt Eulen; Flugzeiten hängen von Entfernung, Eulenart, Energie und Tag/Nacht ab.
 - **Spiel und sicherer Kommunikationsweg:** PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Spielmechanik ist verspielt, die Kryptografie nicht: Sie ist ernsthaft und auf dem Stand der Zeit (Abschnitt 5). README und Hilfe sagen das ausdrücklich.
 - **Plattform:** primär Smartphone (PWA), außerdem Desktop (Linux, macOS, Windows).
@@ -1445,7 +1445,7 @@ Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Je
 | `/etc/posteulen/posteulen.conf`, `service.env`, `local/` | Domain, Repository, Testmodus; lokale Anpassungen (z. B. Admin-Freigabeliste, `admin-*.caddy`, v0.8 `bots-*.caddy`) | nur ergänzt bzw. nie |
 | `/etc/caddy/Caddyfile`, systemd-Units, `/usr/local/sbin/posteulen-update`, `posteulen-cli` | erzeugt aus dem Release | neu erzeugt |
 
-- **v0.8:** `sharp` ist Laufzeitabhängigkeit des Backends (Bilder der Bots, 10.11) und bleibt nach `npm prune --omit=dev` erhalten. Update und Installation rufen nach den Migrationen `posteulen-cli bots-init` auf (legt den Zugang nur an, wenn keiner existiert). Die Funktionsprüfung prüft `bots.<domain>` nur mit einer Warnung. `backup.sh` schreibt nach der Datenbanksicherung den Bot-Export (`bots-export`, leichter Kontext ohne Worker, darf parallel zum Dienst laufen); scheitert er, bleibt die Sicherung gültig.
+- **v0.8:** `sharp` ist Laufzeitabhängigkeit des Backends (Bilder der Bots, 10.11) und bleibt nach `npm prune --omit=dev` erhalten. Update und Installation rufen nach den Migrationen `posteulen-cli bots-init` auf (legt den Zugang nur an, wenn keiner existiert). Die Funktionsprüfung prüft `bots.<domain>` nur mit einer Warnung, und nur wenn die laufende Caddyfile diese Seite kennt (nach einem Rückfall auf eine ältere Version keine irreführende DNS-Warnung, v0.8.1, D-262). `backup.sh` schreibt nach der Datenbanksicherung den Bot-Export (`bots-export`, leichter Kontext ohne Worker, darf parallel zum Dienst laufen); scheitert er, bleibt die Sicherung gültig.
 - Paketquellen: NodeSource `node_26.x` und Caddy (Cloudsmith), beide `signed-by` mit geprüftem Fingerabdruck (`deploy/lib.sh`); `unattended-upgrades` auch für diese Quellen.
 - Update (`posteulen-update` → `update.sh`): Tag holen → Signatur und eingetragenen Tag-Namen prüfen (`verify_release_tag` in `deploy/lib.sh`, gegen `deploy/allowed_signers` der installierten Version; seit v0.6.1 Standard, abschaltbar nur mit `--no-verify-tags`; Tags haben Vorrang vor gleichnamigen Branches, `release_commit`) → `deploy/update-steps.sh` der neuen Version → `npm ci --ignore-scripts` und Build, während der alte Stand läuft → Sicherung (`VACUUM INTO` → age) und Momentaufnahme → Dienst stoppen → Migrationen → `current` umschalten, Units und Caddyfile neu → Start und Funktionsprüfung → bei Fehler automatischer Rückfall. Neueste Version nach SemVer (Vorabversionen vor der Version).
 - Der Server startet nicht mit einem neueren Schema als seinem eigenen und nicht, wenn die Prüfsumme der Geheimnis-Datei nicht zur Datenbank passt (`posteulen-cli check`).
@@ -1668,7 +1668,9 @@ Bis v0.7.2 hatte jedes Konto zusätzlich zum Erklärbär zwei Verwandten-Bots (T
   - jeder solche Bot wird wie beim Entfernen durch den Spieler beseitigt (10.1): eigene Eulen des Spielers auf dem Weg zu ihm kehren mit dem Brief um; Briefe von und an ihn (auch unterwegs), Chats, Zusammenfassungen, Lieferungen, Antwortaufträge und geplante Briefe verschwinden;
   - ihre Buchungen (`aunt_gift`, `uncle_inheritance`) und die Systemnachrichten über ihr Gold werden gelöscht; aus Nachrichten über gelöschte alte Briefe verschwindet ihr Name;
   - geplante Goldsendungen (`bot_gold`) und erste Briefe (`…:first`) werden aus der Warteschlange gelöscht;
-  - **das Gold**, das Spieler schon bekommen haben, **bleibt** (D-242).
+  - **das Gold**, das Spieler schon bekommen haben, **bleibt** (D-242);
+  - eigene Eulen auf dem Weg zu ihnen kehren um, **ohne** die übliche Systemnachricht „nicht zugestellt – die Eule ist umgekehrt“ (sie würde den Bot nennen); Namen früherer Bot-Typen werden nirgends mehr gebildet (`displayName` liefert für sie keinen Namen, v0.8.1);
+  - **scheitert** der Abbau, startet der Server trotzdem: Eintrag im Fehlerprotokoll, neuer Versuch beim nächsten Start (eine Transaktion, also nie halb, v0.8.1, D-261).
 - Die Migration 0017 legt einen Trigger an, der neue Zeilen in `bots` außer `explainer` ablehnt, und setzt `users.bots_disabled` für Konten, die bis v0.7.2 alle Bots entfernt hatten.
 - Code, Namenslisten (früher Anhang E), Texte, Hilfe, Erklärbär-Wissen und alte Update-Nachrichten nennen sie nicht mehr. Die Update-Nachricht zu 0.8 verabschiedet sie ohne Namen („Zwei langjährige Brieffreunde …“).
 
@@ -1694,6 +1696,18 @@ Große Version: zentrale Bots mit Bots-Kontrollzentrum. Migration `0017_v080.sql
 | Betrieb | dritte API (Port 3003) und Caddy-Seite; `bots-init`/`bots-reset`, `bots-export`/`bots-import`; Erstpasswort einmalig bei Installation bzw. erstem Update; tägliche unverschlüsselte Bot-ZIP in `/var/backups/posteulen/`; `sharp` als Laufzeitabhängigkeit | 16, L.7 |
 | Sicherheit | getrennter Zugang und Origin, strenge Schemas, Rohdaten nur mit Content-Type und Größenlimit, Bild-Neukodierung, strenger ZIP-Leser | 10.12, L.9 |
 | Tests | `backend/test/v080.test.ts`, `shared/test/worldmask.test.ts`, `e2e/v080.spec.ts`, Barrierefreiheit des Kontrollzentrums, VM-Test mit Kontrollzentrum | 17, L.7 |
+
+---
+
+## Anhang V – Änderungen in Version 0.8.1
+
+Korrektur nach dem ersten Update eines echten Servers auf 0.8.0, das automatisch zurückgerollt wurde. Keine Migration (Schema 17).
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Start | Der Server stürzte beim Start ab, wenn eine eigene Eule eines Spielers gerade zu Tante oder Onkel unterwegs war: Beim Abbau (Anhang T) kehrte sie um, und die Umkehr-Nachricht wollte den Namen des Bots über die Titeltabelle bilden, in der es diese Typen nicht mehr gibt (`Cannot read properties of undefined (reading 'replace')`). Jetzt: Umkehr ohne Systemnachricht, Namensbildung robust, und ein Fehler beim Abbau verhindert den Start nie (Fehlerprotokoll, neuer Versuch beim nächsten Start) | Anhang T |
+| Betrieb | Keine DNS-Warnung zu `bots.<domain>` mehr nach einem Rückfall auf eine Version ohne Kontrollzentrum | 16.2, L.7 |
+| Tests | `backend/test/v080.test.ts` stellt die Lage nach (eigene Eule unterwegs zur Tante); der Brief-E2E-Test wartet auf die berechnete Sicherheitsnummer | 17 |
 
 ---
 
@@ -1802,3 +1816,5 @@ Neue Entscheidungen, die diese Spezifikation offenlässt, stehen hier (Nummer, D
 | D-258 | 2026-11-09 | Geschlecht der eigenen Bot-Eule beim Anlegen gewürfelt; Leiheulen der Bots aus ihrer Flug-ID abgeleitet | Gast-Anzeige braucht ein Geschlecht, ohne Eulenzeile | ohne Geschlecht |
 | D-259 | 2026-11-09 | Anpassungen, spontane Antworten, Zusammenfassungen und der KI-Test zählen zum Kontingent der Bots | Kostenkontrolle an einer Stelle | KI-Test ohne Limit |
 | D-260 | 2026-11-09 | Die Namen „Tante“, „Onkel“, „Aunt“, „Uncle“ sind nicht mehr reserviert; Bot-Namen und Kontonamen schließen sich gegenseitig aus | die Verwandten-Bots gibt es nicht mehr; Täuschung verhindert jetzt die Eindeutigkeit | Reservierung behalten |
+| D-261 | 2026-11-09 | Ein Fehler beim Abbau der Verwandten-Bots wird protokolliert und blockiert den Start nicht; Umkehr ihrer Eulen ohne Systemnachricht | ein Bereinigungsschritt darf eine Instanz nie lahmlegen (das Update auf 0.8.0 wurde deshalb zurückgerollt); die Nachricht hätte den Bot genannt | Start abbrechen (bisher) |
+| D-262 | 2026-11-09 | Prüfung von `bots.<domain>` nur, wenn die Caddyfile die Seite enthält | nach einem Rückfall kennt die laufende Version das Kontrollzentrum nicht; die Warnung führte in die Irre | Warnung immer |

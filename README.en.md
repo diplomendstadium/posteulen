@@ -85,7 +85,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.8.0**.
+Version: **0.8.1**.
 
 **In short**
 

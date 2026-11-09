@@ -81,7 +81,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.8.0**.
+Stand: **Version 0.8.1**.
 
 **Kurzfassung**
 

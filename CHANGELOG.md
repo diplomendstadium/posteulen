@@ -3,6 +3,25 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.1 – Korrektur für das Update auf 0.8
+
+Korrektur (SPEC Anhang V, D-261, D-262).
+
+- **Fehler behoben:** PostEulen 0.8.0 startete nicht, wenn auf dem Server gerade eine eigene Eule zu
+  Tante oder Onkel unterwegs war („Cannot read properties of undefined (reading 'replace')“ im Journal);
+  das Update rollte dann automatisch auf 0.7.2 zurück. Solche Eulen kehren jetzt einfach um. Ein Fehler beim
+  Abbau verhindert den Start nicht mehr (Eintrag im Fehlerprotokoll, neuer Versuch beim nächsten Start).
+- Nach einem Rückfall auf eine Version ohne Kontrollzentrum erscheint keine irreführende DNS-Warnung zu
+  `bots.<domain>` mehr.
+- Test für die Lage auf dem Server ergänzt; der Brief-E2E-Test wartet auf die Sicherheitsnummer.
+
+### Hinweise für Betreiber
+
+- Wer beim Update auf 0.8.0 zurückgerollt wurde: einfach `sudo posteulen-update` – es spielt 0.8.1 ein.
+  Alle Hinweise zu 0.8.0 (DNS-Eintrag `bots.<domain>`, Erstpasswort des Kontrollzentrums, Migration 0017)
+  gelten weiter.
+- Keine neue Migration, keine neuen Pakete.
+
 ## v0.8.0 – Das Bots-Kontrollzentrum
 
 Große Version (SPEC Anhang U, S, T; Entscheidungen D-223 bis D-260).
