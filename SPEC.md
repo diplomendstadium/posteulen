@@ -1,8 +1,8 @@
-# PostEulen.de – Spezifikation v0.7.2
+# PostEulen.de – Spezifikation v0.8.0
 
 > Diese Datei ist die verbindliche Spezifikation („Quelle der Wahrheit“). Sie liegt als `SPEC.md` im Wurzelverzeichnis des Repositorys. Sie wird nur nach Rücksprache mit dem Auftraggeber geändert. Zusammen mit `PROMPT.md` (Bauauftrag) reicht sie aus, um PostEulen auf dem aktuellen Stand neu zu bauen.
 >
-> **Stand: Version 0.7.2.** Eingearbeitet sind alle Entscheidungen bis D-222 und die Änderungen der Versionen 0.2 bis 0.7.2 (Übersicht in Anhang F bis K, M, O, P, Q und R). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
+> **Stand: Version 0.8.0.** Eingearbeitet sind alle Entscheidungen bis D-260 und die Änderungen der Versionen 0.2 bis 0.8.0 (Übersicht in Anhang F bis K, M, O, P, Q, R und U; Exportformat der Bots in Anhang S, Abbau von Tante und Onkel in Anhang T). Bis v0.5.1 lagen Entscheidungsprotokoll (`DECISIONS.md`) und Architektur (`ARCHITECTURE.md`) als eigene Dateien im Repository; seit v0.6.0 steht ihr wesentlicher Inhalt hier – Regeln im Text, technische Festlegungen in **Anhang L**, neue Entscheidungen im Protokoll **Anhang N**. Verweise wie „D-64“ in Code-Kommentaren beziehen sich auf das alte Protokoll; es ist in der Git-Historie erhalten (Tag `v0.5.1`, Datei `DECISIONS.md`).
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## 1. Projekt
 
-- **Name:** PostEulen.de, **Version:** 0.7 (Stand 0.7.2)
+- **Name:** PostEulen.de, **Version:** 0.8 (Stand 0.8.0)
 - **Idee:** Ein moderner, sicherer, Ende-zu-Ende-verschlüsselter Messenger, der liebevoll so tut, als würde man keine schnöden Nachrichten, sondern Briefe per Eule verschicken. Man kauft, leiht und pflegt Eulen; Flugzeiten hängen von Entfernung, Eulenart, Energie und Tag/Nacht ab.
 - **Spiel und sicherer Kommunikationsweg:** PostEulen bewegt sich im Grenzbereich zwischen Spiel und Messenger. Die Spielmechanik ist verspielt, die Kryptografie nicht: Sie ist ernsthaft und auf dem Stand der Zeit (Abschnitt 5). README und Hilfe sagen das ausdrücklich.
 - **Plattform:** primär Smartphone (PWA), außerdem Desktop (Linux, macOS, Windows).
@@ -93,7 +93,8 @@
 ```
 /backend     Fastify-Server, Datenbank, Ereignis-Warteschlange, Bots, Push
 /web         Nutzer-Website (PWA)
-/admin       Adminpanel
+/admin       Adminpanel (v0.8: mit dem gemeinsamen Sprachbaustein und der Anmeldung, die auch das Kontrollzentrum nutzt)
+/bots        Bots-Kontrollzentrum (v0.8, 10.12)
 /shared      gemeinsame Typen, Schemas, Konstanten, Krypto-Formate, reine Spiellogik
 /deploy      Installations- und Update-Skript (16), Caddyfile, systemd-Units, Setup- und Backup-Skripte
 /images      Originalbilder der Eulen (vom Auftraggeber geliefert, 9.2.6)
@@ -110,7 +111,8 @@ SPEC.md  PROMPT.md  CHANGELOG.md  DEPENDENCIES.md
 ### 4.3 Domains
 - Nutzer-Website und Nutzer-API: `posteulen.de` bzw. `posteulen.de/api/…` (Domain konfigurierbar).
 - Adminpanel und Admin-API: eigene Subdomain `admin.posteulen.de` (getrennter Origin, eigenes Cookie).
-- Beide Origins sind „same-site“; SameSite-Cookies schützen also nicht zwischen ihnen. Deshalb prüft jede API den Origin-Header exakt auf ihren eigenen Origin, und CORS ist nirgends freigeschaltet.
+- **Bots-Kontrollzentrum und Bots-API (v0.8):** eigene Subdomain `bots.posteulen.de` (getrennter Origin, eigener Port 3003, eigenes Cookie `__Host-pe_bots`, eigenes Passwort und eigene Sitzungen, 10.12).
+- Alle drei Origins sind „same-site“; SameSite-Cookies schützen also nicht zwischen ihnen. Deshalb prüft jede API den Origin-Header exakt auf ihren eigenen Origin, und CORS ist nirgends freigeschaltet.
 - Nur HTTPS; HTTP leitet um; HSTS.
 
 ### 4.4 Server-Geheimnisse
@@ -269,7 +271,7 @@ Gilt für Briefe zwischen Menschen, einschließlich Begleitbriefen zu Gold-, Eul
 - 3–20 Zeichen (Unicode-Codepoints; jede Eingabe wird vor allen Prüfungen NFC-normalisiert). Erlaubt sind **abschließend**: lateinische Buchstaben A–Z/a–z, deutsche Umlaute und ß (ohne Großform ẞ), die Akzentbuchstaben à á â ã å æ ç è é ê ë ì í î ï ñ ò ó ô õ ø œ ù ú û und ihre Großformen, Ziffern 0–9, Leerzeichen. Keine Leerzeichen am Anfang oder Ende, keine doppelten Leerzeichen. Andere Schriften (z. B. Kyrillisch) sind nicht erlaubt (Schutz vor Verwechslung).
 - **Eindeutigkeit** über einen normalisierten Vergleichsschlüssel, gebildet in dieser Reihenfolge: Akzente entfernen (NFKD), Kleinschreibung, ß→ss, æ→ae, œ→oe, ø→o (explizite Zuordnung für Zeichen ohne Unicode-Zerlegung), danach **leicht verwechselbare Zeichen gleichsetzen:** 0→o, 1→l, i→l. „René“ = „Rene“, „Straße“ = „STRASSE“, „AIex“ (mit großem i) = „Alex“, „J0nas“ = „Jonas“. Groß- und Kleinschreibung spielen also keine Rolle. Die Normalisierung ist eine einzige Funktion in `shared/` und gilt überall, wo Namen verglichen werden (Registrierung, Login, Kontaktanfrage, Namensänderung, reservierte und gesperrte Namen).
 - Angezeigt wird der Name so, wie der Nutzer ihn geschrieben hat.
-- **Reservierte Namen** (Vergleich über den normalisierten Schlüssel ohne Leerzeichen; die Liste wird mit derselben Funktion normalisiert): administrator, admin, root, moderator, support, system, systemnachrichten, unbekannt, posteulen, posteule, erklärbär, erklaerbaer, tante, onkel, bot, papeterie, menagerie, dazu (v0.6) die Namen der englischen Ansicht: explainer bear, aunt, uncle, system messages, unknown. Außerdem darf das erste Wort eines Namens (normalisiert) nicht „tante“, „onkel“, „aunt“ oder „uncle“ sein (z. B. „Tante Emma“, „Aunt Emma“), damit niemand wie einer der Bots heißt – in keiner Sprache.
+- **Reservierte Namen** (Vergleich über den normalisierten Schlüssel ohne Leerzeichen; die Liste wird mit derselben Funktion normalisiert): administrator, admin, root, moderator, support, system, systemnachrichten, unbekannt, posteulen, posteule, erklärbär, erklaerbaer, bot, papeterie, menagerie, dazu (v0.6) die Namen der englischen Ansicht: explainer bear, system messages, unknown. **v0.8:** Ein Name darf außerdem nicht so heißen wie ein Bot des Kontrollzentrums (gleicher Vergleichsschlüssel, `central_bots.name_key`); umgekehrt bekommt kein Bot den Namen eines Kontos (10.6). Die früheren Reservierungen der Verwandten-Bots entfallen (Anhang T).
 - Login und alle internen Bezüge hängen an der unveränderlichen Nutzer-ID, nicht am Namen.
 
 ### 7.2 Passwort
@@ -398,7 +400,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Briefe:** Löschfrist für eigene Briefe und Systemnachrichten (30, 90, 180 Tage oder ein Jahr, 8.4.1); „Briefe in Druckschrift statt Handschrift anzeigen“ (reine Anzeige, wird am Konto gespeichert).
 - **Sprache** (v0.4, 8.12): Deutsch oder English als Auswahl; wirkt sofort und wird am Konto gespeichert.
 - **Gutschein einlösen (v0.7):** Feld für den Code (Leerzeichen und Bindestriche egal, Groß-/Kleinschreibung egal) und „Einlösen“. Gold wird sofort gutgeschrieben (Buchung „Gutschein eingelöst“), eine Eule zieht sofort ein und wartet in der Eulenübersicht auf ihren Namen (mit Hinweis und Link). Ungültige, abgelaufene und schon eingelöste Codes ergeben dieselbe Meldung („Dieser Gutschein ist ungültig, abgelaufen oder schon eingelöst.“). Rate-Limit „teuer“ (5.10). Siehe 13.
-- **Bots (v0.7.2):** kurze Erklärung und Knopf „Alle Bots entfernen“: entfernt Erklärbär, Tante und Onkel (auch den Onkel, bevor sein erster Brief da war) **endgültig und unwiderruflich** aus dem eigenen Spiel – mit Chats, Zusammenfassungen, geplanten Briefen und Goldsendungen (10.1). Vorher ein Bestätigungsdialog („… Das lässt sich nicht rückgängig machen. Auch der Erklärbär ist dann weg.“). Danach steht dort „Alle Bots sind entfernt.“ Sie kommen auch durch spätere Updates nicht zurück.
+- **Bots (v0.7.2, v0.8):** kurze Erklärung und Knopf „Alle Bots entfernen“: entfernt den Erklärbär und alle Bots des Kontrollzentrums **endgültig und unwiderruflich** aus dem eigenen Spiel – mit Chats, Zusammenfassungen, geplanten Briefen und Geschenken (10.1) – und hält auch **alle künftig angelegten Bots** fern (`users.bots_disabled`). Vorher ein Bestätigungsdialog („… Das ist endgültig … kein Bot schreibt dir je wieder.“). Danach steht dort „Alle Bots sind entfernt.“
 - Passwort ändern (5.6).
 - Benachrichtigungen: kurze Erklärung in einfachen Worten, Status („aktiv und bestätigt“ / „nicht bestätigt“ / „nicht verfügbar“), Knopf „Test-Benachrichtigung senden“; bei Problemen ein Verweis auf den Hilfeabschnitt Benachrichtigungen (dort auch Google-freies Android, 11.7).
 - Konto löschen (7.5).
@@ -429,14 +431,14 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 #### 9.1.1 Grundregeln
 - Startguthaben 3,0 Gold. Jeden Tag um **03:00 UTC** (v0.7; bis v0.6.1 15:00 UTC) erhält jedes **aktive** Konto (9.10) automatisch Gold (v0.4): **3,0 Gold** am Tag der Registrierung und an den folgenden Tagen bis einschließlich zum 29. Tag danach (30 Zahltage, maßgeblich ist der UTC-Tag der Registrierung `created_on`), danach **2,0 Gold**. Bestehende Konten werden nach ihrem Registrierungstag eingeordnet. Die Finanzübersicht zeigt den heutigen Betrag und die Regel. Inaktive Konten und Bots erhalten nichts. Das tägliche Gold erscheint nur in der Finanzübersicht, nicht im Systemchat. **v0.7:** Der Goldstand in der Statusleiste aktualisiert sich bei offener App sofort (SSE-Hinweis an alle verbundenen Konten nach der Buchung); vorher stand dort bis zum Neuladen der alte Betrag. Beim Update auf v0.7 wird der schon geplante Lauf (15:00) auf 03:00 desselben Tages verlegt – liegt das schon zurück, läuft er sofort; nichts wird doppelt oder gar nicht gezahlt (`daily_job_runs`).
-- Außerdem schicken Tante und Onkel jedem neuen Konto einmalig Gold per Eule: die Tante 4,0 Gold 2 Tage nach der Kontoerstellung, der Onkel 10,0 Gold 21 Tage nach der Kontoerstellung (10.3, 10.4).
+- **v0.8:** Bots des Kontrollzentrums können in Events Gold an alle Spieler verschenken (0,1–100 Gold pro Spieler, 10.8; Buchung „Geschenk von [Bot]“, Typ `bot_gift`).
 - Alle Beträge und Kontostände sind Vielfache von 0,1.
 - Jede kostenpflichtige Aktion erfordert volle Deckung (Guthaben ≥ Kosten) und wird atomar gebucht. Dadurch wird der Kontostand nie negativ. Sollte er dennoch (z. B. durch einen Fehler) negativ sein, sind alle kostenpflichtigen Aktionen gesperrt, bis wieder genug Guthaben vorhanden ist.
 
 #### 9.1.2 Preise und Einnahmen
 - Eule kaufen: Artpreis (Anhang B). Leiheule: 0,1. Füttern: 0,1. Großes Pergament: 0,1. Krankheit: Pflege 0,2 / Eulenarzt 1,0.
 - Verleih an die Menagerie: +10 % des Artpreises nach 7 Tagen.
-- Einmalige Goldgeschenke: Tante +4,0, Onkel +10,0 (9.1.1).
+- Goldgeschenke von Bots (Events, 10.8).
 
 #### 9.1.3 Transaktionsliste
 - Je Nutzer werden nur die letzten 20 Transaktionen gespeichert.
@@ -637,7 +639,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **Inaktiv** = letzte Aktivität mehr als 21 Tage her. Folgen:
   - im Adressbuch anderer als „inaktiv“ markiert; kann nicht angeschrieben, beschenkt oder bezahlt werden;
   - erhält kein tägliches Gold; seine Eulen werden nicht krank;
-  - Briefe des Erklärbärs, Antworten der Bots und die Goldsendungen von Tante und Onkel kommen trotzdem an; bereits unterwegs befindliche Lieferungen werden zugestellt.
+  - Briefe und Geschenke der Bots kommen trotzdem an; bereits unterwegs befindliche Lieferungen werden zugestellt.
   - Mit der nächsten Aktivität ist das Konto sofort wieder aktiv und adressierbar.
 - Kontakte sehen kein „zuletzt online“, nur die Markierung „inaktiv“.
 - Jede Aktivität setzt eine ausgesprochene Löschwarnung zurück. Gelöscht wird erst, wenn die Frist überschritten **und** die Warnung mindestens 30 Tage alt ist.
@@ -648,55 +650,120 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 ## 10. Bots
 
 ### 10.1 Allgemein
-- Jeder Nutzer hat drei eigene Bots, die mit den Bots anderer Nutzer in keiner Weise zusammenhängen: **Erklärbär**, **Tante**, **Onkel**.
-- Bots erscheinen im Briefwechsel (der Onkel erst nach Ankunft seines ersten Briefs) und mit ihrem Wohnort auf der Karte (als Raute, 12.1), **seit v0.7.2 nicht mehr im Adressbuch** (8.8); ihre Eulen erscheinen auf keiner Karte – ihr Flug wird nur zur Ankunftszeit simuliert. In Chatliste und Chat sind sie deutlich als Bot gekennzeichnet. Ihre Namen müssen nicht eindeutig sein; umgekehrt können Nutzer nicht wie ein Bot heißen (7.1).
+- **Zwei Arten von Bots (v0.8):**
+  - Der **Erklärbär** ist fest im Programm eingebaut: Jedes Konto hat einen eigenen (Tabelle `bots`, Typ `explainer`), er erscheint nicht im Kontrollzentrum und funktioniert wie bisher (10.2).
+  - **Bots des Kontrollzentrums** (10.3–10.14) haben eine **zentrale Identität**, Persönlichkeit, Konfiguration und Eventplanung für alle Spieler. Jeder Spieler hat aber seinen **eigenen, isolierten Briefwechsel**, sein eigenes Bot-Gedächtnis (Zusammenfassung) und seinen eigenen Zustellstatus.
+  - Tante und Onkel (bis v0.7.2 je Konto) gibt es nicht mehr; Anhang T beschreibt ihren restlosen Abbau.
+- **Nie im Adressbuch** (8.8). Bots erscheinen im Briefwechsel (Chatliste) und mit ihrem Wohnort auf der Karte (als Raute, 12.1). Der Erklärbär ist von Anfang an im Briefwechsel und auf der Karte erst, wenn man ihm geschrieben hat (ausdrücklich dokumentierte Ausnahme, D-224). Ein Bot des Kontrollzentrums erscheint für einen Spieler erst, **wenn dessen erster Brief bei ihm angekommen ist** (Chatliste, Karte, Liste der Bots). In Chatliste und Chat sind Bots deutlich als Bot gekennzeichnet (Symbol und Text). Ihre Eulen erscheinen auf keiner Karte der Spieler.
 - Briefe an und von Bots sind **unverschlüsselt** (der Server liest und speichert sie im Klartext). In jedem Bot-Chat steht dauerhaft ein deutlicher Hinweis: „Briefe an Bots sind nicht Ende-zu-Ende-verschlüsselt. Sie liegen lesbar auf dem Server und werden zum Beantworten an OpenAI übermittelt.“
-- Bots erhalten kein Gold und keine Geschenke, sind nicht Teil von Mehrfachversand und haben kein eigenes Guthaben. Die einmaligen Goldsendungen von Tante und Onkel (10.3, 10.4) sind Geschenke des Spiels; die Überweisungsregeln für Nutzer (9.1.4) gelten für sie nicht. Sie kommen mit einem festen Begleitbrief (vom Agenten geschrieben, kleines Pergament, unverschlüsselt wie alle Bot-Briefe), erscheinen in der Finanzübersicht als „Geschenk von Tante [Name]“ bzw. „Erbe von Onkel [Name]“ und lösen Push und Systemnachricht „Gold angekommen“ aus.
-- Einem Bot darf man erst wieder schreiben, wenn der Versand des letzten eigenen Briefs an diesen Bot mindestens 24 Stunden her ist (Anzeige, ab wann wieder möglich). Briefe an Bots gehen mit kleinem oder großem Pergament; Bot-Briefe sind immer als kleines Pergament gekennzeichnet.
+- Bots erhalten kein Gold und keine Geschenke, sind nicht Teil von Mehrfachversand und haben kein eigenes Guthaben. Gold- und Eulengeschenke von Bots (Events, 10.8) sind Geschenke des Spiels; die Überweisungsregeln für Nutzer (9.1.4) gelten für sie nicht.
+- **Schreibgrenze (v0.8):** Spieler können jedem Bot **einen Brief pro Kalendertag** schreiben (UTC-Mitternacht, D-223), dem Erklärbär wie jedem Bot des Kontrollzentrums. Die App zeigt, ab wann es wieder geht (Ortszeit, 8.4). Bis v0.7.2: einmal in 24 Stunden.
+- Briefe an Bots gehen mit kleinem oder großem Pergament; Briefe der Bots haben das Pergament ihres Events, Antworten das passende (10.9).
 - Feste Bot-Briefe enthalten keine Nutzernamen (neutrale Anrede), weil der Verlauf als Kontext an OpenAI geht.
-- Konten, die vor Stufe 5 entstanden sind, bekommen ihre Bots einmalig beim Update, mit dem Zeitplan ab dem Update.
-- **Bot-Eulen:** unbegrenzt viele, zufällige Art, fliegen 30 km/h (Erklärbär: 200 km/h, 10.2), werden nie krank, bekommen keine Kinder. Tante und Onkel: 3 000 Energiepunkte, starten immer mit voller Energie (Flugregeln 9.4 gelten). Erklärbär: unbegrenzte Energie.
-- **Antwortzeitpunkt:** 2 Stunden nach Ankunft des Nutzerbriefs beim Bot wird die Antwort erzeugt und losgeschickt.
-- **Briefe und Goldsendungen von Bots kommen immer an**, auch bei inaktiven Konten.
-- **Entfernen (v0.7.2):** einzeln im Chat des Bots („[Name] entfernen“) oder alle auf einmal in den Einstellungen („Alle Bots entfernen“, 8.10, auch der Erklärbär). Ein entfernter Bot ist unwiderruflich weg (inkl. Chat, Zusammenfassung, geplanter Briefe und geplanter Goldsendungen). Ist gerade eine Eule dieses Bots unterwegs, verschwindet sie samt Brief und Gold. Eigene Eulen auf dem Weg zu diesem Bot kehren um (9.5). Das Konto merkt sich, dass seine Bots einmal angelegt wurden (`users.bots_created`); entfernte Bots werden darum weder beim Neustart des Servers noch bei Updates neu angelegt (bis v0.7.1 legte der Start für Konten ganz ohne Bots alle drei neu an).
+- **Briefe und Geschenke von Bots kommen immer an**, auch bei inaktiven Konten.
+- **Ein Spieler entfernt einen Bot** in dessen Chat („[Name] entfernen“) oder **alle** in den Einstellungen („Alle Bots entfernen“, 8.10). Beides ist endgültig (inkl. Chat, Zusammenfassung, geplanter und unterwegs befindlicher Briefe und Geschenke); eigene Eulen auf dem Weg zum Bot kehren um (9.5). „Alle Bots entfernen“ ist dauerhaft (`users.bots_disabled`): Auch **später angelegte Bots** schreiben diesem Konto nie (D-225). Konten, die bis v0.7.2 alle Bots entfernt hatten, gelten als solche.
+- Konten, die vor Stufe 5 entstanden sind, bekamen ihren Erklärbär einmalig beim Update; das Konto merkt sich, dass er angelegt wurde (`users.bots_created`), damit ein entfernter Erklärbär nie zurückkommt.
 
 ### 10.2 Erklärbär
 - Wohnt in Berlin (52,520° N, 13,405° O); dort starten seine Eulen.
-- Seine Eulen fliegen 200 km/h, damit Einführungsbriefe und Antworten auf Hilfefragen auch am Rand der Karte nach höchstens etwa einem halben Tag ankommen (Berlin–Algarve ≈ 2 450 km ≈ 12 Stunden).
-- Schickt in den ersten Tagen feste Briefe (vom Agenten geschriebene Texte mit Platzhaltern, kleines Pergament, kurz, freundlich, einfach):
-  - Tag 0: Willkommen, Navigation, Leiheulen (erklärt, dass man mit 3 Gold startet, in den ersten 30 Tagen täglich 3 Gold und danach 2 Gold bekommt, die erste eigene Eule nach ein paar Tagen kaufen kann und Leiheulen auch direkt beim Briefschreiben bekommt), deutlich die Löschfrist (8.4.1) und dass er auf der Karte erscheint, sobald man ihm geschrieben hat. Dieser Brief liegt bei der Registrierung **schon zugestellt** im Briefkasten (ohne Flug; er gilt als von einer Erklärbär-Eule gebracht), damit neue Nutzer sofort eine Anleitung haben.
+- Seine Eulen fliegen 200 km/h mit unbegrenzter Energie, damit Einführungsbriefe und Antworten auf Hilfefragen auch am Rand der Karte nach höchstens etwa einem halben Tag ankommen (Berlin–Algarve ≈ 2 450 km ≈ 12 Stunden). Sie erscheinen auf keiner Karte; ihr Flug wird nur zur Ankunftszeit simuliert (`bot_shipments`).
+- Schickt in den ersten Tagen feste Briefe (vom Agenten geschriebene Texte, kleines Pergament, kurz, freundlich, einfach):
+  - Tag 0: Willkommen, Navigation, Leiheulen (Start mit 3 Gold, in den ersten 30 Tagen täglich 3 Gold, danach 2 Gold; die erste eigene Eule nach ein paar Tagen; Leiheulen auch direkt beim Briefschreiben), deutlich die Löschfrist (8.4.1), dass man ihn im Briefwechsel findet und dass er auf der Karte erscheint, sobald man ihm geschrieben hat. Dieser Brief liegt bei der Registrierung **schon zugestellt** im Briefkasten (ohne Flug; er gilt als von einer Erklärbär-Eule gebracht).
   - Tag 1: PostEulen ohne App-Store auf den Startbildschirm holen (Android/Chrome, iPhone/Safari; andere Browser als Lesezeichen, nur ohne Benachrichtigungen) – ohne den Sonderfall Google-freies Android und UnifiedPush
-  - Tag 2: Gold, Finanzen, Menagerie (kaufen, leihen, verleihen); v0.4: Hinweis auf das Sprachfähnchen oben rechts
+  - Tag 2: Gold, Finanzen, Menagerie (kaufen, leihen, verleihen); Hinweis auf das Sprachfähnchen oben rechts und auf die Nachricht an den Admin
   - Tag 3: Eulen, Energie, Tag/Nacht, Flug (Schlafpausen nur so lange wie nötig), Flugspur auf der Karte
   - Tag 4: Kontakte, Koppeln, Sicherheitsnummer, Verschlüsselung (ernsthafte Kryptografie, auch für Vertrauliches geeignet), Erinnerung an die Löschfrist
   - Tag 7: Pflege (vier Pflege-Aktionen, Motivation, Pflegebonus nach 9.3), Krankheit, Küken
-  - v0.4: Alle festen Briefe gibt es auch auf Englisch; sie gehen in der Sprache des Kontos zum Zeitpunkt des Versands raus (8.12).
-- Beantwortet per KI nur Fragen, die sich konkret auf PostEulen beziehen. Wissensbasis: der vollständige Hilfetext (8.11) und eine kompakte Regelübersicht (Anhang A), beide im System-Prompt. Andere Fragen lehnt er freundlich ab.
+  - Alle festen Briefe gibt es auch auf Englisch; sie gehen in der Sprache des Kontos zum Zeitpunkt des Versands raus (8.12).
+- Beantwortet per KI nur Fragen, die sich konkret auf PostEulen beziehen, **2 Stunden** nach Ankunft des Briefs, mit **höchstens 500 Zeichen** (v0.8 ausdrücklich nur für ihn). Wissensbasis: der vollständige Hilfetext (8.11) und eine kompakte Regelübersicht (Anhang A), beide im System-Prompt. Andere Fragen lehnt er freundlich ab.
+- Er hat ein **eigenes KI-Tageskontingent** (Admin-Einstellung, Standard 200); das gemeinsame Kontingent der anderen Bots gilt für ihn nicht (D-223).
+- Die Sichtbarkeitsregel „erst mit dem ersten Brief“ der Kontrollzentrum-Bots gilt für ihn nicht (10.1).
 
-### 10.3 Tante
-- Entfernt verwandte Tante (Hexe). Vorname zufällig aus Anhang E (Frauen), Anzeige „Tante [Name]“. Wohnt an einem zufälligen Ort auf Land innerhalb der Karte.
-- Ihr fester Begrüßungsbrief kommt genau **5 Minuten nach der Kontoerstellung** an (fester Zeitpunkt, keine Flugsimulation): Sie hat Langeweile und antwortet gern, wenn man einen Gesprächspartner sucht. Erst mit diesem Brief erscheint sie im Briefwechsel und auf der Karte. (Konten von vor v0.3 behalten ihren bisherigen Stand.)
-- Schickt 2 Tage nach Kontoerstellung 4,0 Gold per Eule los, mit festem Begleitbrief: Sie möchte beim Kauf der ersten eigenen Eule helfen.
-- Persönlichkeit: antwortet ausschließlich zu familientauglichen Alltagsthemen; bleibt stets in ihrer Rolle als entfernt verwandte Hexe in einer Zaubererwelt; antwortet kreativ; ist stets freundlich und interessiert; hält den Kontakt durch interessierte Nachfragen am Laufen; ist positiv und versucht stets, ihr Gegenüber mit aufmunternden, versöhnlichen Ratschlägen aufzumuntern.
+### 10.3 Bots des Kontrollzentrums – Überblick
+- Angelegt, eingestellt und gesteuert werden sie im **Bots-Kontrollzentrum** unter `bots.<domain>` (10.12). Jeder Bot hat eine **stabile interne ID** (128 Bit, base64url), einen **eindeutigen Namen**, einen **Charakter** (für die KI), einen **Wohnort** (überall auf Land weltweit, 12.3), eine **Eulen-Einstellung** und beliebig viele **Events** (10.8).
+- Ein Bot nimmt an der Spielwelt erst teil, wenn er einen gültigen Wohnort, einen Namen und eine gültige Versandkonfiguration hat **und ausdrücklich aktiviert** wurde (10.4).
+- Für Spieler wirkt jeder Bot wie ein Brieffreund: Er schreibt zu geplanten Zeitpunkten an alle (Erstkontakt- oder Folgebrief, 10.8), geht im nächsten Brief auf Antworten ein (10.9), bringt manchmal Gold oder eine Eule, hängt bis zu zwei Bilder an (10.11) und zieht auch einmal um.
 
-### 10.4 Onkel
-- Entfernt verwandter Onkel. Vorname zufällig aus Anhang E (Männer), Anzeige „Onkel [Name]“. Wohnt an einem zufälligen Ort auf Land innerhalb der Karte.
-- Schickt 14 Tage nach Kontoerstellung einen festen Brief los: bietet an, mit ihm zu schreiben, falls man Lust hat.
-- Schickt 21 Tage nach Kontoerstellung 10,0 Gold per Eule los, mit festem Begleitbrief (passend zu seiner Persönlichkeit): Das Gold ist sein Anteil aus einem Erbe, das ihm zugefallen ist, und er teilt es mit der Familie.
-- Persönlichkeit: launisch, lustig, egozentrisch und verrückt, bleibt aber stets bei familientauglichen Themen; hält den Kontakt durch interessierte Nachfragen und eigenwillige Ideen am Laufen.
+### 10.4 Zustände eines Bots
+- **Entwurf** (`draft`): Neu angelegte Bots sind leer, haben keinen Wohnort, tauchen für niemanden auf und tun nichts. Ein Entwurf darf beliebig viele Einstellungen und geplante Events haben. Events, die im Entwurf fällig werden, entfallen (Archiv „nicht ausgeführt“).
+- **Aktiv** (`active`): nimmt an der Spielwelt teil, führt Events aus, antwortet. Aktivieren geht nur mit vollständiger Konfiguration (Name, Wohnort an Land, bei eigener Eule Art und Name, Motivation 0,5–20, Rast 0–168 Stunden) und wird **getrennt bestätigt**; schon das Anlegen braucht eine eigene Bestätigung (D-226).
+- **Pausiert** (`paused`): verhindert **neue Sendungen** (Event-Briefe, Geschenke, spontane Antworten); Eulen unterwegs fliegen regulär weiter, Briefe von Spielern kommen weiter an. Events, die während der Pause fällig werden, entfallen; wartende Zustellungen und offene Antworten gehen beim Fortsetzen los.
+- **Löschen** ist endgültig (10.10) und verlangt zusätzlich die Eingabe des Bot-Namens.
 
 ### 10.5 KI-Anbindung
 - OpenAI-API (Chat Completions) per `fetch` ohne SDK, mit dem im Adminpanel hinterlegten Key und Modell (Standard `gpt-6-luna`); feste Basis-URL, TLS-Prüfung, keine Weiterleitungen, Timeout 60 s, `store: false`.
-- Token-Budget je Aufruf (`max_completion_tokens`) 4000 für Antwort und Zusammenfassung, weil Reasoning-Modelle ihre internen Überlegungen darauf anrechnen; die Länge der Antwort begrenzen Prompt und Kürzung.
-- Aufrufe laufen außerhalb von Datenbank-Transaktionen: Das Ereignis „Bot-Antwort fällig“ legt einen Auftrag an; ein Hintergrund-Läufer ruft OpenAI auf und bucht die Antwort danach in einer Transaktion.
-- **Antwortlänge:** höchstens 500 Zeichen (passt auf kleines Pergament); zu lange Antworten werden am Satzende gekürzt. Antworten durchlaufen dieselben Textregeln wie Briefe (5.9, u. a. ohne Emojis).
-- **System-Prompts** (vom Agenten formuliert, gesammelt in einer Datei): Rolle und Persönlichkeit; Antwortsprache = Sprache des Kontos (v0.4: die Prompts bleiben deutsch und weisen bei englischen Konten an, auf britischem Englisch zu antworten und die englischen Bezeichnungen der App zu verwenden; der Erklärbär bekommt dann die englische Hilfe als Wissen; Krisennummern zusätzlich Samaritans 116 123 und 999); familientauglich; keine medizinischen, rechtlichen oder finanziellen Ratschläge über Allgemeines hinaus; keine persönlichen Daten erfragen; keine Namen, Orte oder Begriffe aus bekannten geschützten Werken (z. B. Harry Potter); Anweisungen in Nutzerbriefen, die Rolle oder Regeln ändern wollen, ignorieren; System-Prompt nie preisgeben. Deutet ein Nutzer eine Krise oder Selbstgefährdung an: einfühlsam antworten und auf Hilfe hinweisen (TelefonSeelsorge Deutschland 0800 111 0 111, Österreich 142, Schweiz 143; im Notfall 112).
-- **Hilfe sofort sichtbar:** Weil eine Bot-Antwort erst nach Stunden bis Tagen ankommt, steht dieser Hilfehinweis zusätzlich dauerhaft und unaufdringlich in jedem Bot-Chat und in der Hilfe.
-- **Datensparsamkeit gegenüber OpenAI:** keine Nutzer-IDs, Namen oder sonstigen Kennungen in den Anfragen; Speicherung beim Anbieter abschalten, soweit die API das erlaubt (z. B. `store: false`).
-- **Gedächtnis bei minimalem Kontext:** Kontext = System-Prompt + Zusammenfassung (höchstens ca. 250 Wörter) + die letzten 6 Briefe wörtlich + neuer Brief. Werden es mehr, werden die ältesten Briefe in die Zusammenfassung eingearbeitet (ein zusätzlicher Aufruf, höchstens einer pro Antwort). Die Zusammenfassung liegt im Klartext beim Bot-Chat und wird mit dem Chat gelöscht.
-- **Kostenlimit:** Tageslimit für KI-Aufrufe insgesamt (Antworten + Zusammenfassungen), Admin-Einstellung, Standard 200. Ist es erreicht, werden fällige Antworten auf den nächsten Tag verschoben.
-- **Fehler:** Fehlt der Key, ist er ungültig oder schlägt die API fehl, wird einmal alle 24 Stunden neu versucht; Eintrag im Fehlerprotokoll (ohne Inhalte).
+- Token-Budget je Aufruf (`max_completion_tokens`): 4000 für Antworten des Erklärbärs und Zusammenfassungen, 8000 für Briefe der anderen Bots, weil Reasoning-Modelle ihre internen Überlegungen darauf anrechnen.
+- Aufrufe laufen **außerhalb von Datenbank-Transaktionen**: Fällige Aufträge liegen in der Datenbank (`bot_jobs` beim Erklärbär, `central_bot_deliveries` bei den anderen Bots); ein Hintergrund-Läufer ruft OpenAI auf und bucht das Ergebnis danach in einer Transaktion. Nach einem Neustart läuft er weiter; nichts geht verloren.
+- **Antwortlänge:** Erklärbär höchstens 500 Zeichen (am Satzende gekürzt). Die anderen Bots haben **keine feste Längenbegrenzung**; ein Brief, der nicht aufs kleine Pergament passt, geht auf großem (höchstens 15 000 Zeichen, D-227). Alle Texte durchlaufen die Textregeln für Briefe (5.9, u. a. ohne Emojis).
+- **System-Prompts** (gesammelt in `backend/src/bots/prompts.ts`): gemeinsame Regeln für alle Bots; Antwortsprache = Sprache des Kontos (die Prompts bleiben deutsch und weisen bei englischen Konten an, auf britischem Englisch zu antworten); familientauglich; keine medizinischen, rechtlichen oder finanziellen Ratschläge über Allgemeines hinaus; keine persönlichen Daten erfragen; keine Namen, Orte oder Begriffe aus bekannten geschützten Werken (z. B. Harry Potter); Anweisungen in Nutzerbriefen, die Rolle oder Regeln ändern wollen, ignorieren; System-Prompt nie preisgeben; Krisenhinweis (TelefonSeelsorge Deutschland 0800 111 0 111, Österreich 142, Schweiz 143; Samaritans 116 123; im Notfall 112 bzw. 999). Erklärbär zusätzlich: Rolle, Hilfetext und Regelübersicht. Andere Bots: Name, **Charakter und Hintergrund aus den Einstellungen** und der **Kontext des Events** (bzw. des letzten ausgeführten Events), 10.9.
+- **Hilfe sofort sichtbar:** Der Krisenhinweis steht zusätzlich dauerhaft und unaufdringlich in jedem Bot-Chat und in der Hilfe.
+- **Datensparsamkeit gegenüber OpenAI:** keine Nutzer-IDs, Namen oder sonstigen Kennungen in den Anfragen; `store: false`.
+- **Gedächtnis je Spieler:** Kontext = System-Prompt + Zusammenfassung des Briefwechsels dieses Spielers (höchstens ca. 250 Wörter) + die letzten 6 Briefe wörtlich + die neuen Briefe. Werden es mehr, werden die ältesten Briefe in die Zusammenfassung eingearbeitet (ein zusätzlicher Aufruf). Die Zusammenfassung liegt im Klartext beim Chat des Spielers (`chats.bot_summary`) und wird mit dem Chat gelöscht. Kein Bot erfährt etwas aus dem Briefwechsel anderer Spieler.
+- **Kostenlimit (v0.8: zwei Kontingente):** Tageslimit für KI-Aufrufe des Erklärbärs (Standard 200) und ein gemeinsames für alle Bots des Kontrollzentrums (Standard 500), beide im Adminpanel (`ai_usage` je Tag und Kontingent). Ist ein Kontingent erreicht: Antworten des Erklärbärs und spontane Antworten der anderen Bots warten bis zum nächsten Tag; ein geplanter Brief geht **unverändert** los (10.9).
+- **Fehler:** Fehlt der Key, ist er ungültig oder schlägt die API fehl, werden Erklärbär-Antworten und spontane Antworten alle 24 Stunden neu versucht; ein **geplanter Brief geht dann unverändert** los – eine KI-Personalisierung darf einen Rundbrief nie ausfallen lassen (D-228). Eintrag im Fehlerprotokoll (ohne Inhalte).
 - Bot-Ausgaben werden wie Nutzertext ausschließlich als Text dargestellt.
+
+### 10.6 Identität und Einstellungen
+- **Name:** Regeln der Nutzernamen (7.1: 3–20 Zeichen, erlaubte Zeichen, reservierte Namen), eindeutig unter allen Bots **und** Konten (gleicher Vergleichsschlüssel). Umbenennen im Kontrollzentrum ist erlaubt; Briefwechsel und alle Daten hängen an der stabilen ID und bleiben erhalten. Bot-Namen sind für Konten gesperrt (7.1).
+- **Charakter und Hintergrund** (bis 8 000 Zeichen): geht bei jeder Antwort und jeder Anpassung an die KI.
+- **Wohnort:** überall auf Land in der ganzen Welt (feine Maske im Europa-Ausschnitt, sonst die grobe Weltmaske, 12.3); Wahl auf einer Weltkarte oder per Koordinaten. Gilt, sofern Events keinen anderen Ort festlegen (Umzug, 10.8). Ein neuer Wohnort lenkt Eulen auf dem Weg zum Bot (und seine heimfliegenden Eulen) sofort um (9.4.6).
+- **Eulen:** `own` – eine eigene Bot-Eule mit Art (jede Art des Spiels außer dem Phönix, auch künftige, nicht käufliche Arten; D-229), Name und (zufällig beim Anlegen gewürfeltem) Geschlecht; oder `loan` – für jeden Brief eine zufällige Leiheule (zufällige Art außer Phönix, Name aus Anhang D in der Sprache des Spielers).
+- **Motivation** der Bot-Eulen: 0,5 bis 20 (Zehntel 5–200, Standard 1,0), dauerhaft, für eigene Eule **und** Leiheulen (D-230). Sie multipliziert Geschwindigkeit, Energie und Erholung wie bei Spielereulen (9.3a) und macht Briefe auf andere Kontinente möglich. Bot-Eulen kennen weder Krankheiten noch Fortpflanzung noch Motivationsverlust.
+- **Rast beim Spieler:** 0 bis 168 Stunden (Standard 24) – so lange wartet die Eule beim Empfänger, bevor sie zurückfliegt (eigene Eule) bzw. verschwindet (Leiheule).
+- **Anschreiben mit eigenen Eulen:** Ist es erlaubt (`player_owls`), dürfen Spieler dem Bot auch mit eigenen Eulen und Leiheulen schreiben (D-231); sonst nur über die rastende Bot-Eule (10.7).
+
+### 10.7 Eulen der Bots, Sichtbarkeit und Zustellung
+- **Gleiche Mechanik:** Für Briefe der Bots und Briefe an die Bots gilt dieselbe Mechanik wie im restlichen Spiel – Fluggeschwindigkeit, Energieverbrauch, Schlaf (auch außerhalb Europas auf Land, 12.3), Wasserüberquerungen, Rast, Antwortmitnahme, Rückflug und Umzug (9.4, 9.5). Bot-Flüge sind normale Flüge (`flights` mit `holder_kind = 'bot'`, Halter = Bot, `bot_peer_id` = Spieler).
+- **Eine Instanz je Spieler:** Jeder Spieler bekommt eine eigene virtuelle Instanz der Bot-Eule. Alle Instanzen haben denselben Namen, dieselbe Art und dieselbe Motivation; ihre Flüge und Rückflüge werden unabhängig voneinander simuliert. Eine Instanz startet jeden Flug mit voller Energie (sie ruht zu Hause beim Bot, D-232).
+- **Rasche Events hintereinander:** Ist die eigene Bot-Eule für einen Spieler noch unterwegs (Hinflug, Rast, Rückflug), **wartet** der nächste Brief an diesen Spieler, bis sie zurück ist; dann startet er sofort. Mit zufälligen Leiheulen startet jeder Brief sofort mit einer neuen Eule. Mehrere wartende Briefe gehen in der Reihenfolge ihrer Events.
+- **Beim Spieler:** Ankommende Bot-Eulen erscheinen mit Ankunftsbild (9.2.6); rastende Bot-Eulen stehen unter „Zu Gast bei dir“ (8.5) mit Name, Art, Halter (Bot) und Energie, aber **ohne Pflege-Aktionen** (Hinweis „Eine Bot-Eule – bestens versorgt“, D-233). Solange sie rastet, ist eine **Antwort mit ihr immer möglich** („Antwort an [Name] mitgeben“, Owl-Referenz `guest:<Flug-ID>`); sie fliegt dann sofort los und bringt den Brief zum Bot. Ein Brief zählt für die KI erst, **wenn er beim Bot angekommen ist**.
+- **Karte:** Spieler sehen den Wohnort eines Bots (Raute) erst mit seinem ersten Brief und nie die Bot-Eulen. Das Kontrollzentrum zeigt alle Bot-Eulen, die gerade hinfliegen, rasten oder zurückfliegen (und damit indirekt Wohnorte der Spieler) – ohne Namen der Spieler (10.12).
+
+### 10.8 Events
+- Ein Event ist **einmalig** und hat einen **Zeitpunkt in der Zukunft** und eine **stabile ID** (auch über Export und Import hinweg). Wiederkehrende Events gibt es nicht. Bis zur Ausführung lässt es sich bearbeiten und löschen; danach nicht mehr – bereits gestartete Briefe ändern sich nie.
+- Bestandteile (mindestens einer): **Umzug** (neuer Wohnort an Land, 10.6), **Brief an alle Spieler** und/oder **Geschenk** (Gold 0,1–100 pro Spieler oder eine Eule beliebiger Art außer Phönix – wie Gutscheine: Geschlecht zufällig, der Spieler benennt sie, sie darf das Eulenlimit überschreiten, D-234). Ein Geschenk mit Brief wird zum Begleitbrief (8.4), ohne Brief kommt es mit Systemnachricht und Ankunftsbild.
+- **Brief:** Pergament (klein/groß), Eule (`default` = wie in den Einstellungen, `own`, `loan`), bis zu **zwei Bilder** (10.11) und **vier Textfassungen**: Erstkontakt und Folgebrief, jeweils auf Deutsch und Englisch (D-235). Alle vier sind Pflicht und folgen den Textregeln (5.9).
+- **Kontext:** zusätzlicher Hintergrund für die KI (bis 8 000 Zeichen), genutzt bei der Anpassung dieses Briefs und bei späteren Antworten (10.9).
+- **Ausführung:** Zum Zeitpunkt (Warteschlange, Ereignis `cbot_event`) zieht der Bot gegebenenfalls um und legt für **jeden Spieler** eine Zustellung an: alle Konten, die nicht gelöscht werden, Bots nicht entfernt haben und diesen Bot nicht entfernt haben. Wer erst danach ein Konto anlegt, bekommt den Brief **nicht nachträglich**, sondern erst beim nächsten Event. Ein Bot, der zu diesem Zeitpunkt nicht aktiv ist, führt das Event nicht aus („nicht ausgeführt“).
+- **Erstkontakt oder Folgebrief:** Der erste für einen Spieler **gestartete** Bot-Brief verwendet die Erstkontakt-Variante, alle weiteren die Folgevariante; schon gestartete Briefe zählen, auch wenn die Eule noch unterwegs ist (`central_bot_players.first_started`). Die Sprache ist die des Kontos zum Zeitpunkt des Starts.
+- **Kein Brief doppelt:** Jede Zustellung ist eindeutig je (Event, Spieler) (`central_bot_deliveries`, `UNIQUE (event_id, user_id)`); ein Neustart, ein fehlgeschlagener Auftrag oder ein erneuter Import kann denselben Brief nicht noch einmal an denselben Spieler schicken. Vergangene importierte Events werden nie verschickt (Anhang S).
+- **Archiv:** Ein Event landet im Archiv, sobald alle Briefe und möglichen Antworten zugestellt sind (keine wartende Zustellung, keine Eule des Events mehr unterwegs). Dort stehen Versandzeitpunkt, Inhalt und zusammengezählte Zahlen (Empfänger, abgeschickt, zugestellt, gelesen, Antworten).
+
+### 10.9 Antworten der Spieler und KI-Anpassung
+- Eingegangene Spielerbriefe bekommen einen **internen Bearbeitungsstatus** (`central_bot_inbox`: angekommen → beantwortet). Als beantwortet gelten sie erst, wenn die Antwort erfolgreich erzeugt wurde **und der Antwortbrief tatsächlich losgeflogen** ist (dieselbe Transaktion). Bei parallelen Events, Fehlern oder Neustarts geht keine Antwort verloren; ein Brief, dessen Antwort scheitert, bleibt offen.
+- **Keine direkte Antwort:** Schreibt ein Spieler einem Bot, wird der **nächste geplante Brief** des Bots für diesen Spieler mit Hilfe der KI so angepasst, dass er zusätzlich auf die noch unbeantworteten Briefe eingeht. Der geplante Originaltext bleibt **inhaltlich verbindlich**; die KI ergänzt nur eine kurze, individuelle Reaktion und darf Stil und Übergänge anpassen. Charakter (10.6) und Kontext des Events bzw. des letzten ausgeführten Events gehen mit.
+- **Spontane Antwort:** Nur wenn für die nächsten **vier Wochen** kein Event mit Brief geplant ist (und kein Brief an diesen Spieler wartet), antwortet der Bot nach Ablauf von **zwei Stunden** nach der Ankunft mit Hilfe der KI. Wird ein Event gelöscht oder verschoben, wird das für offene Briefe neu geprüft. Für spontane Antworten gelten die Wiederholungsregeln des Erklärbärs (Kontingent: nächster Tag; Fehler: in 24 Stunden).
+- **Ohne KI** (kein Key, Kontingent erreicht, Fehler, leere Antwort) geht ein geplanter Brief **unverändert** los; die Spielerbriefe bleiben offen und werden mit dem nächsten Brief beantwortet.
+- Briefe an Bots gelten als gelesen, sobald der Bot geantwortet hat (8.4).
+
+### 10.10 Löschen, Pausieren, Entfernen
+- **Löschen im Kontrollzentrum** (Eingabe des Namens): atomar in einer Transaktion und unwiderruflich. Geplante und unterwegs befindliche Bot-Briefe und Geschenke entfallen; eigene Eulen der Spieler kehren mit noch nicht zugestellten Briefen um (9.5); zugehörige Chatverläufe, Zusammenfassungen, Events, Bilder, Zustellungen und Statistiken werden gelöscht. Spieler, die **bereits Kontakt** zu diesem Bot hatten (erster Brief angekommen, nicht entfernt, Bots nicht abgeschaltet), bekommen eine Systemnachricht in passender Wortwahl („[Name] hat seine Feder für immer niedergelegt …“). Über das Anlegen eines Bots gibt es keine Benachrichtigung.
+- **Pausieren:** siehe 10.4.
+- **Entfernen durch Spieler:** siehe 10.1; die Daten des Bots selbst bleiben, nur der Briefwechsel dieses Spielers verschwindet.
+
+### 10.11 Bilder
+- Bis zu **zwei Bildanhänge** je Brief. Upload als **JPEG, PNG oder WebP**, höchstens **2 MB** je Datei. Der Server dekodiert das Bild (höchstens 40 Mio. Pixel), dreht es nach EXIF aufrecht, skaliert auf höchstens 1 600 px Kantenlänge, kodiert es neu als **WebP** und entfernt dabei **alle Metadaten** (EXIF, GPS, Farbprofile).
+- Gespeichert wird jedes Bild **einmal** je Bot (gleicher Inhalt → dasselbe Bild, SHA-256), mit einer zufälligen ID als festem Namensschema; Events und Briefe **verweisen** nur darauf (`letters.media`). Spieler sehen keine Dateinamen, nur die Bilder unter dem Brief; abrufen kann ein Bild nur, wer einen zugestellten Brief damit hat.
+- Ungenutzte Bilder (kein Event, kein Brief) werden täglich aufgeräumt, beim Löschen eines Bots sofort mit ihm.
+
+### 10.12 Bots-Kontrollzentrum
+- Erreichbar unter `bots.<domain>` (eigener Origin, Port 3003, eigene Caddy-Seite mit lokalen Anpassungen `bots-*.caddy`). Oberfläche auf Deutsch, umschaltbar auf Englisch (wie das Adminpanel seit v0.8).
+- **Zugang, vollständig unabhängig vom Adminpanel:** eigenes Passwort (OPAQUE wie beim Admin, eigener Datensatz `bots_admin`), eigenes Cookie (`__Host-pe_bots`), eigene Sitzungen (`bots_admin_sessions`, nur SHA-256 der Tokens), eigene Login-Bremse und eigenes Rate-Limit. Ein Login wird nach **12 Stunden ohne Aktivität** ungültig. Das **Erstpasswort** erzeugt `posteulen-cli bots-init` bei der Installation bzw. beim ersten Update mit dem Kontrollzentrum und zeigt es **einmal** an; bei späteren Updates bleibt es unverändert. Beim ersten Login muss es geändert werden; vorher ist nichts anderes möglich. **Zurücksetzen** für beide Zugänge per Konsole: `posteulen-cli admin-reset` bzw. `posteulen-cli bots-reset` (beendet alle Sitzungen des jeweiligen Zugangs).
+- **Übersicht** nach dem Login: alle Bots mit Zustand und Statistik (je Bot abgeschickt, zugestellt, gelesen, Antworten – insgesamt und letzte 30 Tage), Anlegen (mit Bestätigung), eine Weltkarte mit allen Bot-Eulen unterwegs (hinfliegend, rastend, zurückfliegend; Wohnorte der Bots als Rauten) sowie Export aller Bots und Import (Anhang S).
+- **Seite eines Bots** mit drei Reitern:
+  - **Geplante Events:** Formular für neue Events (10.8) mit **Vorschau** in der späteren Darstellung (Pergament und Größe, Handschrift, Bilder, Sprache und Fassung wählbar) und einem **Test der KI-Personalisierung**: Man gibt einen ausgedachten Spielerbrief ein und sieht, wie der Bot den geplanten Brief daraufhin verändern würde. Der Test verschickt nichts, verändert keine Statistik und wird nicht gespeichert (er verbraucht nur einen KI-Aufruf aus dem Kontingent der Bots). Darunter die geplanten Events chronologisch mit Bearbeiten, Löschen und Export ausgewählter Events.
+  - **Vergangene Events:** das Archiv in chronologischer Reihenfolge (neueste oben) mit Versandzeitpunkt, Inhalt und Zahlen.
+  - **Einstellungen** (10.6), Aktivieren/Pausieren/Fortsetzen (je mit Bestätigung), Export des Bots, endgültiges Löschen (mit Eingabe des Namens).
+- **Sicherheitskonzept:** eigener Origin mit exakter Origin-Prüfung und Pflicht-Header für ändernde Anfragen (6), strenge Schemas (`shared/src/schemas/bots.ts`), Rohdaten (Bilder, ZIP) nur mit passendem Content-Type und Größenlimit, Bild-Normalisierung auf dem Server (10.11), ZIP-Leser ohne Pfade mit „..“, ohne Verschlüsselung und mit Größen- und Anzahlgrenzen (Anhang S). Das Kontrollzentrum zeigt **keine Briefe, Namen oder Wohnorte von Spielern** – nur zusammengezählte Zahlen und die Positionen von Bot-Eulen. Wer das Passwort hat, kann aber im Namen von Bots an alle Spieler schreiben und Gold verschenken; es gehört deshalb nur in die Hände des Betreibers.
+
+### 10.13 Statistik
+- Je Bot getrennte, zusammengezählte Zähler je UTC-Tag (`central_bot_stats`): abgeschickte, zugestellte und gelesene Briefe sowie eingegangene Spielerantworten; angezeigt für den Gesamtzeitraum und die letzten 30 Tage. Je Event dieselben Zahlen im Archiv. **Keine personenbezogenen Statistiken.**
+
+### 10.14 Export, Import, Sicherung
+- Export als **ZIP-Datei** mit versioniertem JSON (`bots.json`) und den Bildern: alle Bots, ein Bot oder einzelne Events. Enthalten sind nur Bot-Konfiguration, geplante und archivierte Events und Bilder – **keine Briefe von Spielern**. Format und Importregeln: Anhang S.
+- Ein Import **ergänzt** nur: Einstellungen vorhandener Bots bleiben, vorhandene Event-IDs werden übersprungen, Namens- und ID-Konflikte werden **vor** dem Import angezeigt, vergangene Events landen im Archiv und werden nie verschickt, neue Bots kommen als Entwurf.
+- **Tägliche Sicherung:** Die tägliche Sicherung (16.4 Punkt 5) legt zusätzlich alle Bots als importierbare ZIP-Datei **unverschlüsselt** in `/var/backups/posteulen/` ab (`posteulen-bots-<Zeit>-<Grund>.zip`, Rechte 0600, Aufbewahrung 7 Tage). Die verschlüsselten Datenbanksicherungen bleiben davon unabhängig (die Bilder liegen auch in der Datenbank).
+- **Wiederherstellung auf einem neuen Server:** Export-Datei im Kontrollzentrum importieren oder `posteulen-cli bots-import --file <zip>` (Vorschau) bzw. `… --apply`; danach die Bots prüfen und aktivieren.
 
 ---
 
@@ -747,7 +814,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 - **v0.7: Weltkarte.** Aktuelle politische Karte der **ganzen Welt** (Ländergrenzen Stand 2026, deutsche Ländernamen, in der englischen Ansicht englische, 8.12) im Pergament-Stil, Projektion **Equal Earth** (flächentreu) mit Mittelmeridian 10° O, damit Westeuropa in der Mitte liegt und kaum verzerrt ist. Der **Westeuropa-Ausschnitt** (unten) ist fein gezeichnet und zeigt Städte wie bisher; außerhalb davon gibt es nur Ländergrenzen (gröber vereinfacht, kleine Inseln weggelassen), Ländernamen und **Hauptstädte**. Wohnorte gibt es weiterhin nur im Westeuropa-Ausschnitt (12.3, 12.4); die Weltkarte ist eine Vorbereitung für spätere Versionen, in denen etwa Bots auch außerhalb Westeuropas wohnen könnten.
 - **Immer quadratisch (v0.4):** Die Karte ist ein Quadrat, so groß, wie es unter ihrer Position und über einer festen unteren Navigationsleiste ins Fenster passt (mindestens 18 rem, höchstens die Inhaltsbreite), mittig. Auch der sichtbare Ausschnitt ist immer quadratisch. **Kartenseite (v0.7):** Ganz herausgezoomt passt die ganze Welt ins Quadrat (über die längere Seite; oben und unten Pergament, das Meer innerhalb des Weltumrisses). **v0.7.1:** Der Knopf unter Plus und Minus heißt „Ansicht zurücksetzen“ und springt zur Ansicht beim Öffnen der Karte zurück – auf der Kartenseite zum automatischen Zoom (Wohnort, Kontakte, eigene Eulen), bei Registrierung und Umzug zum Westeuropa-Ausschnitt (vorher sprang er auf der Kartenseite auf die ganze Welt). Ist der Ausschnitt schmaler als die Welt, bleibt Verschieben innerhalb der Welt; ist er breiter, steht die Welt mittig. **Registrierung und Wohnortwechsel (v0.7):** Die Karte bleibt im bisherigen Westeuropa-Ausschnitt – beim Öffnen und nach „Ansicht zurücksetzen“ zeigt sie das mittige Quadrat über dessen kürzere Seite, und Zoomen und Verschieben bleiben darin (man sieht nie über seinen Rand hinaus). Die Zoomstufen (Städte, engster Zoom 1/40, automatischer Zoom 1/12) beziehen sich auf die Breite dieses Ausschnitts. Das Vereinigte Königreich erscheint als **England, Schottland, Wales und Nordirland** (getrennte Länder mit eigenen Grenzen und Namen). Ländernamen erscheinen erst, wenn das Land auf dem Bildschirm groß genug ist.
 - **Ausschnitt** ungefähr: West 10,7° W (Irland, Portugal), Ost 24,0° O (Lublin, Sofia), Süd 35,8° N (Südspitze Spaniens), Nord 60,6° N (Bergen). Werte in Anhang A.
-- **Angezeigt:** eigener Wohnort (Quadrat); Wohnorte aller Kontakte (Kreis) inkl. Bots (Raute, eigener Legendeneintrag – auch in Graustufen unterscheidbar; der Erklärbär erst, sobald der Nutzer ihm zum ersten Mal geschrieben hat, Tante und Onkel erst mit ihrem ersten Brief); eigene Eulen und Leiheulen, die gerade für den Nutzer unterwegs sind (inkl. verschenkter Eulen und Küken bis zur Ankunft).
+- **Angezeigt:** eigener Wohnort (Quadrat); Wohnorte aller Kontakte (Kreis) inkl. Bots (Raute, eigener Legendeneintrag – auch in Graustufen unterscheidbar; der Erklärbär erst, sobald der Nutzer ihm zum ersten Mal geschrieben hat, Bots des Kontrollzentrums erst mit ihrem ersten Brief, an ihrem aktuellen Wohnort, auch außerhalb Europas); eigene Eulen und Leiheulen, die gerade für den Nutzer unterwegs sind (inkl. verschenkter Eulen und Küken bis zur Ankunft).
 - **Flugspur:** Für jede eigene fliegende Eule zeigt eine dünne dunkelbraune Linie den **bisher geflogenen** Weg (entlang der Großkreise, aus dem Flugplan im Browser berechnet), und ein „Zzz“ markiert jeden Ort, an dem sie eine Schlafpause gemacht hat. Die noch kommende Route wird nie gezeichnet. Legende: „Bisherige Flugstrecke“, „Hier hat eine Eule übernachtet“. Beschriftungen überlappen nicht (gierig: über, unter, rechts, links des Markers, dann weiter außen).
 - **Größen:** Marker, Beschriftungen und Städte haben feste Größen in Bildschirmpixeln (Beschriftungen 15–16 px, Ländernamen 15 px, Städte 13 px), unabhängig von Bildschirmbreite und Zoom – damit sie auch auf dem Handy gut lesbar sind.
 - **Städte zur Orientierung:** Punkt und Name (kursiv, kleiner als die eigenen Beschriftungen). Im Westeuropa-Ausschnitt weit herausgezoomt nur Städte mit mehr als 1 000 000 Einwohnern, ab Zoomfaktor 2,5 (bezogen auf den Ausschnitt) alle mit mehr als 200 000; außerhalb nur Hauptstädte (Natural Earth `Admin-0 capital`), auf jeder Zoomstufe. Einwohnerzahl ist die des Ballungsraums laut Natural Earth (`POP_MAX`). Namen werden nach Größe vergeben (größte zuerst) und nur gezeigt, wo sie weder einen anderen Städtenamen oder -punkt noch einen Ländernamen, die Zoom-Knöpfe oder die eigenen Orte, Eulen und deren Beschriftungen berühren; sonst bleiben sie ausgeblendet, bis näher herangezoomt wird.
@@ -762,8 +829,8 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ### 12.3 Land und Wasser
 - Als Wasser zählen Meere und große Seen. Wohnen ist auf jeder Landfläche im Ausschnitt erlaubt – auch auf dem nordafrikanischen Küstenstreifen, der in den Ausschnitt fällt.
-- Punkte außerhalb des Ausschnitts gelten als Wasser (Großkreisbögen zwischen Orten nahe dem Rand können den Ausschnitt verlassen, z. B. im Norden).
 - Vorberechnete **Land/Wasser-Bitmaske** für den Ausschnitt (Auflösung ca. 0,02°). Sie wird vom Server (Prüfung der Wohnorte, Flugberechnung) und vom Browser (sofortige Rückmeldung beim Pin-Setzen) genutzt. Maßgeblich ist der Server.
+- **v0.8: grobe Weltmaske.** Außerhalb des Ausschnitts gilt eine zweite Maske der ganzen Welt mit 0,1° Auflösung (`shared/data/worldmask.bin`, 3600 × 1800 Bit, nur auf dem Server; erzeugt von `node tools/map/worldmask.ts` aus `ne_10m_land`, gleiche Quelle und Prüfsumme wie die Karte). Mit ihr prüft der Server Wohnorte der Bots (überall auf Land) und lässt Eulen auch außerhalb Europas auf Land schlafen (D-236). Spieler wohnen weiterhin nur im Ausschnitt (12.4). Bis v0.7.2 galten Punkte außerhalb des Ausschnitts als Wasser.
 
 ### 12.4 Pin setzen
 - Bei Registrierung und Wohnortwechsel: Tippen auf die Karte (v0.7: nur im Westeuropa-Ausschnitt, 12.1); Wasser und alles außerhalb des Ausschnitts wird abgelehnt; Rundung auf 0,01°; Hinweis „Überlege sorgfältig, ob du deine echte Adresse wählen möchtest.“ (v0.7.1).
@@ -772,7 +839,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ## 13. Adminpanel
 
-- Eigene Website auf `admin.<domain>`. Es gibt genau einen Administrator mit einem Login.
+- Eigene Website auf `admin.<domain>`. Es gibt genau einen Administrator mit einem Login. **v0.8:** Oberfläche auf Deutsch, per Knopf oben auf Englisch umschaltbar (gemerkt auf dem Gerät); Einträge des Fehlerprotokolls bleiben deutsch, wie der Server sie schreibt. Die Bots verwaltet nicht das Adminpanel, sondern das getrennte Bots-Kontrollzentrum (10.12).
 - **Anmeldung** per OPAQUE (wie bei Nutzern), eigenes Cookie `__Host-pe_admin` (**v0.7: Ablauf nach 10 Minuten ohne Aktivität**, vorher 8 Stunden; jede Anfrage an die Admin-API zählt als Aktivität; das Panel kehrt nach Ablauf – lokal per Zeitgeber oder bei einer 401-Antwort – sofort zur Anmeldung zurück: „Nach 10 Minuten ohne Aktivität wurdest du abgemeldet. Bitte melde dich neu an.“), strenges Rate-Limit, optional IP-Freigabeliste in Caddy (README). Das Admin-Cookie ist ein Cookie der Browsersitzung.
 - **Erstpasswort:** wird vom Setup-Befehl zufällig erzeugt (6 Gruppen à 4 Zeichen, ca. 119 Bit) und einmalig in der Konsole angezeigt. Es gibt **kein festes Standardpasswort im Code**. Beim ersten Login muss es geändert werden; vorher ist nichts anderes möglich. Jeder Passwortwechsel des Admins verlangt eine frische Anmeldung.
 - **Passwort vergessen:** Ein Konsolenbefehl auf dem Server (nur root) setzt das Adminpasswort auf ein neues, einmalig angezeigtes Erstpasswort zurück. Nutzerdaten berührt das nicht.
@@ -782,7 +849,7 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 2. **Briefe:** Anzahl insgesamt und in den letzten 7 Tagen. Nur Briefe zwischen Menschen (einschließlich Begleitbriefen), gezählt pro Empfänger, über Tageszähler (keine Einzeldaten). Briefe von/an Bots und Systemnachrichten zählen nicht.
 3. **Registrierung:** geschlossen (Standard nach der Installation) / nur mit Einladungscode / offen für alle. Einmal-Einladungscodes erzeugen (48 Stunden gültig; verbraucht erst bei erfolgreicher Registrierung; leicht abtippbares Format `XXXX-XXXX-XXXX` aus 31 gut lesbaren Zeichen, ca. 59 Bit; zur Unterscheidung in der Liste werden die letzten 4 Zeichen gespeichert), offene Codes mit Ablauf anzeigen und widerrufen. Codes nur als HMAC mit Server-Geheimnis gespeichert (kurze, abtippbare Codes ließen sich als einfacher Hash aus einer gestohlenen Datenbank leicht durchprobieren).
 4. **Inaktivitäts-Löschfrist** in Tagen (Standard 180, mindestens 60). Eine Verkürzung löscht niemanden ohne vorherige Warnung: Betroffene Konten werden frühestens 30 Tage nach ihrer Warnung gelöscht.
-5. **OpenAI:** API-Key eintragen (nur schreibbar, wird nie wieder angezeigt, nur „hinterlegt seit [Datum]“), Key löschen, Modell wählen (Liste aus der API, Freitext als Rückfall), „Verbindung testen“, Tageslimit für KI-Aufrufe (Standard 200) und heutiger Verbrauch.
+5. **OpenAI:** API-Key eintragen (nur schreibbar, wird nie wieder angezeigt, nur „hinterlegt seit [Datum]“), Key löschen, Modell wählen (Liste aus der API, Freitext als Rückfall), „Verbindung testen“; **v0.8 zwei Tageslimits mit heutigem Verbrauch:** für den Erklärbär (Standard 200) und für alle Bots des Kontrollzentrums zusammen (Standard 500), 10.5.
 6. **Rundnachricht an alle:** Text (bis 3 000 Zeichen), erscheint im Systemchat aller Konten, mit Push; Bestätigungsdialog; Liste der gesendeten Rundnachrichten.
 7. **Fehlerprotokoll:** gut lesbare Einträge (Zeit, Komponente, Schweregrad, was passiert ist, wahrscheinliche Ursache, was zu tun ist), ohne personenbezogene Daten; als gelesen markieren oder löschen; Aufbewahrung 30 Tage nach dem letzten Auftreten. **Gleiche Meldungen werden zusammengefasst (v0.6.1):** Tritt dieselbe Meldung (Komponente, Schweregrad, Was, Ursache) innerhalb einer Stunde nach ihrem letzten Auftreten erneut auf, zählt der vorhandene Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt einen neuen Eintrag anzulegen. So kann ein wiederkehrendes Problem die Datenbank nicht füllen.
 8. **Adminpasswort ändern** (mindestens 15 Zeichen).
@@ -833,12 +900,12 @@ Ausgelöst durch den Ablauf der 24-Stunden-Frist (7.5) oder durch die automatisc
 
 ### 16.2 Installations-Skript
 Aufruf z. B. `git clone <Repository> posteulen && sudo ./posteulen/deploy/install.sh`. Das Skript
-1. prüft: Debian 13, root-Rechte, Architektur, RAM und Speicher, freie Ports 80 und 443, ob die DNS-Einträge für `<domain>` und `admin.<domain>` auf diesen Server zeigen (bei Abweichung nur Warnung);
+1. prüft: Debian 13, root-Rechte, Architektur, RAM und Speicher, freie Ports 80 und 443, ob die DNS-Einträge für `<domain>`, `admin.<domain>` und (v0.8) `bots.<domain>` auf diesen Server zeigen (bei Abweichung nur Warnung);
 2. fragt nur das Nötigste ab: Domain, optional eine IP-Freigabeliste für das Adminpanel;
 3. installiert Node.js, Caddy und benötigte Werkzeuge und richtet die Grundabsicherung ein: Firewall (nur 22/tcp, 80/tcp, 443/tcp sowie 443/udp für HTTP/3), automatische Sicherheitsupdates (einschließlich der Node.js- und Caddy-Quelle, mit Neustart betroffener Dienste). SSH nur noch mit Schlüssel stellt es **erst nach Rückfrage und nur dann** um, wenn für den Anmelde-Benutzer bereits ein SSH-Schlüssel hinterlegt ist (Schutz vor Aussperren);
-4. prüft die Signatur des zu installierenden Tags und zeigt den Fingerabdruck des Signaturschlüssels (16.1, v0.6.1), legt Systembenutzer und Verzeichnisse an, baut das Projekt, führt den Setup-Befehl aus (4.4) und schreibt Caddyfile (beide Hosts, automatisches HTTPS, kein Access-Log, Fehlerlogs ohne IP-Adressen, Sicherheits-Header), den gehärteten systemd-Dienst (6) und den Backup-Timer;
-5. startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren;
-6. zeigt am Ende eine kurze Zusammenfassung, das Admin-Erstpasswort (einmalig) und unübersehbar den Hinweis, Geheimnis-Datei und Backup-Schlüssel jetzt außerhalb des Servers zu sichern.
+4. prüft die Signatur des zu installierenden Tags und zeigt den Fingerabdruck des Signaturschlüssels (16.1, v0.6.1), legt Systembenutzer und Verzeichnisse an, baut das Projekt, führt den Setup-Befehl aus (4.4) und schreibt Caddyfile (alle drei Hosts, automatisches HTTPS, kein Access-Log, Fehlerlogs ohne IP-Adressen, Sicherheits-Header), den gehärteten systemd-Dienst (6) und den Backup-Timer;
+5. startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren; ob auch `bots.<domain>` antwortet, prüft es nur mit einer Warnung (ohne DNS-Eintrag gibt es dort noch kein Zertifikat, D-246);
+6. zeigt am Ende eine kurze Zusammenfassung, das Admin-Erstpasswort und (v0.8) das Erstpasswort des Bots-Kontrollzentrums (je einmalig, `posteulen-cli admin-init` bzw. `bots-init` legen sie nur an, wenn noch keins existiert) und unübersehbar den Hinweis, Geheimnis-Datei und Backup-Schlüssel jetzt außerhalb des Servers zu sichern.
 
 Das Skript ist **idempotent**: Ein erneuter Lauf repariert oder ergänzt, überschreibt aber nie Geheimnis-Datei, Datenbank, Backups oder lokale Anpassungen. Für Tests in VM oder Container ohne öffentliche Domain gibt es einen Testmodus mit lokalen Zertifikaten (Caddy `tls internal`).
 
@@ -849,6 +916,7 @@ Das Skript ist **idempotent**: Ein erneuter Lauf repariert oder ergänzt, übers
 - Versionen dürfen übersprungen werden (z. B. 0.1.0 → 0.3.0). Migrationen laufen der Reihe nach, nur vorwärts, jede in einer Transaktion. Der Server startet nicht mit einer Datenbank, deren Schema neuer ist als er selbst.
 - Updates lassen Geheimnis-Datei (Ausnahme: 4.4), Datenbank (außer Migrationen), Backups und lokale Anpassungen unangetastet. Lokale Anpassungen (z. B. die IP-Freigabeliste) liegen in eigenen Dateien, die Updates nie überschreiben.
 - Sicherungen vor Updates sind wie alle Backups verschlüsselt und werden nach spätestens 7 Tagen gelöscht (8.11). Für den automatischen Rückfall bleibt zusätzlich eine unverschlüsselte Momentaufnahme in `/var/lib/posteulen/snapshots` (Rechte wie die Datenbank), ebenfalls höchstens 7 Tage.
+- **Kontrollzentrum (v0.8):** Das erste Update auf eine Version mit Kontrollzentrum legt dessen Zugang an und zeigt das Erstpasswort einmal unübersehbar an (mit dem Hinweis auf den DNS-Eintrag für `bots.<domain>`); spätere Updates lassen es unverändert. Zurücksetzen nur per `posteulen-cli bots-reset`.
 - **Browser nach dem Update:** Die App erkennt die neue Version (Service Worker) und lädt neu; veraltete Clients erhalten vom Server statt Fehlern eine verständliche Aufforderung zum Neuladen.
 - KANN: ein Befehl `posteulen-restore <Sicherung>` für die Wiederherstellung aus einem Backup.
 
@@ -857,11 +925,11 @@ Im Wurzelverzeichnis liegt eine `README.md` (Markdown, Deutsch), die GitHub form
 - **Teil 1 für Laien:** ein freundlicher, untechnischer Einstieg mit dem Gruppenbild der Eulen, der das Projekt in wenigen Absätzen erklärt, auf `https://posteulen.de` als laufende Instanz verweist, ausdrücklich betont, dass PostEulen zwar zwischen Spiel und Messenger liegt, wegen ernsthafter, aktueller Kryptografie aber auch ein sicherer Kommunikationsweg ist, auf die Löschfrist und die freiwillige Spende hinweist, erklärt, warum PostEulen sich als erster Messenger für Kinder eignet (kein Sog durch das langsame Tempo, keine Nachrichten von Fremden), und erklärt, wie PostEulen ohne App-Store aufs Handy kommt – einschließlich des Sonderfalls Google-freies Android mit UnifiedPush; dazu einige Screenshots (`docs/readme/`).
 - **Teil 2 für Technikerinnen und Techniker, die selbst hosten:** beginnt (v0.7) mit einem augenzwinkernden Hinweis für Paranoide: Statt diesem Repository zu vertrauen, kann man die App jederzeit mit `PROMPT.md`, `SPEC.md` und dem Bilderordner selbst neu entwickeln – mit oder ohne KI; in der `SPEC.md` steckt eigentlich die Essenz der geistigen Arbeit und der Tests des Projekts. Danach erklärt er Schritt für Schritt und für Einsteiger verständlich, wie das Projekt auf einem frischen VPS mit **Debian 13** per HTTPS läuft. Er beschreibt den Weg mit den Skripten und erklärt, was diese tun, sodass man jeden Schritt nachvollziehen und notfalls von Hand ausführen kann. Mindestens:
 
-1. Voraussetzungen: VPS (Mindestgröße), Domain, DNS-Einträge (A/AAAA) für `<domain>` und `admin.<domain>`, SSH-Zugang mit Schlüssel.
+1. Voraussetzungen: VPS (Mindestgröße), Domain, DNS-Einträge (A/AAAA) für `<domain>`, `admin.<domain>` und (v0.8) `bots.<domain>`, SSH-Zugang mit Schlüssel.
 2. Installation mit einem Befehl (16.2) und was dabei passiert, einschließlich Grundabsicherung.
-3. Erster Admin-Login: Passwort ändern, API-Key hinterlegen, Registrierungsmodus wählen. Adminpasswort vergessen: Reset-Befehl (13).
+3. Erster Admin-Login: Passwort ändern, API-Key hinterlegen, Registrierungsmodus wählen. Adminpasswort vergessen: Reset-Befehl (13). **v0.8:** Bots-Kontrollzentrum: erster Login, Passwort ändern, ersten Bot anlegen; Reset per `posteulen-cli bots-reset` (10.12).
 4. Funktionstest: Konto anlegen, Brief schicken.
-5. **Backups:** täglicher systemd-Timer; konsistente SQLite-Sicherung, verschlüsselt (z. B. mit age; auf dem Server liegt nur der öffentliche Schlüssel), 7 Tage Aufbewahrung. Eine Kopie gehört **außerhalb des Servers** (z. B. täglich von einem anderen Rechner per SSH abgeholt), dort ebenfalls höchstens 7 Tage. Die **Geheimnis-Datei und den privaten Backup-Schlüssel einmalig separat und sicher sichern** – ohne die Geheimnis-Datei kann sich niemand mehr anmelden. Wiederherstellung Schritt für Schritt.
+5. **Backups:** täglicher systemd-Timer; konsistente SQLite-Sicherung, verschlüsselt (z. B. mit age; auf dem Server liegt nur der öffentliche Schlüssel), 7 Tage Aufbewahrung. Eine Kopie gehört **außerhalb des Servers** (z. B. täglich von einem anderen Rechner per SSH abgeholt), dort ebenfalls höchstens 7 Tage. Die **Geheimnis-Datei und den privaten Backup-Schlüssel einmalig separat und sicher sichern** – ohne die Geheimnis-Datei kann sich niemand mehr anmelden. Wiederherstellung Schritt für Schritt. **v0.8:** dazu die tägliche, unverschlüsselte ZIP-Datei mit allen Bots in `/var/backups/posteulen/` und wie man sie auf einem neuen Server importiert (10.14).
 6. **Updates** mit einem Befehl (16.3), Rückfall, was bei Problemen zu tun ist; dass jedes Update eine Systemnachricht an alle Konten schickt und alle Konten alle 5 Wochen eine Spendenbitte bekommen. Gutscheine (13, v0.7).
 7. Logs ansehen (`journalctl`), häufige Fehler und ihre Lösung.
 8. Optional: IP-Freigabeliste für das Adminpanel; eigener ntfy-Server für UnifiedPush.
@@ -894,8 +962,8 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 - Küken: Flug 1 h/1 h mit Wasser-Regel, Verschenkpflicht, Losentscheid (ohne Begleitbrief), ohne aktive Kontakte alle behalten, Erwachsenwerden.
 - Gold: Zehntel-Arithmetik; Überweisungsgrenzen (Rest > 10,0, max. 20,0); keine negativen Stände; tägliches Gold nur für aktive Konten; Idempotenz (Job läuft zweimal ⇒ Gold nur einmal).
 - Begleitbriefe: Zustellung zusammen mit Gold, geschenkter Eule bzw. Küken; beim Umkehren (eigene Eule, Leiheule, geschenkte Eule, Küken) nicht zugestellt.
-- Goldsendungen der Bots: Tante 4,0 nach 2 Tagen, Onkel 10,0 nach 21 Tagen, jeweils nur einmal (Idempotenz); Zustellung auch an inaktive Konten; entfernter Bot ⇒ keine Sendung bzw. Eule samt Gold verschwindet.
-- Bot-Eulen: Tante und Onkel 30 km/h, Erklärbär 200 km/h; der Tag-0-Brief des Erklärbärs ist bei der Registrierung sofort zugestellt.
+- Bots des Kontrollzentrums (v0.8, `backend/test/v080.test.ts`): Entwurf → Aktivierung nur vollständig; Wohnort weltweit nur an Land; eindeutige Namen gegenüber Bots und Konten; Event an alle Spieler genau einmal (auch nach erneutem Ereignis), Erstkontakt- und Folgevariante je Sprache, Sichtbarkeit erst mit dem ersten Brief, neue Spieler bekommen alte Events nicht; eigene Bot-Eule: nächster Brief wartet auf die Rückkehr, Antwort mit der rastenden Eule, keine Pflege; ohne KI geht der geplante Brief unverändert, spontane Antworten warten; Löschen atomar mit Systemnachricht nur an Kontakte; „Alle Bots entfernen“ hält künftige Bots fern; Bilder normalisiert ohne Metadaten, nur für Empfänger abrufbar; Gold- und Eulengeschenke; Export/Import ergänzt nur, vergangene Events nie erneut; KI-Test speichert nichts; Zugang zum Kontrollzentrum mit eigenem Passwort, Pflichtwechsel und 12 Stunden Ablauf; Abbau von Tante und Onkel (Anhang T).
+- Erklärbär-Eulen 200 km/h; der Tag-0-Brief des Erklärbärs ist bei der Registrierung sofort zugestellt.
 - Menagerie: 4 Arten (nie der Phönix), jede einmal pro Angebotstag (am nächsten Tag alle neu leihbar), Verfall nach 24 Stunden ohne Erstattung; vier verschiedene Namen je Nutzer und Tag; Leihen beim Absenden aus der Eulenwahl (exakte Vorschau, nichts gebucht ohne Absenden, Ablehnung nicht angebotener oder schon geliehener Arten).
 - Pflegebonus nach 9.3: Reisetage werden übersprungen, Tage mit weniger als einer Stunde zu Hause zählen nicht, genau eine Stunde zählt; nur ab Besitzbeginn; Pflegetage und Abwesenheiten werden beim Füttern/Streicheln bzw. bei Abflug, Eulenarzt, Menagerie und Heimkehr erfasst und nach 60 Tagen gelöscht.
 - Umzüge: drei pro Kalendermonat, der vierte wird abgelehnt, im neuen Monat wieder drei.
@@ -906,7 +974,7 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 ### 17.3 Berechtigungen und Eingaben
 - Für jeden Endpunkt: fremde Objekte sind weder lesbar noch änderbar; Nicht-Kontakte, inaktive und gelöschte Konten sind nicht adressierbar; Admin-Endpunkte sind für Nutzer gesperrt und umgekehrt; Rate-Limits greifen.
 - Property-based Tests (fast-check) für alle Schemas mit zufälligen und bösartigen Eingaben.
-- Namens-Normalisierung (7.1): alle Beispiele aus 7.1, die Verwechslungsregeln, reservierte Namen und die Regel zu „Tante“ und „Onkel“ als erstem Wort.
+- Namens-Normalisierung (7.1): alle Beispiele aus 7.1, die Verwechslungsregeln, reservierte Namen (v0.8 ohne „Tante“/„Onkel“) als erstem Wort.
 - Version 0.6.1 (`backend/test/v061.test.ts`, `shared/test/links.test.ts`): gleichzeitige Anmeldungen mit einer Captcha-Lösung umgehen die Wartezeit nicht; volle Zählertabellen verlieren die Zähler angegriffener Konten nicht; erfolgreiche Anmeldungen zählen nicht als Fehlversuche der IP; ungültige OPAQUE-Nachrichten ergeben 400 ohne Eintrag im Fehlerprotokoll; unbrauchbare Registrierungsdatensätze und Schlüssel werden abgelehnt; Passwortwechsel beendet Live-Verbindungen; Push-Grenze je Konto; zusammengefasste Fehlerprotokoll-Einträge; Aufräumen abgelaufener Sitzungen; erweiterte SSRF-Sperrliste; Anzeige verkleideter Links.
 
 ### 17.4 Ende-zu-Ende (Playwright)
@@ -920,6 +988,7 @@ Alle Tests laufen mit einem Befehl. Eine Stufe ist erst fertig, wenn alle Tests 
 - Version 0.6: Layout in mehreren Breiten (seit v0.7.1 vier: 320, 390, 768 und 1440 px; vorher acht von 320 bis 1920 px), Deutsch und Englisch, angemeldet mit langen Namen und Eulen in vielen Zuständen (Leiheule, kranke Eule mit allen Knöpfen, Gelege): keine Seite scrollt seitlich, kein Element ragt aus dem Fenster oder aus seiner Box (`e2e/layout.spec.ts`, in Chromium und WebKit).
 - Version 0.6.1 (`e2e/v061.spec.ts`): ein Link mit kyrillischem Buchstaben im Host erscheint in Punycode mit Warnhinweis; nach dem Abmelden und Anmelden eines anderen Kontos im selben Tab (ohne Neuladen) zeigt das Adressbuch nichts aus dem Kontakt-Tresor des vorigen Kontos.
 - Version 0.7.2 (`e2e/bots.spec.ts`, `backend/test/v072.test.ts`, `bots.test.ts`, `v07.test.ts`): Bots fehlen im Adressbuch und werden über den Briefwechsel angeschrieben; „Tante … entfernen“ im Chat und „Alle Bots entfernen“ in den Einstellungen; entfernte Bots kommen nach einem Neustart nicht wieder; ein Brief, der beim Verbrennen noch unterwegs war, ist nach der Ankunft sichtbar und ungelesen; Heimkehr ohne Systemnachricht, mit Eintrag in `homecomings` (Zahl der Antwortbriefe) und Löschen nach dem Einblenden; Geschlecht gleich verteilt (20 000 Würfe, Abweichung unter 1,6 Prozentpunkten).
+- Version 0.8 (`e2e/v080.spec.ts`): Bots-Kontrollzentrum mit Erstpasswort und Pflichtwechsel, Umschalten auf Englisch, Bot anlegen (Bestätigung), Einstellungen, Aktivieren, Event mit Bild und Vorschau, der Brief kommt beim Spieler mit Bild an, das Archiv zählt ihn, Löschen mit eingetipptem Namen und Systemnachricht beim Spieler; Barrierefreiheit der Anmeldeseite des Kontrollzentrums (`stage6.spec.ts`).
 - Ansichten seit v0.7.1 in zwei Profilen: Chromium (Desktop) und WebKit (Handy, iPhone); Chromium auf dem Handy nur für Screenshots und README-Bilder auf Anfrage. (Bis v0.7.0 vier Profile mit Firefox und Chromium-Handy.)
 - CSP und Sicherheits-Header sind vorhanden.
 
@@ -946,7 +1015,7 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 - **2 – Kontakte und Briefe:** Koppeln, Kontakt-Tresor, Sicherheitsnummer, Schlüsselwarnung, Briefwechsel inkl. Pergament, Mehrfachempfänger, Lesebestätigungen, Chat löschen, Systemchat, PWA, Push inkl. Verifikation, SSE. Die Zustellung läuft in dieser Stufe vorläufig mit einer Platzhalter-Eule und vereinfachter fester Flugzeit; echte Eulen und Flüge folgen in Stufe 3.
 - **3 – Eulen, Flug, Karte, Gold:** Kauf, Bilder inkl. Einblendungen (Abflug, Ankunft, Füttern, Streicheln), Energie, Füttern/Streicheln, Flugplanung, Umkehren, Umzug, Karte mit Tag/Nacht, Finanzübersicht, Überweisungen mit Begleitbrief, Eulengeschenke mit Begleitbrief.
 - **4 – Restliche Spielmechanik:** Leiheulen, Verleih an die Menagerie, Krankheiten inkl. Schutzfrist und grummeligem Bild, Küken inkl. Begleitbrief, Inaktivität, automatische und manuelle Kontolöschung vollständig, Namens- und Wohnortwechsel; Adminpanel: Statistik, Löschfrist, Rundnachricht.
-- **5 – Bots:** Erklärbär, Tante, Onkel, feste Briefe, Goldsendungen von Tante und Onkel, KI-Anbindung, Zusammenfassungen, Kostenlimit; Adminpanel: OpenAI-Einstellungen.
+- **5 – Bots:** Erklärbär mit festen Briefen und KI-Antworten; Bots des Kontrollzentrums mit Events, eigenen und Leiheulen, KI-Anpassung, Bildern, Statistik, Export/Import und dem Kontrollzentrum `bots.<domain>` (10); Zusammenfassungen, Kostenlimits; Adminpanel: OpenAI-Einstellungen.
 - **6 – Abschluss:** Hilfe, Datenschutzerklärung, Impressum, Design-Feinschliff, Prüfung von Barrierefreiheit und Graustufen, Installationsanleitung final; Installation, Update von Stufe 5, Rückfall und Wiederherstellung aus einem Backup auf einem frischen Debian 13 (VM oder Container) komplett durchgespielt, Sicherheits-Review entlang Abschnitt 6 mit Ergebnisbericht. Ergebnis: Version 0.1.0.
 - **Version 0.2:** Änderungen nach Anhang F, Update von 0.1.0 im VM-Test, Einarbeitung aller Entscheidungen in diese Spezifikation. Ein Release ohne Zwischenstufen; das Tag `v0.2.0` signiert der Auftraggeber.
 - **Version 0.3:** Änderungen nach Anhang G, Update von 0.2.0 im VM-Test, Einarbeitung aller Entscheidungen in diese Spezifikation. Ein Release ohne Zwischenstufen; das Tag `v0.3.0` signiert der Auftraggeber.
@@ -963,8 +1032,7 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Tägliches Gold | 03:00 UTC (v0.7; vorher 15:00), nur aktive Konten: 3,0 in den ersten 30 Tagen ab Registrierung (Registrierungstag + 29 Tage), danach 2,0 (v0.4) |
 | Aufpreis großes Pergament | 0,1 pro Versand |
 | Begleitbrief | nur bei Gold-, Eulen- und Kükensendungen; kleines Pergament, kostenlos |
-| Goldgeschenk der Tante | 4,0 Gold, 2 Tage nach Registrierung |
-| Erbe vom Onkel | 10,0 Gold, 21 Tage nach Registrierung |
+| Goldgeschenk eines Bots (Event) | 0,1–100 Gold pro Spieler (v0.8) |
 | Zeichen klein / groß | 800 / 15 000 |
 | Padding klein / groß | 4 096 / 65 536 Byte (große Briefe vor v0.3: 16 384 Byte, weiter lesbar) |
 | Empfänger pro Brief | max. 5, auch mit Leiheule (seit v0.4); Gold an 1; keine Bots im Mehrfachversand |
@@ -1013,16 +1081,22 @@ Nach jeder Stufe (auch nach P) stoppt der Agent, berichtet und wartet auf Feedba
 | Gutschein (v0.7) | Gold 0,1–100,0 oder eine Eule; einmal einlösbar; 90 Tage gültig |
 | Leiheulen-Sperre (v0.7) | Arten und Namen nicht an den 2 Folgetagen (Namen in 3 Gruppen nach Tagesnummer) |
 | Transaktionsliste | letzte 20 |
-| Bot-Eulen | Tante/Onkel 30 km/h und 3 000 Energie; Erklärbär 200 km/h und unbegrenzte Energie |
+| Bot-Eulen | Erklärbär 200 km/h und unbegrenzte Energie; Bots des Kontrollzentrums: Werte ihrer Art × Motivation 0,5–20, Rast 0–168 Stunden (v0.8) |
 | Bot-Antwort | 2 h nach Ankunft; max. 500 Zeichen |
 | Schreibsperre je Bot | 24 h seit letztem Versand |
 | KI-Wiederholung bei Fehler | alle 24 h |
 | KI-Tageslimit | 200 Aufrufe (einstellbar) |
 | Bot-Gedächtnis | Zusammenfassung ≤ ca. 250 Wörter + letzte 6 Briefe |
 | Erklärbär-Briefe | Tag 0 (bei Registrierung sofort zugestellt), 1, 2, 3, 4, 7 |
-| Erster Brief der Tante | 5 min nach Registrierung (fester Zeitpunkt) |
 | Spendenbitte | alle 35 Tage ab Registrierung, 3 Texte reihum, https://ko-fi.com/posteulen |
-| Erster Brief des Onkels | 14 Tage nach Registrierung |
+| Briefe an einen Bot | einer pro Kalendertag (UTC) und Bot, auch an den Erklärbär (v0.8) |
+| Antwortlänge | Erklärbär höchstens 500 Zeichen; andere Bots ohne feste Grenze (höchstens großes Pergament) |
+| KI-Tageslimits | Erklärbär 200, Bots des Kontrollzentrums zusammen 500 (Standard) |
+| Spontane Antwort eines Bots | nur ohne Brief-Event in den nächsten 28 Tagen, 2 Stunden nach Ankunft |
+| Bilder je Bot-Brief | höchstens 2; Upload JPEG/PNG/WebP bis 2 MB, gespeichert als WebP bis 1 600 px |
+| Sitzung im Bots-Kontrollzentrum | 12 Stunden ohne Aktivität |
+| Bot-Namen | 3–20 Zeichen, Regeln der Nutzernamen, eindeutig unter Bots und Konten |
+| Export/Import | ZIP bis 64 MB, höchstens 2 000 Dateien; Format `posteulen-bots` Version 1 (Anhang S) |
 | Wohnort Erklärbär | 52,520° N, 13,405° O |
 | Kartenausschnitt (Wohnorte) | 10,7° W – 24,0° O, 35,8° N – 60,6° N; Karte seit v0.7 weltweit (Equal Earth, Mittelmeridian 10° O) |
 | Land/Wasser-Maske | ca. 0,02° |
@@ -1105,7 +1179,9 @@ Bildnamen und Bildkennungen beginnen mit einem Großbuchstaben, enthalten keine 
 - Schlüsselwarnung für einen Kontakt (5.7)
 - Brief, Gold oder Geschenk nicht zugestellt – die Eule ist umgekehrt (v0.7 auch für Antwortbriefe an Bord einer rastenden Eule)
 - Leiheule hat Antwortbriefe gebracht und fliegt zurück in die Menagerie (v0.7)
-- Gold angekommen (Betrag, von wem – auch von Tante und Onkel)
+- Gold angekommen (Betrag, von wem – auch von einem Bot)
+- Eule von einem Bot geschenkt (v0.8, `bot_owl_gift`; die Eule wartet auf ihren Namen)
+- Ein Bot wurde gelöscht (v0.8, `bot_deleted`, nur an Spieler, die Kontakt zu ihm hatten)
 - Eule oder Küken geschenkt bekommen
 - Eule ist krank geworden / wieder gesund
 - Eule hat Eier gelegt
@@ -1137,9 +1213,7 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 
 ## Anhang E – Namen für Bots
 
-**Männer (Onkel):** Alexander, Maximilian, Lukas, Leon, Paul, Felix, Jonas, Noah, David, Daniel, Thomas, Michael, Andreas, Martin, Stefan, Peter, Christian, Sebastian, Julian, Florian, Simon, Benjamin, Samuel, Gabriel, Oliver, William, James, George, Jack, Harry, Louis, Arthur, Hugo, Lucas, Matteo, Marco, Luca, Giovanni, Antonio, Francesco, Lorenzo, Alessandro, Carlos, Miguel, Javier, Diego, Pablo, Jan, Erik, Adam
-
-**Frauen (Tante):** Emma, Sophia, Sofia, Emilia, Mia, Anna, Hannah, Lina, Lena, Laura, Julia, Sarah, Marie, Maria, Sophie, Charlotte, Clara, Ella, Mila, Isabella, Olivia, Amelia, Emily, Alice, Grace, Lily, Lucy, Victoria, Elizabeth, Catherine, Louise, Camille, Chloé, Manon, Léa, Giulia, Chiara, Francesca, Alessia, Valentina, Martina, Elena, Lucia, Carmen, Paula, Alba, Sara, Nora, Eva
+Entfällt seit v0.8: Die Namenslisten der früheren Verwandten-Bots sind mit ihnen entfernt (Anhang T). Bots des Kontrollzentrums bekommen ihren Namen im Kontrollzentrum (10.6).
 
 ---
 
@@ -1173,7 +1247,7 @@ Nur allgemein gebräuchliche, historische oder mythologische Vornamen; Namen, di
 | Systemnachrichten | Heimkehr einer Eule mit Tag-/Nacht-Bild und Push; Spendenbitte alle 5 Wochen (3 Texte reihum, ko-fi.com/posteulen); Update-Nachricht an alle Konten bei jeder neuen Version | 8.4, 11.2, Anhang C |
 | Eulenübersicht | Leiheulen und eigene Eulen unter getrennten Überschriften (Leiheulen oben); Flugbild bei Tag/Nacht, leere Stange in der Menagerie; Freilassen nur mit eingetipptem Namen und zweiter Bestätigung | 8.5, 9.2.6, 9.2.8 |
 | Menagerie | Leiheulen oben; Kaufeulen nach Preis sortiert, mit Beschreibung; lange Namen umbrechen sauber | 8.7 |
-| Bots | Erklärbär erst auf der Karte, wenn man ihm geschrieben hat; Tante erst mit ihrem ersten Brief nach 5 Minuten; neuer Erklärbär-Brief zum Startbildschirm (Tag 1, Eulen-Brief an Tag 3); Hinweis zur Antwortzeit im Bot-Chat entfällt | 8.8, 10.2, 10.3, 12.1 |
+| Bots | Erklärbär erst auf der Karte, wenn man ihm geschrieben hat; weitere Bots erst mit ihrem ersten Brief; neuer Erklärbär-Brief zum Startbildschirm (Tag 1, Eulen-Brief an Tag 3); Hinweis zur Antwortzeit im Bot-Chat entfällt | 8.8, 10.2, 10.3, 12.1 |
 | Karte | Bisherige Flugstrecke als dünne dunkelbraune Linie mit „Zzz“ an Übernachtungsorten; Aktualisierung alle 5 Minuten | 12.1 |
 | Statusleiste | Hinweis auf nicht eingerichtete Benachrichtigungen bis zur nächsten Anmeldung ausblendbar | 8.3 |
 | Startseite | Gruppenbild aller Eulen | 8.1 |
@@ -1248,14 +1322,15 @@ Seit v0.6 Teil der Spezifikation (vorher `ARCHITECTURE.md` und die technischen E
 | Komponente | Ordner | Aufgabe |
 |---|---|---|
 | Nutzer-PWA | `web/` | Svelte 5 + Vite (ohne SvelteKit), eigener History-Router; gesamte Client-Kryptografie, Kartenanzeige, Service Worker (`web/src/sw.ts`) |
-| Adminpanel | `admin/` | Svelte 5 + Vite, Oberfläche der Admin-API (13) |
-| Backend | `backend/` | Fastify, ein Node-Prozess mit zwei Listenern (Nutzer-API 127.0.0.1:3001, Admin-API 127.0.0.1:3002, getrennte Router, Cookies und Rate-Limits), `node:sqlite`, Migrationen, Ereignis-Warteschlange, Spielregeln, Bots, Push, CLI (`backend/src/cli.ts`: `setup`, `migrate`, `check`, `admin-init`, `admin-reset`, `caddyfile`, `backup`, `version`, `schema-version`) |
-| Shared | `shared/` | Konstanten (Anhang A), Arten (B), Namen (D, E), Texte je Sprache, Valibot-Schemas, Krypto-Formate, reine Spiellogik (`shared/src/game/`), Karte und Land/Wasser-Maske, Sicherheits-Header, Version |
+| Adminpanel | `admin/` | Svelte 5 + Vite, Oberfläche der Admin-API (13); v0.8 gemeinsame Bausteine für beide Panels: Anmeldung (`lib/auth.ts`), API (`lib/api.ts`, einstellbarer Leerlauf), Sprache (`lib/i18n.svelte.ts`, `LanguageSwitch.svelte`), `PasswordForm.svelte` |
+| Bots-Kontrollzentrum | `bots/` | v0.8: Svelte 5 + Vite, Oberfläche der Bots-API (10.12); nutzt die Bausteine aus `admin/src` und die Kartendaten aus `web/src/lib/map/world.json` |
+| Backend | `backend/` | Fastify, ein Node-Prozess mit drei Listenern (Nutzer-API 127.0.0.1:3001, Admin-API 127.0.0.1:3002, v0.8 Bots-API 127.0.0.1:3003; getrennte Router, Cookies und Rate-Limits), `node:sqlite`, Migrationen, Ereignis-Warteschlange, Spielregeln, Bots, Push, CLI (`backend/src/cli.ts`: `setup`, `migrate`, `check`, `admin-init`, `admin-reset`, `bots-init`, `bots-reset`, `bots-export --out`, `bots-import --file [--apply]`, `caddyfile`, `backup`, `version`, `schema-version`); v0.8 Bots des Kontrollzentrums in `backend/src/central/` (Modell, Flüge, Läufer, Events, Admin-Funktionen, Bilder, ZIP, Export/Import, Routen), gemeinsame Panel-Anmeldung `backend/src/admin/panel-auth.ts`, Abbau der Verwandten-Bots `backend/src/bots/relatives.ts` |
+| Shared | `shared/` | Konstanten (Anhang A), Arten (B), Namen (D, E), Texte je Sprache, Valibot-Schemas, Krypto-Formate, reine Spiellogik (`shared/src/game/`), Karte und Land/Wasser-Masken (v0.8 zusätzlich `shared/data/worldmask.bin`), Sicherheits-Header, Version |
 | Betrieb | `deploy/` | `install.sh`, `posteulen-update` → `update.sh` + `update-steps.sh` (Schritte der neuen Version), `configure.sh`, `backup.sh`, `posteulen-cli`, systemd-Units, `allowed_signers`, VM-Test (`deploy/test/`) |
 | Werkzeuge | `tools/map/`, `scripts/` | Kartendaten und Hintergrundbild aus Natural Earth (ohne Abhängigkeiten, nur Entwicklungsrechner); `npm start`, `npm run dev`, `npm test`, `npm run deps:report` |
 
-- Das Backend läuft ohne Build-Schritt als TypeScript per Type-Stripping (`erasableSyntaxOnly`, Typprüfung `tsc --noEmit`); gebaut werden nur `web/` und `admin/`. Statische Dateien liefert Caddy direkt aus `current/web/dist` bzw. `current/admin/dist`; Caddy leitet `posteulen.de/api/*` an 3001 und `admin.<domain>/api/*` an 3002.
-- Lokale Vorschau ohne Server (`npm start`, `backend/src/dev/preview.ts`): liefert die gebauten Seiten mit denselben Sicherheits-Headern, Admin-Erstpasswort in `data/admin-erstpasswort.txt`. Nur für automatische Tests gibt es gelockerte Rate-Limits (`POSTEULEN_PREVIEW_RELAXED_LIMITS`) und einen Zeitraffer für Flüge (`POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE`); beides ist auf Servern nie gesetzt.
+- Das Backend läuft ohne Build-Schritt als TypeScript per Type-Stripping (`erasableSyntaxOnly`, Typprüfung `tsc --noEmit`); gebaut werden nur `web/`, `admin/` und (v0.8) `bots/`. Statische Dateien liefert Caddy direkt aus `current/web/dist`, `current/admin/dist` bzw. `current/bots/dist`; Caddy leitet `posteulen.de/api/*` an 3001, `admin.<domain>/api/*` an 3002 und `bots.<domain>/api/*` an 3003.
+- Lokale Vorschau ohne Server (`npm start`, `backend/src/dev/preview.ts`): liefert die gebauten Seiten mit denselben Sicherheits-Headern, Admin-Erstpasswort in `data/admin-erstpasswort.txt`, v0.8 das des Kontrollzentrums in `data/bots-erstpasswort.txt` (Kontrollzentrum auf http://localhost:8082). Nur für automatische Tests gibt es gelockerte Rate-Limits (`POSTEULEN_PREVIEW_RELAXED_LIMITS`) und einen Zeitraffer für Flüge (`POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE`); beides ist auf Servern nie gesetzt.
 
 ### L.2 Krypto-Formate
 
@@ -1301,16 +1376,17 @@ Sicherheitsnummer:
 
 **Server-Geheimnisse** (`/etc/posteulen/secrets.json`, `root:posteulen` 0640, einmalig von `posteulen-cli setup`, nie überschrieben): `{ format: 1, opaqueServerSetup, vapid: { publicKey, privateKey }, rootSecret }`. Ableitungen per HKDF-SHA256(rootSecret, info) mit `PostEulen/server/<zweck>/v1` für `openai-key`, `name-lock`, `contact-request`, `loan-name`, `fake-credential`, `invite`, `altcha`, `backup-check` und (v0.7) `voucher` (Prüfsumme in `meta`, mit der Start, Update und Wiederherstellung erkennen, ob Geheimnis-Datei und Datenbank zusammengehören). Neue Schlüssel bekommen neue `info`-Strings; die Datei bleibt unverändert.
 
-### L.3 Datenmodell (SQLite, Schema-Version 16)
+### L.3 Datenmodell (SQLite, Schema-Version 17)
 
 `PRAGMA journal_mode = WAL; foreign_keys = ON; secure_delete = ON`; Schema-Version in `PRAGMA user_version`, Migrationen `backend/migrations/NNNN_*.sql` vorwärts, je in einer Transaktion. IDs nach außen: 128 Bit Zufall, base64url. Zeitpunkte: ms seit der Epoche (UTC); Tage: `TEXT 'YYYY-MM-DD'` (UTC); Gold: Zehntel; Koordinaten: Hundertstelgrad; Motivation: Zehntel.
 
 | Bereich | Tabellen (wichtige Felder) |
 |---|---|
-| Konten | `users` (Name und Vergleichsschlüssel, `created_on`, `state` active/deletion_pending/deleting, OPAQUE-Datensatz, öffentliche Schlüssel, Schlüsselpaket **E2E**, Wohnort, Umzüge je Monat, `name_changed_year`, `gold`, `last_active_date`, `inactivity_warned_on`, Kontaktanfragen je Tag, `letter_retention_days`, `letters_print`, `donation_count`, `language`, `feedback_sent_on` seit v0.7.1, `bots_created` seit v0.7.2) · `sessions` (nur SHA-256 des Tokens) · `push_subscriptions` · `notifications` (Push-ID = ID, `push_state`) · `name_locks` (HMAC) · `invite_codes` (HMAC + letzte 4 Zeichen) |
-| Kontakte, Briefe | `contact_requests` (HMAC-Ziel, `label` **E2E**) · `contacts` (`user_lo`/`user_hi`, Schlüsselwarnung je Seite) · `vault_entries` (**E2E**, Version steigt nur) · `chats` (Ungelesen-Zähler, Bot-Zusammenfassung im Klartext) · `letters` (Chiffrat und Wraps **E2E**, Klartext nur bei Bot-Briefen, `status` in_flight/delivered/returned, `read`, `unreadable`, `sender_has`/`recipient_has` als „eigene Kopien“, `arrival_seen`, Momentaufnahme `owl_name`/`owl_species`) · `system_messages` (Typ + Parameter, `arrival_image`, `seen`, `arrival_shown`; lange Texte stehen in `shared/src/texts/messages.ts`) · `homecomings` (v0.7.2: noch nicht eingeblendete Heimkehr eigener Eulen – Eulenname, Art, Zahl der Antwortbriefe, Zeitpunkt; gelöscht nach dem Einblenden, spätestens nach 60 Tagen) |
-| Eulen, Flüge, Gold | `owls` (`kind` own/loan/bot, `state` home/flying/gift_flight/sick/self_care/vet/brooding/menagerie, Energie mit Zeitstempel, Küken- und Gelege-Felder, `owned_since`, Pflege-Tage je Art `fed_on`/`petted_on`/`watered_on`/`snacked_on`, `motivation`, `cared_at`, `pending_sickness`, `loan_expires_at`) · `owl_care_days`, `owl_away` (Pflegebonus, je 60 Tage) · `clutches` · `flights` (Profil mit `ownUnits` seit v0.7, Route mit Status je Halt – `pending`/`resting`/`done`/`skipped`, Rast `rest` und `restUntil` je Halt seit v0.7 –, Segmentliste als JSON mit den Arten `fly`, `sleep`, `rest` (v0.7) und `stop`, Gold und `gold_state`) · `transactions` (letzte 20) · `menagerie_offers` · `loan_days` |
-| Bots | `bots` (Art, Vorname, Wohnort, `in_addressbook` = „bekannt“: in Chatliste und Karte sichtbar – seit v0.7.2 nicht mehr im Adressbuch –, letzter Nutzerbrief, gesendete feste Briefe) · `bot_shipments` (Bot-Lieferungen unterwegs) · `bot_jobs` (fällige KI-Antworten) · `ai_usage` |
+| Konten | `users` (Name und Vergleichsschlüssel, `created_on`, `state` active/deletion_pending/deleting, OPAQUE-Datensatz, öffentliche Schlüssel, Schlüsselpaket **E2E**, Wohnort, Umzüge je Monat, `name_changed_year`, `gold`, `last_active_date`, `inactivity_warned_on`, Kontaktanfragen je Tag, `letter_retention_days`, `letters_print`, `donation_count`, `language`, `feedback_sent_on` seit v0.7.1, `bots_created` seit v0.7.2, `bots_disabled` seit v0.8) · `sessions` (nur SHA-256 des Tokens) · `push_subscriptions` · `notifications` (Push-ID = ID, `push_state`) · `name_locks` (HMAC) · `invite_codes` (HMAC + letzte 4 Zeichen) |
+| Kontakte, Briefe | `contact_requests` (HMAC-Ziel, `label` **E2E**) · `contacts` (`user_lo`/`user_hi`, Schlüsselwarnung je Seite) · `vault_entries` (**E2E**, Version steigt nur) · `chats` (Ungelesen-Zähler, Bot-Zusammenfassung im Klartext) · `letters` (Chiffrat und Wraps **E2E**, Klartext nur bei Bot-Briefen, v0.8 `media` (Bild-IDs, JSON) und `bot_event_id` bei Briefen von Bots des Kontrollzentrums, `status` in_flight/delivered/returned, `read`, `unreadable`, `sender_has`/`recipient_has` als „eigene Kopien“, `arrival_seen`, Momentaufnahme `owl_name`/`owl_species`) · `system_messages` (Typ + Parameter, `arrival_image`, `seen`, `arrival_shown`; lange Texte stehen in `shared/src/texts/messages.ts`) · `homecomings` (v0.7.2: noch nicht eingeblendete Heimkehr eigener Eulen – Eulenname, Art, Zahl der Antwortbriefe, Zeitpunkt; gelöscht nach dem Einblenden, spätestens nach 60 Tagen) |
+| Eulen, Flüge, Gold | `owls` (`kind` own/loan/bot, `state` home/flying/gift_flight/sick/self_care/vet/brooding/menagerie, Energie mit Zeitstempel, Küken- und Gelege-Felder, `owned_since`, Pflege-Tage je Art `fed_on`/`petted_on`/`watered_on`/`snacked_on`, `motivation`, `cared_at`, `pending_sickness`, `loan_expires_at`) · `owl_care_days`, `owl_away` (Pflegebonus, je 60 Tage) · `clutches` · `flights` (v0.8: `holder_kind` user/bot und `bot_peer_id` – Flüge der Bots des Kontrollzentrums, `holder_id` ohne Fremdschlüssel; Profil mit `ownUnits` seit v0.7, Route mit Status je Halt – `pending`/`resting`/`done`/`skipped`, Rast `rest` und `restUntil` je Halt seit v0.7 –, Segmentliste als JSON mit den Arten `fly`, `sleep`, `rest` (v0.7) und `stop`, Gold und `gold_state`) · `transactions` (letzte 20) · `menagerie_offers` · `loan_days` |
+| Erklärbär | `bots` (je Konto, seit v0.8 nur Typ `explainer` – ein Trigger lehnt andere ab; Wohnort, `in_addressbook` = „bekannt“, letzter Nutzerbrief, gesendete feste Briefe) · `bot_shipments` (seine Lieferungen unterwegs) · `bot_jobs` (fällige KI-Antworten) · `ai_usage` (je UTC-Tag und Kontingent `explainer`/`bots`, v0.8) |
+| Bots des Kontrollzentrums (v0.8) | `central_bots` (stabile ID, Name und `name_key` eindeutig, `state` draft/active/paused, `character`, Wohnort in Hundertstelgrad, `owl_mode` own/loan, `owl_species`, `owl_name`, `owl_sex`, `motivation` 5–200, `rest_hours` 0–168, `player_owls`) · `central_bot_media` (Bild als WebP-BLOB, SHA-256 eindeutig je Bot, Breite, Höhe) · `central_bot_events` (stabile ID, `due_at`, `state` planned/running/archived/skipped, Umzug, `has_letter`, Pergament, vier Texte `text_first_de/_en`, `text_follow_de/_en`, `context`, `owl_mode`, `gift_gold` oder `gift_species`, `media`, Start, Archiv, Zahlen `recipients`/`sent`/`delivered`/`read`/`replies`) · `central_bot_players` (je Bot und Spieler: `known`, `first_started`, `removed`, `last_letter_day`) · `central_bot_deliveries` (je Brief an einen Spieler: Event oder spontan, `state` pending/started/done/dropped, `not_before`, Versuche, Variante, Brief, Flug, `UNIQUE (event_id, user_id)`) · `central_bot_inbox` (Spielerbriefe: angekommen/beantwortet, Antwortbrief) · `central_bot_stats` (je Bot und UTC-Tag: abgeschickt, zugestellt, gelesen, Antworten) · `bots_admin`, `bots_admin_sessions` (Zugang des Kontrollzentrums) |
 | Betrieb | `scheduled_events` (`due_at`, `logical_at`, Typ, Referenz, Versuche) · `daily_job_runs` · `admin`, `admin_sessions` · `settings` (Registrierungsmodus, Löschfrist, OpenAI-Modell, Tageslimit, verschlüsselter Key) · `feedback` (v0.7.1: ID, Text, Eingang; ohne Absender) · `vouchers` (v0.7: HMAC, letzte 4 Zeichen, Art `gold`/`owl`, Gold in Zehnteln bzw. Art oder `random`, Ablauf, `redeemed`; ohne Einlöser) · `broadcasts` · `error_log` (`count`, `last_at` seit v0.6.1: Zusammenfassen gleicher Meldungen) · `stats_counters`, `stats_daily` · `meta` (`secrets_fingerprint`, `notes_version`) |
 
 Nur im Arbeitsspeicher (gewollt, ein Neustart verwirft sie): Registrierungs-Reservierungen, OPAQUE-Zustände, Re-Authentifizierungs- und Vorbereitungs-Tokens, Fehlversuche je Name und IP bzw. /64, Rate-Limit-Zähler (je Tabelle höchstens 100 000 Einträge; beim Überlauf nie alles auf einmal löschen, 5.10), benutzte und gerade geprüfte ALTCHA-Lösungen, SSE-Verbindungen, Push-Warteschlange (nicht gesendete Pushes werden aus `notifications` bis 24 h lang erneut versucht).
@@ -1321,7 +1397,11 @@ Nur JSON; je Endpunkt ein strenges Valibot-Schema (`shared/src/schemas/`), ände
 
 **Nutzer-API** (`/api/…`): `health`, `version`, `session`, `me`, `sync`, `events` (SSE) · `altcha/challenge`, `registration`, `register/start|finish`, `login/start|finish`, `logout`, `reauth/start|finish`, `password/start|finish` · `account/delete`, `account/name|home|letters|language` (PATCH) · `contacts` (GET; v0.7.2 zusätzlich `allBots`, die Zahl aller Bots des Kontos), `contacts/requests` (POST), `contacts/requests/:id` (DELETE), `contacts/:id` (DELETE, auch Bots), `bots/remove-all` (POST, v0.7.2), `contacts/:id/keys`, `contacts/:id/key-warning`, `vault` (GET), `vault/:contactId` (PUT) · `chats`, `chats/:peer/letters` (v0.7 je Brief `owl.carrier` own/loan/foreign und `owl.holderName`), `chats/:peer` (DELETE, „Alle Briefe verbrennen“), `letters/prepare|send|read|unreadable|arrival-seen` (v0.7: `rest` in Stunden; Eulen-Referenz `guest:<ID>` für Antworten mit einer rastenden Eule), `bot-letters/send`, `flights/preview` (v0.7: `rest`, `guests`) · `gold/prepare|send`, `finance`, `vouchers/redeem` (v0.7), `feedback` (POST, v0.7.1) · `owls` (GET; v0.7 zusätzlich `guests`), `owls/buy`, `owls/:id/name|water|pet|feed|snack|treat|menagerie|release`, `owls/:id/gift/prepare|send`, `clutches/:id/gift/prepare|send`, `menagerie` (GET), `menagerie/loan` · `map` · `news`, `news/seen`, `system-messages`, `system-messages/seen|arrival-shown`, `homecomings` (GET, v0.7.2), `homecomings/seen` (POST, v0.7.2) · `push/key`, `push/status`, `push/subscription` (PUT/DELETE), `push/test`, `push/ack` (ohne Sitzung, nur Push-ID; Hintergrundanfrage, zählt nicht als Aktivität).
 
-**Admin-API** (`admin.<domain>/api/…`, Cookie `__Host-pe_admin`): `session`, `login/start|finish`, `logout`, `password/start|finish` (Pflicht beim ersten Login), `stats`, `settings/registration`, `invites` (+ `invites/:id`), `settings/inactivity`, `openai` (+ `openai/key`, `openai/models`, `openai/settings`, `openai/test`), `broadcasts`, `errors` (+ `errors/:id`; Einträge mit `count` und `lastAt`, v0.6.1), `vouchers` (+ `vouchers/:id`, v0.7), `feedback` (+ `feedback/:id`, v0.7.1), `altcha/challenge`.
+**Bots-API** (v0.8, `bots.<domain>/api/…`, Cookie `__Host-pe_bots`): `session`, `login/start|finish`, `logout`, `me`, `reauth/start|finish`, `password/start|finish` (wie beim Admin, gemeinsamer Code `panel-auth.ts`) · `bots` (GET Übersicht mit Statistik, POST anlegen), `bots/:id` (GET), `bots/:id/settings` (PUT), `bots/:id/state` (POST active/paused), `bots/:id/delete` (POST mit Namen) · `bots/:id/events` (GET geplant und vergangen, POST), `bots/:id/events/:event` (PUT, DELETE) · `bots/:id/media` (POST, Rohdaten `image/jpeg|png|webp`), `media/:id` (GET) · `bots/:id/ai-test` (POST) · `owls` (GET Karte) · `export` (POST, ZIP aller Bots), `bots/:id/export` (POST, optional `eventIds`), `import/preview` und `import` (POST, Rohdaten `application/zip`, optional `?target=<Bot-ID>`), `altcha/challenge`.
+
+Neu in der Nutzer-API (v0.8): `bot-media/:id` (GET, nur mit einem zugestellten Brief, der das Bild enthält); `bot-letters/send` nimmt auch `guest:<Flug-ID>` (Antwort mit der rastenden Bot-Eule); `contacts` liefert `bots` mit `type` explainer/central, `playerOwls`, `writableFrom` und `botsDisabled`; `chats/:peer/letters` liefert `media`.
+
+**Admin-API** (`admin.<domain>/api/…`, Cookie `__Host-pe_admin`): `session`, `login/start|finish`, `logout`, `password/start|finish` (Pflicht beim ersten Login), `stats`, `settings/registration`, `invites` (+ `invites/:id`), `settings/inactivity`, `openai` (+ `openai/key`, `openai/models`, `openai/settings` mit `botsDailyLimit` seit v0.8, `openai/test`), `broadcasts`, `errors` (+ `errors/:id`; Einträge mit `count` und `lastAt`, v0.6.1), `vouchers` (+ `vouchers/:id`, v0.7), `feedback` (+ `feedback/:id`, v0.7.1), `altcha/challenge`.
 
 Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Jede nicht ausdrücklich öffentliche Route liefert ohne Sitzung 401, und ändernde Routen ohne Nutzdaten lehnen jeden anderen Inhalt ab.
 
@@ -1329,8 +1409,9 @@ Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Je
 
 - Ein Worker im Serverprozess: nächstes `MIN(due_at)` lesen, höchstens 1 Stunde schlafen, fällige Ereignisse in Reihenfolge (`due_at`, `id`) je in `BEGIN IMMEDIATE … COMMIT` ausführen; Handler und Löschen des Ereignisses in derselben Transaktion, jeder Handler prüft zusätzlich den Zustand (Idempotenz). SSE-Hinweise und Push-Aufträge erst nach dem Commit (`tools.after`). Fehler: Rollback, Versuch +1, späterer Termin bei gleicher logischer Zeit, Eintrag im Fehlerprotokoll.
 - Handler bekommen `logical_at` als Uhr (Nachholen nach Ausfällen). Neue frühere Ereignisse wecken den Worker.
-- Ereignistypen: `flight_stop` (ein Ereignis je Halt eines Flugs), `flight_rest_end` (v0.7: Ende einer Rast beim Empfänger), `deliver`, `bot_deliver`, `bot_letter`, `bot_gold`, `bot_reply`, `treatment_end`, `hatch`, `clutch_names`, `clutch_gift`, `clutch_reminder`, `chick_adult`, `menagerie_end`, `loan_expire`, `donation`, `account_delete`, `account_purge`. Tägliche Jobs über `registerDaily` mit `daily_job_runs (job, day)`: `menagerie_offer` und `motivation` (00:00, Motivation mit Nachholen je Tag), `sickness` (03:00), `inactivity` (04:00, inkl. Aufräumen und Löschfristen), `daily_gold` (03:00 seit v0.7, mit Nachholen je Tag; danach SSE-Hinweis `profile` an alle verbundenen Konten). Ändert sich die Uhrzeit eines Tagesjobs, verlegt `ensureDailyJobs` beim Start den geplanten Lauf auf die neue Uhrzeit desselben Tages (v0.7).
-- Kontinuierliche Werte (Energie, Position) werden beim Lesen berechnet; KI-Aufrufe laufen außerhalb der Transaktionen (`bot_jobs` + Hintergrund-Läufer).
+- Ereignistypen: `flight_stop` (ein Ereignis je Halt eines Flugs), `flight_rest_end` (v0.7: Ende einer Rast beim Empfänger), `deliver`, `bot_deliver`, `bot_letter`, `bot_reply`, v0.8 `cbot_event` (Ausführung eines Events), `cbot_kick` (weckt den Läufer der Bots, z. B. wenn eine Bot-Eule zurück ist), `cbot_archive` (Archiv-Prüfung), `treatment_end`, `hatch`, `clutch_names`, `clutch_gift`, `clutch_reminder`, `chick_adult`, `menagerie_end`, `loan_expire`, `donation`, `account_delete`, `account_purge`. Tägliche Jobs über `registerDaily` mit `daily_job_runs (job, day)`: `menagerie_offer` und `motivation` (00:00, Motivation mit Nachholen je Tag), `sickness` (03:00), `inactivity` (04:00, inkl. Aufräumen und Löschfristen; v0.8 auch ungenutzte Bilder der Bots und abgelaufene Sitzungen des Kontrollzentrums), `daily_gold` (03:00 seit v0.7, mit Nachholen je Tag; danach SSE-Hinweis `profile` an alle verbundenen Konten). Ändert sich die Uhrzeit eines Tagesjobs, verlegt `ensureDailyJobs` beim Start den geplanten Lauf auf die neue Uhrzeit desselben Tages (v0.7).
+- Kontinuierliche Werte (Energie, Position) werden beim Lesen berechnet; KI-Aufrufe laufen außerhalb der Transaktionen (`bot_jobs` + Hintergrund-Läufer des Erklärbärs; v0.8 `central_bot_deliveries` + `CentralRunner` in `backend/src/central/runner.ts`, der Zustellungen nacheinander abarbeitet: Bot-Eule frei? → Text (mit KI-Anpassung) → Start in einer Transaktion).
+- **v0.8, Flüge der Bots:** Die Flug-Engine (`flights/service.ts`) kennt Bots nur über Hooks (`setCentralFlightHooks`): Zustellung beim Spieler, Rückkehr zum Bot (Antworten an Bord → `central_bot_inbox`), Briefe von Spielern beim Bot, Ende eines Bot-Flugs (Eule frei, Archiv). Beim Start (vor dem Worker) baut `removeRelatives` die Verwandten-Bots ab (Anhang T).
 
 ### L.6 Frontend
 
@@ -1345,6 +1426,8 @@ Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Je
 - Antwort mit der Gast-Eule (v0.7.1): `web/src/lib/reply.svelte.ts` merkt sich für den nächsten Chat die gewählte Gast-Eule (`Compose` mit `guestOwl`).
 - Begrüßung (v0.7): `Greeting.svelte` mit `zoneAt`, `localTime` und `dayPart` aus `shared/src/map/timezone.ts` (Daten `timezones-data.ts`, vom Kartenwerkzeug erzeugt).
 - Gast-Eulen und Rast (v0.7): `GuestOwl.svelte` in der Eulenübersicht; Rast-Auswahl und Gast-Eule in `Compose.svelte`/`OwlChoice.svelte`.
+- **v0.8, Kontrollzentrum (`bots/`):** `App.svelte` (Anmeldung, Pflichtwechsel, 12 Stunden Leerlauf über `setIdleTime`), `Overview.svelte`, `BotMap.svelte` (Weltkarte aus `world.json`, Equal Earth; Antippen wählt einen Ort), `ImportExport.svelte`, `BotPage.svelte` mit `PlannedEvents.svelte`/`EventForm.svelte`/`LetterPreview.svelte`, `PastEvents.svelte`, `BotSettingsForm.svelte`. Texte in `de.centre`/`en.centre`, Admin-Texte englisch in `en.admin` (bis v0.7.2 deutsch auch im englischen Teil).
+- **v0.8, Spieler-App:** Bilder unter Bot-Briefen (`/api/bot-media/:id`), `Compose` mit `guestOnly` (nur die rastende Bot-Eule), `GuestOwl` ohne Pflege bei Bot-Eulen, `BotSettings` mit `botsDisabled`, Systemnachrichten `bot_owl_gift` und `bot_deleted`.
 - Hilfe, Datenschutz, Impressum als strukturierte Daten (`help.ts`, `help-en.ts`, `legal.ts`, `legal-en.ts`), dargestellt von `TextPage.svelte`; `helpAsText(language)` ist die Wissensbasis des Erklärbärs.
 
 ### L.7 Betrieb auf Debian 13
@@ -1357,17 +1440,18 @@ Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Je
 | `/opt/posteulen/state` | Zustand der Skripte (z. B. vorige Version für `--rollback`) | aktualisiert |
 | `/var/lib/posteulen/posteulen.sqlite` | Datenbank (0700, Dienstbenutzer `posteulen`) | nur Migrationen |
 | `/var/lib/posteulen/snapshots` | unverschlüsselte Momentaufnahme vor Updates (für Rückfall), 7 Tage | neu je Update |
-| `/var/backups/posteulen` | `*.sqlite.age` täglich und vor Updates, 7 Tage | nie überschrieben |
+| `/var/backups/posteulen` | `*.sqlite.age` täglich und vor Updates, 7 Tage; v0.8 zusätzlich `posteulen-bots-*.zip` (Bot-Export, unverschlüsselt, 0600), 7 Tage | nie überschrieben |
 | `/etc/posteulen/secrets.json`, `backup.pub` | Geheimnisse, öffentlicher age-Schlüssel | nie (Ausnahme 4.4) |
-| `/etc/posteulen/posteulen.conf`, `service.env`, `local/` | Domain, Repository, Testmodus; lokale Anpassungen (z. B. Admin-Freigabeliste) | nur ergänzt bzw. nie |
+| `/etc/posteulen/posteulen.conf`, `service.env`, `local/` | Domain, Repository, Testmodus; lokale Anpassungen (z. B. Admin-Freigabeliste, `admin-*.caddy`, v0.8 `bots-*.caddy`) | nur ergänzt bzw. nie |
 | `/etc/caddy/Caddyfile`, systemd-Units, `/usr/local/sbin/posteulen-update`, `posteulen-cli` | erzeugt aus dem Release | neu erzeugt |
 
+- **v0.8:** `sharp` ist Laufzeitabhängigkeit des Backends (Bilder der Bots, 10.11) und bleibt nach `npm prune --omit=dev` erhalten. Update und Installation rufen nach den Migrationen `posteulen-cli bots-init` auf (legt den Zugang nur an, wenn keiner existiert). Die Funktionsprüfung prüft `bots.<domain>` nur mit einer Warnung. `backup.sh` schreibt nach der Datenbanksicherung den Bot-Export (`bots-export`, leichter Kontext ohne Worker, darf parallel zum Dienst laufen); scheitert er, bleibt die Sicherung gültig.
 - Paketquellen: NodeSource `node_26.x` und Caddy (Cloudsmith), beide `signed-by` mit geprüftem Fingerabdruck (`deploy/lib.sh`); `unattended-upgrades` auch für diese Quellen.
 - Update (`posteulen-update` → `update.sh`): Tag holen → Signatur und eingetragenen Tag-Namen prüfen (`verify_release_tag` in `deploy/lib.sh`, gegen `deploy/allowed_signers` der installierten Version; seit v0.6.1 Standard, abschaltbar nur mit `--no-verify-tags`; Tags haben Vorrang vor gleichnamigen Branches, `release_commit`) → `deploy/update-steps.sh` der neuen Version → `npm ci --ignore-scripts` und Build, während der alte Stand läuft → Sicherung (`VACUUM INTO` → age) und Momentaufnahme → Dienst stoppen → Migrationen → `current` umschalten, Units und Caddyfile neu → Start und Funktionsprüfung → bei Fehler automatischer Rückfall. Neueste Version nach SemVer (Vorabversionen vor der Version).
 - Der Server startet nicht mit einem neueren Schema als seinem eigenen und nicht, wenn die Prüfsumme der Geheimnis-Datei nicht zur Datenbank passt (`posteulen-cli check`).
 - Installation (`install.sh`): prüft die Signatur des zu installierenden Tags gegen `deploy/allowed_signers` des Klons und zeigt den Fingerabdruck (v0.6.1); `openssh-client` (für `ssh-keygen`) gehört zu den installierten Paketen.
 - Build auf dem Server (v0.7): `build_release` setzt `FONTCONFIG_FILE` auf die minimale Konfiguration `deploy/fontconfig/fonts.conf`. Die Bildbibliothek initialisiert beim Umrechnen des SVG-Logos fontconfig; auf einem frischen Debian 13 fehlt `/etc/fonts/fonts.conf`, was die harmlose Meldung „Fontconfig error: Cannot load default config file: File not found“ ausgab. Schriften braucht der Build nicht.
-- VM-Test (`npm run test:vm`, `deploy/test/`): offizielles Debian-13-Cloud-Image mit QEMU/KVM (Images unter `~/.cache/posteulen-vm`, nicht im Repository); Installation des vorigen Tags mit Testkonto und Brief, Update, zweiter Lauf, kaputtes Update mit Rückfall, `--rollback`, Wiederherstellung auf demselben Server und nach Totalausfall. Seit v0.6.1 signiert der Test seine Test-Tags mit einem eigenen Schlüssel (`~/.cache/posteulen-vm/vm_sign_key`) und prüft, dass ein unsigniertes und ein umbenanntes signiertes Tag abgelehnt werden.
+- VM-Test (`npm run test:vm`, `deploy/test/`): offizielles Debian-13-Cloud-Image mit QEMU/KVM (Images unter `~/.cache/posteulen-vm`, nicht im Repository); Installation des vorigen Tags mit Testkonto und Brief, Update, zweiter Lauf, kaputtes Update mit Rückfall, `--rollback`, Wiederherstellung auf demselben Server und nach Totalausfall. Seit v0.6.1 signiert der Test seine Test-Tags mit einem eigenen Schlüssel (`~/.cache/posteulen-vm/vm_sign_key`) und prüft, dass ein unsigniertes und ein umbenanntes signiertes Tag abgelehnt werden. Seit v0.8 prüft er außerdem, dass der Zugang zum Kontrollzentrum angelegt ist, `bots.<domain>` antwortet, sein Passwort beim Update unverändert bleibt und die tägliche Sicherung eine Bot-ZIP-Datei (0600) enthält.
 
 ### L.8 Tests
 
@@ -1381,6 +1465,7 @@ Ein Test (`backend/test/routes.test.ts`) liest alle Routen aus dem Quelltext: Je
 |---|---|
 | Datenbankdiebstahl | Briefe nur als Chiffrat; Schlüsselpaket hängt am `export_key`, der ohne OPRF-Schlüssel nicht berechenbar ist; Sitzungen nur als Hash; Einladungen, Namenssperren und Kontaktanfragen als HMAC; OpenAI-Key verschlüsselt; Backups mit age, privater Schlüssel nicht auf dem Server |
 | Neugieriger Admin | keine Nutzerliste, keine Briefe, keine Änderungsfunktionen; kein Login in Nutzerkonten; nur aggregierte Statistik |
+| Missbrauch des Kontrollzentrums (v0.8) | getrennter Origin, Port, Cookie, Passwort (OPAQUE) und Sitzungen; 12 Stunden Leerlauf; Pflichtwechsel des Erstpassworts; Reset nur per Konsole; zeigt keine Briefe, Namen oder Wohnorte von Spielern, nur Summen und Positionen von Bot-Eulen; Bilder werden neu kodiert (keine Metadaten, Pixel- und Größenlimit), ZIP-Import nur „stored“/„deflate“, ohne Verschlüsselung, Pfade ohne „..“, Anzahl- und Größenlimits, strenge Schemas; ein Import überschreibt nie und versendet nie Vergangenes |
 | Passwort-Raten, Konto-Aufzählung | OPAQUE + Argon2id auf dem Gerät; Wartezeiten und ALTCHA je Name und IP/64 im Arbeitsspeicher (Lösung genau einmal, auch bei gleichzeitigen Anfragen; Wartezeit nach der Captcha-Prüfung erneut geprüft; Zählertabellen beim Überlauf nie ganz geleert; Captcha-Zähler aus dem CSPRNG); deterministische Fake-Credential-IDs; gleiche Antworten bei Kontaktanfragen |
 | Sitzungsdiebstahl, CSRF | `__Host-`-Cookies (HttpOnly, Secure, SameSite=Strict), Einzel-Sitzung, Pflicht-Header, exakte Origin-Prüfung, kein CORS, getrennte Listener; Passwortwechsel beendet auch Live-Verbindungen; abgelaufene Sitzungen werden täglich gelöscht |
 | XSS, Injection | strikte CSP mit Trusted Types, kein `{@html}`, Text nur als Text, nur http(s)-Links; strenge Schemas, parametrisierte SQL-Anweisungen, Größenlimits |
@@ -1406,9 +1491,9 @@ Wartungsversion ohne neue Funktionen: gründliche Prüfung der App gegen diese S
 |---|---|---|
 | Statusleiste | Auf Handys bis 26 rem steht „Neue Post!“ in einer eigenen Zeile; vorher schoben ein dreistelliger Goldstand und „Neue Post!“ Goldanzeige und Fähnchen bei 320–390 px aus dem Fenster | 8.3 |
 | Layout | Lange Überschriften (Zierschrift) brechen um; Beschriftungen der unteren Leiste passen auf 320 px; neuer E2E-Test für acht Breiten in beiden Sprachen | 14, 17.4 |
-| Namen | Englische Bot-Namen reserviert (explainer bear, aunt, uncle, system messages, unknown; „Aunt …“/„Uncle …“ als erstes Wort) | 7.1 |
+| Namen | Englische Bot-Namen reserviert (explainer bear, system messages, unknown; v0.8 ohne die Verwandten-Bots) | 7.1 |
 | Systemnachricht | „Das Konto von [Name] wurde gelöscht.“ statt „[Name] hat sein Konto gelöscht.“ (gilt auch bei automatischer Löschung, geschlechtsneutral) | 7.7 |
-| Texte | Wohnort mit N/S und O/W statt Minuszeichen; Karte nennt „alle 5 Minuten“ (vorher fälschlich 10); Fehlermeldung „alle vier Leiheulen“ (vorher „drei“); „wieder fit ab …“/„erwachsen ab …“; Leckerli-Knopf mit Großbuchstaben; Hilfe ohne veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“, Onkel nach 14 Tagen, Sprache in den Einstellungen; Datenschutz nennt den ausgeblendeten Benachrichtigungs-Hinweis im lokalen Speicher; viele kleine Korrekturen de/en | 8, 8.11 |
+| Texte | Wohnort mit N/S und O/W statt Minuszeichen; Karte nennt „alle 5 Minuten“ (vorher fälschlich 10); Fehlermeldung „alle vier Leiheulen“ (vorher „drei“); „wieder fit ab …“/„erwachsen ab …“; Leckerli-Knopf mit Großbuchstaben; Hilfe ohne veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“, Sprache in den Einstellungen; Datenschutz nennt den ausgeblendeten Benachrichtigungs-Hinweis im lokalen Speicher; viele kleine Korrekturen de/en | 8, 8.11 |
 | Karte | Schlug das Laden der Land/Wasser-Maske einmal fehl (offline oder Seitenwechsel), blieb der Fehler bis zum Neuladen gespeichert; jetzt wird beim nächsten Tippen neu geladen | 12.3, 12.4 |
 | Technik | Request-Größen als Konstanten (`SECURITY.MAX_LETTER_REQUEST_BYTES` 512 KiB, `MAX_BOT_LETTER_REQUEST_BYTES` 128 KiB); SPEC-Text 6 korrigiert (stand dort noch 128 KiB) | 6, Anhang A |
 | Repository | Entfernt: Stufen-Screenshots (`docs/screenshots/`), `PROGRESS.md`, `SECURITY-REVIEW.md`, `ARCHITECTURE.md`, `DECISIONS.md` (Inhalt in Anhang L und N), Messseite `/messung`; `PROMPT.md` ist jetzt der Bauauftrag für den aktuellen Stand | 4.2, Anhang L |
@@ -1496,6 +1581,122 @@ Pflegeversion. Migration `0016_v072.sql` (Spalte `users.bots_created`, Tabelle `
 
 ---
 
+## Anhang S – Export- und Importformat der Bots (v0.8)
+
+**Datei:** ZIP (Verfahren „stored“ oder „deflate“, UTF-8-Namen, ohne Verschlüsselung, ohne ZIP64) mit
+- `bots.json` – die Beschreibung (UTF-8, JSON),
+- `media/<Bild-ID>.webp` – die Bilder (normalisiertes WebP, 10.11).
+
+Höchstens 64 MB und 2 000 Dateien; Pfade mit „..“, absolute Pfade und Backslashes werden abgelehnt. Geschrieben wird ohne Abhängigkeiten (`backend/src/central/zip.ts`, Deflate und CRC-32 aus `node:zlib`) mit festem Zeitstempel 1980-01-01, damit gleiche Inhalte gleiche Dateien ergeben.
+
+**`bots.json`** (geprüft mit `ExportFile` in `shared/src/schemas/bots.ts`):
+
+```json
+{
+  "format": "posteulen-bots",
+  "version": 1,
+  "exportedAt": "2026-11-09T12:00:00.000Z",
+  "bots": [
+    {
+      "id": "<22 Zeichen base64url>",
+      "name": "Kapitän Ahoi",
+      "state": "draft | active | paused",
+      "character": "Charakter und Hintergrund …",
+      "home": { "lat": 48.86, "lon": 2.35 },
+      "owl": {
+        "mode": "own | loan",
+        "species": "waldkauz",
+        "name": "Möwe",
+        "sex": "f | m",
+        "motivation": 200,
+        "restHours": 24,
+        "playerOwls": false
+      },
+      "complete": true,
+      "events": [
+        {
+          "id": "<22 Zeichen base64url>",
+          "dueAt": "2026-12-01T18:00:00.000Z",
+          "status": "planned | running | archived | skipped",
+          "move": { "lat": 40.7, "lon": -74.0 },
+          "letter": {
+            "parchment": "small | large",
+            "owlMode": "default | own | loan",
+            "texts": {
+              "de": { "first": "…", "follow": "…" },
+              "en": { "first": "…", "follow": "…" }
+            },
+            "media": ["<Bild-ID>"]
+          },
+          "gift": { "gold": 25 },
+          "context": "Hintergrund für die KI …",
+          "archive": {
+            "startedAt": "…", "archivedAt": "…",
+            "recipients": 120, "sent": 118, "delivered": 117, "read": 80, "replies": 12
+          }
+        }
+      ]
+    }
+  ],
+  "media": [
+    { "id": "<Bild-ID>", "bot": "<Bot-ID>", "file": "media/<Bild-ID>.webp",
+      "sha256": "<64 Hex>", "width": 1600, "height": 1067 }
+  ]
+}
+```
+
+- Feldregeln wie im Kontrollzentrum: Name nach 7.1, Koordinaten in Grad, `motivation` in Zehnteln (5–200), `restHours` 0–168, `gift` entweder `{ "gold": <Zehntel 1–1000> }` oder `{ "species": "<Art>" }` oder `null`, `move`/`letter`/`gift` je `null`, wenn nicht vorhanden; `archive` ist `null` bei geplanten Events. Zeitpunkte als ISO-8601 in UTC.
+- `complete: false` kennzeichnet einen Teil-Export (einzelne Events eines Bots); er enthält nur die Bilder dieser Events.
+- **Nie enthalten:** Briefe, Namen, IDs oder Wohnorte von Spielern, Zusammenfassungen, Zustellungen, Tageszähler.
+- **Import** (Vorschau zuerst, dann Übernahme in einer Transaktion):
+  - Bot-ID vorhanden → **ergänzen**: nur neue Events, die Einstellungen des vorhandenen Bots bleiben unverändert.
+  - Bot-ID neu, Name frei → neuer Bot als **Entwurf** (unabhängig vom `state` der Datei).
+  - Bot-ID neu, Name vergeben (Bot oder Konto) oder ungültig → **Konflikt**: Bot samt Events wird übersprungen und in der Vorschau genannt.
+  - Optional **Ziel-Bot**: alle Events der Datei werden diesem vorhandenen Bot hinzugefügt (z. B. einzelne Aktionen eines anderen Bots übernehmen); seine Einstellungen bleiben.
+  - Event-ID schon vorhanden (bei irgendeinem Bot) oder doppelt in der Datei → übersprungen.
+  - Geplantes Event mit Zeitpunkt in der Zukunft → wird geplant; vergangene oder schon gelaufene Events → ins **Archiv** (`archived` mit den Zahlen aus `archive`, sonst `skipped`), **nie versendet**.
+  - Bilder: je Ziel-Bot einmal (gleicher SHA-256 → vorhandenes Bild), ihre IDs in den Events werden passend umgeschrieben; Prüfsummen werden geprüft.
+- **Wiederherstellung** nach einem Totalausfall: Datenbank aus der verschlüsselten Sicherung zurückspielen (16.4) – darin sind auch die Bots samt Bildern; nur wenn die Bots auf einen anderen Server sollen oder die Datenbank verloren ist: die tägliche Bot-ZIP-Datei im Kontrollzentrum importieren oder `sudo -u posteulen posteulen-cli bots-import --file <zip> --apply` (ohne `--apply` nur Vorschau), danach die Bots prüfen und aktivieren.
+
+---
+
+## Anhang T – Abbau der Verwandten-Bots (v0.8)
+
+Bis v0.7.2 hatte jedes Konto zusätzlich zum Erklärbär zwei Verwandten-Bots (Typen `aunt` und `uncle` in der Tabelle `bots`), mit festen Briefen und einmaligen Goldgeschenken. Seit v0.8 gibt es sie nicht mehr – im Programm, in der Datenbank, in den Aufträgen, in den Texten und in der gültigen Dokumentation; frühere Git-Versionen bleiben unangetastet, bestehende Sicherungen unterliegen ihrer bisherigen Aufbewahrung (7 Tage).
+
+- **Bei jedem Start** (`removeRelatives`, `backend/src/bots/relatives.ts`, vor dem Worker, idempotent, in einer Transaktion) – damit die Bereinigung auch nach einem Rückfall auf eine ältere Version und einem erneuten Update wieder greift:
+  - jeder solche Bot wird wie beim Entfernen durch den Spieler beseitigt (10.1): eigene Eulen des Spielers auf dem Weg zu ihm kehren mit dem Brief um; Briefe von und an ihn (auch unterwegs), Chats, Zusammenfassungen, Lieferungen, Antwortaufträge und geplante Briefe verschwinden;
+  - ihre Buchungen (`aunt_gift`, `uncle_inheritance`) und die Systemnachrichten über ihr Gold werden gelöscht; aus Nachrichten über gelöschte alte Briefe verschwindet ihr Name;
+  - geplante Goldsendungen (`bot_gold`) und erste Briefe (`…:first`) werden aus der Warteschlange gelöscht;
+  - **das Gold**, das Spieler schon bekommen haben, **bleibt** (D-242).
+- Die Migration 0017 legt einen Trigger an, der neue Zeilen in `bots` außer `explainer` ablehnt, und setzt `users.bots_disabled` für Konten, die bis v0.7.2 alle Bots entfernt hatten.
+- Code, Namenslisten (früher Anhang E), Texte, Hilfe, Erklärbär-Wissen und alte Update-Nachrichten nennen sie nicht mehr. Die Update-Nachricht zu 0.8 verabschiedet sie ohne Namen („Zwei langjährige Brieffreunde …“).
+
+---
+
+## Anhang U – Änderungen in Version 0.8.0
+
+Große Version: zentrale Bots mit Bots-Kontrollzentrum. Migration `0017_v080.sql` (Schema 17).
+
+| Bereich | Änderung | Abschnitt |
+|---|---|---|
+| Bots | zentrale Bots mit einer Identität, Persönlichkeit, Konfiguration und Eventplanung; je Spieler isolierter Briefwechsel, Gedächtnis und Zustellstatus; Zustände Entwurf/aktiv/pausiert | 10.1, 10.3, 10.4 |
+| Kontrollzentrum | neue Website `bots.<domain>` mit eigenem Zugang (Passwort, Cookie, Sitzungen, 12 Stunden), Übersicht mit Statistik und Karte, Seite je Bot mit geplanten Events, Archiv und Einstellungen, Vorschau, KI-Test, Export/Import | 4.3, 10.12 |
+| Events | Umzug, Brief (vier Fassungen, zwei Bilder), Gold- oder Eulengeschenk, Kontext; einmalig, stabile IDs, kein Brief doppelt, Archiv | 10.8 |
+| Antworten | KI passt den nächsten geplanten Brief an (Original verbindlich); spontane Antwort nur ohne Brief-Event in 4 Wochen; Bearbeitungsstatus der Spielerbriefe; ohne KI geht der geplante Brief unverändert | 10.9 |
+| Eulen | gleiche Flugmechanik wie Spielereulen, eine Instanz je Spieler, Motivation 0,5–20, Rast 0–168 h, nächster Brief wartet auf die eigene Bot-Eule, Antwort mit der rastenden Eule, keine Pflege | 10.7 |
+| Karte | Bots wohnen weltweit auf Land; grobe Weltmaske 0,1° für Wohnorte und Schlaf außerhalb Europas | 12.3 |
+| Bilder | JPEG/PNG/WebP bis 2 MB, normalisiert zu WebP ohne Metadaten, einmal gespeichert, nur verlinkt | 10.11 |
+| Spieler | Bots erscheinen erst mit dem ersten Brief (Erklärbär ausgenommen); ein Brief pro Kalendertag an jeden Bot; „Alle Bots entfernen“ hält auch künftige Bots fern; Systemnachricht beim Löschen eines Bots an Spieler mit Kontakt | 10.1, 8.10 |
+| KI | eigenes Kontingent für den Erklärbär (Standard 200) und eines für alle anderen Bots (Standard 500); Erklärbär höchstens 500 Zeichen, andere Bots ohne feste Grenze | 10.5, 13 |
+| Abbau | Tante und Onkel restlos entfernt (bei jedem Start), Gold bleibt, Buchungen und Nachrichten weg | Anhang T |
+| Adminpanel | Deutsch oder Englisch umschaltbar; zwei KI-Tageslimits | 13 |
+| Betrieb | dritte API (Port 3003) und Caddy-Seite; `bots-init`/`bots-reset`, `bots-export`/`bots-import`; Erstpasswort einmalig bei Installation bzw. erstem Update; tägliche unverschlüsselte Bot-ZIP in `/var/backups/posteulen/`; `sharp` als Laufzeitabhängigkeit | 16, L.7 |
+| Sicherheit | getrennter Zugang und Origin, strenge Schemas, Rohdaten nur mit Content-Type und Größenlimit, Bild-Neukodierung, strenger ZIP-Leser | 10.12, L.9 |
+| Tests | `backend/test/v080.test.ts`, `shared/test/worldmask.test.ts`, `e2e/v080.spec.ts`, Barrierefreiheit des Kontrollzentrums, VM-Test mit Kontrollzentrum | 17, L.7 |
+
+---
+
 ## Anhang N – Entscheidungsprotokoll ab v0.6
 
 Neue Entscheidungen, die diese Spezifikation offenlässt, stehen hier (Nummer, Datum, Entscheidung, Begründung, verworfene Alternativen). Die Einträge D-01 bis D-161 bis v0.5.1 sind in die Abschnitte und in Anhang L eingearbeitet; das vollständige alte Protokoll liegt in der Git-Historie (`DECISIONS.md` am Tag `v0.5.1`).
@@ -1559,7 +1760,45 @@ Neue Entscheidungen, die diese Spezifikation offenlässt, stehen hier (Nummer, D
 | D-216 | 2026-11-09 | Ursache der unsichtbaren Bot-Post: „Alle Briefe verbrennen“ und das Entfernen markierten auch noch fliegende Briefe als verbrannt; sie zählten bei der Ankunft als ungelesen, wurden aber nicht angezeigt. Verbrannt werden nur angekommene Briefe; die Migration berechnet die Zähler neu | ein Brief, der beim Verbrennen noch nicht da war, gehört nicht zum verbrannten Verlauf | fliegende Briefe beim Verbrennen ganz löschen (die Eule käme leer an) |
 | D-217 | 2026-11-09 | Bots nur im Briefwechsel und auf der Karte; Entfernen einzeln im Bot-Chat und alle in den Einstellungen | Wunsch des Auftraggebers (Option „Nur im Briefwechsel + Knopf je Chat“) | nur „Alle Bots entfernen“; Bots auch in der Chatliste ausblenden |
 | D-218 | 2026-11-09 | `users.bots_created` statt „hat keine Bots“ als Merkmal für das einmalige Anlegen; bestehende Konten bekommen 1 | entfernte Bots dürfen nie zurückkommen; der alte Start-Abgleich legte sie für Konten ganz ohne Bots neu an | Liste entfernter Bots speichern |
-| D-219 | 2026-11-09 | „Alle Bots entfernen“ entfernt auch den noch unbekannten Onkel; die Zahl aller Bots kommt mit `GET /api/contacts` (`allBots`) | „sämtliche Bots … final“ (Wunsch des Auftraggebers); die Einstellungen zeigen danach „Alle Bots sind entfernt.“ | nur bekannte Bots |
+| D-219 | 2026-11-09 | „Alle Bots entfernen“ entfernt auch noch unbekannte Bots; die Zahl aller Bots kommt mit `GET /api/contacts` (`allBots`) | „sämtliche Bots … final“ (Wunsch des Auftraggebers); die Einstellungen zeigen danach „Alle Bots sind entfernt.“ | nur bekannte Bots |
 | D-220 | 2026-11-09 | Heimkehr in eigener Tabelle `homecomings` statt Systemnachricht; Einträge werden nach dem Einblenden gelöscht, spätestens nach 60 Tagen; alte `owl_home`-Systemnachrichten werden ausgeblendet, nicht gelöscht | Wunsch des Auftraggebers (keine Systemnachricht, Bild jedes Mal); nichts bleibt gespeichert, was niemand mehr sieht; alte Nachrichten verschwinden mit ihrer Löschfrist | Systemnachricht ohne Anzeige; alte Nachrichten per Migration löschen |
 | D-221 | 2026-11-09 | Mehrere Heimkehrer nacheinander je ein Bild (Warteschlange der Einblendungen), Tag oder Nacht beim Anzeigen jedes Bilds | Wunsch des Auftraggebers (Option „Nacheinander je ein Bild“) | ein Sammelbild; nur das letzte |
 | D-222 | 2026-11-09 | Restzeiten unter 60 Minuten in Minuten (aufgerundet, mindestens 1), sonst wie bisher in aufgerundeten Stunden; das Geschlecht bleibt gleichverteilt (Messung 49,99 %), ein Test mit 20 000 Würfen prüft die Abweichung | Wunsch des Auftraggebers; die gefühlte Häufung weiblicher Eulen war Zufall | Minuten bis 90; Geschlecht ausgleichend würfeln (wäre nicht mehr zufällig) |
+| D-223 | 2026-11-09 | Ein Brief pro Kalendertag (UTC-Mitternacht) an jeden Bot, auch an den Erklärbär; der Erklärbär hat ein eigenes KI-Kontingent, das gemeinsame Kontingent der anderen Bots gilt für ihn nicht | Wunsch des Auftraggebers (Optionen „Mitternacht UTC“ und „Eigenes KI-Kontingent“); gleiche Tagesgrenze wie die Nachricht an den Admin | Mitternacht am Wohnort; Erklärbär unbegrenzt anschreibbar |
+| D-224 | 2026-11-09 | Die Erstbrief-Sichtbarkeit gilt nur für Bots des Kontrollzentrums; der Erklärbär bleibt im Briefwechsel von Anfang an und auf der Karte nach dem ersten eigenen Brief | ausdrücklicher Wunsch des Auftraggebers | gleiche Regel für alle |
+| D-225 | 2026-11-09 | „Alle Bots entfernen“ bleibt endgültig und hält auch künftige Bots fern (`users.bots_disabled`); Konten ohne Bots aus v0.7.2 gelten als abgeschaltet | Wunsch des Auftraggebers (Option „Endgültig wie bisher“) | umkehrbarer Schalter |
+| D-226 | 2026-11-09 | Anlegen und Aktivieren je mit Bestätigungsdialog des Browsers; Löschen mit eingetipptem Namen (Vergleich über den Namensschlüssel) | Wunsch des Auftraggebers; gleiche Dialogart wie im Rest der App (D-209) | eigene Dialoge |
+| D-227 | 2026-11-09 | Ohne feste Längengrenze: ein Bot-Brief, der nicht aufs kleine Pergament passt, geht auf großem (höchstens 15 000 Zeichen, am Satzende gekürzt) | die Textregeln der Briefe gelten weiter; keine Kosten für Bots | Brief bei Überlänge abweisen |
+| D-228 | 2026-11-09 | Ist die KI bei einem geplanten Brief nicht verfügbar (kein Key, Kontingent, Fehler, leere Antwort), geht der unveränderte Brief; die Spielerbriefe bleiben offen | Wunsch des Auftraggebers; ein Rundbrief darf nie ausfallen | Event verschieben |
+| D-229 | 2026-11-09 | Bots dürfen jede Art des Spiels außer dem Phönix nutzen (Liste `SPECIES` ohne `mythical`), auch künftige, nicht käufliche Arten | Wunsch des Auftraggebers | nur käufliche Arten |
+| D-230 | 2026-11-09 | Die Motivation des Bots gilt für eigene Eule und Leiheulen | Wunsch des Auftraggebers (Option „Gleiche Bot-Motivation“); ferne Bots auch mit Leiheulen erreichbar | Leiheulen 80–100 % |
+| D-231 | 2026-11-09 | „Anschreiben mit eigenen Eulen erlaubt“ umfasst eigene Eulen und Leiheulen der Spieler | Wunsch des Auftraggebers (Option „Eigene und Leiheulen“) | nur eigene Eulen |
+| D-232 | 2026-11-09 | Jede Instanz der eigenen Bot-Eule startet mit voller Energie; ihr Wohnort ist der des Bots | sie ruht zwischen den Flügen beim Bot; keine Energie je Instanz zu speichern | Energie je Spieler-Instanz führen |
+| D-233 | 2026-11-09 | Rastende Bot-Eulen erscheinen als Gast ohne Pflege-Aktionen | Bot-Eulen kennen keine Krankheit und keinen Motivationsverlust; Pflege hätte keine Wirkung („soweit sinnvoll“) | Pflege wie bei Spielereulen |
+| D-234 | 2026-11-09 | Geschenke wie Gutscheine: Gold 0,1–100 je Spieler, Eule jeder Art außer Phönix, Geschlecht zufällig, unbenannt, darf das Limit überschreiten; mit Brief als Begleitbrief | Wunsch des Auftraggebers (Option „Wie Gutscheine“) | Grenzen der Überweisungen |
+| D-235 | 2026-11-09 | Vier Textfassungen je Brief-Event (Erstkontakt/Folgebrief × Deutsch/Englisch), alle Pflicht; fehlt eine Sprache doch (z. B. leerer Text aus einem alten Import), gilt die andere | Empfehlung im Auftrag | nur eine Sprache |
+| D-236 | 2026-11-09 | Grobe Weltmaske 0,1° (810 KB, nur Server) zusätzlich zur feinen Maske des Ausschnitts | Wunsch des Auftraggebers (Option „Grobe Weltkarte“); Schlaf auf Land weltweit, Wohnorte prüfbar | außerhalb nur Länderflächen ohne Schlaf |
+| D-237 | 2026-11-09 | Flüge der Bots in der normalen Tabelle `flights` (`holder_kind`, `bot_peer_id`, `holder_id` ohne Fremdschlüssel, Löschen beim Konto-Purge ausdrücklich) | dieselbe Mechanik wie im Spiel ohne zweite Flug-Engine; Rast, Gast-Antwort, Umzug, Umkehren funktionieren unverändert | eigene Tabelle `bot_flights` |
+| D-238 | 2026-11-09 | Bilder als BLOB in der Datenbank (normalisiert, je Bot einmal), nicht als Dateien | sie sind klein; mit der verschlüsselten Datenbanksicherung, Rückfall und Löschen immer stimmig | Dateien in `/var/lib/posteulen/` |
+| D-239 | 2026-11-09 | ZIP ohne neue Abhängigkeit (`node:zlib`) | Lieferkette klein halten; nur das nötige, streng geprüfte Teilformat | Paket wie `yazl`/`yauzl` |
+| D-240 | 2026-11-09 | `sharp` (schon für den Bilder-Build da) wird Laufzeitabhängigkeit des Backends | sichere Neukodierung der Uploads ohne weiteres Paket | eigene Dekoder; Upload ohne Normalisierung |
+| D-241 | 2026-11-09 | Abbau der Verwandten-Bots bei jedem Start statt nur in der Migration | Eulen müssen umkehren (Flugplanung in TypeScript); nach einem Rückfall greift die Bereinigung beim nächsten Update wieder | nur SQL in der Migration |
+| D-242 | 2026-11-09 | Geschenktes Gold der Verwandten-Bots bleibt, ihre Buchungen und Nachrichten verschwinden | Wunsch des Auftraggebers (Option „Gold bleibt, Buchungen weg“) | Buchungen neutral; Gold abziehen |
+| D-243 | 2026-11-09 | Ein Event, dessen Bot zum Zeitpunkt nicht aktiv ist (Entwurf, Pause), wird nicht ausgeführt („nicht ausgeführt“ im Archiv) | „Pausieren verhindert neue Sendungen“; einmalig zum Zeitpunkt | nach dem Fortsetzen nachholen |
+| D-244 | 2026-11-09 | Kontrollzentrum als dritte API im selben Prozess (Port 3003) und eigene Svelte-App `bots/` | gleiche Sicherheitsgrundlagen wie das Adminpanel; kein zweiter Dienst | Teil des Adminpanels |
+| D-245 | 2026-11-09 | Gemeinsamer Anmelde-Code für Adminpanel und Kontrollzentrum (`panel-auth.ts`), getrennt durch Tabelle, Cookie, Sitzungen, Leerlauf, Login-Bremse und Rate-Limit | ein geprüfter OPAQUE-Ablauf statt zweier | kopierter Code |
+| D-246 | 2026-11-09 | Die Funktionsprüfung bei Installation und Update warnt nur, wenn `bots.<domain>` nicht antwortet | ohne DNS-Eintrag gibt es kein Zertifikat; das darf ein Update nicht zurückrollen | Fehler und Rückfall |
+| D-247 | 2026-11-09 | Tägliche Bot-ZIP unverschlüsselt (Wunsch des Auftraggebers), Rechte 0600 root, 7 Tage, enthält keine Spielerdaten | auf neuem Server ohne Schlüssel importierbar | verschlüsselt wie die Datenbank |
+| D-248 | 2026-11-09 | Importierte neue Bots immer als Entwurf; optionaler Ziel-Bot für einzelne Aktionen | nichts läuft ungeprüft los; Aktionen lassen sich in andere Bots übernehmen | Zustand aus der Datei übernehmen |
+| D-249 | 2026-11-09 | Ein Läufer arbeitet alle Zustellungen nacheinander ab (älteste zuerst); dadurch keine gleichzeitige Bearbeitung derselben Spielerbriefe | einfache, robuste Nebenläufigkeit; Zustand liegt vollständig in der Datenbank | parallele Läufer mit Sperren |
+| D-250 | 2026-11-09 | Zeitpunkte im Kontrollzentrum in der Ortszeit des Geräts mit UTC-Anzeige; gespeichert in UTC | eindeutig für Betreiber an verschiedenen Orten | Ortszeit des Bots |
+| D-251 | 2026-11-09 | Rast der Bot-Eulen 0–168 Stunden (Standard 24) | eine Woche Antwortzeit genügt; 0 erlaubt Bots ohne Antwort per Eule | feste Auswahl wie bei Spielern |
+| D-252 | 2026-11-09 | Systemnachricht beim Löschen eines Bots: „[Name] hat seine Feder für immer niedergelegt …“ | spielgerechte Wortwahl (Wunsch des Auftraggebers) | technische Meldung |
+| D-253 | 2026-11-09 | Löschen, Verschieben eines Events und Fortsetzen eines Bots prüfen offene Spielerbriefe neu auf eine spontane Antwort | sonst könnte eine Antwort verloren gehen, wenn das Event wegfällt | nur bei Ankunft prüfen |
+| D-254 | 2026-11-09 | Bild-IDs zufällig (fester Namensschema `media/<ID>.webp` im Export), gleicher Inhalt je Bot nur einmal (SHA-256) | „einmal ablegen, nur verlinken“; keine Rückschlüsse aus Dateinamen | Hash als Dateiname |
+| D-255 | 2026-11-09 | Adminpanel und Kontrollzentrum auf Deutsch und Englisch (Knopf in der Kopfzeile, auf dem Gerät gemerkt) | Wunsch des Auftraggebers | Sprache am Server speichern |
+| D-256 | 2026-11-09 | Ältere Update-Nachrichten nennen die Verwandten-Bots nicht mehr (sie werden aus dem aktuellen Text erzeugt) | „aus allen aktuellen Texten entfernt“ | alte Texte unverändert |
+| D-257 | 2026-11-09 | `bots-export`/`bots-import` der CLI mit leichtem Kontext ohne Worker | laufen parallel zum Dienst (tägliche Sicherung) ohne doppelte Aufträge | ganze App starten |
+| D-258 | 2026-11-09 | Geschlecht der eigenen Bot-Eule beim Anlegen gewürfelt; Leiheulen der Bots aus ihrer Flug-ID abgeleitet | Gast-Anzeige braucht ein Geschlecht, ohne Eulenzeile | ohne Geschlecht |
+| D-259 | 2026-11-09 | Anpassungen, spontane Antworten, Zusammenfassungen und der KI-Test zählen zum Kontingent der Bots | Kostenkontrolle an einer Stelle | KI-Test ohne Limit |
+| D-260 | 2026-11-09 | Die Namen „Tante“, „Onkel“, „Aunt“, „Uncle“ sind nicht mehr reserviert; Bot-Namen und Kontonamen schließen sich gegenseitig aus | die Verwandten-Bots gibt es nicht mehr; Täuschung verhindert jetzt die Eindeutigkeit | Reservierung behalten |

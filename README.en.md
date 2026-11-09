@@ -18,7 +18,7 @@ Remember how lovely it was to find a real letter in the letterbox? PostEulen bri
 
 You buy or borrow owls, name them, give them water, pet them and spoil them with owl biscuits or their favourite snack. Seventeen species live in the Menagerie, from the tiny Elf Owl to Blakiston’s Fish Owl – and lately a phoenix that one morning was simply sitting on the window sill. Each of them tells you a little about its character there. Cared-for owls are motivated and then fly their next leg faster and further; well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day. While an owl is on its way, the overview shows it flying – in sunshine or under the stars – and on the map it draws a fine trail behind it, with a “Zzz” at every place it spent the night. When it takes a nap on the way, you see it asleep, and when it comes home, it sits on the window sill waiting for you – in daylight or by candlelight, the next time you open the app. By day it likes to doze there too; owls are night birds, after all.
 
-You get gold every day (3 gold pieces during your first 30 days, 2 after that), and three pen friends join in: a patient **Explainer Bear**, a chatty **aunt** with a cauldron (she writes to you a few minutes after you sign up) and a wonderfully crazy **uncle** who occasionally inherits an offended goat.
+You get gold every day (3 gold pieces during your first 30 days, 2 after that), and pen friends join in, too: a patient **Explainer Bear** who explains everything, and – since version 0.8 – more characters brought to life by the operator of your instance. They live somewhere in the world, write to everyone at special moments, sometimes add pictures or a small gift and take up your reply personally in their next letter. Their owls sometimes fly across the sea for this and then wait with you for a while, so you can hand them a reply.
 
 ### Game? Messenger? Both – and seriously secure.
 
@@ -49,7 +49,7 @@ PostEulen is also a great way to introduce children gently to messengers:
 
 - **No pull, no constant availability.** Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives.
 - **No strangers.** Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child.
-- The three pen friends Explainer Bear, aunt and uncle reply using AI (their letters are not encrypted and are sent to OpenAI to be answered). If you do not want that, remove them in their correspondence – or all at once, for good, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
+- The pen friends – the Explainer Bear and other bots – reply using AI (their letters are not encrypted and are sent to OpenAI to be answered). If you do not want that, remove them in their correspondence – or all at once, for good and for future bots too, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
 
 ### How does PostEulen get onto your phone? Without an app store!
 
@@ -85,7 +85,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.7.2**.
+Version: **0.8.0**.
 
 **In short**
 
@@ -99,16 +99,17 @@ Version: **0.7.2**.
 
 - A VPS with a freshly installed Debian 13 (amd64 or arm64). At least 1 GB of RAM (2 GB recommended), 1 CPU core, 10 GB of storage. With less than 2 GB of RAM the script offers to create a swap file so that the build does not fail.
 - Your own domain, e.g. `posteulen.de`.
-- Two DNS records (A for IPv4, plus AAAA for IPv6 if available) pointing to the server’s address:
+- Three DNS records (A for IPv4, plus AAAA for IPv6 if available) pointing to the server’s address:
 
   ```
   posteulen.de        →  IP of the server
   admin.posteulen.de  →  IP of the server
+  bots.posteulen.de   →  IP of the server   (since 0.8: bots control centre)
   ```
 
   Without these records Caddy cannot get HTTPS certificates from Let’s Encrypt.
 - SSH access to the server, ideally with an SSH key instead of a password. You store the key from your own computer with `ssh-copy-id user@server`. Only then does the installation script offer to switch off password login.
-- For the bots, an OpenAI API key (<https://platform.openai.com>). Without a key everything else works; the bots just do not reply – they only send their fixed letters.
+- For the bots, an OpenAI API key (<https://platform.openai.com>). Without a key everything else works; the bots just do not reply – the Explainer Bear only sends his fixed letters, the other bots their planned letters unchanged.
 
 ### 2. Installation with one command
 
@@ -171,14 +172,30 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - Statistics: accounts created, existing and active, and letters (daily counters only).
 - Deletion period for inactivity: default 180 days, at least 60. Those affected are warned 30 days before; even shortening the period deletes nobody without this warning.
 - Message to everyone: appears in the system chat of all accounts, with a notification.
-- OpenAI (bots): enter the API key (stored encrypted and never shown again), choose the model (default “gpt-6-luna”; “Modelle von OpenAI laden” or by hand), daily limit (default 200 calls), “Verbindung testen” (test connection). Without a key the bots send their fixed letters but answer nothing; waiting replies are sent right after a key has been entered. The server needs outgoing connections to `api.openai.com` (port 443) for this. The bots reply in the language of each account.
+- OpenAI (bots): enter the API key (stored encrypted and never shown again), choose the model (default “gpt-6-luna”; “Modelle von OpenAI laden” or by hand), two daily limits (Explainer Bear, default 200 calls; all other bots together, default 500), “Verbindung testen” (test connection). Without a key the bots send their fixed letters but answer nothing; waiting replies are sent right after a key has been entered. The server needs outgoing connections to `api.openai.com` (port 443) for this. The bots reply in the language of each account.
 - Forgotten the admin password? On the server, `sudo posteulen-cli admin-reset` creates a new initial password and signs out all admin sessions. User data stays untouched.
+- A button in the top right switches the admin panel to English (since 0.8).
+
+### 3a. The bots control centre (since 0.8)
+
+At `https://bots.posteulen.de` you create pen friends for all players. It is completely separate from the admin panel: own address, own password, own sessions.
+
+- **Initial password:** shown once at the end of the installation or of the first update to 0.8 (“Erstpasswort des Bots-Kontrollzentrums”). It must be changed at the first login. Later updates leave it alone. Forgotten? `sudo posteulen-cli bots-reset`.
+- **Signed out** after 12 hours without activity. The control centre can be switched to English as well.
+- **A bot starts as an empty draft:** name (unique, also against players), character and background (given to the AI), home anywhere on land in the world, owl (an own one – every player gets an instance of it – or random loan owls), motivation of the owls (0.5 to 20; with 20 they manage other continents), rest with the player and whether players may also write with their own owls. Only after explicit activation does it take part; pausing stops new letters.
+- **Planned events:** a time, plus a move and/or a letter to everyone (four versions: first contact and follow-up, each in German and English; up to two pictures) and/or a gift (gold or an owl). Before saving there is a preview and a test of the AI adaptation with an imagined letter of a player (sends nothing). If a player writes back, the AI adapts the next planned letter for them; only if nothing is planned for four weeks does the bot reply directly after two hours. If the AI fails, the planned letter still goes, unchanged.
+- **Past events** are in the archive with numbers (sent, delivered, read, replies). The overview shows these numbers per bot (all time and 30 days) and a world map with all bot owls on their way – without names of players, but a resting owl of course sits at a player’s (fictional) home.
+- **Export and import** as a ZIP file (whole bots or single events, with pictures, without letters of players). An import only adds – it shows conflicts first and never sends anything from the past again. The format is in `SPEC.md`, Anhang S.
+- **Deleting** is final and asks for the bot’s name to be typed. Players who had contact with it get a system message.
+- Whoever has the password can write to everyone in the name of the bots and give away gold – so guard it well. As with the admin panel, access can additionally be limited to IP ranges with `/etc/posteulen/local/bots-*.caddy`.
 
 ### 4. Functional test
 
 Open `https://posteulen.de` in the browser, create an account (open registration in the admin panel first or create an invitation code), sign out and sign in again. Pair with a second account (both add each other in the address book) and send a letter – without an owl of your own, the owl choice offers a loan owl of the day straight away (0.1 gold). The owl flies in real time (25 km/h times the species factor): if both live close together, it arrives within minutes, otherwise within hours. Patience is a feature here.
 
 On the server, `sudo posteulen-cli check` shows whether the database and the secrets file belong together.
+
+Bots control centre: sign in, create a bot, set home and owl, activate it and plan an event a few minutes ahead – shortly afterwards its owl sets off to all players.
 
 ### 5. Backups and restoring
 
@@ -237,6 +254,15 @@ On the server, `sudo posteulen-cli check` shows whether the database and the sec
 Everything that happened after the backup used is lost. Users have to sign in again if their session was created after the backup. Owls that were on their way according to the backup land immediately after the start if their arrival time has already passed.
 
 Both ways (A and B) are played through automatically in a Debian 13 VM for every version (`npm run test:vm`).
+
+**The bots (since 0.8):** The daily backup additionally puts all bots as a ZIP file into `/var/backups/posteulen/` (`posteulen-bots-…-taeglich.zip`, unencrypted, readable by root only, 7 days). It only contains settings, events and pictures of the bots, no letters of players. After restoring the database backup the bots are back anyway. To move them to another server: upload the file in the control centre under “Export and import”, or on the server
+
+```bash
+sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip
+sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip --apply
+```
+
+(the first command only shows what would happen). New bots arrive as drafts and must be activated once.
 
 ### 6. Updates
 

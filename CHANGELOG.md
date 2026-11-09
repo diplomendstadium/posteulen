@@ -3,6 +3,57 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.0 – Das Bots-Kontrollzentrum
+
+Große Version (SPEC Anhang U, S, T; Entscheidungen D-223 bis D-260).
+
+- **Bots-Kontrollzentrum** unter `bots.<domain>`: eigener Zugang (Passwort, Cookie, Sitzungen, Abmeldung
+  nach 12 Stunden), Übersicht mit Statistik (abgeschickt, zugestellt, gelesen, Antworten; insgesamt und
+  30 Tage) und Weltkarte der Bot-Eulen unterwegs, je Bot geplante Events, Archiv und Einstellungen, Vorschau
+  und KI-Test, Export und Import als ZIP (versioniertes JSON mit stabilen IDs, Bilder dabei). Deutsch und
+  Englisch.
+- **Zentrale Bots:** eine Identität, Persönlichkeit, Konfiguration und Eventplanung für alle; je Spieler
+  eigener Briefwechsel, eigenes Gedächtnis, eigene Zustellung. Zustände Entwurf, aktiv, pausiert; Löschen
+  atomar mit Namensbestätigung und Systemnachricht an Spieler mit Kontakt.
+- **Events:** Umzug, Brief an alle (Erstkontakt- und Folgefassung, Deutsch und Englisch, bis zu zwei
+  Bilder), Gold- oder Eulengeschenk, Kontext für die KI; einmalig, kein Brief doppelt (eindeutig je Event
+  und Spieler), Archiv mit Zahlen.
+- **Antworten:** Die KI passt den nächsten geplanten Brief an (der geplante Inhalt bleibt verbindlich);
+  spontane Antwort nur, wenn vier Wochen nichts geplant ist; ohne KI geht der geplante Brief unverändert.
+  Spielerbriefe gelten erst als beantwortet, wenn die Antwort losgeflogen ist.
+- **Eulen der Bots** fliegen wie alle Eulen (Schlaf, Wasser, Rast, Antwort mitgeben, Rückflug, Umzug), je
+  Spieler eine eigene Instanz; Motivation 0,5–20, Rast 0–168 Stunden; der nächste Brief wartet auf die
+  eigene Bot-Eule. Bots wohnen weltweit auf Land (neue grobe Weltmaske 0,1°).
+- **Bilder:** JPEG, PNG, WebP bis 2 MB, auf dem Server zu WebP ohne Metadaten umgewandelt, einmal
+  gespeichert und nur verlinkt.
+- **Tante und Onkel** sind restlos entfernt (Programm, Datenbank, Aufträge, Texte, Dokumentation); ihr
+  geschenktes Gold bleibt. Der Abbau läuft bei jedem Start, also auch nach einem Rückfall erneut.
+- **Spieler:** Bots erscheinen erst mit ihrem ersten Brief (der Erklärbär ausgenommen); ein Brief pro
+  Kalendertag an jeden Bot; „Alle Bots entfernen“ hält auch künftige Bots fern; Bilder unter Bot-Briefen;
+  rastende Bot-Eulen als Gast (Antwort mitgeben, keine Pflege).
+- **KI:** eigenes Tageslimit für den Erklärbär (200) und eines für alle anderen Bots (500); der Erklärbär
+  antwortet weiter mit höchstens 500 Zeichen, die anderen Bots ohne feste Grenze.
+- **Adminpanel** auf Englisch umschaltbar.
+- Tests: `backend/test/v080.test.ts`, `shared/test/worldmask.test.ts`, `e2e/v080.spec.ts`, VM-Test mit
+  Kontrollzentrum. SPEC, PROMPT, README, Hilfe, Erklärbär-Wissen und Datenschutzerklärung de/en angepasst.
+
+### Hinweise für Betreiber
+
+- **Neuer DNS-Eintrag:** `bots.<domain>` (A/AAAA) auf den Server. Ohne ihn läuft alles andere; das Update
+  warnt nur, dass `bots.<domain>` (noch) nicht antwortet.
+- **Erstpasswort des Kontrollzentrums** wird beim Update einmalig angezeigt – notieren! Spätere Updates
+  ändern es nicht; neu erzeugen mit `sudo posteulen-cli bots-reset`.
+- **Datenbank-Migration `0017_v080.sql`** (Schema 17): neue Tabellen der Bots, Neuaufbau von `flights`
+  und `ai_usage`, neue Spalten. Läuft beim Update automatisch. Beim ersten Start werden Tante und Onkel aus
+  allen Konten entfernt.
+- **Neue Abhängigkeit zur Laufzeit:** `sharp` (war schon für den Build da).
+- **Sicherungen:** täglich zusätzlich `posteulen-bots-*.zip` in `/var/backups/posteulen/` (unverschlüsselt,
+  0600, 7 Tage). Wer die Sicherungen abholt, bekommt sie mit.
+- Neues Kontingent für die KI der Bots im Adminpanel (Standard 500 Aufrufe am Tag).
+- Datenschutzerklärung: neuer Absatz zu den Bots des Kontrollzentrums – wer eigene Rechtstexte pflegt,
+  sollte ihn übernehmen.
+- Update wie gewohnt: `sudo posteulen-update`. Danach bekommt jedes Konto die Update-Nachricht zu 0.8.0.
+
 ## v0.7.2 – Heimkehr ans Fensterbrett
 
 Pflegeversion (SPEC Anhang R, Entscheidungen D-216 bis D-222).
@@ -191,12 +242,12 @@ Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Reposi
 - **Layout:** Lange Überschriften (z. B. „Benachrichtigungen“) brechen bei 320 px um, die Beschriftungen
   der unteren Leiste passen. Neuer Test prüft alle Seiten in acht Breiten (320–1920 px), Deutsch und
   Englisch, in Chromium, Firefox und WebKit.
-- **Namen:** Die englischen Bot-Namen sind reserviert („Explainer Bear“, „Aunt …“, „Uncle …“,
-  „System messages“, „Unknown“), damit sich niemand als Bot ausgeben kann.
+- **Namen:** Die englischen Bot-Namen sind reserviert („Explainer Bear“,
+  „System messages“, „Unknown“ und die Namen der damaligen Verwandten-Bots), damit sich niemand als Bot ausgeben kann.
 - **Texte:** Wohnort mit N/S und O/W statt Minuszeichen; Karte nennt richtig „alle 5 Minuten“;
   Fehlermeldung nennt vier Leiheulen; „Das Konto von … wurde gelöscht“ (passt auch zur automatischen
-  Löschung); Hilfe ohne die veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“ und dem Onkel nach
-  14 Tagen; Datenschutz nennt den lokal gespeicherten ausgeblendeten Benachrichtigungs-Hinweis; viele
+  Löschung); Hilfe ohne die veraltete 10-Stunden-Schlafpause, mit „nicht lesbar“ und den Zeitpunkten der
+  Bot-Briefe; Datenschutz nennt den lokal gespeicherten ausgeblendeten Benachrichtigungs-Hinweis; viele
   kleine Korrekturen in beiden Sprachen.
 - **Karte:** Schlug das Laden der Land/Wasser-Maske einmal fehl (offline oder beim Seitenwechsel),
   merkte sich die App den Fehler bis zum Neuladen; jetzt lädt sie beim nächsten Tippen neu.
@@ -212,7 +263,7 @@ Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Reposi
 ### Hinweise für Betreiber
 
 - **Keine Datenbank-Migration**, keine neuen Bilder, keine neuen Pakete.
-- Konten, deren Name mit „Aunt“ oder „Uncle“ beginnt oder „Explainer Bear“ lautet, bleiben unverändert;
+- Konten, deren Name wie ein Bot in der englischen Ansicht lautet, bleiben unverändert;
   neu vergeben werden solche Namen nicht mehr.
 - Nach dem Update bekommt jedes Konto die Update-Nachricht zu 0.6.
 - Update: `sudo posteulen-update`.
@@ -274,7 +325,7 @@ Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Reposi
   wird, ist englisch, und nach der Anmeldung gilt immer die Sprache des Kontos. Neue Einstellung
   „Sprache“. Übersetzt sind Oberfläche, Hilfe, Datenschutz, Impressum, Systemnachrichten,
   Benachrichtigungen, Karte (Länder und Städte), Eulenarten und ihre Beschreibungen; Erklärbär
-  („Explainer Bear“), Tante und Onkel schreiben und antworten in der Kontosprache, Leiheulen und
+  („Explainer Bear“) und die anderen Bots schreiben und antworten in der Kontosprache, Leiheulen und
   Küken bekommen englische Namen.
 - **Mehr Gold:** In den ersten 30 Tagen nach der Kontoerstellung gibt es täglich 3,0 Gold, danach
   2,0 Gold (bisher 1,0).
@@ -346,7 +397,7 @@ Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Reposi
 - **Freilassen** nur noch mit eingetipptem Namen und zweiter Bestätigung.
 - **Gelesen ist gelesen:** Ungelesen-Zähler und „Neue Post!“ gehen sofort zurück, ohne Neuladen.
 - **Hinweis auf Benachrichtigungen** lässt sich bis zur nächsten Anmeldung ausblenden.
-- **Bots:** Die Tante schreibt 5 Minuten nach der Anmeldung und erscheint erst dann; der
+- **Bots:** Bots erscheinen erst mit ihrem ersten Brief; der
   Erklärbär erscheint auf der Karte, sobald man ihm schreibt, und erklärt in einem neuen Brief,
   wie PostEulen ohne App-Store aufs Handy kommt. Der Hinweis zur Antwortzeit im Bot-Chat entfällt.
 - **Spendenbitte:** alle fünf Wochen eine freundliche, freiwillige Bitte (ko-fi.com/posteulen),
@@ -411,7 +462,7 @@ Texte (de/en) korrekturgelesen, Spielmechanik und Layout getestet und das Reposi
 
 Die erste vollständige Version von PostEulen.de: Ende-zu-Ende-verschlüsselte Briefe per Eule,
 Eulen kaufen, leihen und pflegen, Flüge mit Tag und Nacht auf der Karte, Gold, Küken,
-Erklärbär, Tante und Onkel, Push-Benachrichtigungen, Adminpanel sowie Installation, Updates
+Bots (Erklärbär und Verwandten-Bots, seit 0.8 entfernt), Push-Benachrichtigungen, Adminpanel sowie Installation, Updates
 und Backups mit je einem Befehl (Stufen 0 bis 6, siehe unten).
 
 Seit v0.1.0-stufe.6:
@@ -455,9 +506,9 @@ Seit v0.1.0-stufe.6:
 
 ## v0.1.0-stufe.5 – Bots
 
-- Jedes Konto hat einen Erklärbären, eine Tante und einen Onkel (deutlich als Bot gekennzeichnet, auch auf der Karte).
-- Feste Briefe: Erklärbär (Tag 0 sofort im Briefkasten, dann Tag 1, 2, 4, 7), Begrüßung der Tante,
-  erster Brief des Onkels nach 14 Tagen; Goldsendungen: Tante 4,0 nach 2 Tagen, Onkel 10,0 nach 21 Tagen.
+- Jedes Konto hat einen Erklärbären und zwei Verwandten-Bots (deutlich als Bot gekennzeichnet, auch auf der Karte; die Verwandten-Bots sind seit 0.8 entfernt).
+- Feste Briefe: Erklärbär (Tag 0 sofort im Briefkasten, dann Tag 1, 2, 4, 7) und Briefe sowie einmalige
+  Goldsendungen der Verwandten-Bots.
 - Briefe an Bots (unverschlüsselt, mit dauerhaftem Hinweis und Hilfe-Nummern), höchstens einer in 24 Stunden;
   Antworten per OpenAI zwei Stunden nach Ankunft, mit Gedächtnis (Zusammenfassung + letzte 6 Briefe).
 - Bots lassen sich endgültig entfernen.

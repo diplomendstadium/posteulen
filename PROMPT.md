@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.7.2)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.8.0)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel und Skripte für Installation und Updates auf Debian 13.
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.7.2, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.8.0, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -55,7 +55,7 @@ Lies `SPEC.md` vollständig und liefere im Stufenbericht:
 Am Ende jeder Stufe lieferst du:
 
 1. **Kurzfassung:** was neu ist und was bewusst noch fehlt (mit Verweis auf die SPEC-Abschnitte).
-2. **Start:** ein einziger Befehl, mit dem ich den Stand lokal starte, plus Testzugänge.
+2. **Start:** ein einziger Befehl, mit dem ich den Stand lokal starte, plus Testzugänge (App, Adminpanel und – seit v0.8 – Bots-Kontrollzentrum; die Erstpasswörter legt die lokale Vorschau in `data/` ab).
 3. **Server:** die Befehle für Installation auf einem frischen Debian 13 bzw. Update eines vorhandenen Stands, das Ergebnis deines Testlaufs (SPEC 16, 17.6) und die Hinweise für Betreiber aus `CHANGELOG.md`.
 4. **Testbericht:** Anzahl der Tests, alle grün?, Abdeckung der Module in `shared/src` (mindestens 90 % Zeilen je Datei, SPEC 17.5), Ergebnis von `npm audit` und `shellcheck`.
 5. **Screenshots** aller neuen oder geänderten Screens: Handy (390×844) und Desktop (1440×900), mindestens einer in Graustufen (SPEC 14, 17.4; `POSTEULEN_SCREENSHOTS=1 npx playwright test e2e/screenshots.spec.ts --project=chromium-mobile --project=chromium-desktop`) – als Anhang zum Bericht, nicht im Repository.
@@ -118,6 +118,8 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 - Keine TODOs oder FIXMEs ohne Eintrag in SPEC Anhang N.
 - Der Browser lädt nachweislich nichts von fremden Hosts, CSP und Sicherheits-Header sind vorhanden (automatisch geprüft, SPEC 17.4).
 - Was ein Client absichtlich falsch schicken kann, beantwortet der Server mit einem `4xx`, nie mit einem `500` – unerwartete Fehler landen im Fehlerprotokoll, und das darf niemand von außen füllen können. Server-Aufrufe der OPAQUE-Bibliothek laufen über `backend/src/auth/opaque-guard.ts`; Tabellen im Arbeitsspeicher werden beim Überlauf nie ganz geleert (SPEC 5.10).
+- Bots (seit v0.8): Der Erklärbär ist fest eingebaut (je Konto); alle anderen Bots kommen aus dem Bots-Kontrollzentrum (SPEC 10). Für sie gilt: kein Brief doppelt (eindeutig je Event und Spieler), KI-Aufrufe nie innerhalb von Transaktionen, ein geplanter Brief geht auch ohne KI, Spielerbriefe gelten erst nach dem Start der Antwort als beantwortet. Flüge der Bots laufen über die normale Flug-Engine (Hooks, `holder_kind = 'bot'`).
+- Adminpanel und Kontrollzentrum teilen Anmeldung, API-Baustein und Sprache (`admin/src/lib`, `backend/src/admin/panel-auth.ts`), bleiben aber in Zugang, Cookie, Sitzungen und Origin vollständig getrennt.
 - Zustand des angemeldeten Kontos, den der Browser im Arbeitsspeicher hält, meldet sich mit `onSignOut` (`web/src/lib/auth.svelte.ts`) zum Leeren an und prüft `accountGeneration()`, bevor er eine Serverantwort speichert (SPEC 5.5).
 - Wartungsversionen mit Schwerpunkt Sicherheit: jede gefundene Lücke bekommt einen Test, der ohne die Korrektur fehlschlägt (Gegenprobe), und einen Eintrag im Änderungsanhang der SPEC.
 - Jeder Stand lässt sich per Skript auf einem frischen Debian 13 installieren (Testmodus mit `tls internal`), ein zweiter Lauf überschreibt nichts, und er lässt sich vom Tag der vorigen Version aus ohne Datenverlust aktualisieren; ein absichtlich fehlschlagendes Update wird automatisch zurückgerollt, und `--rollback` funktioniert (SPEC 16, 17.6). Der VM-Test signiert seine Test-Tags mit einem eigenen Testschlüssel und prüft, dass unsignierte Tags abgelehnt werden; er testet nur den committeten Stand (HEAD). Steht dir keine Debian-13-VM zur Verfügung, sag das im Bericht, statt den Test stillschweigend auszulassen.

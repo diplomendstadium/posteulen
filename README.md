@@ -16,7 +16,7 @@ Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? Pos
 
 Du kaufst oder leihst dir Eulen, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli. Siebzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum Riesenfischuhu – und neuerdings ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Gepflegte Eulen sind motiviert und fliegen die nächste Strecke schneller und weiter; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen –, und auf der Karte zieht sie eine feine Spur mit einem „Zzz“ an jedem Übernachtungsort hinter sich her. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, sitzt sie auf dem Fensterbrett und wartet auf dich – bei Tageslicht oder bei Kerzenschein, sobald du die App das nächste Mal öffnest. Tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
 
-Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und drei Brieffreunde sind mit von der Partie: ein geduldiger **Erklärbär**, eine plauderfreudige **Tante** mit Zauberkessel (sie schreibt dir ein paar Minuten nach der Anmeldung) und ein herrlich verrückter **Onkel**, der gelegentlich eine beleidigte Ziege erbt.
+Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und Brieffreunde sind auch mit von der Partie: ein geduldiger **Erklärbär**, der dir alles erklärt, und – seit Version 0.8 – weitere Figuren, die der Betreiber deiner Instanz ins Leben ruft. Sie wohnen irgendwo auf der Welt, schreiben allen zu besonderen Momenten, legen manchmal Bilder oder ein kleines Geschenk bei und gehen in ihrem nächsten Brief persönlich auf deine Antwort ein. Ihre Eulen fliegen dafür auch mal übers Meer und warten dann eine Weile bei dir, damit du ihnen eine Antwort mitgeben kannst.
 
 ### Spiel? Messenger? Beides – und zwar ernsthaft sicher.
 
@@ -47,7 +47,7 @@ PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen
 
 - **Kein Sog, keine Dauerbereitschaft.** Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt.
 - **Keine Fremden.** Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
-- Die drei Brieffreunde Erklärbär, Tante und Onkel antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
+- Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
 
 ### Wie kommt PostEulen aufs Handy? Ganz ohne App-Store!
 
@@ -81,7 +81,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.7.2**.
+Stand: **Version 0.8.0**.
 
 **Kurzfassung**
 
@@ -95,16 +95,17 @@ Stand: **Version 0.7.2**.
 
 - Ein VPS mit frisch installiertem Debian 13 (amd64 oder arm64). Mindestens 1 GB Arbeitsspeicher (2 GB empfohlen), 1 CPU-Kern, 10 GB Speicher. Bei weniger als 2 GB Arbeitsspeicher legt das Skript nach Rückfrage eine Swap-Datei an, damit der Build nicht abbricht.
 - Eine eigene Domain, z. B. `posteulen.de`.
-- Zwei DNS-Einträge (A für IPv4, zusätzlich AAAA für IPv6, falls vorhanden), die auf die Adresse des Servers zeigen:
+- Drei DNS-Einträge (A für IPv4, zusätzlich AAAA für IPv6, falls vorhanden), die auf die Adresse des Servers zeigen:
 
   ```
   posteulen.de        →  IP des Servers
   admin.posteulen.de  →  IP des Servers
+  bots.posteulen.de   →  IP des Servers   (seit 0.8: Bots-Kontrollzentrum)
   ```
 
   Ohne diese Einträge kann Caddy keine HTTPS-Zertifikate von Let's Encrypt bekommen.
 - SSH-Zugang zum Server, am besten mit einem SSH-Schlüssel statt Passwort. Den Schlüssel hinterlegt man auf dem eigenen Rechner mit `ssh-copy-id benutzer@server`. Erst dann bietet das Installations-Skript an, die Anmeldung per Passwort abzuschalten.
-- Für die Bots ein OpenAI-API-Key (<https://platform.openai.com>). Ohne Key läuft alles andere, nur antworten die Bots nicht – sie schreiben dann bloß ihre festen Briefe.
+- Für die Bots ein OpenAI-API-Key (<https://platform.openai.com>). Ohne Key läuft alles andere, nur antworten die Bots nicht – der Erklärbär schreibt dann bloß seine festen Briefe, die anderen Bots ihre geplanten Briefe unverändert.
 
 ### 2. Installation mit einem Befehl
 
@@ -166,14 +167,30 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Gutscheine (seit 0.7): für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
-- OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), Tageslimit (Standard 200 Aufrufe), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
+- OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), zwei Tageslimits (Erklärbär, Standard 200 Aufrufe; alle anderen Bots zusammen, Standard 500), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
 - Adminpasswort vergessen? Auf dem Server erzeugt `sudo posteulen-cli admin-reset` ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben unberührt.
+- Oben rechts schaltet ein Knopf das Adminpanel auf Englisch um (seit 0.8).
+
+### 3a. Das Bots-Kontrollzentrum (seit 0.8)
+
+Unter `https://bots.posteulen.de` legst du Brieffiguren für alle Spieler an. Es ist vom Adminpanel völlig getrennt: eigene Adresse, eigenes Passwort, eigene Sitzungen.
+
+- **Erstpasswort:** steht einmalig am Ende der Installation bzw. des ersten Updates auf 0.8 („Erstpasswort des Bots-Kontrollzentrums“). Beim ersten Login muss es geändert werden. Spätere Updates lassen es in Ruhe. Vergessen? `sudo posteulen-cli bots-reset`.
+- **Abmeldung** nach 12 Stunden ohne Aktivität. Auch das Kontrollzentrum lässt sich auf Englisch umschalten.
+- **Ein Bot entsteht als leerer Entwurf:** Name (eindeutig, auch gegenüber Spielern), Charakter und Hintergrund (bekommt die KI), Wohnort irgendwo auf Land in der Welt, Eule (eine eigene – jeder Spieler bekommt eine eigene Ausgabe davon – oder zufällige Leiheulen), Motivation der Eulen (0,5 bis 20; mit 20 schaffen sie auch andere Kontinente), Rast beim Spieler und ob Spieler auch mit eigenen Eulen schreiben dürfen. Erst nach dem ausdrücklichen Aktivieren macht er mit; Pausieren stoppt neue Briefe.
+- **Geplante Events:** ein Zeitpunkt, dazu ein Umzug und/oder ein Brief an alle (vier Fassungen: Erstkontakt und Folgebrief, je Deutsch und Englisch; bis zu zwei Bilder) und/oder ein Geschenk (Gold oder eine Eule). Vor dem Speichern gibt es eine Vorschau und einen Test der KI-Anpassung mit einem ausgedachten Spielerbrief (verschickt nichts). Schreibt ein Spieler zurück, passt die KI den nächsten geplanten Brief für ihn an; nur wenn vier Wochen lang nichts geplant ist, antwortet der Bot nach zwei Stunden direkt. Fällt die KI aus, geht der geplante Brief trotzdem unverändert.
+- **Vergangene Events** stehen im Archiv mit Zahlen (abgeschickt, zugestellt, gelesen, Antworten). Die Übersicht zeigt diese Zahlen je Bot (insgesamt und 30 Tage) und eine Weltkarte mit allen Bot-Eulen unterwegs – ohne Namen von Spielern, aber eine rastende Eule sitzt natürlich am (fiktiven) Wohnort eines Spielers.
+- **Export und Import** als ZIP-Datei (ganze Bots oder einzelne Events, mit Bildern, ohne Spielerbriefe). Ein Import ergänzt nur – er zeigt vorher Konflikte und schickt nie Vergangenes noch einmal los. Das Format steht in der `SPEC.md`, Anhang S.
+- **Löschen** ist endgültig und will den Namen des Bots eingetippt haben. Spieler, die mit ihm Kontakt hatten, bekommen eine Systemnachricht.
+- Wer das Passwort hat, kann im Namen der Bots allen schreiben und Gold verschenken – also gut hüten. Wie beim Adminpanel lässt sich der Zugang per `/etc/posteulen/local/bots-*.caddy` zusätzlich auf IP-Bereiche beschränken.
 
 ### 4. Funktionstest
 
 Im Browser `https://posteulen.de` öffnen, ein Konto anlegen (vorher im Adminpanel die Registrierung öffnen oder einen Einladungscode erzeugen), abmelden und wieder anmelden. Mit einem zweiten Konto koppeln (beide fügen sich im Adressbuch hinzu) und einen Brief schicken – ohne eigene Eule bietet die Eulenwahl direkt eine Leiheule des Tages an (0,1 Gold). Die Eule fliegt in Echtzeit (25 km/h mal Artfaktor): Wohnen beide nah beieinander, ist sie nach Minuten da, sonst nach Stunden. Geduld ist hier ein Feature.
 
 Auf dem Server zeigt `sudo posteulen-cli check`, ob Datenbank und Geheimnis-Datei zusammenpassen.
+
+Bots-Kontrollzentrum: anmelden, einen Bot anlegen, Wohnort und Eule einstellen, aktivieren und ein Event in ein paar Minuten planen – kurz darauf startet seine Eule zu allen Spielern.
 
 ### 5. Sicherungen (Backups) und Wiederherstellung
 
@@ -232,6 +249,15 @@ Auf dem Server zeigt `sudo posteulen-cli check`, ob Datenbank und Geheimnis-Date
 Alles, was nach der verwendeten Sicherung geschah, ist verloren. Nutzer müssen sich neu anmelden, wenn ihre Sitzung nach der Sicherung entstanden ist. Eulen, die laut Sicherung unterwegs waren, landen nach dem Start sofort, wenn ihre Ankunftszeit schon vorbei ist.
 
 Beide Wege (A und B) werden bei jeder Version automatisch in einer Debian-13-VM durchgespielt (`npm run test:vm`).
+
+**Die Bots (seit 0.8):** Die tägliche Sicherung legt zusätzlich alle Bots als ZIP-Datei in `/var/backups/posteulen/` ab (`posteulen-bots-…-taeglich.zip`, unverschlüsselt, nur für root lesbar, 7 Tage). Sie enthält nur Einstellungen, Events und Bilder der Bots, keine Briefe von Spielern. Nach einer Wiederherstellung aus der Datenbank-Sicherung sind die Bots ohnehin wieder da. Sollen sie auf einen anderen Server: die Datei im Kontrollzentrum unter „Export und Import“ hochladen oder auf dem Server
+
+```bash
+sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip
+sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip --apply
+```
+
+(der erste Befehl zeigt nur, was passieren würde). Neue Bots kommen als Entwurf und müssen einmal aktiviert werden.
 
 ### 6. Updates
 
