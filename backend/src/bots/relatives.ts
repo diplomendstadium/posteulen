@@ -27,7 +27,23 @@ export function removeRelatives(ctx: Context): number {
   const after: (() => void)[] = [];
   ctx.db.transaction(() => {
     for (const bot of relatives) {
+      // v0.8.1: own owls on their way to them turn back – without the usual "turned back"
+      // message, which would name them (and crashed the start of 0.8.0).
+      const before = new Set(
+        ctx.db
+          .all<{ id: string }>(
+            "SELECT id FROM system_messages WHERE user_id = ? AND type = 'letter_returned'",
+            bot.owner_id,
+          )
+          .map((row) => row.id),
+      );
       removeBot(ctx, bot.owner_id, bot as unknown as BotRow, now, (work) => after.push(work));
+      for (const row of ctx.db.all<{ id: string }>(
+        "SELECT id FROM system_messages WHERE user_id = ? AND type = 'letter_returned'",
+        bot.owner_id,
+      )) {
+        if (!before.has(row.id)) ctx.db.run('DELETE FROM system_messages WHERE id = ?', row.id);
+      }
       for (const title of titles(bot)) {
         ctx.db.run(
           "DELETE FROM system_messages WHERE user_id = ? AND type = 'gold_arrived' AND json_extract(params, '$.name') = ?",

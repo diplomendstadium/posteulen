@@ -63,9 +63,11 @@ export function botTitle(
   ctx: Context,
   bot: Pick<BotRow, 'type' | 'first_name' | 'owner_id'>,
 ): string {
-  return fill(botLetters(languageOf(ctx, bot.owner_id)).titles[bot.type], {
-    name: bot.first_name ?? '',
-  });
+  // v0.8.1: rows of a former type (before their removal at start-up) have no title.
+  const title = (botLetters(languageOf(ctx, bot.owner_id)).titles as Record<string, string>)[
+    bot.type
+  ];
+  return title === undefined ? '' : fill(title, { name: bot.first_name ?? '' });
 }
 
 function pick<T>(ctx: Context, list: readonly T[]): T {

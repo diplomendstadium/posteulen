@@ -29,6 +29,7 @@ import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
 import { removeRelatives } from './bots/relatives.ts';
+import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
 import { registerCentralHandlers } from './central/service.ts';
 import { registerBotsCentreRoutes } from './central/routes.ts';
@@ -104,7 +105,23 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerReplyHandler(ctx);
   registerCentralHandlers(ctx);
   // v0.8: aunt and uncle are gone – at every start, so also again after a rollback (SPEC Anhang T).
-  removeRelatives(ctx);
+  // v0.8.1: a failure here must never keep the server from starting – it is logged and tried
+  // again at the next start (the whole clean-up is one transaction).
+  try {
+    removeRelatives(ctx);
+  } catch (error) {
+    logError(
+      db,
+      {
+        component: 'Bots',
+        severity: 'error',
+        what: 'Tante und Onkel konnten beim Start nicht entfernt werden.',
+        cause: error instanceof Error ? error.message : 'Unerwarteter Fehler.',
+        action: 'Wird beim nächsten Start erneut versucht. Bitte melden.',
+      },
+      ctx.now(),
+    );
+  }
   // Accounts from before stage 5 get their Erklärbär once (D-82).
   ensureBotsForAllUsers(ctx);
   // v0.3: donation requests every five weeks, notes about an update for every account.

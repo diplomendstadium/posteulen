@@ -134,7 +134,9 @@ health_check() {
   ok "Funktionsprüfung bestanden: Website, Verwaltung, Health-Endpunkt und Sicherheits-Header."
   # v0.8: das Bots-Kontrollzentrum (bots.<domain>). Fehlt dort noch der DNS-Eintrag, gibt es
   # kein Zertifikat – das ist kein Grund für einen Rückfall, nur ein Hinweis.
-  if ! curl "${curl_opts[@]}" "https://bots.$domain/api/health" >/dev/null 2>&1; then
+  # Nur wenn die laufende Version das Kontrollzentrum kennt (nach einem Rückfall auf eine ältere nicht).
+  if grep -q "bots.$domain" /etc/caddy/Caddyfile 2>/dev/null &&
+    ! curl "${curl_opts[@]}" "https://bots.$domain/api/health" >/dev/null 2>&1; then
     warn "https://bots.$domain antwortet (noch) nicht. Für das Bots-Kontrollzentrum braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server."
   fi
 }

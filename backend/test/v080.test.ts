@@ -9,6 +9,7 @@ import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { setInitialAdminPassword } from '../src/admin/admin-auth.ts';
 import { AiError, storeApiKey, type AiClient, type AiMessage } from '../src/bots/ai.ts';
 import { removeRelatives } from '../src/bots/relatives.ts';
+import { startFlight } from '../src/flights/service.ts';
 import {
   ADMIN_ORIGIN,
   Agent,
@@ -16,6 +17,7 @@ import {
   BOTS_ORIGIN,
   advanceTo,
   borrowOwl,
+  buyOwl,
   PARIS,
   person,
   register,
@@ -175,8 +177,41 @@ describe('aunt and uncle are gone (v0.8, SPEC Anhang T)', () => {
       anna.id,
     );
     app.ctx.queue.schedule('bot_gold', 'AuntAuntAuntAuntAunt01', app.clock.now + TIME.DAY);
+    // v0.8.1: an own owl on its way to the aunt (crashed the start of 0.8.0 on a real server).
+    setGold(app, anna, 200);
+    const owl = await buyOwl(app, anna);
+    app.db.run("UPDATE owls SET state = 'flying' WHERE id = ?", owl);
+    startFlight(app.ctx, {
+      holderId: anna.id,
+      owl: {
+        id: owl,
+        kind: 'own',
+        name: 'Waldi',
+        species: 'waldkauz',
+        energy: 540,
+        motivation: 10,
+      },
+      recipients: ['AuntAuntAuntAuntAunt01'],
+      returnsHome: true,
+      now: app.clock.now,
+      purpose: 'letter',
+    });
     const gold = app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)!.gold;
     expect(removeRelatives(app.ctx)).toBe(1);
+    // The owl turns back home; no message names the aunt.
+    const flight = app.db.get<{ route: string }>(
+      "SELECT route FROM flights WHERE state = 'active'",
+    )!;
+    expect(
+      (JSON.parse(flight.route) as { type: string; status: string }[]).map((stop) => [
+        stop.type,
+        stop.status,
+      ]),
+    ).toEqual([
+      ['deliver', 'skipped'],
+      ['home', 'pending'],
+    ]);
+    expect(app.db.all("SELECT 1 FROM system_messages WHERE type = 'letter_returned'")).toEqual([]);
     expect(removeRelatives(app.ctx)).toBe(0);
     for (const sql of [
       "SELECT 1 FROM bots WHERE type != 'explainer'",

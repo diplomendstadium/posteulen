@@ -56,8 +56,13 @@ export function displayName(db: Database, userId: string): string | null {
     userId,
   );
   if (!bot) return null;
-  const titles = botLetters(isLanguage(bot.language) ? bot.language : 'de').titles;
-  return fill(titles[bot.type], { name: bot.first_name ?? '' });
+  const titles = botLetters(isLanguage(bot.language) ? bot.language : 'de').titles as Record<
+    string,
+    string
+  >;
+  // v0.8.1: a former bot type still in the database (removed at start-up) has no name.
+  const title = titles[bot.type];
+  return title === undefined ? null : fill(title, { name: bot.first_name ?? '' });
 }
 
 /**

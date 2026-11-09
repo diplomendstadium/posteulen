@@ -48,6 +48,15 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.1',
+    title: 'Ein Federstrich nachgebessert: Version 0.8.1',
+    paragraphs: [
+      'Beim Umzug in den neuen Eulenturm hatte sich eine Feder verhakt: Wer gerade eine Eule zu einem der verabschiedeten Brieffreunde geschickt hatte, brachte den Turm zum Stolpern. Das ist behoben – solche Eulen drehen einfach um und fliegen nach Hause.',
+      'Die neuen Brieffreunde aus Version 0.8 sind damit auch auf deinem Eulenturm angekommen – wenn dein Betreiber schon welche eingeladen hat, flattern ihre Briefe bald herein.',
+      'Viel Freude!',
+    ],
+  },
+  {
     version: '0.8.0',
     title: 'Neue Federn im Eulenturm: Version 0.8',
     paragraphs: [
@@ -239,6 +248,15 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.8.1',
+    title: 'A quill stroke touched up: version 0.8.1',
+    paragraphs: [
+      'While moving into the new owlery, a feather got caught: anyone who had just sent an owl to one of the retired pen friends made the tower stumble. That is fixed – such owls simply turn round and fly home.',
+      'With this, the new pen friends of version 0.8 have arrived in your owlery too – if your operator has already invited some, their letters will flutter in soon.',
+      'Enjoy!',
+    ],
+  },
   {
     version: '0.8.0',
     title: 'New feathers in the owlery: version 0.8',

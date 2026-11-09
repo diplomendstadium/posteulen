@@ -37,8 +37,9 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     // Both sides see the same safety number (SPEC 5.7).
     await page.getByRole('button', { name: 'Sicherheitsnummer anzeigen' }).click();
     await other.getByRole('button', { name: 'Sicherheitsnummer anzeigen' }).click();
+    // The number is computed in the browser: wait for it instead of reading the placeholder.
+    await expect(page.getByTestId('safety-number')).toHaveText(/^(\d{5} ){11}\d{5}$/);
     const mine = await page.getByTestId('safety-number').textContent();
-    expect(mine).toMatch(/^(\d{5} ){11}\d{5}$/);
     await expect(other.getByTestId('safety-number')).toHaveText(mine ?? '');
     await page.getByRole('button', { name: /außerhalb der App verglichen/ }).click();
     await expect(page.getByText('Sicherheitsnummer verglichen')).toBeVisible();
