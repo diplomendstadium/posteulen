@@ -48,6 +48,15 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.4',
+    title: 'Ein Gast aus Übersee: Version 0.8.4',
+    paragraphs: [
+      'In den Eulenturm ist eine neue Art eingezogen: der Virginiauhu, ein schneller und ausdauernder Uhu aus Amerika mit kecken Federohren. Kaufen kann man ihn in der Menagerie nicht – vielleicht bringt ihn dir aber eine Brieffigur oder ein Gutschein.',
+      'Außerdem zeigt sich jede ankommende Eule beim Öffnen eines Briefwechsels jetzt nur noch einmal. Doppelt hält besser – aber nicht bei Eulen.',
+      'Viel Freude!',
+    ],
+  },
+  {
     version: '0.8.3',
     title: 'Glatt gestrichenes Pergament: Version 0.8.3',
     paragraphs: [
@@ -271,6 +280,15 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.8.4',
+    title: 'A guest from overseas: version 0.8.4',
+    paragraphs: [
+      'A new species has moved into the owlery: the Great Horned Owl, a fast and tireless eagle-owl from the Americas with jaunty ear tufts. You cannot buy it in the Menagerie – but perhaps a pen friend or a voucher will bring you one.',
+      'Also, every arriving owl now shows itself only once when you open a conversation. Twice is nice – but not with owls.',
+      'Enjoy!',
+    ],
+  },
   {
     version: '0.8.3',
     title: 'Smoothed-out parchment: version 0.8.3',

@@ -1,3 +1,10 @@
+<script module lang="ts">
+  /** v0.8.4: letters whose arrival image was already queued in this visit (see load()). */
+  // Bookkeeping only, never rendered.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const arrivalsShown = new Set<string>();
+</script>
+
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
@@ -81,9 +88,16 @@
         }
         markChatRead(peerId);
       }
+      // v0.8.4: each arrival image only once – loads overlap when a chat opens (mount, live
+      // update, read receipt), all before the server has confirmed "seen".
       const unseen = letters.filter(
-        (l) => l.role === 'recipient' && l.status === 'delivered' && !l.arrivalSeen,
+        (l) =>
+          l.role === 'recipient' &&
+          l.status === 'delivered' &&
+          !l.arrivalSeen &&
+          !arrivalsShown.has(l.id),
       );
+      for (const letter of unseen) arrivalsShown.add(letter.id);
       if (unseen.length > 0) {
         // v0.8.2: the arrival image of every owl that brought a new letter, one after another in
         // the order they landed (SPEC 9.2.6); before, only the last one.

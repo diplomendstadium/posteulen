@@ -11,11 +11,21 @@ import { OWL_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
-  it('has 18 species (v0.5: with the phoenix) with unique ids and image names', () => {
-    expect(SPECIES).toHaveLength(18);
-    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(18);
-    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(18);
-    const phoenix = SPECIES.filter((s) => s.mythical);
+  it('has 19 species (v0.5 the phoenix, v0.8.4 the Virginiauhu) with unique ids and image names', () => {
+    expect(SPECIES).toHaveLength(19);
+    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(19);
+    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(19);
+    // v0.8.4: the Virginiauhu – a special species bots may use, never for sale.
+    expect(SPECIES.find((s) => s.id === 'virginiauhu')).toMatchObject({
+      price: 80,
+      maxEnergy: 1300,
+      speedFactor: 3.4,
+      recoveryFactor: 2,
+      mythical: true,
+      notForSale: true,
+      forBots: true,
+    });
+    const phoenix = SPECIES.filter((s) => s.mythical && !s.forBots);
     expect(phoenix).toEqual([
       expect.objectContaining({
         id: 'phoenix',

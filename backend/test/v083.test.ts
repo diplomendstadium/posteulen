@@ -161,6 +161,36 @@ describe('names and pictures (v0.8.3)', () => {
   });
 });
 
+describe('the Virginiauhu (v0.8.4)', () => {
+  it('is not for sale, but bots may fly it', async () => {
+    const anna = await person(app, 'Anna', BERLIN);
+    app.db.run('UPDATE users SET gold = 2000 WHERE id = ?', anna.id);
+    expect(
+      (await anna.agent.json('POST', '/api/owls/buy', { species: 'virginiauhu' })).body,
+    ).toMatchObject({ code: 'owl_not_for_sale' });
+    await newBot('Kapitän Ahoi', { owlSpecies: 'virginiauhu' });
+    expect(
+      (
+        await centre.json(
+          'PUT',
+          `/api/bots/${(await centre.json<{ bots: { id: string }[] }>('GET', '/api/bots')).body.bots[0]!.id}/settings`,
+          {
+            name: 'Kapitän Ahoi',
+            character: 'x',
+            home: PARIS,
+            owlMode: 'own',
+            owlSpecies: 'phoenix',
+            owlName: 'Möwe',
+            motivation: 10,
+            restHours: 1,
+            playerOwls: false,
+          },
+        )
+      ).status,
+    ).toBe(400);
+  });
+});
+
 describe('first and last arrival of an event (v0.8.3)', () => {
   it('estimated while planned, real once the owls are on their way', async () => {
     await person(app, 'Anna', BERLIN);

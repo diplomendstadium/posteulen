@@ -11,7 +11,7 @@
   let { bot, onsaved }: { bot: BotView; onsaved: (bot: BotView) => void } = $props();
 
   // Every species of the game except the phoenix (SPEC 10.6).
-  const species = SPECIES.filter((item) => !item.mythical);
+  const species = SPECIES.filter((item) => !item.mythical || item.forBots);
 
   let name = $state('');
   let character = $state('');

@@ -299,7 +299,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         (species) =>
           `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde`,
       ),
-      `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.mythical)?.price ?? 100} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
+      `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 100} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
+      'Der Virginiauhu (1 300 Energie, 85 km/h, 20 % Erholung pro Stunde) ist in der Menagerie nicht zu kaufen: Er kommt nur als Eule einer Brieffigur, als Geschenk eines Bots oder per Gutschein. Wie der Phönix wird er nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.',
     ],
   },
   {

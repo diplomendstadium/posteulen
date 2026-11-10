@@ -22,6 +22,8 @@ export const SPECIES_DESCRIPTIONS: Readonly<Record<string, string>> = {
     'Mit 60 cm und etwa 2 kg ist der Milchuhu eigentlich ein stattlicher Bewohner afrikanischer Savannen und lichter Gehölze. Dort erbeutet er unter anderem Igel und Vögel. Auch unser Milchuhu mag es gern warm und behaglich und sagt zu einem Ofen unter seiner Schlafstange nicht nein. Gegenüber anderen Eulen ist er selbstbewusst und hackt auch mal nach Eulen, die ihm zu nahe kommen. Lange Etappen fliegt er in gleichmäßigem Tempo. Am Ziel setzt er sich auch schon mal mitten auf die Fensterbank, bis der Empfänger endlich öffnet. Für ein paar Feigenstücke unterbricht er gern seinen Mittagsschlaf.',
   phoenix:
     'Wo unser Phönix herkommt, ist ein Mysterium. Eines Tages saß er bei uns auf der Fensterbank und ist anscheinend auf der Suche nach einem menschlichen Seelenverwandten. Bis dahin unterstützt er uns bei unseren Botenflügen. Er ist etwa so groß wie ein Pfau, unglaublich schnell und meistert extrem lange Distanzen. Allerdings macht er sich bislang nur auf den Weg, wenn er überzeugt ist, dass ein Brief sehr wichtig und eilig ist. Am liebsten frisst er Silberblatt, auch wenn er zu Eulenkeksen und Feuersalamandern nicht nein sagt.',
+  virginiauhu:
+    'Der Virginiauhu ist in den Wäldern, Prärien und Wüsten Amerikas zu Hause, wird gut 55 cm groß und etwa 1,5 kg schwer und ist an seinen kecken Federohren leicht zu erkennen. Er ist ausdauernd, sehr schnell und erholt sich rasch. In der Menagerie ist er nicht zu haben: Er kommt nur mit Brieffiguren oder als Geschenk eines Gutscheins zu dir. Sein Lieblingsessen sind Präriehuhn-Häppchen.',
   riesenfischuhu:
     'Unser Riesenfischuhu ist etwa 65 cm lang und wiegt um die 3 kg. Er stammt aus den Flusswäldern Ostasiens, wo er vor allem Fische und auch Flusskrebse fängt. Als Posteule ist er stark und ausgesprochen ausdauernd. Lange Strecken über Wasser fliegt er auch mit langen, schweren Briefen, ohne zu ermüden, und mit ruhigen Flügelschlägen, aber bei einem Platschen schaut er sofort nach, ob da nicht auch ein Fisch zu holen ist. Seine Lieblingsleckerei, den Räucherfisch, trägt er erst zur Wasserschale und tunkt ihn einmal ein.',
   riesenkauz:
@@ -62,6 +64,8 @@ export const SPECIES_DESCRIPTIONS_EN: Readonly<Record<string, string>> = {
     "At 60 cm and about 2 kg, Verreaux's Eagle-Owl is really a stately inhabitant of African savannahs and open woodland. There it catches hedgehogs and birds, among other things. Our eagle-owl also likes it warm and cosy and would not say no to a stove under its sleeping perch. Towards other owls it is self-confident and sometimes pecks at owls that come too close. It flies long stages at an even pace. At its destination it sometimes sits right in the middle of the window sill until the recipient finally opens up. It gladly interrupts its afternoon nap for a few pieces of fig.",
   phoenix:
     'Where our phoenix comes from is a mystery. One day it was simply sitting on our window sill, apparently looking for a human soulmate. Until it finds one, it helps us with our deliveries. It is about the size of a peacock, incredibly fast and masters extremely long distances. So far, however, it only sets off when it is convinced that a letter is very important and urgent. Its favourite food is silver leaf, though it will not say no to owl biscuits and fire salamanders either.',
+  virginiauhu:
+    'The Great Horned Owl is at home in the forests, prairies and deserts of the Americas. It grows to a good 55 cm, weighs about 1.5 kg and is easy to spot by its jaunty ear tufts. It has great stamina, is very fast and recovers quickly. You cannot get it in the Menagerie: it only comes to you with pen friends or as the gift of a voucher. Its favourite food is prairie chicken titbits.',
   riesenfischuhu:
     "Our Blakiston's Fish Owl is about 65 cm long and weighs around 3 kg. It comes from the riverside forests of East Asia, where it mainly catches fish and crayfish too. As a post owl it is strong and has remarkable stamina. It flies long distances over water even with long, heavy letters without tiring, with calm wingbeats – but at the sound of a splash it immediately checks whether there might be a fish to catch. It first carries its favourite treat, smoked fish, to the water bowl and dips it in once.",
   riesenkauz:
@@ -93,6 +97,7 @@ export const SPECIES_SNACKS: Readonly<Record<string, string>> = {
   maskeneule: 'Guavenstückchen',
   milchuhu: 'Feigenstücke',
   phoenix: 'Silberblatt',
+  virginiauhu: 'Präriehuhn-Häppchen',
   riesenfischuhu: 'Räucherfisch',
   riesenkauz: 'Wachtelflügel',
   schleiereule: 'Apfelchips',
@@ -114,6 +119,7 @@ export const SPECIES_SNACKS_EN: Readonly<Record<string, string>> = {
   maskeneule: 'guava pieces',
   milchuhu: 'pieces of fig',
   phoenix: 'silver leaf',
+  virginiauhu: 'prairie chicken titbits',
   riesenfischuhu: 'smoked fish',
   riesenkauz: 'quail wings',
   schleiereule: 'apple crisps',

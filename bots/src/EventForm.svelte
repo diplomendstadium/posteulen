@@ -20,7 +20,7 @@
     ondone,
   }: { bot: BotView; event?: EventView | null; ondone: () => void } = $props();
 
-  const species = SPECIES.filter((item) => !item.mythical);
+  const species = SPECIES.filter((item) => !item.mythical || item.forBots);
 
   // The form starts from the event being edited (or empty) and is then edited freely.
   const start = (() => event)();

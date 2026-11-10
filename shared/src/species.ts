@@ -16,6 +16,10 @@ export interface Species {
    * lent to the Menagerie, never carries bot letters and has no chick picture.
    */
   readonly mythical?: true;
+  /** v0.8.4: not for sale in the Menagerie (the Virginiauhu: only from bots and vouchers). */
+  readonly notForSale?: true;
+  /** v0.8.4: a special species bots may use anyway (own bot owl, gift of an event). */
+  readonly forBots?: true;
 }
 
 // prettier-ignore
@@ -37,6 +41,7 @@ export const SPECIES: readonly Species[] = [
   { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65 },
   { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25 },
   { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 100, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true },
+  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 80, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, mythical: true, notForSale: true, forBots: true },
   { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45 },
 ];
 

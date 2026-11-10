@@ -124,10 +124,10 @@ export function knownCentralBot(
   return player?.known === 1 && player.removed === 0 ? bot : undefined;
 }
 
-/** Species bots may use: every species of the game except the phoenix (SPEC 10.6). */
+/** Species bots may use: every species of the game except the phoenix (SPEC 10.6; v0.8.4 with the Virginiauhu). */
 export function botSpeciesAllowed(id: string): boolean {
   const species = speciesById(id);
-  return species !== undefined && !species.mythical;
+  return species !== undefined && (!species.mythical || species.forBots === true);
 }
 
 /** Valid home of a bot: on land anywhere in the world (SPEC 10.6, 12.3). */

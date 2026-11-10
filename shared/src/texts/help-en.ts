@@ -280,7 +280,8 @@ const SECTIONS: readonly HelpSection[] = [
         (species) =>
           `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % per hour`,
       ),
-      `The phoenix is no ordinary owl: it costs ${SPECIES.find((species) => species.mythical)?.price ?? 100} gold, flies four times as fast as an owl with factor 1, is never lent out, does not help out in the Menagerie and lays no eggs.`,
+      `The phoenix is no ordinary owl: it costs ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 100} gold, flies four times as fast as an owl with factor 1, is never lent out, does not help out in the Menagerie and lays no eggs.`,
+      'The Great Horned Owl (1,300 energy, 85 km/h, 20 % recovery per hour) is not for sale in the Menagerie: it only comes as the owl of a pen friend, as a gift from a bot or with a voucher. Like the phoenix it is never lent out, does not help in the Menagerie and lays no eggs.',
     ],
   },
   {

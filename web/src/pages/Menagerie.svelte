@@ -34,7 +34,7 @@
   });
 
   /** Cheapest first; equal prices by name. */
-  const forSale = [...SPECIES]
+  const forSale = SPECIES.filter((species) => !species.notForSale)
     .map((species) => ({ ...species, name: speciesName(species.id) }))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, i18n.lang));
 

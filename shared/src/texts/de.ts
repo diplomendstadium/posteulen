@@ -1015,6 +1015,7 @@ export const de = {
     feedback_invalid: 'Die Nachricht enthält Zeichen, die nicht erlaubt sind.',
     owl_recipients: 'So viele Empfänger kann diese Eule nicht anfliegen (höchstens 5).',
     owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
+    owl_not_for_sale: 'Diese Eule ist in der Menagerie nicht zu kaufen.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen.',
     owl_watered_today: 'Diese Eule hat heute schon getrunken.',
     owl_snacked_today: 'Diese Eule hat heute schon ihr Lieblingsleckerli bekommen.',

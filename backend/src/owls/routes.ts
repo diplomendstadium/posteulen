@@ -123,6 +123,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const now = ctx.now();
     const species = speciesById(body.species);
     if (!species) throw new HttpError(400, 'bad_request');
+    // v0.8.4: the Virginiauhu comes only from bots and vouchers.
+    if (species.notForSale) throw new HttpError(400, 'owl_not_for_sale');
     const owl = ctx.db.transaction(() => {
       if (!canBuyMore(ownOwlCount(ctx, me))) throw new HttpError(400, 'owl_limit');
       debit(ctx.db, me, 'owl_purchase', priceTenths(species.price), now);

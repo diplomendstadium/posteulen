@@ -988,6 +988,7 @@ export const en: Texts = {
     feedback_invalid: 'The message contains characters that are not allowed.',
     owl_recipients: 'This owl cannot fly to that many recipients (at most 5).',
     owl_limit: 'You already have 50 owls of your own – that is the limit.',
+    owl_not_for_sale: 'This owl is not for sale in the Menagerie.',
     owl_fed_today: 'This owl has already eaten today.',
     owl_watered_today: 'This owl has already had a drink today.',
     owl_snacked_today: 'This owl has already had its favourite snack today.',
