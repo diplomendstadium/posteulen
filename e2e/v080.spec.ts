@@ -47,6 +47,20 @@ test.describe('Bots-Kontrollzentrum (v0.8)', () => {
       timeout: 30_000,
     });
 
+    // v0.8.3: the map of the game with its controls; every time in the device's time zone.
+    const map = page.getByRole('application', { name: 'Weltkarte mit Bot-Eulen' });
+    await expect(map).toBeVisible();
+    const before = await map.getAttribute('viewBox');
+    await page.getByRole('button', { name: 'Vergrößern' }).first().click();
+    const box = (await map.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 40, { steps: 5 });
+    await page.mouse.up();
+    expect(await map.getAttribute('viewBox')).not.toBe(before);
+    await expect(page.getByText(/wird alle 5 Minuten neu berechnet/)).toBeVisible();
+    await expect(page.getByText(/Alle Uhrzeiten in der Zeitzone dieses Geräts/)).toBeVisible();
+
     // English and back.
     await page.getByRole('button', { name: 'English' }).click();
     await expect(page.getByRole('button', { name: 'Create bot' })).toBeVisible();
@@ -103,6 +117,10 @@ test.describe('Bots-Kontrollzentrum (v0.8)', () => {
     );
     await page.getByRole('button', { name: 'Event speichern' }).click();
     await expect(page.getByTestId('planned-event')).toHaveCount(1);
+    // v0.8.3: when the first and the last player get the owl (estimated before the start).
+    await expect(page.getByTestId('event-reach')).toContainText(
+      /Erste Ankunft bei einem Spieler: ca\./,
+    );
 
     // The letter arrives at the player; only then the bot appears in the letters.
     await player.goto('/app/briefe');

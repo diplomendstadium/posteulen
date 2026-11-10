@@ -17,12 +17,19 @@ import {
   ExportRequest,
 } from '@posteulen/shared/schemas/bots.ts';
 import { normalizeName } from '@posteulen/shared/names.ts';
+import { eventReach } from './reach.ts';
 import type { Context } from '../context.ts';
 import { HttpError, emptyBody, parse } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
 import { registerPanelAuth } from '../admin/panel-auth.ts';
 import { flightPosition, routeOf, type FlightRow } from '../flights/service.ts';
-import { activationProblems, centralBot, type CentralBotRow, type EventRow } from './model.ts';
+import {
+  activationProblems,
+  centralBot,
+  eventText,
+  type CentralBotRow,
+  type EventRow,
+} from './model.ts';
 import {
   changeState,
   createCentralBot,
@@ -224,9 +231,15 @@ export function registerBotsCentreRoutes(app: FastifyInstance, ctx: Context): vo
       'SELECT * FROM central_bot_events WHERE bot_id = ? ORDER BY due_at, id',
       bot.id,
     );
+    const now = ctx.now();
+    // v0.8.3: with the first and the last arrival at a player (real or estimated).
+    const view = (event: EventRow) => ({
+      ...eventView(event),
+      reach: eventReach(ctx, bot, event, now),
+    });
     return {
-      planned: all.filter((event) => event.state === 'planned').map(eventView),
-      past: all.filter((event) => event.state !== 'planned').map(eventView),
+      planned: all.filter((event) => event.state === 'planned').map(view),
+      past: all.filter((event) => event.state !== 'planned').map(view),
     };
   });
 
@@ -286,9 +299,22 @@ export function registerBotsCentreRoutes(app: FastifyInstance, ctx: Context): vo
   app.post('/api/bots/:id/ai-test', { preHandler: authenticated }, async (request) => {
     const body = parse(AiTest, request.body);
     const bot = botOf(request);
+    // v0.8.3: as in a real reply – the bot's previous letter (the event before) is the history.
+    const previous = ctx.db.get<EventRow>(
+      `SELECT * FROM central_bot_events
+        WHERE bot_id = ? AND has_letter = 1 AND id != ? AND due_at < ?
+        ORDER BY due_at DESC LIMIT 1`,
+      bot.id,
+      body.eventId ?? '',
+      body.dueAt ?? ctx.now(),
+    );
+    const previousText = previous ? eventText(previous, 'follow', body.language) : '';
     const result = await ctx.centralBots.ask(bot, null, body.language, body.context, {
       ...(body.planned.trim() !== '' ? { planned: body.planned } : {}),
       letters: [{ plaintext: body.playerLetter }],
+      ...(previousText.trim() !== ''
+        ? { history: [{ role: 'assistant' as const, content: previousText }] }
+        : {}),
     });
     return 'text' in result ? { text: result.text } : { problem: result.problem };
   });

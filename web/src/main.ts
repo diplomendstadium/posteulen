@@ -9,7 +9,9 @@ import './styles/base.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
 import { registerServiceWorker } from './lib/status.svelte.ts';
+import { applyLanguage } from './lib/i18n.svelte.ts';
 
+applyLanguage();
 const target = document.getElementById('app');
 if (!target) throw new Error('#app missing');
 mount(App, { target });

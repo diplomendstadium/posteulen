@@ -170,6 +170,8 @@ export interface PlanRequest {
   readonly restMs?: number;
   /** v0.8: the holder is a control-centre bot flying to this player. */
   readonly botPeerId?: string;
+  /** v0.8.3: start somewhere else than at the holder's home (estimates for planned bot events). */
+  readonly from?: Point;
 }
 
 export interface PlannedFlight {
@@ -186,7 +188,7 @@ export function planFlight(ctx: Context, request: PlanRequest): PlannedFlight {
     request.chick === true,
     request.owl.motivation,
   );
-  const home = homeOf(ctx, request.holderId);
+  const home = request.from ?? homeOf(ctx, request.holderId);
   const rest = request.chick === true ? 0 : (request.restMs ?? 0);
   const route: RouteStop[] = request.recipients.map((userId) => ({
     userId,
@@ -332,6 +334,8 @@ export interface ReplanOptions {
   readonly newLeg?: boolean;
   /** v0.7: changes the state first (rest ends now, more energy after feeding). */
   readonly adjust?: (state: FlightState) => FlightState;
+  /** v0.8.3: a new profile for the rest of the flight (care of a visiting bot owl). */
+  readonly profile?: FlightProfile;
 }
 
 /** Re-plans the pending stops from the state at `now` and replaces the events (9.4.6, 9.5). */
@@ -346,7 +350,9 @@ export function replanFlight(
     .map((stop, index) => ({ stop, index }))
     .filter(({ stop }) => stop.status === 'pending');
   const stored = JSON.parse(flight.profile) as FlightProfile;
-  const profile = options.newLeg && stored.ownUnits ? legProfile(ctx, flight, stored) : stored;
+  const profile =
+    options.profile ??
+    (options.newLeg && stored.ownUnits ? legProfile(ctx, flight, stored) : stored);
   const simulation = replan(
     profile,
     planOf(flight),

@@ -92,6 +92,10 @@ export const AiTest = v.strictObject({
   planned: Text(LETTER.LARGE_MAX_CHARS),
   context: Text(CENTRAL_BOTS.CONTEXT_MAX_CHARS),
   playerLetter: v.pipe(v.string(), v.minLength(1), v.maxLength(LETTER.LARGE_MAX_CHARS)),
+  /** v0.8.3: when the tested event is due (the bot's previous letter before it is the history). */
+  dueAt: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
+  /** v0.8.3: the event being edited (never its own previous letter). */
+  eventId: v.optional(Id),
 });
 
 export const ExportRequest = v.strictObject({

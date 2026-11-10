@@ -183,9 +183,11 @@ export class CentralRunner {
     const unanswered = this.unanswered(bot.id, delivery.user_id);
     let text: string | null = null;
     let personalized = false;
+    // v0.8.3: a player who has written to the bot knows it – then always the follow-up letter
+    // (the AI adapts that one, never the first letter).
+    const variant = unanswered.length > 0 ? 'follow' : this.variantFor(bot.id, delivery.user_id);
     if (event) {
       if (event.has_letter === 1) {
-        const variant = this.variantFor(bot.id, delivery.user_id);
         const planned = eventText(event, variant, language);
         text = planned;
         if (unanswered.length > 0) {
@@ -211,7 +213,7 @@ export class CentralRunner {
       text = result.text;
       personalized = true;
     }
-    this.start(bot, delivery, event, text, personalized ? unanswered : [], mode);
+    this.start(bot, delivery, event, text, personalized ? unanswered : [], mode, variant);
   }
 
   private variantFor(botId: string, userId: string): 'first' | 'follow' {
@@ -272,7 +274,12 @@ export class CentralRunner {
     userId: string | null,
     language: Language,
     context: string,
-    request: { planned?: string; letters: readonly Pick<ConversationLetter, 'plaintext'>[] },
+    request: {
+      planned?: string;
+      letters: readonly Pick<ConversationLetter, 'plaintext'>[];
+      /** v0.8.3: the test of the control centre brings the bot's previous letter as history. */
+      history?: readonly AiMessage[];
+    },
   ): Promise<AiResult> {
     const ctx = this.ctx;
     const key = await loadApiKey(ctx);
@@ -280,7 +287,7 @@ export class CentralRunner {
     const model = aiModel(ctx.db);
     const memory = userId
       ? await this.memory(bot, userId, key, model)
-      : { summary: null, history: [] };
+      : { summary: null, history: [...(request.history ?? [])] };
     if (memory === 'limit') return { problem: 'limit', detail: 'Tageslimit erreicht.' };
     if (!reserveCall(ctx.db, ctx.now(), 'bots'))
       return { problem: 'limit', detail: 'Tageslimit erreicht.' };
@@ -325,8 +332,8 @@ export class CentralRunner {
   }
 
   /**
-   * The bot's memory of this player: summary plus the last letters (answered ones); older
-   * letters are folded into the summary (one extra call at most), as with the Erklärbär.
+   * The bot's memory of this player: summary plus the last letters (answered ones; v0.8.3 the
+   * last 15, before 6); older letters are folded into the summary (one extra call at most).
    */
   private async memory(
     bot: Pick<CentralBotRow, 'id'>,
@@ -353,8 +360,8 @@ export class CentralRunner {
       bot.id,
       chat?.bot_summarized_until ?? -1,
     );
-    if (history.length > BOTS.CONTEXT_LETTERS) {
-      const older = history.slice(0, history.length - BOTS.CONTEXT_LETTERS);
+    if (history.length > BOTS.CENTRAL_CONTEXT_LETTERS) {
+      const older = history.slice(0, history.length - BOTS.CENTRAL_CONTEXT_LETTERS);
       if (!reserveCall(ctx.db, ctx.now(), 'bots')) return 'limit';
       const lines = older.map(
         (item) =>
@@ -379,7 +386,7 @@ export class CentralRunner {
         userId,
         bot.id,
       );
-      history = history.slice(-BOTS.CONTEXT_LETTERS);
+      history = history.slice(-BOTS.CENTRAL_CONTEXT_LETTERS);
     }
     return {
       summary,
@@ -398,6 +405,7 @@ export class CentralRunner {
     text: string | null,
     answered: readonly ConversationLetter[],
     mode: 'own' | 'loan',
+    variant: 'first' | 'follow',
   ): void {
     const ctx = this.ctx;
     ctx.db.transaction(() => {
@@ -414,7 +422,6 @@ export class CentralRunner {
       }
       if (mode === 'own' && ownOwlOut(ctx, bot.id, delivery.user_id)) return;
       ensurePlayer(ctx, bot.id, delivery.user_id);
-      const variant = this.variantFor(bot.id, delivery.user_id);
       const flight = startBotFlight(ctx, current, delivery.user_id, mode, now);
       let letterId: string | null = null;
       if (text !== null && text.trim() !== '') {
@@ -459,12 +466,13 @@ export class CentralRunner {
       }
       ctx.db.run(
         `UPDATE central_bot_deliveries SET state = 'started', variant = ?, letter_id = ?, flight_id = ?,
-                personalized = ?, started_at = ? WHERE id = ?`,
+                personalized = ?, started_at = ?, arrives_at = ? WHERE id = ?`,
         letterId ? variant : null,
         letterId,
         flight.flightId,
         answered.length > 0 ? 1 : 0,
         now,
+        Math.round(flight.arrivesAt),
         delivery.id,
       );
     });

@@ -403,10 +403,10 @@ describe('bots of the control centre (SPEC 10.6–10.10)', () => {
     expect(owls.body.guests).toEqual([
       expect.objectContaining({ holderName: 'Kapitän Ahoi', bot: true, name: 'Möwe' }),
     ]);
-    // Caring for a bot owl is not possible.
+    // v0.8.3: a bot owl can be cared for (free; details in v083.test.ts).
     expect(
       (await anna.agent.json('POST', `/api/owls/${owls.body.guests[0]!.id}/pet`, {})).status,
-    ).toBe(404);
+    ).toBe(200);
     // Writing with own or loan owls is not allowed for this bot – the resting owl always is.
     const loan = await borrowOwl(anna);
     expect(
@@ -589,7 +589,7 @@ describe('bots of the control centre (SPEC 10.6–10.10)', () => {
         .statusCode,
     ).toBe(400);
     expect(
-      (await centre.raw(`/api/bots/${bot}/media`, 'image/png', Buffer.alloc(3 * 1024 * 1024)))
+      (await centre.raw(`/api/bots/${bot}/media`, 'image/png', Buffer.alloc(6 * 1024 * 1024)))
         .statusCode,
     ).toBe(413);
     await planLetter(bot, app.clock.now + TIME.HOUR, {

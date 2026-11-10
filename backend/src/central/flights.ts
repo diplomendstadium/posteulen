@@ -191,7 +191,8 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
   }
   if (delivery) {
     ctx.db.run(
-      "UPDATE central_bot_deliveries SET state = 'done' WHERE id = ? AND state = 'started'",
+      "UPDATE central_bot_deliveries SET state = 'done', arrives_at = ? WHERE id = ? AND state = 'started'",
+      Math.round(at),
       delivery.id,
     );
   }

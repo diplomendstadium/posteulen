@@ -30,7 +30,9 @@ export function checkNewBotName(
   ownId?: string,
 ): { display: string; key: string } {
   const name = checkBotName(input.trim());
-  if (typeof name === 'string') throw new HttpError(400, `name_${name}`);
+  // v0.8.3: own message for the longer limit of bot names.
+  if (typeof name === 'string')
+    throw new HttpError(400, name === 'too_long' ? 'bot_name_too_long' : `name_${name}`);
   const bot = ctx.db.get<{ id: string }>(
     'SELECT id FROM central_bots WHERE name_key = ?',
     name.key,

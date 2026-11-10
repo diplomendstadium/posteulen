@@ -74,6 +74,8 @@ export interface DeliveryRow {
   readonly personalized: number;
   readonly created_at: number;
   readonly started_at: number | null;
+  /** v0.8.3: planned on take-off, real on arrival. */
+  readonly arrives_at: number | null;
 }
 
 export interface PlayerRow {

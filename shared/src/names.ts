@@ -3,7 +3,7 @@
  * Used everywhere names are compared (registration, login, contact requests, renaming,
  * reserved and locked names).
  */
-import { ACCOUNT, OWL } from './constants.ts';
+import { ACCOUNT, CENTRAL_BOTS, OWL } from './constants.ts';
 
 const LETTERS = 'äöüÄÖÜßàáâãåæçèéêëìíîïñòóôõøœùúûÀÁÂÃÅÆÇÈÉÊËÌÍÎÏÑÒÓÔÕØŒÙÚÛ';
 const ALLOWED = new RegExp(`^[A-Za-z0-9 ${LETTERS}]+$`, 'u');
@@ -89,11 +89,16 @@ export function checkUserName(input: string): NameCheck | NameError {
 }
 
 /**
- * v0.8: name of a control-centre bot – the rules of user names (SPEC 7.1); uniqueness against
- * players and other bots is checked by the server.
+ * v0.8: name of a control-centre bot – the rules of user names (SPEC 7.1), but (v0.8.3) up to
+ * CENTRAL_BOTS.NAME_MAX_CHARS characters; uniqueness against players and other bots is checked by
+ * the server.
  */
 export function checkBotName(input: string): NameCheck | NameError {
-  return checkUserName(input);
+  const display = input.normalize('NFC');
+  const error = checkCharacters(display, CENTRAL_BOTS.NAME_MIN_CHARS, CENTRAL_BOTS.NAME_MAX_CHARS);
+  if (error) return error;
+  if (isReservedName(display)) return 'reserved';
+  return { display, key: normalizeName(display) };
 }
 
 /** Validates an owl name (SPEC 9.2.4): same characters as user names, not unique, not reserved. */

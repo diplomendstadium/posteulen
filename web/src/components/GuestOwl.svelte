@@ -3,6 +3,8 @@
    * v0.7: an owl of someone else that rests here for a while (SPEC 8.5): clearly marked as a
    * guest, with its energy and motivation. The host may care for it (and pays for biscuit and
    * snack) and can hand it a reply to its holder – then it takes off at once.
+   * v0.8.3: owls of bots are cared for too, free of charge and without showing their motivation
+   * (it is raised up to 120 % at most, a higher one stays as it is).
    */
   import { t, fill, speciesName, i18n } from '../lib/i18n.svelte.ts';
   import { speciesSnack } from '@posteulen/shared/texts/species.ts';
@@ -49,7 +51,7 @@
   }
 
   function snackButton(): string {
-    const text = fill(t.owls.snack, { snack });
+    const text = fill(guest.bot ? t.owls.snackFree : t.owls.snack, { snack });
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
@@ -92,51 +94,48 @@
       <span>{fill(t.owls.energy, { energy: guest.energy, max: guest.maxEnergy })}</span>
       <GaugeBar share={guest.maxEnergy > 0 ? guest.energy / guest.maxEnergy : 0} />
     </p>
-    <p class="energy">
-      <span
-        >{fill(t.owls.motivation, {
-          value: Math.round(motivationFactor(guest.motivation) * 100),
-        })}</span
-      >
-      <GaugeBar share={motivationShare(guest.motivation)} />
-    </p>
+    {#if !guest.bot}
+      <p class="energy">
+        <span
+          >{fill(t.owls.motivation, {
+            value: Math.round(motivationFactor(guest.motivation) * 100),
+          })}</span
+        >
+        <GaugeBar share={motivationShare(guest.motivation)} />
+      </p>
+    {/if}
     <p class="hint">{fill(t.owls.guestHint, { name: holder })}</p>
     <ErrorText message={error} />
     <div class="actions">
-      {#if guest.bot}
-        <p class="hint">{t.owls.guestBotHint}</p>
-      {:else}
-        <button
-          class="button secondary"
-          type="button"
-          disabled={busy || guest.wateredToday || !status.online}
-          onclick={() =>
-            void care('water', 'drinking', fill(t.owls.drinking, { name: guest.name }))}
-          >{guest.wateredToday ? t.owls.wateredToday : t.owls.water}</button
-        >
-        <button
-          class="button secondary"
-          type="button"
-          disabled={busy || !status.online}
-          onclick={() => void care('pet', 'petting', fill(t.owls.petting, { name: guest.name }))}
-          >{t.owls.pet}</button
-        >
-        <button
-          class="button secondary"
-          type="button"
-          disabled={busy || guest.fedToday || !status.online}
-          onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
-          >{guest.fedToday ? t.owls.fedToday : t.owls.feed}</button
-        >
-        <button
-          class="button secondary"
-          type="button"
-          disabled={busy || guest.snackedToday || !status.online}
-          onclick={() =>
-            void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
-          >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
-        >
-      {/if}
+      <button
+        class="button secondary"
+        type="button"
+        disabled={busy || guest.wateredToday || !status.online}
+        onclick={() => void care('water', 'drinking', fill(t.owls.drinking, { name: guest.name }))}
+        >{guest.wateredToday ? t.owls.wateredToday : t.owls.water}</button
+      >
+      <button
+        class="button secondary"
+        type="button"
+        disabled={busy || !status.online}
+        onclick={() => void care('pet', 'petting', fill(t.owls.petting, { name: guest.name }))}
+        >{t.owls.pet}</button
+      >
+      <button
+        class="button secondary"
+        type="button"
+        disabled={busy || guest.fedToday || !status.online}
+        onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
+        >{guest.fedToday ? t.owls.fedToday : guest.bot ? t.owls.feedFree : t.owls.feed}</button
+      >
+      <button
+        class="button secondary"
+        type="button"
+        disabled={busy || guest.snackedToday || !status.online}
+        onclick={() =>
+          void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
+        >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
+      >
       {#if guest.holderName !== null}
         <!-- v0.7.1: opens the chat with exactly this owl chosen. -->
         <button

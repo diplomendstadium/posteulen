@@ -202,13 +202,16 @@ export const BOTS = {
   CENTRAL_AI_DAILY_LIMIT_DEFAULT: 500,
   SUMMARY_MAX_WORDS: 250,
   CONTEXT_LETTERS: 6,
+  /** v0.8.3: the control-centre bots get the last 15 letters word for word (older: summary). */
+  CENTRAL_CONTEXT_LETTERS: 15,
   EXPLAINER_LETTER_DAYS: [0, 1, 2, 3, 4, 7],
 } as const;
 
 /** v0.8: bots of the control centre (SPEC 10.6 ff.). */
 export const CENTRAL_BOTS = {
   NAME_MIN_CHARS: 3,
-  NAME_MAX_CHARS: 20,
+  /** v0.8.3: up to 30 characters (players: 20, so a bot name never collides with a new one). */
+  NAME_MAX_CHARS: 30,
   CHARACTER_MAX_CHARS: 8000,
   CONTEXT_MAX_CHARS: 8000,
   /** Permanent motivation of bot owls in tenths: 0.5 to 20.0. */
@@ -221,9 +224,9 @@ export const CENTRAL_BOTS = {
   /** Spontaneous AI reply only if no letter event is planned within this many days. */
   SPONTANEOUS_WINDOW_DAYS: 28,
   REPLY_AFTER_HOURS: 2,
-  /** Up to two pictures per letter, uploads of at most 2 MB each (JPEG, PNG, WebP). */
+  /** Up to two pictures per letter, uploads of at most 5 MB each (JPEG, PNG, WebP; v0.8.3, before 2 MB). */
   MEDIA_PER_LETTER: 2,
-  MEDIA_MAX_UPLOAD_BYTES: 2 * 1024 * 1024,
+  MEDIA_MAX_UPLOAD_BYTES: 5 * 1024 * 1024,
   MEDIA_MAX_INPUT_PIXELS: 40_000_000,
   MEDIA_MAX_EDGE_PX: 1600,
   /** Gifts in events: like vouchers, 0.1 to 100 gold per player (tenths). */

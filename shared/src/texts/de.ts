@@ -520,11 +520,12 @@ export const de = {
     guestHint:
       'Du kannst sie pflegen, damit sie gestärkt weiterfliegt, und ihr eine Antwort an {name} mitgeben – dann fliegt sie sofort los.',
     guestReply: 'Antwort an {name} mitgeben',
-    /** v0.8 */
     /** v0.8.2 */
     guestSendOn: 'Weiterfliegen lassen',
     guestSendOnConfirm: '{name} jetzt ohne Antwort weiterfliegen lassen?',
-    guestBotHint: 'Eine Bot-Eule – bestens versorgt, sie braucht keine Pflege.',
+    /** v0.8.3: caring for a visiting bot owl costs nothing. */
+    feedFree: 'Eulenkeks (kostenlos)',
+    snackFree: '{snack} geben (kostenlos)',
     restingAt: 'Rastet bei {name} bis {until}.',
     ownGroup: 'Deine Eulen',
     flyingDayAlt: '{name} im Flug bei Tag',
@@ -681,6 +682,8 @@ export const de = {
   },
   admin: {
     title: 'PostEulen – Verwaltung',
+    /** v0.8.3: all times of the panels in the time zone of the device. */
+    timeZoneNote: 'Alle Uhrzeiten in der Zeitzone dieses Geräts ({zone}).',
     loginHeading: 'Anmeldung für die Verwaltung',
     password: 'Passwort',
     login: 'Anmelden',
@@ -804,7 +807,7 @@ export const de = {
     overviewIntro:
       'Bots sind Brieffiguren für alle Spielerinnen und Spieler: eine Identität, ein Charakter, ein Plan. Briefwechsel, Gedächtnis und Zustellung hat jede und jeder für sich. Der Erklärbär ist fest eingebaut und erscheint hier nicht.',
     none: 'Noch keine Bots.',
-    newName: 'Name des neuen Bots',
+    newName: 'Name des neuen Bots (3–30 Zeichen)',
     create: 'Bot anlegen',
     createConfirm:
       'Den Bot „{name}“ anlegen? Er ist zunächst ein leerer Entwurf: ohne Wohnort, für niemanden sichtbar, er tut nichts.',
@@ -832,7 +835,7 @@ export const de = {
     tabPlanned: 'Geplante Events',
     tabPast: 'Vergangene Events',
     tabSettings: 'Einstellungen',
-    name: 'Name (eindeutig, für alle Spieler)',
+    name: 'Name (3–30 Zeichen, eindeutig, für alle Spieler)',
     character: 'Charakter und Hintergrund (geht an die KI)',
     characterHint:
       'Wer ist der Bot, wie schreibt er, was mag er? Das bekommt die KI bei jeder Antwort und jeder Anpassung mit.',
@@ -879,7 +882,6 @@ export const de = {
     eventNew: 'Neues Event planen',
     eventEdit: 'Event bearbeiten',
     dueAt: 'Zeitpunkt (Ortszeit dieses Geräts)',
-    dueUtc: '= {time} UTC',
     withMove: 'Umzug',
     moveTo: 'Neuer Wohnort',
     withLetter: 'Brief an alle Spieler',
@@ -892,7 +894,7 @@ export const de = {
     textFollowDe: 'Deutsch – Folgebrief',
     textFirstEn: 'Englisch – Erstkontakt',
     textFollowEn: 'Englisch – Folgebrief',
-    pictures: 'Bilder (höchstens 2; JPEG, PNG oder WebP, je bis 2 MB)',
+    pictures: 'Bilder (höchstens 2; JPEG, PNG oder WebP, je bis 5 MB)',
     addPicture: 'Bild hinzufügen',
     removePicture: 'Bild entfernen',
     gift: 'Geschenk an jeden Spieler',
@@ -912,7 +914,7 @@ export const de = {
     previewGift: 'Dazu: {gift}',
     aiTest: 'KI-Personalisierung testen',
     aiTestIntro:
-      'Ein ausgedachter Spielerbrief – die KI zeigt, wie sie diesen Brief daraufhin anpassen würde. Es wird nichts verschickt, gespeichert oder gezählt (außer im KI-Kontingent).',
+      'Ein ausgedachter Spielerbrief – die KI zeigt, wie sie den Folgebrief dieses Events daraufhin anpassen würde (wer dem Bot schreibt, kennt ihn schon). Als bisheriger Verlauf dient der Brief des vorigen Events. Im echten Betrieb bekommt die KI die letzten 15 Briefe mit dem Spieler und eine Zusammenfassung der älteren. Es wird nichts verschickt, gespeichert oder gezählt (außer im KI-Kontingent).',
     aiLetter: 'Ausgedachter Spielerbrief',
     aiRun: 'Testen',
     aiResult: 'So würde der Bot schreiben:',
@@ -938,6 +940,11 @@ export const de = {
     pastState_archived: 'abgeschlossen',
     pastState_skipped: 'nicht ausgeführt',
     pastStarted: 'Versand: {time}',
+    reachFirst: 'Erste Ankunft bei einem Spieler: {time}',
+    reachLast: 'Letzte Ankunft bei einem Spieler: {time}',
+    reachAbout: 'ca. {time}',
+    reachHint:
+      'ca. = geschätzt aus den Flügen zum nächsten und zum entferntesten Spieler mit den heutigen Einstellungen (ohne Wartezeit auf die eigene Bot-Eule).',
     pastArchived: 'Abgeschlossen: {time}',
     pastNumbers:
       '{recipients} Empfänger · {sent} abgeschickt · {delivered} zugestellt · {read} gelesen · {replies} Antworten',
@@ -982,6 +989,7 @@ export const de = {
     name_unavailable: 'Diesen Namen gibt es schon (oder einen zum Verwechseln ähnlichen).',
     name_too_short: 'Der Name ist zu kurz (mindestens 3 Zeichen).',
     name_too_long: 'Der Name ist zu lang (höchstens 20 Zeichen).',
+    bot_name_too_long: 'Der Name ist zu lang (höchstens 30 Zeichen).',
     name_invalid_characters: 'Der Name enthält Zeichen, die nicht erlaubt sind.',
     name_invalid_spaces: 'Keine Leerzeichen am Anfang oder Ende und keine doppelten Leerzeichen.',
     name_reserved: 'Dieser Name ist reserviert.',
@@ -1038,7 +1046,7 @@ export const de = {
     event_started: 'Dieses Ereignis läuft schon und lässt sich nicht mehr ändern.',
     event_texts: 'Bitte alle vier Fassungen des Briefs ausfüllen (ohne Emojis).',
     media_invalid: 'Das Bild lässt sich nicht lesen. Erlaubt sind JPEG, PNG und WebP.',
-    media_too_large: 'Das Bild ist zu groß (höchstens 2 MB).',
+    media_too_large: 'Das Bild ist zu groß (höchstens 5 MB).',
     media_unknown: 'Ein Bild gehört nicht zu diesem Bot.',
     import_invalid: 'Die Datei ist kein gültiger PostEulen-Bot-Export.',
     name_mismatch: 'Der eingetippte Name stimmt nicht.',

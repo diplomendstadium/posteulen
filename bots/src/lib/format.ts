@@ -6,13 +6,12 @@ export function dateTime(ms: number): string {
   );
 }
 
-export function utcTime(ms: number): string {
-  return new Intl.DateTimeFormat(locale(), {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(ms));
+/** v0.8.3: time of day only, in the time zone of this device. */
+export function time(ms: number): string {
+  return new Intl.DateTimeFormat(locale(), { timeStyle: 'short' }).format(new Date(ms));
 }
+
+export { deviceTimeZone } from '../../../admin/src/lib/time.ts';
 
 /** "2026-11-09T14:30" in the local time of this device (for datetime-local inputs). */
 export function toLocalInput(ms: number): string {

@@ -11,7 +11,7 @@
   import { fill, speciesName, t } from '../../admin/src/lib/i18n.svelte.ts';
   import BotMap from './BotMap.svelte';
   import LetterPreview from './LetterPreview.svelte';
-  import { fromLocalInput, toLocalInput, utcTime } from './lib/format.ts';
+  import { deviceTimeZone, fromLocalInput, toLocalInput } from './lib/format.ts';
   import type { BotView, EventLetter, EventView } from './lib/types.ts';
 
   let {
@@ -128,11 +128,18 @@
         'POST',
         `/api/bots/${bot.id}/ai-test`,
         {
+          // v0.8.3: a player who writes to the bot knows it – the AI adapts the follow-up letter
+          // (in the other language if this one is empty, as when sending).
           language: previewLanguage,
-          variant: previewVariant,
-          planned: letter.texts[previewLanguage][previewVariant],
+          variant: 'follow',
+          planned:
+            letter.texts[previewLanguage].follow.trim() !== ''
+              ? letter.texts[previewLanguage].follow
+              : letter.texts[previewLanguage === 'de' ? 'en' : 'de'].follow,
           context,
           playerLetter: aiLetter,
+          ...(Number.isFinite(dueMs) ? { dueAt: dueMs } : {}),
+          ...(event ? { eventId: event.id } : {}),
         },
       );
       aiResult =
@@ -153,9 +160,7 @@
   <h2>{event ? t.centre.eventEdit : t.centre.eventNew}</h2>
   <label for="event-due">{t.centre.dueAt}</label>
   <input id="event-due" type="datetime-local" bind:value={due} required />
-  {#if Number.isFinite(dueMs)}<p class="hint">
-      {fill(t.centre.dueUtc, { time: utcTime(dueMs) })}
-    </p>{/if}
+  <p class="hint">{fill(t.admin.timeZoneNote, { zone: deviceTimeZone() })}</p>
 
   <label class="choice"><input type="checkbox" bind:checked={withMove} /> {t.centre.withMove}</label
   >

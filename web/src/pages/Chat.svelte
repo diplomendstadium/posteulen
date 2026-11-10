@@ -119,6 +119,23 @@
     return null;
   }
 
+  /**
+   * v0.8.3: short letters lie slightly tilted on the table; from this height they stand straight
+   * and without the drop shadow – a tilted very long sheet ran out of the window sideways (the
+   * page then scrolled sideways and the bars went out of sight), and a filter on a huge layer is
+   * expensive.
+   */
+  const STRAIGHT_FROM_PX = 1200;
+  function tilt(sheet: HTMLElement) {
+    const update = (): void => {
+      sheet.parentElement?.classList.toggle('straight', sheet.offsetHeight > STRAIGHT_FROM_PX);
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(sheet);
+    update();
+    return { destroy: () => observer.disconnect() };
+  }
+
   function statusText(letter: ShownLetter): string {
     if (letter.status === 'returned') return t.letters.returned;
     if (letter.status === 'in_flight')
@@ -191,7 +208,7 @@
 <ol class="letters" class:print aria-live="polite" bind:this={list}>
   {#each letters as letter (letter.id)}
     <li class="letter" class:mine={letter.role === 'sender'} data-letter-id={letter.id}>
-      <article class={`sheet ${deckleClass(letter.id)}`}>
+      <article class={`sheet ${deckleClass(letter.id)}`} use:tilt>
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         <p class="meta">
           {dateTime(letter.sentAt)} · {letter.parchment === 'large'
@@ -333,6 +350,8 @@
     padding: 0.75rem 0.25rem 0;
     display: grid;
     gap: 2.5rem;
+    /* v0.8.3: nothing of a sheet may widen the page. */
+    overflow-x: clip;
   }
 
   .letter {
@@ -362,6 +381,15 @@
     line-height: 1.4;
     background: url('../../assets/parchment-dark.webp') center / 450px repeat #d4b47c;
     transform: rotate(0.4deg);
+  }
+
+  /* v0.8.3: long letters stand straight, without the expensive shadow filter. */
+  .letter:global(.straight) {
+    filter: none;
+  }
+
+  .letter:global(.straight) .sheet {
+    transform: none;
   }
 
   /* On dark parchment the small print uses the darkest ink as well. */

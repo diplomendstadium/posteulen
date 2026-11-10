@@ -49,6 +49,12 @@ export interface EventView {
   readonly startedAt: number | null;
   readonly archivedAt: number | null;
   readonly stats: Numbers & { recipients: number };
+  /** v0.8.3: first and last arrival at a player (estimated: planned by the server). */
+  readonly reach: {
+    readonly first: { readonly at: number; readonly estimated: boolean };
+    readonly last: { readonly at: number; readonly estimated: boolean };
+    readonly players: number;
+  } | null;
 }
 
 export interface MapOwl {

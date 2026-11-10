@@ -48,6 +48,17 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.3',
+    title: 'Glatt gestrichenes Pergament: Version 0.8.3',
+    paragraphs: [
+      'Ein paar Kleinigkeiten aus der Eulenschreibstube:',
+      '• Sehr lange Briefe liegen jetzt gerade auf dem Tisch und rutschen nicht mehr aus dem Bild. Kurze Briefe dürfen weiter ein wenig schief liegen – so sieht ein Schreibtisch eben aus.',
+      '• Rastet die Eule einer Brieffigur bei dir, darfst du sie jetzt auch tränken, streicheln und füttern – ganz umsonst, die Brieffiguren laden dich ein.',
+      '• Die Brieffiguren erinnern sich besser an euren Briefwechsel und knüpfen in ihren Briefen an das an, was ihr euch zuletzt geschrieben habt.',
+      'Viel Freude beim Lesen!',
+    ],
+  },
+  {
     version: '0.8.2',
     title: 'Frisch geputztes Gefieder: Version 0.8.2',
     paragraphs: [
@@ -260,6 +271,17 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.8.3',
+    title: 'Smoothed-out parchment: version 0.8.3',
+    paragraphs: [
+      'A few little things from the owls’ writing room:',
+      '• Very long letters now lie straight on the table and no longer slide out of view. Short letters may still lie a little askew – that is just what a desk looks like.',
+      '• When the owl of a pen friend rests with you, you may now give it water, pet it and feed it too – entirely free, the pen friends treat you.',
+      '• The pen friends remember your correspondence better and pick up in their letters on what you last wrote to each other.',
+      'Enjoy reading!',
+    ],
+  },
   {
     version: '0.8.2',
     title: 'Freshly preened feathers: version 0.8.2',

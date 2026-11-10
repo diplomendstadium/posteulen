@@ -36,6 +36,7 @@ import {
   OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
+import { careForBotOwl } from '../central/care.ts';
 import { borrow, loanedOn, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
@@ -185,6 +186,12 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const guest = ctx.db.get('SELECT 1 FROM owls WHERE id = ? AND owner_id = ?', id, me)
       ? undefined
       : guestFlight(ctx, me, id);
+    // v0.8.3: a visiting owl of a control-centre bot (no owl row; free care, SPEC 10.7).
+    if (guest?.flight.holder_kind === 'bot') {
+      ctx.db.transaction(() => careForBotOwl(ctx, guest.flight, kind, today, now));
+      const flight = loadFlight(ctx, guest.flight.id);
+      return { guest: flight ? botGuestView(ctx, flight, guest.index, now) : null };
+    }
     ctx.db.transaction(() => {
       const owl = guest
         ? ctx.db.get<OwlRow>('SELECT * FROM owls WHERE id = ?', id)

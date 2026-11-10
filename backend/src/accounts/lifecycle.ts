@@ -189,6 +189,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   ctx.db.run('DELETE FROM homecomings WHERE created_at < ?', at - 60 * TIME.DAY);
   // v0.8.2: banners of the admin are gone once they have ended.
   ctx.db.run('DELETE FROM banners WHERE ends_at <= ?', at);
+  // v0.8.3: care marks of visiting bot owls only matter for the current day.
+  ctx.db.run('DELETE FROM bot_owl_care WHERE day < ?', utcDay(at - TIME.DAY));
   // v0.8: pictures of bots that no event and no letter uses any more (SPEC 10.11).
   pruneMedia(ctx, at);
   ctx.db.run(

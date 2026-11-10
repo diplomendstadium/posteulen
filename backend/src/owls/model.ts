@@ -19,6 +19,7 @@ import { HttpError } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { flightPosition, routeOf, type FlightRow } from '../flights/service.ts';
+import { botCareToday } from '../central/care.ts';
 
 export interface OwlRow {
   readonly id: string;
@@ -231,6 +232,7 @@ export function botGuestView(
   );
   const profile = JSON.parse(flight.profile) as { motivation?: number };
   const info = flightPosition(flight, now);
+  const care = botCareToday(ctx, flight.id, utcDay(now));
   return {
     id: flight.id,
     name: flight.owl_name,
@@ -246,10 +248,11 @@ export function botGuestView(
     energy: displayEnergy(info?.energy ?? 0),
     maxEnergy: speciesById(flight.owl_species)?.maxEnergy ?? 0,
     motivation: Math.round((profile.motivation ?? 1) * 10),
-    fedToday: true,
-    pettedToday: true,
-    wateredToday: true,
-    snackedToday: true,
+    // v0.8.3: cared for like every guest (free; SPEC 10.7).
+    fedToday: care.has('feed'),
+    pettedToday: care.has('pet'),
+    wateredToday: care.has('water'),
+    snackedToday: care.has('snack'),
     caredAt: null,
     holderId: flight.holder_id,
     holderName: bot?.name ?? null,

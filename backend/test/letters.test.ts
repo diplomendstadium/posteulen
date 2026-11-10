@@ -90,6 +90,7 @@ interface ApiLetter {
   senderId: string;
   recipientId: string;
   sentAt: number;
+  arrivesAt: number;
   kind: 'letter';
   parchment: 'small' | 'large';
   status: string;

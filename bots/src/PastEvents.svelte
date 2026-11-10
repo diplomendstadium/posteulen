@@ -2,6 +2,7 @@
   /** v0.8: the archive – events that ran, newest first, with aggregated numbers (SPEC 10.8). */
   import { fill, speciesName, t } from '../../admin/src/lib/i18n.svelte.ts';
   import { dateTime, gold } from './lib/format.ts';
+  import EventReach from './EventReach.svelte';
   import type { EventView } from './lib/types.ts';
 
   let { events }: { events: readonly EventView[] } = $props();
@@ -25,6 +26,7 @@
         {#if event.archivedAt}<p>
             {fill(t.centre.pastArchived, { time: dateTime(event.archivedAt) })}
           </p>{/if}
+        <EventReach reach={event.reach} />
         <p>{fill(t.centre.pastNumbers, { ...event.stats })}</p>
         {#if event.move}<p>{t.centre.summaryMove}: {event.move.lat}, {event.move.lon}</p>{/if}
         {#if event.gift && 'gold' in event.gift}<p>

@@ -13,6 +13,7 @@
   import PasswordForm from '../../admin/src/PasswordForm.svelte';
   import Overview from './Overview.svelte';
   import BotPage from './BotPage.svelte';
+  import { deviceTimeZone } from '../../admin/src/lib/time.ts';
 
   setIdleTime(ACCOUNT.BOTS_SESSION_IDLE_HOURS * TIME.HOUR);
 
@@ -121,11 +122,18 @@
       {:else}
         <BotPage id={botId} onback={() => (botId = null)} />
       {/if}
+      <p class="zone">{fill(t.admin.timeZoneNote, { zone: deviceTimeZone() })}</p>
     {/if}
   </main>
 {/key}
 
 <style>
+  .zone {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
   .topbar {
     display: flex;
     justify-content: space-between;

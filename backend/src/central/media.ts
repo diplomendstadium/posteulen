@@ -1,5 +1,5 @@
 /**
- * v0.8: pictures of bot letters (SPEC 10.11). Uploads of JPEG, PNG or WebP up to 2 MB are decoded
+ * v0.8: pictures of bot letters (SPEC 10.11). Uploads of JPEG, PNG or WebP up to 5 MB (v0.8.3; before 2 MB) are decoded
  * on the server, turned upright, scaled to at most 1600 px, re-encoded as WebP and stored without
  * any metadata (EXIF, GPS, colour profiles). Every picture is stored once per bot (SHA-256 of the
  * result) and only referenced by events and letters; players never see file names.

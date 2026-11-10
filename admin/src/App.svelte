@@ -8,6 +8,7 @@
   import PasswordForm from './PasswordForm.svelte';
   import LanguageSwitch from './LanguageSwitch.svelte';
   import { panel } from './lib/i18n.svelte.ts';
+  import { deviceTimeZone } from './lib/time.ts';
 
   let view = $state<'loading' | 'login' | 'change' | 'ready'>('loading');
   let password = $state('');
@@ -107,10 +108,17 @@
     {:else if view === 'ready'}
       <h1 class="visually-hidden">{t.admin.title}</h1>
       <Dashboard />
+      <p class="zone">{fill(t.admin.timeZoneNote, { zone: deviceTimeZone() })}</p>
     {/if}
   </main>{/key}
 
 <style>
+  .zone {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
   .topbar {
     display: flex;
     justify-content: space-between;

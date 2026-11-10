@@ -4,6 +4,7 @@
   import { message } from '../../admin/src/lib/messages.ts';
   import { fill, speciesName, t } from '../../admin/src/lib/i18n.svelte.ts';
   import EventForm from './EventForm.svelte';
+  import EventReach from './EventReach.svelte';
   import { dateTime, gold } from './lib/format.ts';
   import type { BotView, EventView } from './lib/types.ts';
 
@@ -68,6 +69,7 @@
       <li class="card" data-testid="planned-event">
         <h3>{dateTime(event.dueAt)}</h3>
         <p>{summary(event)}</p>
+        <EventReach reach={event.reach} />
         {#if event.letter}<p class="excerpt">{event.letter.texts.de.follow.slice(0, 160)}</p>{/if}
         <p class="actions">
           <label class="choice"

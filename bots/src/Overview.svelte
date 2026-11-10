@@ -1,9 +1,11 @@
 <script lang="ts">
   /** v0.8: all bots with statistics, creating a bot, the map of bot owls, export/import. */
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { api } from '../../admin/src/lib/api.ts';
   import { message } from '../../admin/src/lib/messages.ts';
   import { fill, t } from '../../admin/src/lib/i18n.svelte.ts';
+  import { CENTRAL_BOTS, MAP, TIME } from '@posteulen/shared/constants.ts';
+  import { time } from './lib/format.ts';
   import BotMap from './BotMap.svelte';
   import ImportExport from './ImportExport.svelte';
   import type { BotView, MapHome, MapOwl } from './lib/types.ts';
@@ -16,13 +18,19 @@
   let name = $state('');
   let error = $state<string | null>(null);
   let busy = $state(false);
+  let mapAt = $state<number | null>(null);
+
+  async function loadMap(): Promise<void> {
+    const map = await api<{ owls: MapOwl[]; homes: MapHome[] }>('GET', '/api/owls');
+    owls = map.owls;
+    homes = map.homes;
+    mapAt = Date.now();
+  }
 
   async function load(): Promise<void> {
     try {
       bots = (await api<{ bots: BotView[] }>('GET', '/api/bots')).bots;
-      const map = await api<{ owls: MapOwl[]; homes: MapHome[] }>('GET', '/api/owls');
-      owls = map.owls;
-      homes = map.homes;
+      await loadMap();
     } catch (caught) {
       error = message(caught);
     }
@@ -31,6 +39,12 @@
   onMount(() => {
     void load();
   });
+
+  // v0.8.3: the map is updated every 5 minutes (like the map of the game), only while visible.
+  const timer = setInterval(() => {
+    if (document.visibilityState === 'visible') void loadMap().catch(() => undefined);
+  }, MAP.CLIENT_REFRESH_MINUTES * TIME.MINUTE);
+  onDestroy(() => clearInterval(timer));
 
   async function create(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -60,7 +74,7 @@
   {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
   <form onsubmit={(event) => void create(event)}>
     <label for="new-bot">{t.centre.newName}</label>
-    <input id="new-bot" type="text" maxlength="20" bind:value={name} />
+    <input id="new-bot" type="text" maxlength={CENTRAL_BOTS.NAME_MAX_CHARS} bind:value={name} />
     <button class="button" type="submit" disabled={busy || name.trim() === ''}
       >{t.centre.create}</button
     >
@@ -94,6 +108,11 @@
   <p>{t.centre.mapIntro}</p>
   {#if owls.length === 0}<p>{t.centre.mapNone}</p>{/if}
   <BotMap {owls} {homes} />
+  {#if mapAt !== null}
+    <p class="hint">
+      {fill(t.map.updated, { time: time(mapAt), minutes: MAP.CLIENT_REFRESH_MINUTES })}
+    </p>
+  {/if}
 </section>
 
 <ImportExport bots={bots ?? []} ondone={() => void load()} />

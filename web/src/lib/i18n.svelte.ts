@@ -37,7 +37,11 @@ export function setLanguage(language: Language): void {
   }
 }
 
-document.documentElement.lang = i18n.lang;
+/** Sets the page language once at start (main.ts; v0.8.3 not on import – the bots control centre
+ * uses the map of the app with its own language). */
+export function applyLanguage(): void {
+  document.documentElement.lang = i18n.lang;
+}
 
 /** The texts of the current language (a view on `de` or `en`). */
 export const t: Texts = new Proxy({} as Texts, {
