@@ -1,6 +1,6 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 0.8.2 (2026-11-10); keine neuen Pakete gegenüber 0.6.1 – `sharp` ist seit 0.8 zusätzlich Laufzeitabhängigkeit des Backends; die Schriften Dancing Script und Playwrite DE Grund nutzt seit 0.8 auch das Bots-Kontrollzentrum (Vorschau). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> Stand: Version 0.8.3 (2026-11-10); keine neuen Pakete gegenüber 0.6.1 – `sharp` ist seit 0.8 zusätzlich Laufzeitabhängigkeit des Backends; die Schriften Dancing Script und Playwrite DE Grund nutzt seit 0.8 auch das Bots-Kontrollzentrum (Vorschau). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-07: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 

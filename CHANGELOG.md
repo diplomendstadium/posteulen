@@ -3,6 +3,27 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.3 – Glatt gestrichenes Pergament
+
+Pflegeversion (SPEC Anhang X, D-277 bis D-287).
+
+- **Kontrollzentrum:** Bilder bis 5 MB, Bot-Namen bis 30 Zeichen. Die Karte ist jetzt die des Spiels
+  (ziehen, Mausrad, zwei Finger, Tastatur, Knöpfe) und lädt alle 5 Minuten neu. Zu jedem Event steht die
+  erste und letzte Ankunft bei einem Spieler (vorher geschätzt, danach echt).
+- **Uhrzeiten:** Adminpanel und Kontrollzentrum zeigen alle Zeiten in der Zeitzone des Geräts (mit Hinweis).
+- **Bot-Eulen:** rastende Bot-Eulen lassen sich kostenlos pflegen; ihre Motivation ist ausgeblendet und
+  steigt höchstens bis 1,2 (höhere bleibt).
+- **Briefe:** sehr lange Briefe stehen gerade und laufen nicht mehr aus dem Bild; kurze bleiben leicht schräg.
+- **KI der Bots:** wer geschrieben hat, bekommt immer den angepassten Folgebrief; die KI kennt die letzten
+  15 Briefe (ältere als Zusammenfassung). Der KI-Test im Kontrollzentrum arbeitet wie der echte Betrieb
+  (Folgebrief, voriger Brief als Verlauf).
+- Typfehler in einem Test aus 0.8.2 behoben.
+
+### Hinweise für Betreiber
+
+- Migration `0019_v083.sql` (Ankunftszeit je Bot-Zustellung, Pflege von Bot-Eulen), läuft automatisch.
+- Keine neuen Pakete. Update wie immer mit `sudo posteulen-update`.
+
 ## v0.8.2 – Frisch geputztes Gefieder
 
 Pflegeversion (SPEC Anhang W, D-263 bis D-276).
