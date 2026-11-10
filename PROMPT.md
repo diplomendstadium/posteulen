@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.8.1)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v0.8.2)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel und Skripte für Installation und Updates auf Debian 13.
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.8.1, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v0.8.2, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -102,6 +102,7 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 - Briefe zwischen Menschen liegen nie im Klartext auf dem Server. Das Passwort verlässt nie das Gerät.
 - **Keine Ressourcen von fremden Servern**, keine Analytics oder Telemetrie. IP-Adressen liegen nur flüchtig im Arbeitsspeicher (Rate-Limits) und tauchen in keinem Log auf (Caddy, Node, journald; SPEC 2.2).
 - Der Server baut ausgehende Verbindungen nur zur OpenAI-API und zu Push-Endpunkten auf, Letztere mit SSRF-Schutz (SPEC 6, 11.3).
+- **Keine Lesebestätigungen:** Absender erfahren nie, ob und wann ein Brief gelesen wurde (SPEC 8.4, seit v0.8.2). Fehlermeldungen in der App sind für Laien verständlich; technische Ursachen stehen nur im Fehlerprotokoll des Admins (SPEC 13).
 - **Keine Abfragen im Hintergrund auf dem Handy**; auf dem Server keine minütlichen Rundum-Jobs (Ereignis-Warteschlange, SPEC 4.5).
 - **Nur freie Abhängigkeiten**, jede in `DEPENDENCIES.md` mit Version, Lizenz und Zweck.
 - **Skripte überschreiben oder löschen nie** Geheimnis-Datei, Datenbank, Backups oder lokale Anpassungen (SPEC 4.4, 16).

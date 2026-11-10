@@ -26,6 +26,8 @@ PostEulen bewegt sich bewusst im Grenzbereich zwischen Spiel und Messenger. Die 
 - Dein **Passwort verlässt nie dein Gerät.** Die Anmeldung läuft über OPAQUE (RFC 9807) – der Server kann dein Passwort weder sehen noch aus einer gestohlenen Datenbank erraten.
 - Eine **Sicherheitsnummer** zeigt euch, dass niemand dazwischensitzt. Dein Gerät vergleicht die Schlüssel deiner Kontakte außerdem vor jedem Brief und beim Öffnen eines Briefwechsels und schlägt Alarm, wenn etwas nicht stimmt.
 - **Verkleidete Links fallen auf:** Sieht eine Adresse nur so aus wie eine bekannte – etwa mit einem kyrillischen „а“ statt „a“ –, zeigt PostEulen sie in ihrer technischen Form und mit einem Warnhinweis.
+- **Nur eine gültige Sitzung:** Dein Konto ist immer nur auf einem Gerät angemeldet. Meldet sich jemand mit deinem Passwort an, fliegst du raus – wirst du ständig ausgeloggt, obwohl du dich nirgendwo sonst anmeldest, benutzt vermutlich jemand dein Passwort. Dann sofort ändern.
+- **Keine Lesebestätigungen:** Dein Gegenüber sieht nur, dass sein Brief zugestellt wurde – ob und wann du ihn gelesen hast, bleibt dein Geheimnis.
 - Keine Werbung, kein Tracking, keine gespeicherten IP-Adressen, keine Inhalte von fremden Servern.
 
 PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nicht auf Minuten ankommt. Was es nicht verbergen kann: *wer* wem *wann* schreibt. Und wer dein entsperrtes Handy in der Hand hält, kann natürlich mitlesen. Das liegt nicht an der Eule.
@@ -37,7 +39,8 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
 - **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
-- **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (bis zu 48 Stunden). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort los.
+- **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (bis zu 48 Stunden). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort los. Der Empfänger erfährt per Nachricht, wie lange sie bleibt, und kann sie auch ohne Brief früher weiterfliegen lassen.
+- **Links nach Wunsch:** In den Einstellungen bestimmt ein Regler, ob Links in Briefen anklickbar sind.
 - **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
 - **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen.
 
@@ -81,7 +84,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.8.1**.
+Stand: **Version 0.8.2**.
 
 **Kurzfassung**
 
@@ -122,7 +125,7 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
 1. Es prüft das System: Debian 13, root-Rechte, Architektur, Arbeitsspeicher, freien Speicher, ob die Ports 80 und 443 frei sind und ob die DNS-Einträge auf diesen Server zeigen (bei Abweichung nur eine Warnung).
 2. Es richtet zwei Paketquellen mit geprüften Signaturschlüsseln ein: Node.js 26 (NodeSource) und Caddy (offizielle Caddy-Quelle). So kommen auch deren Sicherheitsupdates über apt. Die Fingerabdrücke der Schlüssel stehen fest im Skript (`deploy/lib.sh`); passt einer nicht, bricht das Skript ab.
 3. Grundabsicherung:
-   - Firewall (ufw): nur 22/tcp (SSH), 80/tcp, 443/tcp und 443/udp (HTTP/3) sind offen.
+   - Firewall (ufw): nur 22/tcp (SSH), 80/tcp, 443/tcp und 443/udp (HTTP/3) sind offen – für IPv4 und IPv6 (seit 0.8.2 bei jeder Installation und jedem Update abgeglichen).
    - Automatische Sicherheitsupdates (unattended-upgrades), auch für Node.js und Caddy; betroffene Dienste werden danach automatisch neu gestartet (needrestart).
    - SSH nur noch mit Schlüssel: nur nach Rückfrage und nur, wenn für den angemeldeten Benutzer bereits ein Schlüssel hinterlegt ist (Schutz vor Aussperren).
 4. Es legt den Systembenutzer `posteulen` und diese Verzeichnisse an:
@@ -140,7 +143,7 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    Vor dem Bauen prüft es die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
 
    Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an und schreibt die Caddyfile, den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
-5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren.
+5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren. Seit 0.8.2 prüft es außerdem jeden Hostnamen über **jede** IPv4- und IPv6-Adresse des Servers mit gültigem Zertifikat und vergleicht die A- und AAAA-Einträge mit den Adressen des Servers. Fehlt ein Zertifikat (etwa nach einem neu angelegten AAAA-Eintrag), stößt es Caddy an, es zu holen; was dann noch fehlt, meldet es als Warnung. Hast du dem Server später eine IPv6-Adresse und die passenden AAAA-Einträge gegeben, genügt also das nächste Update oder ein erneuter Lauf von `install.sh`.
 6. Am Ende zeigt es eine Zusammenfassung und einen großen Hinweis zur Sicherung.
 
 > [!CAUTION]
@@ -161,12 +164,13 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das Admin-Erstpasswort. Damit unter `https://admin.posteulen.de` anmelden.
 - Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes. Nach 10 Minuten ohne Aktivität meldet das Adminpanel dich ab (seit 0.7).
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
-- Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
+- Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kann ein Gerät einen Brief nicht öffnen, steht hier die konkrete technische Ursache (die Nutzer sehen nur, dass der Brief verloren bzw. nass geworden ist). Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
 - Nachrichten der Nutzer (seit 0.7.1, ganz unten): Nutzer können aus den Einstellungen einmal am Tag eine kurze Nachricht (300 Zeichen) an den Admin schicken – für Probleme und Ideen. Sie sind nicht verschlüsselt, kommen ohne Absender an und werden nach 90 Tagen gelöscht.
 - Gutscheine (seit 0.7): für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
+- Banner (seit 0.8.2): ein kurzer Hinweis mit Beginn und Ende (höchstens 90 Tage), Deutsch und optional Englisch, erscheint oben in der App bei allen Konten – auch bei Konten, die erst danach entstehen. Nutzer können ihn mit ✕ ausblenden.
 - OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), zwei Tageslimits (Erklärbär, Standard 200 Aufrufe; alle anderen Bots zusammen, Standard 500), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
 - Adminpasswort vergessen? Auf dem Server erzeugt `sudo posteulen-cli admin-reset` ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben unberührt.
 - Oben rechts schaltet ein Knopf das Adminpanel auf Englisch um (seit 0.8).
@@ -267,7 +271,7 @@ sudo posteulen-update             # spielt die neueste Version ein
 sudo posteulen-update v0.3.0      # spielt eine bestimmte Version ein
 ```
 
-Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → starten → Funktionsprüfung. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden.
+Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen, siehe Installation). Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden.
 
 Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal eine Systemnachricht, die die Neuerungen in einfachen Worten erklärt (ohne Push-Benachrichtigung). Wer Versionen überspringt, bekommt die Nachrichten aller übersprungenen Versionen. Eine frische Installation verschickt nichts. Die Texte stehen in `shared/src/texts/messages.ts` (Deutsch und Englisch); zu jeder neuen Version gehört dort ein neuer Eintrag. Die Nachricht erscheint in der Sprache, die der Nutzer gerade eingestellt hat.
 

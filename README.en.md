@@ -28,6 +28,8 @@ PostEulen deliberately sits on the border between game and messenger. The owls a
 - Your **password never leaves your device.** Signing in uses OPAQUE (RFC 9807) – the server can neither see your password nor guess it from a stolen database.
 - A **safety number** shows you that nobody is sitting in between. Your device also compares your contacts’ keys before every letter and when you open a conversation, and raises the alarm if something is wrong.
 - **Disguised links stand out:** if an address only looks like a familiar one – say, with a Cyrillic “а” instead of an “a” – PostEulen shows it in its technical form, with a warning.
+- **Only one valid session:** your account is only ever signed in on one device. If someone signs in with your password, you are thrown out – if you keep getting signed out although you do not sign in anywhere else, someone is probably using your password. Change it at once.
+- **No read receipts:** the other person only sees that their letter was delivered – whether and when you read it stays your secret.
 - No adverts, no tracking, no stored IP addresses, no content from other servers.
 
 So PostEulen is quite suitable as a secure way of communicating – as long as minutes do not matter. What it cannot hide: *who* writes to *whom* and *when*. And anyone holding your unlocked phone can of course read along. That is not the owl’s fault.
@@ -39,7 +41,8 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route.
 - **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
-- **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (up to 48 hours). There it may be pampered and takes a reply back to you – with a reply on board it takes off at once.
+- **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (up to 48 hours). There it may be pampered and takes a reply back to you – with a reply on board it takes off at once. The recipient is told how long it will stay and can also send it on earlier without a letter.
+- **Links as you like:** a switch in the settings decides whether links in letters can be clicked.
 - **German or English:** a little flag in the top right corner switches the whole app to English (and back). Accounts remember their language; the pen friends then write in English too.
 - **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may.
 
@@ -85,7 +88,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.8.1**.
+Version: **0.8.2**.
 
 **In short**
 
@@ -126,7 +129,7 @@ The script only asks what is necessary. All questions can also be answered with 
 1. It checks the system: Debian 13, root rights, architecture, RAM, free storage, whether ports 80 and 443 are free and whether the DNS records point to this server (only a warning if they do not).
 2. It sets up two package sources with verified signing keys: Node.js 26 (NodeSource) and Caddy (official Caddy source). This way their security updates also arrive via apt. The key fingerprints are fixed in the script (`deploy/lib.sh`); if one does not match, the script stops.
 3. Basic hardening:
-   - Firewall (ufw): only 22/tcp (SSH), 80/tcp, 443/tcp and 443/udp (HTTP/3) are open.
+   - Firewall (ufw): only 22/tcp (SSH), 80/tcp, 443/tcp and 443/udp (HTTP/3) are open – for IPv4 and IPv6 (since 0.8.2 checked again at every installation and update).
    - Automatic security updates (unattended-upgrades), also for Node.js and Caddy; affected services are restarted automatically afterwards (needrestart).
    - SSH with keys only: only after asking and only if a key is already stored for the logged-in user (protection against locking yourself out).
 4. It creates the system user `posteulen` and these directories:
@@ -144,7 +147,7 @@ The script only asks what is necessary. All questions can also be answered with 
    Before building, it checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
 
    Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database and writes the Caddyfile, the hardened systemd service `posteulen` and the backup timer.
-5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work.
+5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work. Since 0.8.2 it also checks every host name over **every** IPv4 and IPv6 address of the server with a valid certificate and compares the A and AAAA records with the server’s addresses. If a certificate is missing (for example after a new AAAA record), it nudges Caddy to fetch it; whatever is still missing then is reported as a warning. So if you later give the server an IPv6 address and the matching AAAA records, the next update or another run of `install.sh` is all it takes.
 6. At the end it shows a summary and a big note about backups.
 
 > [!CAUTION]
@@ -168,10 +171,11 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - Choose the registration mode: “geschlossen” (closed, default), “nur mit Einladungscode” (invitation code only) or “offen für alle” (open to everyone). Invitation codes are valid for 48 hours, can be used once and are only shown when created.
 - Messages from users (since 0.7.1, at the very bottom): once a day, users can send the admin a short message (300 characters) from the settings – for problems and ideas. They are not encrypted, arrive without the sender and are deleted after 90 days.
 - Vouchers (since 0.7): for gold (0.1 to 100) or an owl (species of your choice or random), redeemable once, valid for 90 days. The code is only shown when it is created; users redeem it in the settings of the app. PostEulen does not store who redeemed a voucher.
-- The error log shows understandable entries (without personal data) for 30 days after they last occurred. If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
+- The error log shows understandable entries (without personal data) for 30 days after they last occurred. If a device cannot open a letter, the specific technical cause is shown here (users only see that the letter was lost or got wet). If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
 - Statistics: accounts created, existing and active, and letters (daily counters only).
 - Deletion period for inactivity: default 180 days, at least 60. Those affected are warned 30 days before; even shortening the period deletes nobody without this warning.
 - Message to everyone: appears in the system chat of all accounts, with a notification.
+- Banner (since 0.8.2): a short notice with start and end (at most 90 days), German and optionally English, shown at the top of the app for all accounts – including accounts created afterwards. Users can hide it with ✕.
 - OpenAI (bots): enter the API key (stored encrypted and never shown again), choose the model (default “gpt-6-luna”; “Modelle von OpenAI laden” or by hand), two daily limits (Explainer Bear, default 200 calls; all other bots together, default 500), “Verbindung testen” (test connection). Without a key the bots send their fixed letters but answer nothing; waiting replies are sent right after a key has been entered. The server needs outgoing connections to `api.openai.com` (port 443) for this. The bots reply in the language of each account.
 - Forgotten the admin password? On the server, `sudo posteulen-cli admin-reset` creates a new initial password and signs out all admin sessions. User data stays untouched.
 - A button in the top right switches the admin panel to English (since 0.8).
@@ -272,7 +276,7 @@ sudo posteulen-update             # installs the newest version
 sudo posteulen-update v0.5.0      # installs a particular version
 ```
 
-Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → start → functional check. Downtime is a few minutes at most. Versions may be skipped.
+Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → start → functional check (including all IPv4 and IPv6 addresses, see installation). Downtime is a few minutes at most. Versions may be skipped.
 
 After the first start of a new version, every existing account gets one system message that explains what is new in simple words (without a push notification). Anyone skipping versions gets the messages of all skipped versions. A fresh installation sends nothing. The texts are in `shared/src/texts/messages.ts` (German and English); every new version gets a new entry there. The message appears in the language the user currently has set.
 

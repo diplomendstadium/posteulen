@@ -3,6 +3,32 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.2 – Frisch geputztes Gefieder
+
+Pflegeversion (SPEC Anhang W, D-263 bis D-276).
+
+- **IPv4 und IPv6:** Installation und jedes Update gleichen die Firewall für IPv4 und IPv6 ab und prüfen
+  jeden Hostnamen (`<domain>`, `admin.`, `bots.`) über jede eigene Adresse mit gültigem Zertifikat
+  (Abgleich mit A/AAAA; fehlende Zertifikate per Caddy-Reload nachgeholt, sonst Warnung, kein Rückfall).
+- **Briefwechsel:** eigene Briefe nach Sendezeit, empfangene nach Ankunft sortiert; beim Öffnen erscheinen
+  die Ankunftsbilder aller neuen Eulen nacheinander; **keine Lesebestätigung** mehr (nur „zugestellt“).
+- **Nicht lesbare Briefe:** Absender sieht „Die Eule hat den Brief unterwegs verloren.“, Empfänger „… so
+  nass geworden …“; der Admin bekommt die konkrete technische Ursache im Fehlerprotokoll.
+- **Rast:** Systemnachricht und Push, wenn eine fremde Eule beim Nutzer rastet (mit Ende der Rast);
+  neuer Knopf „Weiterfliegen lassen“ schickt sie ohne Brief vorzeitig weiter.
+- **Adminpanel:** zeitlich befristete Banner für alle Konten (Deutsch, optional Englisch, ausblendbar).
+- **Einstellungen:** Regler „Links in Briefen anklickbar“ (Standard an).
+- Kleinigkeiten: Kontaktnamen ohne Leerzeichen am Anfang/Ende; kein „Fliegt nicht zurück.“ bei Leiheulen;
+  Hilfe und README nennen die eine gültige Sitzung je Konto als Sicherheitsmerkmal.
+
+### Hinweise für Betreiber
+
+- Migration `0018_v082.sql` (Spalte `users.links_clickable`, Tabelle `banners`), läuft automatisch.
+- Die Firewall wird beim Update für IPv6 freigegeben (`IPV6=yes` in `/etc/default/ufw`, Regeln für
+  22/80/443 tcp und 443/udp). Hat der Server eine IPv6-Adresse, sollten `<domain>`, `admin.<domain>` und
+  `bots.<domain>` auch AAAA-Einträge haben – die Funktionsprüfung warnt sonst bzw. bei fremden Adressen.
+- Keine neuen Pakete. Update wie immer mit `sudo posteulen-update`.
+
 ## v0.8.1 – Korrektur für das Update auf 0.8
 
 Korrektur (SPEC Anhang V, D-261, D-262).
