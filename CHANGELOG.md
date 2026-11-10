@@ -3,6 +3,18 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.4 – Ein Gast aus Übersee
+
+Kleine Version (SPEC Anhang Y, D-288 bis D-290).
+
+- Neue Eulenart **Virginiauhu**: nicht käuflich, nur als Bot-Eule, Bot-Geschenk oder per Gutschein.
+- Das Ankunftsbild einer Eule erscheint beim Öffnen eines Chats nur noch einmal.
+- README: Kinder brauchen kein eigenes Handy.
+
+### Hinweise für Betreiber
+
+- Keine Migration, keine neuen Pakete. Update wie immer mit `sudo posteulen-update`.
+
 ## v0.8.3 – Glatt gestrichenes Pergament
 
 Pflegeversion (SPEC Anhang X, D-277 bis D-287).
