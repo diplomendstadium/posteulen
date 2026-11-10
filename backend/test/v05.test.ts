@@ -252,7 +252,7 @@ describe('unreadable letters (v0.5)', () => {
       letters: { id: string; read: boolean; unreadable: boolean }[];
     }>('GET', `/api/chats/${ben.id}/letters`);
     expect(seen.body.letters.find((l) => l.id === 'brokenLetterAAAAAAAAAA')).toMatchObject({
-      read: true,
+      read: false, // v0.8.2: the sender only learns that the letter was lost
       unreadable: true,
     });
   });

@@ -67,6 +67,11 @@
       return fill(texts[key] ?? message.type, params);
     }
     if (typeof params['amount'] === 'number') params['amount'] = goldText(params['amount']);
+    // v0.8.2: a visiting owl – its species and the end of its rest (local time at home).
+    if (message.type === 'owl_resting') {
+      if (typeof params['species'] === 'string') params['species'] = speciesName(params['species']);
+      if (typeof params['until'] === 'number') params['until'] = dateTime(params['until']);
+    }
     // v0.8: an owl given by a bot names its species.
     if (message.type === 'bot_owl_gift' && typeof params['species'] === 'string')
       params['species'] = speciesName(params['species']);

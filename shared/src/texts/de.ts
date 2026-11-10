@@ -151,6 +151,10 @@ export const de = {
     retentionConfirm:
       'Alle deine Briefe und Systemnachrichten, die älter als {days} Tage sind, werden sofort und unwiderruflich gelöscht. Fortfahren?',
     printLabel: 'Briefe in Druckschrift statt Handschrift anzeigen',
+    /** v0.8.2 */
+    linksLabel: 'Links in Briefen anklickbar',
+    linksHint:
+      'Ausgeschaltet stehen Internetadressen nur als Text im Brief – nichts öffnet sich aus Versehen. Verkleidete Adressen werden weiter markiert.',
     printHint: 'Leichter zu lesen, zum Beispiel auf kleinen Bildschirmen.',
     lettersSave: 'Speichern',
     lettersSaved: 'Gespeichert.',
@@ -218,12 +222,11 @@ export const de = {
     large: 'großes Pergament',
     inFlight: 'Eule unterwegs – Ankunft ca. {time}',
     delivered: 'zugestellt',
-    read: 'gelesen',
     returned: 'nicht zugestellt – die Eule ist umgekehrt',
-    unreadable: 'nicht lesbar – der Brief konnte beim Empfänger nicht entschlüsselt werden',
-    invalid: 'Echtheit nicht prüfbar',
-    invalidLong:
-      'Dieser Brief konnte nicht als echt bestätigt werden und wird deshalb nicht angezeigt.',
+    /** v0.8.2: the recipient could not show the letter (sender's view). */
+    unreadable: 'Die Eule hat den Brief unterwegs verloren.',
+    /** v0.8.2: decryption or authenticity check failed (recipient's view). */
+    invalid: 'Der Brief ist unterwegs so nass geworden, dass man ihn nicht mehr lesen kann.',
     /** v0.6.1: a link whose address contains unusual characters (shown in technical form). */
     linkWarning: 'Ungewöhnliche Zeichen in der Adresse – genau prüfen, wohin der Link führt.',
     compose: 'Neuen Brief schreiben',
@@ -255,7 +258,7 @@ export const de = {
     owl: 'Eule: {owl} ({species})',
     owlOption: '{owl} ({species}) – Energie {energy} von {max}, Geschwindigkeit {speed} km/h',
     loanHint:
-      'Leiheule: trägt einen Brief an bis zu 5 Empfänger (Gold an einen) und fliegt nicht zurück.',
+      'Leiheule: trägt einen Brief an bis zu 5 Empfänger (Gold an einen); zurück kommt sie nur mit einer Antwort.',
     retentionHint:
       'Briefe werden {period} nach der Zustellung automatisch und unwiderruflich gelöscht (Einstellungen).',
     retentionYear: 'ein Jahr',
@@ -265,7 +268,6 @@ export const de = {
     loanOfferHint: 'Leiheule des Tages: 0,1 Gold, erst beim Abschicken.',
     arrival: 'Ankunft bei {name}: ca. {time}',
     returnsAt: 'Wieder zu Hause: ca. {time}',
-    noReturn: 'Fliegt nicht zurück.',
     noOwl:
       'Gerade ist keine Eule einsatzbereit, und heute kannst du keine Leiheule mehr leihen (oder dir fehlen 0,1 Gold). Schau in die Menagerie oder warte, bis eine deiner Eulen zurück ist.',
     coverGold: 'Begleitbrief zu {amount}',
@@ -315,6 +317,9 @@ export const de = {
     /** v0.8: gifts and deletion of control-centre bots. */
     bot_owl_gift:
       '{name} hat dir eine Eule geschenkt ({species}). Sie wohnt ab jetzt bei dir und wartet in der Eulenübersicht auf ihren Namen.',
+    /** v0.8.2 */
+    owl_resting:
+      '{owl} ({species}), die Eule von {name}, ist zu Besuch und rastet bei dir bis {until}. Unter „Eulen“ kannst du sie pflegen, ihr eine Antwort mitgeben oder sie weiterfliegen lassen.',
     bot_deleted:
       '{name} hat seine Feder für immer niedergelegt und schreibt keine Briefe mehr. Euer Briefwechsel ist mit ihm verschwunden.',
     chick_gift_received: '{name} hat dir das Küken {owl} geschenkt. In 7 Tagen ist es erwachsen.',
@@ -376,6 +381,7 @@ export const de = {
     broadcast: 'Es gibt eine Nachricht für alle.',
     owl_home: 'Eine deiner Eulen ist wieder zu Hause.',
     owl_home_letters: 'Eine deiner Eulen ist mit Post wieder zu Hause.',
+    owl_resting: 'Eine Eule rastet bei dir.',
   },
   push: {
     title: 'Benachrichtigungen',
@@ -397,6 +403,7 @@ export const de = {
     broadcastBody: 'Es gibt eine Nachricht für alle.',
     homeBody: 'Eine deiner Eulen ist wieder zu Hause.',
     homeLettersBody: 'Eine deiner Eulen ist mit Post wieder zu Hause.',
+    restingBody: 'Eine Eule rastet bei dir.',
     newsBody: 'Es gibt Neuigkeiten bei PostEulen.',
     headerHint: 'Benachrichtigungen sind noch nicht eingerichtet – so geht’s',
     headerHide: 'Ausblenden bis zur nächsten Anmeldung',
@@ -514,6 +521,9 @@ export const de = {
       'Du kannst sie pflegen, damit sie gestärkt weiterfliegt, und ihr eine Antwort an {name} mitgeben – dann fliegt sie sofort los.',
     guestReply: 'Antwort an {name} mitgeben',
     /** v0.8 */
+    /** v0.8.2 */
+    guestSendOn: 'Weiterfliegen lassen',
+    guestSendOnConfirm: '{name} jetzt ohne Antwort weiterfliegen lassen?',
     guestBotHint: 'Eine Bot-Eule – bestens versorgt, sie braucht keine Pflege.',
     restingAt: 'Rastet bei {name} bis {until}.',
     ownGroup: 'Deine Eulen',
@@ -665,6 +675,10 @@ export const de = {
     toTop: 'Nach oben',
     notFound: 'Diese Seite gibt es nicht. Vielleicht hat eine Eule die Adresse verlegt.',
   },
+  /** v0.8.2: timed banners of the admin. */
+  banner: {
+    hide: 'Hinweis ausblenden',
+  },
   admin: {
     title: 'PostEulen – Verwaltung',
     loginHeading: 'Anmeldung für die Verwaltung',
@@ -763,6 +777,19 @@ export const de = {
     severity_error: 'Fehler',
     /** v0.8 */
     switchLanguage: 'English',
+    /** v0.8.2 */
+    bannersTitle: 'Banner für alle',
+    bannersIntro:
+      'Ein Hinweis oben in der App für alle angemeldeten Konten – auch für Konten, die erst später entstehen –, vom Beginn bis zum Ende (höchstens 90 Tage). Jeder kann ihn für sich ausblenden. Ohne englischen Text sehen englische Konten den deutschen.',
+    bannerTextDe: 'Text (Deutsch, bis 500 Zeichen)',
+    bannerTextEn: 'Text (Englisch, optional)',
+    bannerStart: 'Beginn',
+    bannerEnd: 'Ende',
+    bannerCreate: 'Banner einstellen',
+    bannerSaved: 'Das Banner ist eingestellt.',
+    bannerDelete: 'Löschen',
+    bannersNone: 'Keine Banner.',
+    bannerPeriod: '{start} bis {end}',
     openaiBotsLimit: 'Tageslimit der Bots aus dem Kontrollzentrum',
     openaiBotsUsed: 'Bots heute verbraucht: {used} von {limit}',
     openaiLimitExplainer: 'Tageslimit des Erklärbärs',
@@ -934,6 +961,9 @@ export const de = {
     loading: 'Lädt …',
   },
   errors: {
+    banner_invalid:
+      'Der Text des Banners enthält Zeichen, die nicht erlaubt sind (z. B. Emojis), oder fehlt.',
+    banner_period: 'Bitte ein Ende in der Zukunft wählen, höchstens 90 Tage nach dem Beginn.',
     internal: 'Da ist etwas schiefgegangen. Bitte versuche es später noch einmal.',
     not_found: 'Das gibt es hier nicht.',
     bad_request: 'Die Anfrage war ungültig.',

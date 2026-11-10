@@ -7,16 +7,21 @@
    */
   import { linkify } from '../lib/format.ts';
   import { t } from '../lib/i18n.svelte.ts';
+  import { account } from '../lib/auth.svelte.ts';
 
   let { text }: { text: string } = $props();
+  /** v0.8.2: the user can switch clickable links off (settings); the address stays visible. */
+  const clickable = $derived(account.profile?.linksClickable ?? true);
   const parts = $derived(linkify(text));
 </script>
 
 <p class="text">
   {#each parts as part, index (index)}
-    {#if part.href}<a href={part.href} target="_blank" rel="noopener noreferrer nofollow"
-        >{part.text}</a
-      >{#if part.suspicious}
+    {#if part.href}{#if clickable}<a
+          href={part.href}
+          target="_blank"
+          rel="noopener noreferrer nofollow">{part.text}</a
+        >{:else}<span class="address">{part.text}</span>{/if}{#if part.suspicious}
         <span class="link-warning"><span aria-hidden="true">⚠</span> {t.letters.linkWarning}</span
         >{/if}{:else}{part.text}{/if}
   {/each}
@@ -30,6 +35,7 @@
   }
 
   .text a,
+  .address,
   .link-warning {
     font-family: var(--font-body);
     font-size: 1rem;

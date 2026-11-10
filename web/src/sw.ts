@@ -22,6 +22,8 @@ interface PushTexts {
   homeBody: string;
   /** v0.7 */
   homeLettersBody: string;
+  /** v0.8.2 */
+  restingBody: string;
   newsBody: string;
 }
 declare const __POSTEULEN_PUSH_TEXTS__: { de: PushTexts; en: PushTexts };
@@ -131,6 +133,7 @@ sw.addEventListener('push', (event) => {
     broadcast: PUSH_TEXTS.broadcastBody,
     owl_home: PUSH_TEXTS.homeBody,
     owl_home_letters: PUSH_TEXTS.homeLettersBody,
+    owl_resting: PUSH_TEXTS.restingBody,
   };
   const body =
     typeof data.type === 'string' && Object.hasOwn(bodies, data.type)

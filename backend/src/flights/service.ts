@@ -819,7 +819,25 @@ export function registerFlightHandlers(ctx: Context): void {
     saveRoute(ctx, flight, route);
     if (stop.type === 'deliver') deliver(ctx, flight, stop, event.logicalAt, tools.after);
     else arriveHome(ctx, flight, stop, event.logicalAt, tools.after);
-    if (rests) return;
+    if (rests) {
+      // v0.8.2: the host learns who rests with them and until when – system message and push.
+      addSystemMessage(
+        ctx,
+        stop.userId,
+        'owl_resting',
+        {
+          owl: flight.owl_name,
+          species: flight.owl_species,
+          name: displayName(ctx.db, flight.holder_id) ?? '',
+          until: stop.restUntil ?? event.logicalAt,
+        },
+        event.logicalAt,
+        tools.after,
+      );
+      ctx.push.notify(stop.userId, 'owl_resting', flight.id, event.logicalAt, tools.after);
+      tools.after(() => ctx.hub.notify(stop.userId, 'owls', 'system'));
+      return;
+    }
     if (!route.some((other) => other.status === 'pending')) {
       endFlight(ctx, flight, event.logicalAt);
     } else if (stop.type === 'deliver' && (JSON.parse(flight.profile) as FlightProfile).ownUnits) {

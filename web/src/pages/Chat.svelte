@@ -10,7 +10,7 @@
   import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
-  import { showOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
+  import { queueOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
   import { deckleClass } from '../lib/deckle.ts';
   import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
   import { clearReplyWith, replyWith } from '../lib/reply.svelte.ts';
@@ -66,22 +66,34 @@
       if (unread.length > 0 && document.visibilityState === 'visible') {
         const valid = unread.filter((l) => l.text !== null).map((l) => l.id);
         // Only with the contact vault loaded: without the contact's keys nothing can be verified.
-        const invalid = vault.loaded ? unread.filter((l) => l.text === null).map((l) => l.id) : [];
         if (valid.length > 0) await api('POST', '/api/letters/read', { ids: valid });
-        if (invalid.length > 0) await api('POST', '/api/letters/unreadable', { ids: invalid });
+        // v0.8.2: with the technical reason for the admin's error log (one report per reason).
+        // Local bookkeeping, not rendered state.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
+        const reasons = new Map<string, string[]>();
+        for (const letter of unread.filter((l) => l.text === null)) {
+          const reason = letter.failure ?? 'missing';
+          reasons.set(reason, [...(reasons.get(reason) ?? []), letter.id]);
+        }
+        if (vault.loaded) {
+          for (const [reason, ids] of reasons)
+            await api('POST', '/api/letters/unreadable', { ids, reason });
+        }
         markChatRead(peerId);
       }
       const unseen = letters.filter(
         (l) => l.role === 'recipient' && l.status === 'delivered' && !l.arrivalSeen,
       );
       if (unseen.length > 0) {
-        // Arrival image of the owl that landed last (SPEC 9.2.6), once per delivery.
-        const latest = unseen.reduce((a, b) => (b.arrivesAt > a.arrivesAt ? b : a));
-        showOwlImage(
-          latest.owl.species,
-          latest.kind === 'cover_chick' ? 'chick' : 'arrival',
-          fill(t.owls.arrives, { name: latest.owl.name }),
-        );
+        // v0.8.2: the arrival image of every owl that brought a new letter, one after another in
+        // the order they landed (SPEC 9.2.6); before, only the last one.
+        for (const letter of [...unseen].sort((a, b) => a.arrivesAt - b.arrivesAt)) {
+          queueOwlImage(() => ({
+            species: letter.owl.species,
+            kind: letter.kind === 'cover_chick' ? 'chick' : 'arrival',
+            caption: fill(t.owls.arrives, { name: letter.owl.name }),
+          }));
+        }
         await api('POST', '/api/letters/arrival-seen', { ids: unseen.map((l) => l.id) });
       }
     } catch {
@@ -111,8 +123,10 @@
     if (letter.status === 'returned') return t.letters.returned;
     if (letter.status === 'in_flight')
       return fill(t.letters.inFlight, { time: dateTime(letter.arrivesAt) });
+    // v0.8.2: no read receipts – only "delivered"; a letter the recipient could not read was
+    // "lost" by the owl.
     if (letter.unreadable) return t.letters.unreadable;
-    return letter.read ? t.letters.read : t.letters.delivered;
+    return t.letters.delivered;
   }
 
   /**
@@ -201,9 +215,10 @@
             </div>
           {/if}
         {:else}
+          <!-- v0.8.2: technical failures in the language of the game (the admin gets the reason). -->
           <p class="invalid">
-            <span aria-hidden="true">⚠</span> <strong>{t.letters.invalid}</strong> – {t.letters
-              .invalidLong}
+            <span aria-hidden="true">💧</span>
+            {letter.role === 'sender' ? t.letters.unreadable : t.letters.invalid}
           </p>
         {/if}
         {#if letter.role === 'sender'}
@@ -214,10 +229,8 @@
                 : letter.status === 'in_flight'
                   ? '🦉'
                   : letter.unreadable
-                    ? '⚠'
-                    : letter.read
-                      ? '✔✔'
-                      : '✔'}</span
+                    ? '🪶'
+                    : '✔'}</span
             >
             {statusText(letter)}
           </p>

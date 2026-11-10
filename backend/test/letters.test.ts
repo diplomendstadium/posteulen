@@ -252,7 +252,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     await ben.agent.json('POST', '/api/letters/read', { ids: [received[0]!.letter.id] });
     expect((await readAll(anna, ben, anna))[0]?.letter).toMatchObject({
       status: 'delivered',
-      read: true,
+      read: false, // v0.8.2: no read receipts
     });
     expect(
       (await ben.agent.json<{ chats: { unread: number }[] }>('GET', '/api/chats')).body.chats[0]
@@ -477,7 +477,10 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(app.ctx.queue.runDue()).toBe(4);
     expect(app.db.all("SELECT 1 FROM scheduled_events WHERE type = 'flight_stop'")).toEqual([]);
     const received = await readAll(ben, anna, anna);
-    expect(received.map((r) => r.opened.ok && r.opened.text)).toEqual(['eins', 'zwei']);
+    // v0.8.2: the recipient sees letters in the order they arrived (SPEC 8.4).
+    expect(received.map((r) => r.opened.ok && r.opened.text).sort()).toEqual(['eins', 'zwei']);
+    const arrivals = received.map((r) => r.letter.arrivesAt);
+    expect(arrivals).toEqual([...arrivals].sort((x, y) => x - y));
     expect(
       (await ben.agent.json<{ chats: { unread: number }[] }>('GET', '/api/chats')).body.chats[0]
         ?.unread,

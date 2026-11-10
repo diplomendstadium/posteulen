@@ -9,7 +9,13 @@ import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { canAfford } from '@posteulen/shared/game/gold.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
-import { IdList, LetterPrepare, LetterSend } from '@posteulen/shared/schemas/letters.ts';
+import {
+  IdList,
+  LetterPrepare,
+  LetterSend,
+  UnreadableReport,
+} from '@posteulen/shared/schemas/letters.ts';
+import { logError } from '../ops/error-log.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -83,6 +89,26 @@ export function carrierOf(
   if (holder === row.sender_id) return { carrier: 'foreign' };
   return { carrier: 'foreign', holderName: nameOf(holder) };
 }
+
+/** v0.8.2: technical reasons of an unreadable letter for the error log (SPEC 13 item 7). */
+const UNREADABLE_CAUSES: Readonly<Record<string, string>> = {
+  decrypt:
+    'Entschlüsselung fehlgeschlagen: Der verpackte Briefschlüssel (HPKE) oder das Chiffrat (XChaCha20-Poly1305) ließ sich mit dem Schlüssel des Empfängers nicht öffnen – Authentifizierung gescheitert.',
+  signature:
+    'Signaturprüfung fehlgeschlagen: Die Ed25519-Signatur passt zu keinem bekannten Schlüssel des Absenders (Schlüsselwechsel, veralteter Kontakt-Tresor oder veränderter Brief).',
+  metadata:
+    'Die signierten Metadaten (Absender, Empfänger, Brief-ID, Sendezeit, Art, Pergament) stimmen nicht mit den Angaben des Servers überein.',
+  format: 'Der entschlüsselte Inhalt hat ein ungültiges Format (Signatur oder Rahmen fehlt).',
+  length: 'Das Chiffrat hat eine Länge, die zu keinem Pergament passt.',
+  too_long: 'Der entschlüsselte Text ist länger als das Pergament erlaubt.',
+  key: 'Der verpackte Briefschlüssel hat eine ungültige Länge oder gehört zu einem anderen Schlüsselpaar.',
+  not_for_me: 'Der Brief ist laut Server nicht an dieses Konto gerichtet.',
+  not_mine: 'Der Brief ist laut Server nicht von diesem Konto.',
+  missing: 'Chiffrat oder verpackter Schlüssel fehlen in der Antwort des Servers.',
+  no_keys:
+    'Für den Absender liegen im Kontakt-Tresor des Empfängers keine Schlüssel vor (Tresor leer, nicht geladen oder Kontakt nicht mehr verbunden).',
+  unknown: 'Unbekannte Ursache (ältere App-Version ohne Angabe des Grundes).',
+};
 
 export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
@@ -234,10 +260,11 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
         WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
            OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
-        ORDER BY l.sent_at, l.id`,
+        ORDER BY CASE WHEN l.sender_id = ? THEN l.sent_at ELSE l.arrives_at END, l.sent_at, l.id`,
       me,
       peer,
       peer,
+      me,
       me,
     );
     return {
@@ -252,7 +279,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           sentAt: row.sent_at,
           arrivesAt: row.arrives_at,
           status: row.status,
-          read: row.read === 1,
+          // v0.8.2: no read receipts – the sender never learns whether a letter was read.
+          read: mine ? false : row.read === 1,
           // v0.5: the recipient could not verify the letter (instead of "read" for the sender).
           unreadable: row.unreadable === 1,
           arrivalSeen: row.arrival_seen === 1,
@@ -322,7 +350,9 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         );
       }
     });
-    for (const sender of senders) ctx.hub.notify(sender, 'chats');
+    // v0.8.2: reading tells the sender nothing (not even through a live hint); only a letter the
+    // owl "lost" is shown to the sender.
+    if (unreadable) for (const sender of senders) ctx.hub.notify(sender, 'chats');
   };
 
   app.post('/api/letters/read', { preHandler: authenticated }, async (request) => {
@@ -331,7 +361,22 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   app.post('/api/letters/unreadable', { preHandler: authenticated }, async (request) => {
-    markRead(userOf(request).id, parse(IdList, request.body).ids, true);
+    const body = parse(UnreadableReport, request.body);
+    markRead(userOf(request).id, body.ids, true);
+    // v0.8.2: players only read that the owl lost the letter / it got wet; the admin gets the
+    // technical reason (without names, IDs or contents).
+    logError(
+      ctx.db,
+      {
+        component: 'Briefe (Kryptografie)',
+        severity: 'error',
+        what: 'Ein Gerät konnte einen empfangenen Brief nicht anzeigen.',
+        cause: UNREADABLE_CAUSES[body.reason ?? 'unknown'] ?? UNREADABLE_CAUSES['unknown'] ?? '',
+        action:
+          'Meist ein Schlüsselwechsel des Absenders oder ein veralteter Kontakt-Tresor; sonst ein Programmfehler. Häufen sich die Meldungen, bitte mit Version und Browser melden. Absender und Empfänger sehen nur, dass der Brief verloren bzw. nass geworden ist.',
+      },
+      ctx.now(),
+    );
     return { ok: true };
   });
 
@@ -460,6 +505,29 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     void reply.header('Content-Type', 'image/webp');
     void reply.header('Cache-Control', 'private, max-age=86400');
     return reply.send(Buffer.from(media.data));
+  });
+
+  /** v0.8.2: the admin's banners that run right now, in the account's language (SPEC 13). */
+  app.get('/api/banners', { preHandler: authenticated }, async (request) => {
+    const now = ctx.now();
+    const english =
+      ctx.db.get<{ language: string }>(
+        'SELECT language FROM users WHERE id = ?',
+        userOf(request).id,
+      )?.language === 'en';
+    return {
+      banners: ctx.db
+        .all<{ id: string; text_de: string; text_en: string; ends_at: number }>(
+          'SELECT id, text_de, text_en, ends_at FROM banners WHERE starts_at <= ? AND ends_at > ? ORDER BY starts_at',
+          now,
+          now,
+        )
+        .map((row) => ({
+          id: row.id,
+          text: english && row.text_en !== '' ? row.text_en : row.text_de,
+          endsAt: row.ends_at,
+        })),
+    };
   });
 
   /** The arrival image of a delivery without a letter has been shown (SPEC 9.2.6). */

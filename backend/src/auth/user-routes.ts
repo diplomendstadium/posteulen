@@ -525,9 +525,11 @@ export function profileOf(ctx: Context, userId: string) {
     letters_print: number;
     language: string;
     feedback_sent_on: string | null;
+    links_clickable: number;
   }>(
     `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
-            name_changed_year, letter_retention_days, letters_print, language, feedback_sent_on
+            name_changed_year, letter_retention_days, letters_print, language, feedback_sent_on,
+            links_clickable
        FROM users WHERE id = ?`,
     userId,
   );
@@ -543,6 +545,8 @@ export function profileOf(ctx: Context, userId: string) {
     ...homeChanges(row.home_moves_month, row.home_moves_count, ctx.now()),
     letterRetentionDays: row.letter_retention_days,
     lettersPrint: row.letters_print === 1,
+    // v0.8.2: links in letters clickable (setting).
+    linksClickable: row.links_clickable !== 0,
     language: isLanguage(row.language) ? row.language : DEFAULT_LANGUAGE,
     // v0.4: today's wage (higher during the first days after registration).
     dailyGold: dailyWage(row.created_on, ctx.now()),

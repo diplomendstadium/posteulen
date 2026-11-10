@@ -38,6 +38,8 @@ export interface ApiLetter {
 
 export interface ShownLetter extends ApiLetter {
   readonly text: string | null;
+  /** v0.8.2: why the letter cannot be shown (reported to the admin's error log). */
+  readonly failure?: string;
 }
 
 export interface PreparedLetters {
@@ -167,7 +169,7 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
       if (letter.plaintext !== null) {
         return { ...letter, text: sanitizeLetterText(letter.plaintext).text };
       }
-      if (!letter.ciphertext || !letter.wrap) return { ...letter, text: null };
+      if (!letter.ciphertext || !letter.wrap) return { ...letter, text: null, failure: 'missing' };
       const signers = letter.role === 'sender' ? [own.ed25519Public] : peerKeys;
       const opened = await openLetter({
         server: {
@@ -186,7 +188,12 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
         ciphertext: fromBase64Url(letter.ciphertext),
         wrap: fromBase64Url(letter.wrap),
       });
-      return { ...letter, text: opened.ok ? opened.text : null };
+      if (opened.ok) return { ...letter, text: opened.text };
+      return {
+        ...letter,
+        text: null,
+        failure: letter.role === 'recipient' && signers.length === 0 ? 'no_keys' : opened.reason,
+      };
     }),
   );
 }

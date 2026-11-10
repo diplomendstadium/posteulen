@@ -41,7 +41,8 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     const me = userOf(request).id;
     const now = ctx.now();
     const today = utcDay(now);
-    const nameKey = normalizeName(body.name);
+    // v0.8.2: spaces an autocorrection added around the name do not count.
+    const nameKey = normalizeName(body.name.trim());
     ctx.db.transaction(() => {
       const self = ctx.db.get<{
         name_key: string;

@@ -83,6 +83,7 @@ export default defineConfig({
               broadcastBody: push.broadcastBody,
               homeBody: push.homeBody,
               homeLettersBody: push.homeLettersBody,
+              restingBody: push.restingBody,
               newsBody: push.newsBody,
             },
           ];

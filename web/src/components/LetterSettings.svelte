@@ -19,9 +19,29 @@
 
   let retentionDays = $state(account.profile?.letterRetentionDays ?? LETTER.RETENTION_MAX_DAYS);
   let print = $state(account.profile?.lettersPrint ?? false);
+  /** v0.8.2: links in letters clickable – a switch that takes effect at once. */
+  let links = $state(account.profile?.linksClickable ?? true);
   let busy = $state(false);
   let error = $state<string | null>(null);
   let saved = $state(false);
+
+  async function toggleLinks(): Promise<void> {
+    if (busy || !status.online) return;
+    busy = true;
+    error = null;
+    try {
+      await changeLetterSettings({
+        retentionDays: account.profile?.letterRetentionDays ?? LETTER.RETENTION_MAX_DAYS,
+        print: account.profile?.lettersPrint ?? false,
+        links,
+      });
+    } catch (caught) {
+      links = !links;
+      error = errorMessage(caught);
+    } finally {
+      busy = false;
+    }
+  }
 
   async function save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -70,6 +90,18 @@
       {t.settings.printLabel}</label
     >
     <p class="hint">{t.settings.printHint}</p>
+    <label class="option switch-row"
+      ><input
+        type="checkbox"
+        role="switch"
+        class="switch"
+        bind:checked={links}
+        disabled={busy || !status.online}
+        onchange={() => void toggleLinks()}
+      />
+      {t.settings.linksLabel}</label
+    >
+    <p class="hint">{t.settings.linksHint}</p>
     <ErrorText message={error} />
     {#if saved}<p class="notice" role="status">
         <span aria-hidden="true">✔</span><span>{t.settings.lettersSaved}</span>
@@ -81,6 +113,52 @@
 </section>
 
 <style>
+  /* v0.8.2: a switch (slider) for "links clickable" (".option" too, so ".option input" with its
+     checkbox size does not win). */
+  .option .switch {
+    appearance: none;
+    width: 2.75rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background: var(--ink-soft);
+    position: relative;
+    cursor: pointer;
+    flex: none;
+    transition: background 0.15s;
+  }
+
+  .option .switch::after {
+    content: '';
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: var(--paper);
+    transition: transform 0.15s;
+  }
+
+  .option .switch:checked {
+    background: var(--wood-dark);
+  }
+
+  .option .switch:checked::after {
+    transform: translateX(1.25rem);
+  }
+
+  .option .switch:focus-visible {
+    outline: 3px solid var(--focus, #1d4ed8);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .option .switch,
+    .option .switch::after {
+      transition: none;
+    }
+  }
+
   fieldset {
     border: none;
     padding: 0;

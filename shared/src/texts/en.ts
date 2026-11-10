@@ -151,6 +151,9 @@ export const en: Texts = {
     retentionConfirm:
       'All your letters and system messages older than {days} days will be deleted immediately and for good. Continue?',
     printLabel: 'Show letters in print instead of handwriting',
+    linksLabel: 'Links in letters clickable',
+    linksHint:
+      'When switched off, web addresses are shown as plain text in letters – nothing opens by accident. Disguised addresses are still marked.',
     printHint: 'Easier to read, for example on small screens.',
     lettersSave: 'Save',
     lettersSaved: 'Saved.',
@@ -216,11 +219,9 @@ export const en: Texts = {
     large: 'large parchment',
     inFlight: 'Owl on its way – arrives around {time}',
     delivered: 'delivered',
-    read: 'read',
     returned: 'not delivered – the owl turned back',
-    unreadable: 'not readable – the letter could not be decrypted by the recipient',
-    invalid: 'Authenticity cannot be verified',
-    invalidLong: 'This letter could not be confirmed as genuine and is therefore not shown.',
+    unreadable: 'The owl lost the letter on its way.',
+    invalid: 'The letter got so wet on its way that it can no longer be read.',
     linkWarning: 'Unusual characters in the address – check carefully where the link leads.',
     compose: 'Write a new letter',
     parchment: 'Parchment',
@@ -250,7 +251,7 @@ export const en: Texts = {
     owl: 'Owl: {owl} ({species})',
     owlOption: '{owl} ({species}) – energy {energy} of {max}, speed {speed} km/h',
     loanHint:
-      'Loan owl: carries a letter to up to 5 recipients (gold to one) and does not fly back.',
+      'Loan owl: carries a letter to up to 5 recipients (gold to one); it only comes back with a reply.',
     retentionHint:
       'Letters are deleted automatically and for good {period} after delivery (settings).',
     retentionYear: 'one year',
@@ -260,7 +261,6 @@ export const en: Texts = {
     loanOfferHint: 'Loan owl of the day: 0.1 gold, only when sending.',
     arrival: 'Arrives at {name}: around {time}',
     returnsAt: 'Back home: around {time}',
-    noReturn: 'Does not fly back.',
     noOwl:
       'No owl is ready right now, and you cannot borrow another loan owl today (or you are short of 0.1 gold). Have a look in the Menagerie or wait until one of your owls is back.',
     coverGold: 'Cover letter for {amount}',
@@ -309,6 +309,8 @@ export const en: Texts = {
     owl_gift_received: '{name} has given you the owl {owl}. It lives with you from now on.',
     bot_owl_gift:
       '{name} has given you an owl ({species}). It lives with you from now on and is waiting for its name in the owl overview.',
+    owl_resting:
+      '{owl} ({species}), the owl of {name}, is visiting and rests with you until {until}. Under “Owls” you can look after it, hand it a reply or send it on its way.',
     bot_deleted:
       '{name} has laid down the quill for good and writes no more letters. Your correspondence has gone with them.',
     chick_gift_received: '{name} has given you the chick {owl}. It will be grown up in 7 days.',
@@ -367,6 +369,7 @@ export const en: Texts = {
     broadcast: 'There is a message for everyone.',
     owl_home: 'One of your owls is back home.',
     owl_home_letters: 'One of your owls is back home with post.',
+    owl_resting: 'An owl is resting with you.',
   },
   push: {
     title: 'Notifications',
@@ -388,6 +391,7 @@ export const en: Texts = {
     broadcastBody: 'There is a message for everyone.',
     homeBody: 'One of your owls is back home.',
     homeLettersBody: 'One of your owls is back home with post.',
+    restingBody: 'An owl is resting with you.',
     newsBody: 'There is news at PostEulen.',
     headerHint: 'Notifications are not set up yet – here is how',
     headerHide: 'Hide until the next sign-in',
@@ -501,6 +505,8 @@ export const en: Texts = {
     guestHint:
       'You can care for it so it flies on refreshed, and hand it a reply to {name} – then it takes off at once.',
     guestReply: 'Give it a reply to {name}',
+    guestSendOn: 'Send on its way',
+    guestSendOnConfirm: 'Send {name} on its way now without a reply?',
     guestBotHint: 'A bot owl – well looked after, it needs no care.',
     restingAt: 'Resting with {name} until {until}.',
     loanGroup: 'Loan owls',
@@ -651,6 +657,9 @@ export const en: Texts = {
     toTop: 'Back to top',
     notFound: 'This page does not exist. Perhaps an owl has mislaid the address.',
   },
+  banner: {
+    hide: 'Hide notice',
+  },
   admin: {
     title: 'PostEulen – Administration',
     loginHeading: 'Sign in to the administration',
@@ -746,6 +755,18 @@ export const en: Texts = {
     severity_warning: 'Warning',
     severity_error: 'Error',
     switchLanguage: 'Deutsch',
+    bannersTitle: 'Banner for everyone',
+    bannersIntro:
+      'A notice at the top of the app for all signed-in accounts – also for accounts created later – from start to end (at most 90 days). Everyone can hide it for themselves. Without an English text, English accounts see the German one.',
+    bannerTextDe: 'Text (German, up to 500 characters)',
+    bannerTextEn: 'Text (English, optional)',
+    bannerStart: 'Start',
+    bannerEnd: 'End',
+    bannerCreate: 'Put up banner',
+    bannerSaved: 'The banner is up.',
+    bannerDelete: 'Delete',
+    bannersNone: 'No banners.',
+    bannerPeriod: '{start} to {end}',
     openaiBotsLimit: 'Daily limit of the control-centre bots',
     openaiBotsUsed: 'Bots used today: {used} of {limit}',
     openaiLimitExplainer: 'Daily limit of the Explainer Bear',
@@ -915,6 +936,9 @@ export const en: Texts = {
     loading: 'Loading …',
   },
   errors: {
+    banner_invalid:
+      'The banner text contains characters that are not allowed (e.g. emojis), or is missing.',
+    banner_period: 'Please choose an end in the future, at most 90 days after the start.',
     internal: 'Something went wrong. Please try again later.',
     not_found: 'That does not exist here.',
     bad_request: 'The request was invalid.',

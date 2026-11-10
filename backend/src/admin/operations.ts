@@ -5,6 +5,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import {
+  BannerCreate,
   Broadcast,
   InactivityUpdate,
   OpenAiKey,
@@ -24,9 +25,14 @@ import {
 } from '../bots/ai.ts';
 import type { Context } from '../context.ts';
 import { parse } from '../http/errors.ts';
-import { utcDay } from '../security/ids.ts';
+import { randomId, utcDay } from '../security/ids.ts';
+import { Id } from '@posteulen/shared/schemas/common.ts';
+import { sanitizeLetterText } from '@posteulen/shared/text-rules.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { getInactivityDays, setInactivityDays } from './settings.ts';
+
+/** v0.8.2: a banner runs for at most 90 days. */
+const BANNER_MAX_DAYS = 90;
 
 export function adminStats(ctx: Context, now: number) {
   const count = (sql: string, ...params: (string | number)[]): number =>
@@ -95,6 +101,60 @@ export function registerAdminOperations(
   app.post('/api/broadcasts', { preHandler: authenticated }, async (request) => {
     const body = parse(Broadcast, request.body);
     return { recipients: sendBroadcast(ctx, body.text, ctx.now()) };
+  });
+
+  // ── v0.8.2: timed banners for all accounts (SPEC 13 item 11) ──
+  app.get('/api/banners', { preHandler: authenticated }, async () => ({
+    banners: ctx.db
+      .all<{
+        id: string;
+        text_de: string;
+        text_en: string;
+        starts_at: number;
+        ends_at: number;
+      }>('SELECT id, text_de, text_en, starts_at, ends_at FROM banners ORDER BY starts_at DESC')
+      .map((row) => ({
+        id: row.id,
+        textDe: row.text_de,
+        textEn: row.text_en,
+        startsAt: row.starts_at,
+        endsAt: row.ends_at,
+      })),
+  }));
+
+  app.post('/api/banners', { preHandler: authenticated }, async (request) => {
+    const body = parse(BannerCreate, request.body);
+    const now = ctx.now();
+    const textDe = body.textDe.trim();
+    const textEn = body.textEn.trim();
+    for (const text of [textDe, textEn]) {
+      if (text !== '' && sanitizeLetterText(text).text !== text.normalize('NFC'))
+        throw new HttpError(400, 'banner_invalid');
+    }
+    if (textDe === '') throw new HttpError(400, 'banner_invalid');
+    const startsAt = Math.max(body.startsAt, now);
+    if (body.endsAt <= startsAt || body.endsAt - startsAt > BANNER_MAX_DAYS * TIME.DAY)
+      throw new HttpError(400, 'banner_period');
+    const id = randomId();
+    ctx.db.run(
+      'INSERT INTO banners (id, text_de, text_en, starts_at, ends_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      id,
+      textDe,
+      textEn,
+      startsAt,
+      body.endsAt,
+      now,
+    );
+    ctx.hub.notifyAll('banners');
+    return { id };
+  });
+
+  app.delete('/api/banners/:id', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const id = parse(Id, (request.params as { id?: unknown }).id);
+    if (ctx.db.run('DELETE FROM banners WHERE id = ?', id).changes !== 1)
+      throw new HttpError(404, 'not_found');
+    ctx.hub.notifyAll('banners');
+    return { ok: true };
   });
 
   // ── OpenAI (SPEC 13 item 5): the key is never shown again, only "hinterlegt seit" ──

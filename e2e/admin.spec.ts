@@ -80,7 +80,7 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     await page.getByRole('button', { name: 'Speichern' }).first().click();
     await expect(page.getByText('Gespeichert.').first()).toBeVisible();
     page.once('dialog', (dialog) => void dialog.accept());
-    await page.getByLabel('Text').fill('Heute Abend fliegen die Eulen später.');
+    await page.getByLabel('Text', { exact: true }).fill('Heute Abend fliegen die Eulen später.');
     await page.getByRole('button', { name: 'An alle senden' }).click();
     await expect(page.getByText('Gesendet an 1 Konten.')).toBeVisible();
     // OpenAI: the key is write-only; without network the connection test reports the failure.
@@ -90,6 +90,20 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     await expect(page.getByLabel('Neuer API-Key')).toHaveValue('');
     await user.goto(`${ISOLATED_WEB_URL}/app/briefe/system`);
     await expect(user.getByText('Heute Abend fliegen die Eulen später.')).toBeVisible();
+    // v0.8.2: a timed banner reaches every account in the app and can be hidden there.
+    await page
+      .getByLabel('Text (Deutsch, bis 500 Zeichen)')
+      .fill('Morgen früh kurze Wartung im Eulenturm.');
+    await page.getByRole('button', { name: 'Banner einstellen' }).click();
+    await expect(page.getByText('Das Banner ist eingestellt.')).toBeVisible();
+    await user.goto(`${ISOLATED_WEB_URL}/app`);
+    const banner = user.getByTestId('admin-banner');
+    await expect(banner).toContainText('Morgen früh kurze Wartung im Eulenturm.');
+    await banner.getByRole('button').click();
+    await expect(banner).toHaveCount(0);
+    await user.reload();
+    await expect(user.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(user.getByTestId('admin-banner')).toHaveCount(0);
     // v0.7: a voucher for gold, redeemed once in the settings of the app.
     await page.getByLabel('Betrag in Gold (0,1 bis 100)').fill('2,5');
     await page.getByRole('button', { name: 'Gutschein erzeugen' }).click();

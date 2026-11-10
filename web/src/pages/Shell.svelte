@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Banners from '../components/Banners.svelte';
   import { t, fill } from '../lib/i18n.svelte.ts';
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
@@ -119,6 +120,7 @@
       >
     </p>
   {/if}
+  <Banners />
 
   <div class="content">
     {#if account.notice === 'deletionCancelled'}

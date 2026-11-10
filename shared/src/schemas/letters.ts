@@ -43,6 +43,29 @@ export const IdList = v.strictObject({
   ids: v.pipe(v.array(Id), v.minLength(1), v.maxLength(200)),
 });
 
+/**
+ * v0.8.2: why the recipient's device could not show letters – the technical reason goes to the
+ * admin's error log (SPEC 8.4, 13). The reasons of `openLetter` plus missing data or keys.
+ */
+export const UNREADABLE_REASONS = [
+  'decrypt',
+  'format',
+  'key',
+  'length',
+  'metadata',
+  'not_for_me',
+  'not_mine',
+  'signature',
+  'too_long',
+  'missing',
+  'no_keys',
+] as const;
+
+export const UnreadableReport = v.strictObject({
+  ids: v.pipe(v.array(Id), v.minLength(1), v.maxLength(200)),
+  reason: v.optional(v.picklist(UNREADABLE_REASONS)),
+});
+
 export const PushSubscriptionInput = v.strictObject({
   endpoint: v.pipe(v.string(), v.maxLength(2000), v.startsWith('https://')),
   keys: v.strictObject({

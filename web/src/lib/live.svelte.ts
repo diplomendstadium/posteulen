@@ -56,6 +56,8 @@ export const live = $state<{
   allBots: number;
   /** v0.8: "Alle Bots entfernen" chosen – no bot ever writes again. */
   botsDisabled: boolean;
+  /** v0.8.2: timed banners of the admin running right now. */
+  banners: { id: string; text: string; endsAt: number }[];
   requests: { id: string; label: string; expiresAt: number }[];
   news: NewsItem[];
   pushState: string;
@@ -71,6 +73,7 @@ export const live = $state<{
   bots: [],
   allBots: 0,
   botsDisabled: false,
+  banners: [],
   requests: [],
   news: [],
   pushState: 'none',
@@ -88,6 +91,7 @@ onSignOut(() => {
   live.bots = [];
   live.allBots = 0;
   live.botsDisabled = false;
+  live.banners = [];
   live.requests = [];
   live.news = [];
   live.pushState = 'none';
@@ -105,7 +109,8 @@ type Topic =
   | 'owls'
   | 'finance'
   | 'map'
-  | 'homecomings';
+  | 'homecomings'
+  | 'banners';
 
 /** v0.7.2: homecomings already queued in this tab (no double pictures). */
 // Plain Set on purpose: bookkeeping, not rendered state.
@@ -234,6 +239,15 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
     );
   }
   if (topics.includes('homecomings')) tasks.push(showHomecomings(current));
+  if (topics.includes('banners')) {
+    tasks.push(
+      api<{ banners: { id: string; text: string; endsAt: number }[] }>('GET', '/api/banners').then(
+        (result) => {
+          if (current()) live.banners = result.banners;
+        },
+      ),
+    );
+  }
   if (topics.includes('owls')) live.owlsVersion++;
   if (topics.includes('finance')) live.financeVersion++;
   if (topics.includes('map')) live.mapVersion++;
@@ -271,6 +285,7 @@ export function refreshAll(): Promise<void> {
     'finance',
     'map',
     'homecomings',
+    'banners',
   ]);
 }
 

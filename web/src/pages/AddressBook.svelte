@@ -34,12 +34,17 @@
 
   async function add(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    if (busy || name.trim() === '') return;
+    // v0.8.2: an autocorrection often adds a space after a name – it does not belong to it.
+    const wanted = name.trim();
+    if (busy || wanted === '') return;
     busy = true;
     error = notice = null;
     try {
-      await api('POST', '/api/contacts/requests', { name, label: await requestLabel(name) });
-      notice = fill(t.contacts.requestSaved, { name });
+      await api('POST', '/api/contacts/requests', {
+        name: wanted,
+        label: await requestLabel(wanted),
+      });
+      notice = fill(t.contacts.requestSaved, { name: wanted });
       name = '';
       await refreshTopics('contacts');
     } catch (caught) {

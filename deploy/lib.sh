@@ -132,6 +132,7 @@ health_check() {
   health=$(curl "${curl_opts[@]}" "https://$domain/api/health") || return 1
   grep -q '"status":"ok"' <<<"$health" || { warn "Unerwartete Antwort: $health"; return 1; }
   ok "Funktionsprüfung bestanden: Website, Verwaltung, Health-Endpunkt und Sicherheits-Header."
+  address_check "$domain" "$test_mode"
   # v0.8: das Bots-Kontrollzentrum (bots.<domain>). Fehlt dort noch der DNS-Eintrag, gibt es
   # kein Zertifikat – das ist kein Grund für einen Rückfall, nur ein Hinweis.
   # Nur wenn die laufende Version das Kontrollzentrum kennt (nach einem Rückfall auf eine ältere nicht).
@@ -139,6 +140,75 @@ health_check() {
     ! curl "${curl_opts[@]}" "https://bots.$domain/api/health" >/dev/null 2>&1; then
     warn "https://bots.$domain antwortet (noch) nicht. Für das Bots-Kontrollzentrum braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server."
   fi
+}
+
+# v0.8.2: Firewall für IPv4 UND IPv6 (SPEC 16.2). Kommt später eine IPv6-Adresse dazu, muss ufw
+# auch IPv6 filtern und die Ports dort öffnen – sonst scheitern Zertifikate über AAAA-Einträge.
+ensure_firewall() {
+  command -v ufw >/dev/null 2>&1 || return 0
+  if [[ -f /etc/default/ufw ]] && grep -q '^IPV6=no' /etc/default/ufw; then
+    sed -i 's/^IPV6=no/IPV6=yes/' /etc/default/ufw
+    info "Firewall: IPv6 eingeschaltet."
+  fi
+  local rule
+  for rule in 22/tcp 80/tcp 443/tcp 443/udp; do ufw allow "$rule" >/dev/null; done
+  if ufw status | grep -q '^Status: active'; then ufw reload >/dev/null; fi
+}
+
+# Eigene öffentliche Adressen des Servers (IPv4 und IPv6, ohne temporäre IPv6-Adressen).
+server_addresses() {
+  ip -o addr show scope global 2>/dev/null | awk '$0 !~ / temporary/ {print $4}' | cut -d/ -f1 | sort -u
+}
+
+# v0.8.2: Jeder Hostname über jede eigene Adresse (SPEC 16.2): DNS-Einträge (A/AAAA) gegen die
+# Adressen des Servers abgleichen und je Adresse prüfen, ob HTTPS mit gültigem Zertifikat
+# antwortet. Fehlende Zertifikate stößt ein Neuladen von Caddy an. Nur Warnungen – DNS liegt
+# außerhalb des Servers und ist kein Grund für einen Rückfall. $1 = Domain, $2 = Testmodus.
+address_check() {
+  local domain=$1 test_mode=$2 host address resolved problems=0 attempt reloaded=0
+  local -a hosts=("$domain" "admin.$domain") own_addresses ca_opts=()
+  grep -q "bots.$domain" /etc/caddy/Caddyfile 2>/dev/null && hosts+=("bots.$domain")
+  mapfile -t own_addresses < <(server_own_addresses)
+  if [[ $test_mode -eq 1 ]]; then
+    local ca=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
+    [[ -f $ca ]] && ca_opts=(--cacert "$ca") || ca_opts=(--insecure)
+  fi
+  probe() {
+    local target=$2
+    [[ $target == *:* ]] && target="[$target]"
+    curl --silent --fail --max-time 10 "${ca_opts[@]}" --resolve "$1:443:$target" "https://$1/api/health" >/dev/null 2>&1
+  }
+  for host in "${hosts[@]}"; do
+    if [[ $test_mode -eq 1 ]]; then
+      # Ohne öffentliches DNS: jede eigene Adresse muss den Hostnamen ausliefern.
+      resolved=$(printf '%s\n' "${own_addresses[@]}")
+    else
+      resolved=$(getent ahosts "$host" | awk '{print $1}' | sort -u || true)
+      [[ -z $resolved ]] && { warn "DNS: $host hat keinen A/AAAA-Eintrag."; problems=1; continue; }
+    fi
+    for address in $resolved; do
+      if ! printf '%s\n' "${own_addresses[@]}" | grep -qxF "$address"; then
+        warn "DNS: $host zeigt auf $address – das ist keine Adresse dieses Servers. Den A- bzw. AAAA-Eintrag korrigieren oder entfernen; sonst schlagen Zertifikate und Verbindungen über diese Adresse fehl."
+        problems=1
+        continue
+      fi
+      for attempt in 1 2 3 4 5 6; do
+        probe "$host" "$address" && break
+        if [[ $reloaded -eq 0 ]]; then
+          # Ein Neuladen lässt Caddy fehlende Zertifikate sofort neu anfordern.
+          systemctl reload caddy >/dev/null 2>&1 || true
+          reloaded=1
+        fi
+        sleep 10
+      done
+      if ! probe "$host" "$address"; then
+        warn "https://$host über $address antwortet nicht mit gültigem Zertifikat. Prüfen: Firewall (Ports 80 und 443 auch für IPv6), DNS-Eintrag, „journalctl -u caddy -n 50“."
+        problems=1
+      fi
+    done
+  done
+  [[ $problems -eq 0 ]] && ok "Alle Hostnamen antworten über alle ihre Adressen (IPv4/IPv6) mit gültigem Zertifikat."
+  return 0
 }
 
 # Neueste Version (Tag) im Repository $1. Nach Semantic Versioning ist eine Vorabversion älter

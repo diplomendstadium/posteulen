@@ -15,7 +15,9 @@ export type Topic =
   | 'finance'
   | 'map'
   /** v0.7.2: an own owl came home (overlay). */
-  | 'homecomings';
+  | 'homecomings'
+  /** v0.8.2: timed banners of the admin. */
+  | 'banners';
 
 const MAX_PER_USER = 3;
 const HEARTBEAT_MS = 25_000;

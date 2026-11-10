@@ -135,6 +135,8 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
         body.print ? 1 : 0,
         me,
       );
+      if (body.links !== undefined)
+        ctx.db.run('UPDATE users SET links_clickable = ? WHERE id = ?', body.links ? 1 : 0, me);
       purgeOldLetters(ctx, now, me);
     });
     ctx.hub.notify(me, 'profile', 'chats');

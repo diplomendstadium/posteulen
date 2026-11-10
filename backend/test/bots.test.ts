@@ -347,7 +347,8 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
     for (const value of ['Anna', anna.id, explainer.id, ...ids])
       expect(payload).not.toContain(value);
     const letters = await botLetters(anna, explainer.id);
-    expect(letters.find((l) => l.role === 'sender')?.read).toBe(true);
+    // v0.8.2: the sender never learns whether a letter was read – not even from a bot.
+    expect(letters.find((l) => l.role === 'sender')?.read).toBe(false);
     advanceTo(app, app.clock.now + TIME.DAY);
     const reply = (await botLetters(anna, explainer.id)).find((l) =>
       l.plaintext?.startsWith('Schön'),

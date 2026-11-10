@@ -64,12 +64,9 @@
             })}</span
           >
         {/each}
-        {#if !choice.guest}
-          <span>
-            {choice.returnsAt === null
-              ? t.letters.noReturn
-              : fill(t.letters.returnsAt, { time: dateTime(choice.returnsAt) })}
-          </span>
+        <!-- v0.8.2: no "does not fly back" for loan owls – with a reply they do come back. -->
+        {#if !choice.guest && choice.returnsAt !== null}
+          <span>{fill(t.letters.returnsAt, { time: dateTime(choice.returnsAt) })}</span>
         {/if}
       </span>
     </label>

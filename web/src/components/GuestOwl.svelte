@@ -52,6 +52,23 @@
     const text = fill(t.owls.snack, { snack });
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
+
+  /** v0.8.2: the owl takes off at once – to its next recipient or home. */
+  async function sendOn(): Promise<void> {
+    if (busy || !confirm(fill(t.owls.guestSendOnConfirm, { name: guest.name }))) return;
+    busy = true;
+    error = null;
+    try {
+      await api('POST', `/api/guests/${guest.id}/send-on`, {});
+      showOwlImage(guest.species, 'departure', fill(t.owls.departs, { name: guest.name }));
+      onchanged();
+      void refreshTopics('owls');
+    } catch (caught) {
+      error = errorMessage(caught);
+    } finally {
+      busy = false;
+    }
+  }
 </script>
 
 <li class="card owl guest" data-testid="guest-owl">
@@ -132,6 +149,13 @@
           }}>{fill(t.owls.guestReply, { name: holder })}</button
         >
       {/if}
+      <!-- v0.8.2: send the visiting owl on early, without a letter (confirmed first). -->
+      <button
+        class="button secondary"
+        type="button"
+        disabled={busy || !status.online}
+        onclick={() => void sendOn()}>{t.owls.guestSendOn}</button
+      >
     </div>
   </div>
 </li>

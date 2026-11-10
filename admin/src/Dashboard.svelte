@@ -9,6 +9,7 @@
   import OpenAi from './OpenAi.svelte';
   import Vouchers from './Vouchers.svelte';
   import Feedback from './Feedback.svelte';
+  import Banners from './Banners.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -97,6 +98,8 @@
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
 
 <Operations />
+
+<Banners />
 
 <OpenAi />
 

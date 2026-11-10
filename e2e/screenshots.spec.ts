@@ -70,7 +70,7 @@ test.describe('Screenshots Briefwechsel', () => {
     await other.getByRole('link', { name: new RegExp(anna.name) }).click({ timeout: 30_000 });
     await other.getByText(/Liebe Grüße/).waitFor({ timeout: 30_000 });
     await shoot(other, info, 'chat-empfaenger');
-    await page.locator('p.status', { hasText: 'gelesen' }).waitFor({ timeout: 30_000 });
+    await page.locator('p.status', { hasText: 'zugestellt' }).waitFor({ timeout: 30_000 });
     await shoot(page, info, 'chat-absender', true);
     await page.goto('/app/briefe');
     await shoot(page, info, 'briefwechsel');

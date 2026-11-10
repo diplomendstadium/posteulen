@@ -48,6 +48,18 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.2',
+    title: 'Frisch geputztes Gefieder: Version 0.8.2',
+    paragraphs: [
+      'Die Eulen haben sich ordentlich geputzt und ein paar Gewohnheiten geändert:',
+      '• Dein Briefwechsel ist jetzt so sortiert, wie du ihn erlebt hast: Deine Briefe stehen dort, wo du sie abgeschickt hast, empfangene dort, wo sie bei dir angekommen sind. Und kommen mehrere Briefe auf einmal, zeigt sich beim Öffnen jede Eule nacheinander.',
+      '• Ob und wann jemand deinen Brief gelesen hat, verraten die Eulen nicht mehr – zu sehen ist nur noch, dass er zugestellt wurde. Ein bisschen Briefgeheimnis muss sein.',
+      '• Rastet eine fremde Eule bei dir, sagt sie dir Bescheid und verrät, wie lange sie bleibt. Willst du sie früher ziehen lassen, schickst du sie unter „Eulen“ einfach weiter – auch ohne Brief.',
+      '• In den Einstellungen gibt es einen Regler, mit dem du Links in Briefen anklickbar machen oder abschalten kannst. Und ab und zu hängt der Betreiber einen kleinen Aushang für alle auf – den kannst du mit einem Klick wegfalten.',
+      'Viel Freude beim Schreiben!',
+    ],
+  },
+  {
     version: '0.8.1',
     title: 'Ein Federstrich nachgebessert: Version 0.8.1',
     paragraphs: [
@@ -248,6 +260,18 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.8.2',
+    title: 'Freshly preened feathers: version 0.8.2',
+    paragraphs: [
+      'The owls have had a good preen and changed a few habits:',
+      '• Your conversation is now sorted the way you experienced it: your letters stand where you sent them, received ones where they reached you. And when several letters arrive at once, each owl shows itself in turn as you open the chat.',
+      '• The owls no longer tell whether or when someone read your letter – all you see is that it was delivered. A little secrecy of correspondence is a must.',
+      '• When someone else\'s owl rests with you, it lets you know and tells you how long it will stay. If you would like it to leave sooner, just send it on its way under "Owls" – even without a letter.',
+      '• The settings have a switch that makes links in letters clickable or turns that off. And now and then the operator pins a small notice up for everyone – you can fold it away with a click.',
+      'Enjoy writing!',
+    ],
+  },
   {
     version: '0.8.1',
     title: 'A quill stroke touched up: version 0.8.1',

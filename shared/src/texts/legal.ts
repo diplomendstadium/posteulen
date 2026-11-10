@@ -70,7 +70,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     title: 'Ein einziges Cookie',
     blocks: [
       'PostEulen setzt genau ein Cookie: das Sitzungs-Cookie, ohne das die Anmeldung nicht funktioniert. Es ist technisch notwendig, nur für PostEulen lesbar und enthält eine zufällige Zeichenfolge; der Server speichert davon nur einen Prüfwert. Es gibt keine Tracking-Cookies, keine Werbung, keine Analyse-Werkzeuge und keine Inhalte von fremden Servern.',
-      'Die Sprache, die du vor der Anmeldung wählst, und ob du den Hinweis zu Benachrichtigungen ausgeblendet hast, merkt sich nur dein Browser in seinem lokalen Speicher, nicht der Server.',
+      'Die Sprache, die du vor der Anmeldung wählst, ob du den Hinweis zu Benachrichtigungen ausgeblendet hast und welche Hinweise des Betreibers (Banner) du weggeklickt hast, merkt sich nur dein Browser in seinem lokalen Speicher, nicht der Server.',
     ],
   },
   {

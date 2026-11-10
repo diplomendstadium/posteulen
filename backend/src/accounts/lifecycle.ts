@@ -187,6 +187,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   pruneFeedback(ctx, at);
   // v0.7.2: homecomings nobody looked at (overlay) go after 60 days.
   ctx.db.run('DELETE FROM homecomings WHERE created_at < ?', at - 60 * TIME.DAY);
+  // v0.8.2: banners of the admin are gone once they have ended.
+  ctx.db.run('DELETE FROM banners WHERE ends_at <= ?', at);
   // v0.8: pictures of bots that no event and no letter uses any more (SPEC 10.11).
   pruneMedia(ctx, at);
   ctx.db.run(

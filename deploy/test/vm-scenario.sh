@@ -144,6 +144,11 @@ check "Geheimnis-Datei 0640 root:posteulen" secrets_permissions
 check "Node lauscht nur auf localhost" listens_on_localhost_only
 check "Kein Access-Log in Caddy" no_access_log
 check "Firewall aktiv" firewall_active
+# v0.8.2: Firewall auch für IPv6, jeder Hostname über jede eigene Adresse.
+grep -q 'address_check' /opt/posteulen/current/deploy/lib.sh 2>/dev/null &&
+  check "Firewall öffnet 443 auch für IPv6" bash -c "ufw status | grep -q '443/tcp (v6)'"
+grep -q 'address_check' /opt/posteulen/current/deploy/lib.sh 2>/dev/null &&
+  check "Jeder Hostname über jede eigene Adresse" bash -c "source /opt/posteulen/current/deploy/lib.sh && address_check '$DOMAIN' 1 2>&1 | grep -q 'über alle ihre Adressen'"
 check "SSH nur mit Schlüssel" test -f /etc/ssh/sshd_config.d/50-posteulen.conf
 check "Backup-Timer aktiv" systemctl is-active --quiet posteulen-backup.timer
 check "systemd-Härtung (Bewertung ≤ 2,5)" hardening_score

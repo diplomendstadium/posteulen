@@ -19,6 +19,8 @@ export type NotificationType =
   | 'broadcast'
   | 'owl_home'
   | 'owl_home_letters'
+  /** v0.8.2: an owl rests with the user (visiting owl). */
+  | 'owl_resting'
   | 'push_test';
 
 export type PushSender = (

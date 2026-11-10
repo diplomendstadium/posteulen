@@ -21,6 +21,8 @@ export interface Profile {
   readonly homeChangesLeft: number;
   readonly letterRetentionDays: number;
   readonly lettersPrint: boolean;
+  /** v0.8.2 */
+  readonly linksClickable?: boolean;
   /** Language of the account (v0.4). */
   readonly language: Language;
   /** Today's daily wage in tenths (v0.4). */
@@ -316,6 +318,7 @@ export async function changeHome(home: { lat: number; lon: number }): Promise<vo
 export async function changeLetterSettings(settings: {
   retentionDays: number;
   print: boolean;
+  links?: boolean;
 }): Promise<void> {
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/letters', settings);
   account.profile = profile;

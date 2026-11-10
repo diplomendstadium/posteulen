@@ -44,6 +44,7 @@ import { ipKey } from '../security/ip.ts';
 import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { balance, debit } from '../gold/ledger.ts';
 import {
+  endRest,
   loadFlight,
   planFlight,
   previewReturn,
@@ -236,6 +237,29 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
   app.post('/api/owls/:id/pet', { preHandler: [authenticated, emptyBody] }, interaction('pet'));
   app.post('/api/owls/:id/feed', { preHandler: [authenticated, emptyBody] }, interaction('feed'));
   app.post('/api/owls/:id/snack', { preHandler: [authenticated, emptyBody] }, interaction('snack'));
+
+  /**
+   * v0.8.2: the host sends a visiting owl on early, without a letter (SPEC 8.4): it takes off at
+   * once – to its next recipient or home (a loan owl without replies vanishes). `:id` is the
+   * reference of the guest owl (owl ID, or flight ID for owls of bots).
+   */
+  app.post(
+    '/api/guests/:id/send-on',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      const id = owlIdParam(request.params);
+      const me = userOf(request).id;
+      const after: (() => void)[] = [];
+      ctx.db.transaction(() => {
+        const guest = guestFlight(ctx, me, id);
+        if (!guest) throw new HttpError(404, 'not_found');
+        endRest(ctx, guest.flight, guest.index, ctx.now(), (work) => after.push(work));
+      });
+      for (const work of after) work();
+      ctx.hub.notify(me, 'owls');
+      return { ok: true };
+    },
+  );
 
   app.post('/api/owls/:id/release', { preHandler: authenticated }, async (request) => {
     const id = owlIdParam(request.params);

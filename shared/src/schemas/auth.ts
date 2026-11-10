@@ -137,6 +137,8 @@ export const HomeChange = v.strictObject({ home: Home });
 export const LetterSettings = v.strictObject({
   retentionDays: v.picklist(LETTER.RETENTION_CHOICES),
   print: v.boolean(),
+  /** v0.8.2: links in letters clickable (missing: unchanged). */
+  links: v.optional(v.boolean()),
 });
 
 /** Preferred language of the account (v0.4, settings and flag). */
@@ -151,6 +153,14 @@ export const InactivityUpdate = v.strictObject({
 /** Broadcast: plain text up to 3 000 characters (SPEC 13 item 6). */
 export const Broadcast = v.strictObject({
   text: v.pipe(v.string(), v.minLength(1), v.maxLength(3000)),
+});
+
+/** v0.8.2: a timed banner for all accounts (SPEC 13 item 11): German, optionally English. */
+export const BannerCreate = v.strictObject({
+  textDe: v.pipe(v.string(), v.minLength(1), v.maxLength(500)),
+  textEn: v.pipe(v.string(), v.maxLength(500)),
+  startsAt: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  endsAt: v.pipe(v.number(), v.integer(), v.minValue(0)),
 });
 
 /** OpenAI settings (SPEC 13 item 5): the key is write-only. */

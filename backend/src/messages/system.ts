@@ -37,7 +37,9 @@ export type SystemMessageType =
   | 'loan_back'
   /** v0.8: a bot of the control centre gave an owl (event) / was deleted by the operator. */
   | 'bot_owl_gift'
-  | 'bot_deleted';
+  | 'bot_deleted'
+  /** v0.8.2: a visiting owl rests with the user until a time. */
+  | 'owl_resting';
 
 export function addSystemMessage(
   ctx: Context,

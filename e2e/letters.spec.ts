@@ -10,7 +10,7 @@ async function addContact(page: Page, name: string): Promise<void> {
 }
 
 test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', () => {
-  test('Koppeln → Sicherheitsnummer → Brief → Zustellung → Lesebestätigung, ohne Klartext', async ({
+  test('Koppeln → Sicherheitsnummer → Brief → Zustellung (ohne Lesebestätigung), ohne Klartext', async ({
     browser,
     page,
   }) => {
@@ -68,7 +68,11 @@ test.describe('Kontakte und Briefe (Stufe 2, SPEC 5.7, 5.8, 8.4, 8.8, 17.4)', ()
     await expect(link).toHaveAttribute('rel', 'noopener noreferrer nofollow');
     await expect(other.getByText(new RegExp(`Gebracht von ${owl}`))).toBeVisible();
 
-    await expect(page.locator('p.status', { hasText: 'gelesen' })).toBeVisible({ timeout: 30_000 });
+    // v0.8.2: the sender only sees "zugestellt" – whether and when it was read stays private.
+    await expect(page.locator('p.status', { hasText: 'zugestellt' })).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.locator('p.status', { hasText: /\bgelesen\b/ })).toHaveCount(0);
 
     for (const body of bodies) {
       expect(body).not.toContain('Geheime Nachricht');

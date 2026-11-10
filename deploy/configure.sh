@@ -24,6 +24,9 @@ install -d -m 0755 "$PE_LOCAL"
 [[ -e $PE_LOCAL/admin-00-leer.caddy ]] || printf '# Eigene Regeln für admin.%s hier oder in weiteren admin-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/admin-00-leer.caddy"
 [[ -e $PE_LOCAL/bots-00-leer.caddy ]] || printf '# Eigene Regeln für bots.%s hier oder in weiteren bots-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/bots-00-leer.caddy"
 
+# v0.8.2: Firewall auch für IPv6 (eine später hinzugefügte IPv6-Adresse funktioniert dann sofort).
+ensure_firewall
+
 # systemd-Units
 for unit in posteulen.service posteulen-backup.service posteulen-backup.timer; do
   install -m 0644 "$RELEASE/deploy/systemd/$unit" "/etc/systemd/system/$unit"
