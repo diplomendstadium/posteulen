@@ -132,7 +132,14 @@ health_check() {
   health=$(curl "${curl_opts[@]}" "https://$domain/api/health") || return 1
   grep -q '"status":"ok"' <<<"$health" || { warn "Unerwartete Antwort: $health"; return 1; }
   ok "Funktionsprüfung bestanden: Website, Verwaltung, Health-Endpunkt und Sicherheits-Header."
-  address_check "$domain" "$test_mode"
+  # Nur Warnungen: in einer eigenen Subshell ohne Fehlerfalle und ohne errexit, damit kein Fehler
+  # darin je den Rückfall des Updates auslöst (der VM-Test fand genau das: ein Fehler in der
+  # Adressabfrage startete den Rückfall in der Prozess-Substitution).
+  (
+    trap - ERR
+    set +e
+    address_check "$domain" "$test_mode"
+  ) || true
   # v0.8: das Bots-Kontrollzentrum (bots.<domain>). Fehlt dort noch der DNS-Eintrag, gibt es
   # kein Zertifikat – das ist kein Grund für einen Rückfall, nur ein Hinweis.
   # Nur wenn die laufende Version das Kontrollzentrum kennt (nach einem Rückfall auf eine ältere nicht).
@@ -168,7 +175,12 @@ address_check() {
   local domain=$1 test_mode=$2 host address resolved problems=0 attempt reloaded=0
   local -a hosts=("$domain" "admin.$domain") own_addresses ca_opts=()
   grep -q "bots.$domain" /etc/caddy/Caddyfile 2>/dev/null && hosts+=("bots.$domain")
-  mapfile -t own_addresses < <(server_own_addresses)
+  # Nur Zeilen, die wie IPv4- oder IPv6-Adressen aussehen.
+  mapfile -t own_addresses < <(server_addresses | grep -E '^[0-9a-fA-F.:]+$' || true)
+  if [[ ${#own_addresses[@]} -eq 0 ]]; then
+    warn "Die Adressen dieses Servers ließen sich nicht ermitteln („ip -o addr“); die Adressprüfung entfällt."
+    return 0
+  fi
   if [[ $test_mode -eq 1 ]]; then
     local ca=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
     [[ -f $ca ]] && ca_opts=(--cacert "$ca") || ca_opts=(--insecure)
