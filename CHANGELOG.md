@@ -3,6 +3,42 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.8.5 – Post aus der Leserschaft
+
+Version mit vielen Anregungen der Nutzerinnen und Nutzer (SPEC Anhang Z, D-291 bis D-308).
+
+- **Briefe schreiben:** Die Eulenwahl steht von Anfang an im Editor und bleibt beim Tippen; die
+  Leiheulen des Tages stehen immer mit zur Wahl. Jede einsatzbereite Eule hat in der Eulenübersicht
+  „Brief schreiben“ (Dialog mit bis zu 5 Kontakten oder einem Bot).
+- **Rast:** vorgewählt 2 Stunden mit eigener Eule, 24 Stunden mit Leiheule; eine eigene Wahl bleibt beim
+  Wechsel, bei einer Gast-Eule entfällt das Feld. Die Vorschau rechnet mit derselben Rast wie der Versand.
+- **Gast-Eulen:** Die Antwort erklärt den tatsächlichen Weg (zuerst die übrigen Briefe), ohne Namen.
+  Statt einer Systemnachricht zeigt die Chatliste ein Eulensymbol hinter dem Namen; der Push bleibt.
+- **Menagerie:** Angebot je Konto und Tag (Sperre der Vortage je Konto); abgeschlossene Leihen werden bis
+  zum Tageswechsel ausgeblendet und zählen weiter. Am Update-Tag gilt noch das gemeinsame Angebot.
+- **Eulen:** leere Stange bei Rast; Infoblock am Seitenende; Neuladen alle 5 Minuten bei fliegenden Eulen;
+  „21 Minuten“ statt „21 Min..“. Freilassen nur bei mehr als 20 eigenen Eulen (Server prüft).
+- **Küken:** 5 Tage für Namen und Geschenk (Erinnerung einen Tag vorher); wartende Gelege werden verlängert.
+- **Karte:** Flugspuren und „Zzz“ entfernt; „Deine Eulen unterwegs“ nennt die Rast mit Datum und Uhrzeit.
+- **Briefwechsel:** Bilder von Bots fensterfüllend; Abstand unter dem Verlauf; Textfelder nur in der Höhe ziehbar.
+- **Löschfrist:** Altersbereinigung nur noch montags 04:00 UTC (auch nach Wahl einer kürzeren Frist);
+  Verbrennen wirkt sofort.
+- **Kontrollzentrum:** Karte passt ins Fenster, Mausrad scrollt die Seite am Zoom-Ende, Legende und Formen je
+  Zustand. Events werden 36 Monate nach dem Versand mit Zustellungen und ungenutzten Bildern gelöscht.
+- **Sonstiges:** Startseite verlinkt „Quelltext“ statt der Versionsnummer; neues quadratisches Abflugbild der
+  Maskeneule; README und Hilfe zur Datensparsamkeit (Pseudonym, VPN/Tor, Adminpanel ohne Einblick);
+  Datenschutzerklärung zur wöchentlichen Löschung und zu Bot-Events; Update-Nachricht mit Dank an alle.
+
+### Hinweise für Betreiber
+
+- Migration `0020_v085.sql` (Tabelle `menagerie_user_offers`, Küken-Fristen offener Gelege auf 5 Tage, Entfernen
+  des alten Tagesjobs `menagerie_offer`), läuft automatisch.
+- Briefe nach Ablauf ihrer Frist werden nur noch montags um 04:00 UTC gelöscht – sie bleiben also bis zu knapp
+  sieben Tage länger in der Datenbank (Datenschutzerklärung angepasst; wer eigene Rechtstexte pflegt, bitte
+  nachziehen). Bot-Events älter als 36 Monate verschwinden beim ersten 04:00-Lauf nach dem Update.
+- Neues Bild `images/Maskeneule-Abflug.png` (wird beim Build umgerechnet). Keine neuen Pakete.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v0.8.4 – Ein Gast aus Übersee
 
 Kleine Version (SPEC Anhang Y, D-288 bis D-290).
