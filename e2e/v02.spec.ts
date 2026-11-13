@@ -31,7 +31,7 @@ test.describe('Version 0.2', () => {
     await page.goto('/app/adressbuch');
     await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Mit einer Leiheule, ohne Umweg über die Menagerie.');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await expect(page.getByText(/Du kannst eine Leiheule des Tages nehmen/)).toBeVisible();
     const offers = page
       .getByRole('group', { name: 'Welche Eule soll fliegen?' })
@@ -59,16 +59,15 @@ test.describe('Version 0.2', () => {
     expect(await sheet.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(
       /Playwrite DE Grund/,
     );
-    await expect(other.getByText(/ein Jahr nach der Zustellung automatisch/)).toBeVisible();
+    await expect(other.getByText(/ein Jahr nach der Zustellung beim wöchentlichen/)).toBeVisible();
     expect(ben.name).not.toBe(anna.name);
     await otherContext.close();
   });
 
   test('Einstellungen: Löschfrist und Druckschrift; Versionsnummer', async ({ page }) => {
     await page.goto('/');
-    const version = page.getByRole('link', {
-      name: new RegExp(`v${VERSION.replace(/\./g, '\\.')}`),
-    });
+    // v0.8.5: the link to the repository says "Quelltext" (before: the version number).
+    const version = page.getByRole('link', { name: /^Quelltext/ });
     await expect(version).toHaveAttribute('href', 'https://github.com/diplomendstadium/posteulen');
     await expect(version).toHaveAttribute('target', '_blank');
     await registerViaUi(page);

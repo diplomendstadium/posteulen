@@ -19,6 +19,8 @@ export interface ChatSummary {
   readonly isContact: boolean;
   readonly lastActivityAt: number;
   readonly unread: number;
+  /** v0.8.5: an owl of this peer is resting here right now. */
+  readonly owlResting?: boolean;
 }
 
 export interface Contact {

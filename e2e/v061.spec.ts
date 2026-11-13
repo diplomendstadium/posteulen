@@ -23,7 +23,7 @@ test.describe('Sicherheitsprüfung v0.6.1', () => {
     await page
       .getByLabel('Text')
       .fill('Schau mal: https://p\u0430ypal.com/login und https://example.org/eule');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await page.getByRole('button', { name: 'Absenden' }).click();
     const disguised = page.getByRole('link', { name: 'https://xn--pypal-4ve.com/login' });
     await expect(disguised).toBeVisible({ timeout: 30_000 });

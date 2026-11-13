@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import { expect, test } from './fixtures.ts';
 import { loginViaUi, PASSWORD, registerViaUi } from './account-helpers.ts';
-import { setGold } from './db-helpers.ts';
+import { addOwls, setGold } from './db-helpers.ts';
 
 /**
  * v0.3: no text stands directly on the world-map background. Returns every visible text whose
@@ -147,7 +147,8 @@ test.describe('Version 0.3', () => {
     await expect(buy).toBeVisible();
     expect((await loan.boundingBox())!.y).toBeLessThan((await buy.boundingBox())!.y);
     const cards = page.locator('ul.for-sale > li');
-    const byPrice = [...SPECIES].sort(
+    // v0.8.4: the Virginiauhu is not for sale.
+    const byPrice = SPECIES.filter((species) => !species.notForSale).sort(
       (a, b) => a.price - b.price || a.name.localeCompare(b.name, 'de'),
     );
     await expect(cards.locator('h3')).toHaveText(byPrice.map((species) => species.name));
@@ -190,6 +191,10 @@ test.describe('Version 0.3', () => {
     expect((await loans.boundingBox())!.y).toBeLessThan((await own.boundingBox())!.y);
 
     const card = page.getByTestId('owl-card').filter({ hasText: 'Federchen' });
+    // v0.8.5: releasing only with more than 20 own owls.
+    await expect(card.getByRole('button', { name: 'In die Freiheit entlassen' })).toHaveCount(0);
+    addOwls(name, 'bartkauz', 20);
+    await page.reload();
     await card.getByRole('button', { name: 'In die Freiheit entlassen' }).click();
     const dialog = page.getByRole('dialog', { name: 'Federchen in die Freiheit entlassen' });
     await expect(dialog).toBeVisible();

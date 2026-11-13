@@ -1,5 +1,11 @@
 <script lang="ts">
-  /** Writing a letter (SPEC 8.4): parchment, text with counter, recipients, preview, send. */
+  /**
+   * Writing a letter (SPEC 8.4): parchment, text with counter, recipients, owl, rest, send.
+   * v0.8.5: the owl choice loads by itself and stays while typing (also with an empty letter);
+   * it only reloads when recipients or the rest change. The rest is preselected by the kind of
+   * owl (own 2 hours, loan 24 hours) until the writer picks one by hand.
+   */
+  import { onMount } from 'svelte';
   import { t, fill, locale } from '../lib/i18n.svelte.ts';
   import { countCodePoints } from '@posteulen/shared/names.ts';
   import { LETTER } from '@posteulen/shared/constants.ts';
@@ -20,6 +26,8 @@
     bot = false,
     guestOwl = null,
     guestOnly = false,
+    presetOwl = null,
+    presetRecipients = null,
   }: {
     peerId: string;
     onsent: () => void;
@@ -28,27 +36,49 @@
     guestOnly?: boolean;
     /** v0.7.1: reply with exactly this visiting owl (no other owls, no rest option). */
     guestOwl?: string | null;
+    /** v0.8.5: "Brief schreiben" on an owl card – this owl is chosen in the editor. */
+    presetOwl?: string | null;
+    /** v0.8.5: the recipients picked there (the chat's peer among them). */
+    presetRecipients?: readonly string[] | null;
   } = $props();
   /** The visiting owl is gone (flew on meanwhile): then the normal choice. */
   let guestGone = $state(false);
   const replying = $derived(guestOwl !== null && !guestGone);
 
+  /** Refresh of the shown times while the editor stays open (they are estimates anyway). */
+  const REFRESH_MS = 5 * 60_000;
+
   let parchment = $state<Parchment>('small');
-  /** v0.7: how long the owl rests at each recipient (hours, letters to people only). */
-  let rest = $state<number>(LETTER.REST_HOURS_DEFAULT);
+  /** v0.8.5: a rest picked by hand (hours); null = the preselection of the chosen owl's kind. */
+  let restManual = $state<number | null>(null);
   let text = $state('');
   let smileyHint = $state(false);
   // svelte-ignore state_referenced_locally
-  let recipients = $state<string[]>([peerId]);
+  let recipients = $state<string[]>(
+    presetRecipients && presetRecipients.length > 0 ? [...presetRecipients] : [peerId],
+  );
   let extra = $state('');
-  /** Owls ready for this letter with the server's preview (SPEC 8.4 step 4). */
+  /** Owls ready for this letter with the server's preview (SPEC 8.4 step 5). */
   let prepared = $state<Choice[] | null>(null);
-  let owlId = $state<string | null>(null);
+  let preparedAt = 0;
+  // svelte-ignore state_referenced_locally
+  let owlId = $state<string | null>(presetOwl);
   let busy = $state(false);
+  let loading = $state(false);
   let error = $state<string | null>(null);
   let sentNotice = $state(false);
 
-  const guestChosen = $derived(prepared?.find((choice) => choice.id === owlId)?.guest === true);
+  const chosen = $derived(prepared?.find((choice) => choice.id === owlId) ?? null);
+  const guestChosen = $derived(chosen?.guest === true);
+  /** A rest only for letters to people (not bots, not with a visiting owl). */
+  const restShown = $derived(!bot && !replying && !guestChosen);
+  /** The rest that counts for an owl – the preview and the sending use the same (8.4). */
+  function restFor(choice: Choice | null): number {
+    if (bot || replying || choice?.guest) return 0;
+    if (restManual !== null) return restManual;
+    return choice?.kind === 'loan' ? LETTER.REST_HOURS_DEFAULT_LOAN : LETTER.REST_HOURS_DEFAULT_OWN;
+  }
+  const rest = $derived(restFor(chosen));
   const count = $derived(countCodePoints(text));
   const max = $derived(maxChars(parchment));
   const nameOf = (id: string): string =>
@@ -65,7 +95,6 @@
     if (clean.removedEmoji) smileyHint = true;
     if (clean.text !== target.value) target.value = clean.text;
     text = clean.text;
-    prepared = null;
   }
 
   /** Homes of the user and the contacts, loaded once for the route suggestion. */
@@ -95,11 +124,11 @@
 
   async function setRecipients(list: string[]): Promise<void> {
     recipients = list;
-    prepared = null;
     const request = ++routeRequest;
     const sorted = await shortestRoute(list);
     // Only if the recipients did not change meanwhile (arrows, another addition).
     if (request === routeRequest) recipients = sorted;
+    void loadChoices();
   }
 
   function move(index: number, delta: number): void {
@@ -109,56 +138,88 @@
     if (item === undefined) return;
     next.splice(index + delta, 0, item);
     recipients = next;
-    prepared = null;
+    void loadChoices();
   }
 
-  async function showPreview(): Promise<void> {
+  let choiceRequest = 0;
+
+  /**
+   * The owl choice with the server's preview. Kept while typing; reloaded for other recipients
+   * or another rest, and after five minutes (shown times are estimates).
+   */
+  async function loadChoices(): Promise<void> {
+    const request = ++choiceRequest;
+    loading = true;
+    error = null;
+    try {
+      const manual = restManual;
+      const own = bot || replying ? 0 : (manual ?? LETTER.REST_HOURS_DEFAULT_OWN);
+      const loan = bot || replying ? 0 : (manual ?? LETTER.REST_HOURS_DEFAULT_LOAN);
+      const choices = await previewFlights(recipients, {
+        rest: own,
+        restLoan: loan,
+        // v0.8: also the resting owl of a control-centre bot.
+        guests: true,
+      });
+      if (request !== choiceRequest) return;
+      let list: Choice[];
+      if (replying) {
+        // v0.7.1: only the visiting owl the reply was started with.
+        const guest = choices.filter((choice) => choice.id === `guest:${guestOwl}`);
+        if (guest.length === 0) {
+          // Flown on meanwhile: the normal choice, with rest and recipients (preview anew).
+          guestGone = true;
+          void loadChoices();
+          return;
+        }
+        list = guest;
+      } else if (guestOnly) {
+        list = choices.filter((choice) => choice.id.startsWith('guest:'));
+        if (list.length === 0) error = t.bots.botOwlOnly;
+      } else {
+        list = choices;
+      }
+      prepared = list;
+      preparedAt = Date.now();
+      // Keep the chosen owl if it can still fly; otherwise a visiting owl of the recipient
+      // first (v0.7), then the first ready owl – never a loan offer (it costs gold).
+      if (!list.some((choice) => choice.id === owlId)) {
+        owlId = list.find((choice) => !choice.offer)?.id ?? null;
+      }
+    } catch (caught) {
+      if (request === choiceRequest) error = errorMessage(caught);
+    } finally {
+      if (request === choiceRequest) loading = false;
+    }
+  }
+
+  function chooseRest(event: Event): void {
+    restManual = Number((event.currentTarget as HTMLSelectElement).value);
+    void loadChoices();
+  }
+
+  onMount(() => {
+    // v0.8.5: several recipients from an owl card are sorted like added ones.
+    if (recipients.length > 1) void setRecipients(recipients);
+    else void loadChoices();
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible' && !busy && Date.now() - preparedAt >= REFRESH_MS)
+        void loadChoices();
+    }, 60_000);
+    return () => clearInterval(timer);
+  });
+
+  async function send(): Promise<void> {
+    if (!prepared || !owlId || busy || !status.online) return;
     error = null;
     if (text.trim() === '') return void (error = t.letters.empty);
     if (count > max) return void (error = t.letters.tooLong);
     busy = true;
     try {
-      const choices = await previewFlights(recipients, {
-        rest: bot || replying ? 0 : rest,
-        // v0.8: also the resting owl of a control-centre bot.
-        guests: true,
-      });
-      if (replying) {
-        // v0.7.1: only the visiting owl the reply was started with.
-        const guest = choices.filter((choice) => choice.id === `guest:${guestOwl}`);
-        if (guest.length === 0) {
-          guestGone = true;
-          error = t.letters.guestGone;
-        }
-        prepared = guest.length > 0 ? guest : choices;
-      } else if (guestOnly) {
-        prepared = choices.filter((choice) => choice.id.startsWith('guest:'));
-        if (prepared.length === 0) error = t.bots.botOwlOnly;
-      } else {
-        prepared = choices;
-      }
-      // v0.7: a visiting owl of the recipient comes first and is preselected.
-      owlId = prepared.find((choice) => !choice.offer)?.id ?? null;
-    } catch (caught) {
-      error = errorMessage(caught);
-    } finally {
-      busy = false;
-    }
-  }
-
-  async function send(): Promise<void> {
-    if (!prepared || !owlId || busy || !status.online) return;
-    busy = true;
-    error = null;
-    try {
       // Bots: plain text, one recipient (SPEC 10.1); people: end-to-end encrypted (5.8).
       const result = bot
         ? await sendToBot(peerId, owlId, parchment, text)
-        : await sendPrepared(
-            await prepare(recipients, parchment, owlId, guestChosen ? 0 : rest),
-            parchment,
-            text,
-          );
+        : await sendPrepared(await prepare(recipients, parchment, owlId, rest), parchment, text);
       showOwlImage(
         result.owl.species,
         'departure',
@@ -166,15 +227,18 @@
       );
       void refreshTopics('profile');
       text = '';
-      prepared = null;
       recipients = [peerId];
       sentNotice = true;
       onsent();
+      // The owl has flown: a fresh choice for the next letter (a bot takes one letter a day,
+      // so its editor closes anyway).
+      if (!bot) void loadChoices();
     } catch (caught) {
       error =
         caught instanceof KeyMismatchError
           ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
           : errorMessage(caught);
+      // Something changed (keys, owl, gold): the choice is loaded again on request.
       prepared = null;
     } finally {
       busy = false;
@@ -187,23 +251,11 @@
   <fieldset>
     <legend>{t.letters.parchment}</legend>
     <label class="option"
-      ><input
-        type="radio"
-        name="parchment"
-        value="small"
-        bind:group={parchment}
-        onchange={() => (prepared = null)}
-      />
+      ><input type="radio" name="parchment" value="small" bind:group={parchment} />
       {t.letters.smallOption}</label
     >
     <label class="option"
-      ><input
-        type="radio"
-        name="parchment"
-        value="large"
-        bind:group={parchment}
-        onchange={() => (prepared = null)}
-      />
+      ><input type="radio" name="parchment" value="large" bind:group={parchment} />
       {t.letters.largeOption}</label
     >
   </fieldset>
@@ -270,14 +322,29 @@
         </select>
       {/if}
     </fieldset>
-    <!-- v0.7: the owl may rest at each recipient and take a reply back. -->
-    <label for="rest">{t.letters.restLabel}</label>
-    <select
-      id="rest"
-      bind:value={rest}
-      onchange={() => (prepared = null)}
-      aria-describedby="rest-hint"
+  {/if}
+
+  {#if guestGone}<p class="notice" role="status">
+      <span aria-hidden="true">🦉</span><span>{t.letters.guestGone}</span>
+    </p>{/if}
+  <ErrorText message={error} />
+  {#if prepared}
+    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" />
+  {:else if loading}
+    <p class="hint" role="status">{t.letters.choicesLoading}</p>
+  {:else}
+    <button
+      class="button secondary"
+      type="button"
+      disabled={!status.online}
+      onclick={() => void loadChoices()}>{t.letters.preview}</button
     >
+  {/if}
+  {#if restShown}
+    <!-- v0.7: the owl may rest at each recipient and take a reply back; v0.8.5 preselected by
+         the kind of the chosen owl, hidden for a visiting owl. -->
+    <label for="rest">{t.letters.restLabel}</label>
+    <select id="rest" value={rest} onchange={chooseRest} aria-describedby="rest-hint">
       {#each LETTER.REST_HOURS_CHOICES as hours (hours)}
         <option value={hours}
           >{hours === 0 ? t.letters.restNone : fill(t.letters.restHours, { hours })}</option
@@ -285,27 +352,20 @@
       {/each}
     </select>
     <p id="rest-hint" class="hint">
-      {guestChosen ? t.letters.restGuestHint : t.letters.restHint}
+      {restManual === null
+        ? chosen?.kind === 'loan'
+          ? t.letters.restDefaultLoan
+          : t.letters.restDefaultOwn
+        : ''}
+      {t.letters.restHint}
     </p>
   {/if}
-
-  <ErrorText message={error} />
-  {#if prepared}
-    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" />
-    <button
-      class="button"
-      type="button"
-      disabled={busy || !status.online || !owlId}
-      onclick={() => void send()}>{t.letters.send}</button
-    >
-  {:else}
-    <button
-      class="button"
-      type="button"
-      disabled={busy || !status.online}
-      onclick={() => void showPreview()}>{t.letters.preview}</button
-    >
-  {/if}
+  <button
+    class="button"
+    type="button"
+    disabled={busy || !status.online || !owlId || !prepared}
+    onclick={() => void send()}>{t.letters.send}</button
+  >
   {#if sentNotice}<p class="notice" role="status">
       <span aria-hidden="true">🦉</span><span>{t.letters.sent}</span>
     </p>{/if}

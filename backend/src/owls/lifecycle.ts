@@ -43,33 +43,60 @@ function maxEnergyOf(species: string): number {
 
 // ── Menagerie (9.6) ──────────────────────────────────────────────────────────────────────
 
-/** The offer of a day; rolled by the 00:00 job or, if missing (fresh install), on demand. */
-export function offerOf(ctx: Context, day: string): string[] {
+/** The shared offer of a day from before v0.8.5 (only still read for the update day). */
+function sharedOffer(ctx: Context, day: string): string[] | null {
   const row = ctx.db.get<{ species: string }>(
     'SELECT species FROM menagerie_offers WHERE day = ?',
     day,
   );
-  if (row) return JSON.parse(row.species) as string[];
-  // v0.7: the species of the two days before are not offered again (only stored offers count).
+  return row ? (JSON.parse(row.species) as string[]) : null;
+}
+
+function storedOffer(ctx: Context, userId: string, day: string): string[] | null {
+  const row = ctx.db.get<{ species: string }>(
+    'SELECT species FROM menagerie_user_offers WHERE user_id = ? AND day = ?',
+    userId,
+    day,
+  );
+  return row ? (JSON.parse(row.species) as string[]) : null;
+}
+
+/**
+ * v0.8.5: the four species offered to this account on an offer day (9.6). Rolled for each
+ * account on its first request of the day and kept until the next change of day; the species
+ * of the account's two days before are left out (whatever was borrowed). On the day of the
+ * update the shared offer of that day still counts, together with the loans already made.
+ * Until v0.8.4 one offer was rolled at 00:00 for all players.
+ */
+export function offerOf(ctx: Context, userId: string, day: string): string[] {
+  const stored = storedOffer(ctx, userId, day) ?? sharedOffer(ctx, day);
+  if (stored) return stored;
   const start = Date.parse(`${day}T00:00:00Z`);
   const recent = [1, 2].flatMap((back) => {
-    const before = ctx.db.get<{ species: string }>(
-      'SELECT species FROM menagerie_offers WHERE day = ?',
-      utcDay(start - back * TIME.DAY),
-    );
-    return before ? (JSON.parse(before.species) as string[]) : [];
+    const before = utcDay(start - back * TIME.DAY);
+    return storedOffer(ctx, userId, before) ?? sharedOffer(ctx, before) ?? [];
   });
   const species = pickOffer(ctx.random, recent);
   ctx.db.run(
-    'INSERT OR IGNORE INTO menagerie_offers (day, species) VALUES (?, ?)',
+    'INSERT OR IGNORE INTO menagerie_user_offers (user_id, day, species) VALUES (?, ?, ?)',
+    userId,
     day,
     JSON.stringify(species),
   );
+  // Only the two days before are needed for the exclusion.
   ctx.db.run(
-    'DELETE FROM menagerie_offers WHERE day < ?',
-    utcDay(Date.parse(`${day}T00:00:00Z`) - 7 * TIME.DAY),
+    'DELETE FROM menagerie_user_offers WHERE user_id = ? AND day < ?',
+    userId,
+    utcDay(start - 2 * TIME.DAY),
   );
-  return offerOf(ctx, day);
+  return storedOffer(ctx, userId, day) ?? species;
+}
+
+/** v0.8.5: old shared offers and offers of accounts not seen for days (04:00 clean-up). */
+export function cleanUpOffers(ctx: Context, now: number): void {
+  const oldest = utcDay(now - 2 * TIME.DAY);
+  ctx.db.run('DELETE FROM menagerie_user_offers WHERE day < ?', oldest);
+  ctx.db.run('DELETE FROM menagerie_offers WHERE day < ?', oldest);
 }
 
 /**
@@ -81,7 +108,7 @@ export function loanIdentitiesFor(
   userId: string,
   day: string,
 ): Map<string, LoanIdentity> {
-  const offer = offerOf(ctx, day);
+  const offer = offerOf(ctx, userId, day);
   // v0.4: same derivation, names from the list of the account's language.
   const identities = loanIdentities(
     offer,
@@ -111,11 +138,26 @@ export function loanedOn(ctx: Context, userId: string, day: string): string[] {
  */
 export function loanProblem(ctx: Context, userId: string, species: string, now: number) {
   const day = utcDay(now);
-  if (!offerOf(ctx, day).includes(species)) return 'loan_not_offered';
+  if (!offerOf(ctx, userId, day).includes(species)) return 'loan_not_offered';
   const today = loanedOn(ctx, userId, day);
   if (today.length >= MENAGERIE.LOANS_PER_DAY) return 'loan_limit';
   if (today.includes(species)) return 'loan_species';
   return null;
+}
+
+/**
+ * v0.8.5: the loan owl borrowed for this species on this offer day still exists (waiting or on
+ * its way). Loan owls are kept with the offer day as `owned_since` and deleted when they vanish.
+ */
+export function loanStillHere(ctx: Context, userId: string, species: string, day: string): boolean {
+  return (
+    ctx.db.get<{ n: number }>(
+      "SELECT COUNT(*) AS n FROM owls WHERE owner_id = ? AND kind = 'loan' AND species = ? AND owned_since = ?",
+      userId,
+      species,
+      day,
+    )?.n !== 0
+  );
 }
 
 /** Start energy of a loan owl, known in advance (9.6). */
@@ -238,7 +280,7 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
     ctx.queue.schedule(
       'clutch_reminder',
       clutchId,
-      at + (OWL.CHICK_GIFT_DEADLINE_HOURS - 4) * TIME.HOUR,
+      at + (OWL.CHICK_GIFT_DEADLINE_HOURS - OWL.CHICK_GIFT_REMINDER_HOURS_BEFORE) * TIME.HOUR,
     );
   }
   addSystemMessage(
@@ -469,12 +511,7 @@ export function registerLifecycleHandlers(ctx: Context): void {
     catchUpEveryDay: true,
     run: () => motivationNight(ctx),
   });
-  ctx.queue.registerDaily({
-    name: 'menagerie_offer',
-    hourUtc: MENAGERIE.OFFER_HOUR_UTC,
-    catchUpEveryDay: false,
-    run: (day) => void offerOf(ctx, day),
-  });
+  // v0.8.5: no shared offer at 00:00 any more – each account rolls its own (offerOf).
   ctx.queue.registerDaily({
     name: 'sickness',
     hourUtc: OWL.SICKNESS_HOUR_UTC,

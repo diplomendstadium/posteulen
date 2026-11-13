@@ -47,7 +47,7 @@
         </strong>
         {#if choice.guest}
           <span class="hint offer"
-            >{fill(t.letters.guestHint, {
+            >{fill(choice.moreStops ? t.letters.guestHintOnward : t.letters.guestHint, {
               time: dateTime(choice.restUntil ?? Date.now()),
               name: nameOf(choice.arrivals[0]?.recipientId ?? ''),
             })}</span

@@ -30,6 +30,7 @@ import {
   checkRecipients,
   chooseOwl,
   depart,
+  guestsOf,
   newLetters,
   publicKeys,
   TOKEN_MS,
@@ -210,6 +211,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         'SELECT COUNT(*) AS n FROM system_messages WHERE user_id = ? AND seen = 0',
         me,
       )?.n ?? 0;
+    // v0.8.5: whose owl rests here right now – a little owl behind their name (8.4).
+    const resting = new Set(guestsOf(ctx, me).map(({ flight }) => flight.holder_id));
     return {
       system: { unread: systemUnread },
       chats: chats.map((chat) => {
@@ -225,6 +228,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           isContact: contact !== undefined,
           lastActivityAt: chat.last_activity_at,
           unread: chat.unread,
+          owlResting: resting.has(chat.peer_id),
         };
       }),
     };

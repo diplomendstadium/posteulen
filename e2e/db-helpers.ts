@@ -75,3 +75,27 @@ export function hatchChicks(name: string, species: string, count: number): void 
     }
   });
 }
+
+/** v0.8.5: named adult owls at home, e.g. to pass the 20 needed for releasing one (9.2.8). */
+export function addOwls(name: string, species: string, count: number): void {
+  withDb((db) => {
+    const owner = db.prepare('SELECT id FROM users WHERE name_display = ?').get(name) as
+      { id: string } | undefined;
+    if (!owner) throw new Error(`no account ${name}`);
+    const now = Date.now();
+    for (let i = 0; i < count; i++) {
+      db.prepare(
+        `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
+         VALUES (?, ?, 'own', ?, 'm', ?, 100, ?, ?, ?)`,
+      ).run(
+        crypto.randomUUID().replace(/-/g, '').slice(0, 22),
+        owner.id,
+        species,
+        `Helfer ${i + 1}`,
+        now,
+        new Date(now).toISOString().slice(0, 10),
+        now,
+      );
+    }
+  });
+}

@@ -9,6 +9,7 @@
 </script>
 
 <h2 class="plate">{t.centre.pastTitle}</h2>
+<p class="card">{t.centre.pastRetention}</p>
 {#if events.length === 0}
   <p class="card">{t.centre.pastNone}</p>
 {:else}

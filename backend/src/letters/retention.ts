@@ -2,8 +2,10 @@
  * Deletion of old letters (v0.2): every letter and system message disappears irrevocably at
  * the latest one year after its delivery; each user can choose 30, 90 or 180 days for their
  * own copies (sent and received). The other side keeps its copy until its own period ends.
- * Letters still on the way are never touched. Runs daily at 04:00 and right after a change of
- * the setting. Runs inside the caller's transaction.
+ * Letters still on the way are never touched. Runs inside the caller's transaction.
+ * v0.8.5: only once a week, on Mondays at 04:00 UTC (until v0.8.4 daily and right after a
+ * shorter period was chosen). Letters may thus stay up to almost seven days past their period;
+ * burning letters by hand still works at once.
  */
 import { LETTER, TIME } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
@@ -12,6 +14,11 @@ import { addSystemMessage } from '../messages/system.ts';
 import { playerBot } from '../bots/registry.ts';
 
 type After = (work: () => void) => void;
+
+/** v0.8.5: the day (UTC, `YYYY-MM-DD`) of the weekly deletion by age – Mondays. */
+export function isRetentionDay(day: string): boolean {
+  return new Date(`${day}T00:00:00Z`).getUTCDay() === LETTER.RETENTION_WEEKDAY_UTC;
+}
 
 /**
  * v0.7: how many of each person's own letter copies (per chat) the run will delete – the copies

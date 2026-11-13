@@ -37,7 +37,7 @@ async function write(page: Page, text: string, owl?: RegExp): Promise<void> {
   await page.goto('/app/adressbuch');
   await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
   await page.getByLabel('Text').fill(text);
-  await page.getByRole('button', { name: 'Eule wählen' }).click();
+  // v0.8.5: the owl choice appears by itself.
   const group = page.getByRole('group', { name: 'Welche Eule soll fliegen?' });
   await (owl ? group.getByRole('radio', { name: owl }) : group.getByRole('radio')).first().check();
   await page.getByRole('button', { name: 'Absenden' }).click();
@@ -111,19 +111,9 @@ test('README-Bilder', async ({ browser, page }) => {
   await page.locator('li.letter').first().scrollIntoViewIfNeeded();
   await shot(page, 'briefe.png');
 
-  // Wait until Fiete has slept once and flies on: the map shows the path and a "Zzz".
+  // The map with Fiete on the way (v0.8.5: without flight paths).
   await page.goto('/app/karte');
-  for (let i = 0; i < 60; i++) {
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    if ((await page.locator('[data-testid="map-tracks"] text').count()) > 0) break;
-    await page.waitForTimeout(2_000);
-  }
-  await expect(page.locator('[data-testid="map-tracks"] text').first()).toBeAttached();
-  // A little further on, so the path behind Fiete is visible; one step closer.
-  await page.waitForTimeout(8_000);
-  await page.reload();
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('[data-testid="map-owl"]').first()).toBeAttached({ timeout: 30_000 });
   await page.getByRole('button', { name: 'Vergrößern' }).click();
   await shot(page, 'karte.png');
 

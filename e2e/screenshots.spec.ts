@@ -61,8 +61,11 @@ test.describe('Screenshots Briefwechsel', () => {
     await page
       .getByLabel('Text')
       .fill('Liebe Grüße aus dem Eulenturm! Mehr unter https://example.org');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await page.getByText(/Ankunft bei/).waitFor();
+    // v0.8.5: the owl choice appears by itself.
+    await page
+      .getByText(/Ankunft bei/)
+      .first()
+      .waitFor();
     await shoot(page, info, 'brief-schreiben');
     await page.getByRole('button', { name: 'Absenden' }).click();
     await page.getByText('Die Eule ist losgeflogen.').waitFor();
@@ -122,7 +125,7 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.goto('/app/adressbuch');
     await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Wilma bringt dir diesen Brief.');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await page.getByRole('radio', { name: /Wilma/ }).check();
     await shoot(page, info, 'eule-waehlen');
     await page.getByRole('button', { name: 'Absenden' }).click();
@@ -140,7 +143,7 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.goto('/app/finanzen');
     await page.getByLabel('An').selectOption({ index: 1 });
     await page.getByLabel('Betrag in Gold (z. B. 1,5)').fill('2,5');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await page.getByRole('radio', { name: /Waldi/ }).check();
     await page.getByRole('button', { name: 'Gold losschicken' }).click();
     await page.getByText(/Waldi bringt 2,5 Gold/).waitFor();

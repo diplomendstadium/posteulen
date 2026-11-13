@@ -4,7 +4,7 @@ import { isDay } from '@posteulen/shared/game/sun.ts';
 import {
   canCare,
   canGift,
-  canRelease,
+  releaseAllowed,
   canRenameInYear,
   canLendToMenagerie,
   canTransport,
@@ -179,6 +179,8 @@ export interface GuestView {
   readonly holderId: string;
   readonly holderName: string | null;
   readonly restUntil: number;
+  /** v0.8.5: letters for others still on board – a reply comes after them (names private). */
+  readonly moreStops: boolean;
 }
 
 export function guestView(
@@ -211,6 +213,9 @@ export function guestView(
         : null
       : null,
     restUntil: stop?.restUntil ?? now,
+    moreStops: routeOf(flight).some(
+      (later, at) => at > index && later.type === 'deliver' && later.status === 'pending',
+    ),
   };
 }
 
@@ -257,11 +262,18 @@ export function botGuestView(
     holderId: flight.holder_id,
     holderName: bot?.name ?? null,
     restUntil: stop?.restUntil ?? now,
+    // A bot owl flies to one player only.
+    moreStops: false,
     bot: true,
   };
 }
 
-export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
+export function owlView(
+  ctx: Context,
+  owl: OwlRow,
+  now: number,
+  ownCount: number = ownOwlCount(ctx, owl.owner_id),
+): OwlView {
   const species = speciesById(owl.species);
   const today = utcDay(now);
   const year = new Date(now).getUTCFullYear();
@@ -312,7 +324,7 @@ export function owlView(ctx: Context, owl: OwlRow, now: number): OwlView {
     actions: {
       care: canCare(ownFacts),
       gift: canGift(ownFacts) && owl.name !== null,
-      release: canRelease(ownFacts),
+      release: releaseAllowed(ownFacts, ownCount),
       rename: owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
       treat: owl.state === 'sick',
       menagerie: canLendToMenagerie(ownFacts),

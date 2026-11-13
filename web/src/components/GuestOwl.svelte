@@ -104,7 +104,9 @@
         <GaugeBar share={motivationShare(guest.motivation)} />
       </p>
     {/if}
-    <p class="hint">{fill(t.owls.guestHint, { name: holder })}</p>
+    <p class="hint">
+      {fill(guest.moreStops ? t.owls.guestHintOnward : t.owls.guestHint, { name: holder })}
+    </p>
     <ErrorText message={error} />
     <div class="actions">
       <button

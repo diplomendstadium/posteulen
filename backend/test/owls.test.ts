@@ -279,6 +279,12 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
       code: 'owl_not_home',
     });
     advanceTo(app, app.clock.now + 3 * TIME.DAY);
+    // v0.8.5: only while more than 20 own owls live here (9.2.8).
+    expect((await owls(anna))[0]?.actions.release).toBe(false);
+    expect((await release(name)).body).toMatchObject({ code: 'owl_release_limit' });
+    setGold(app, anna, 5000);
+    for (let i = 0; i < 20; i++) await buyOwl(app, anna, 'bartkauz', `Bart ${i}`);
+    expect((await owls(anna)).find((owl) => owl.id === id)?.actions.release).toBe(true);
     // v0.3: only with the exact name, typed by the user.
     expect((await anna.agent.json('POST', `/api/owls/${id}/release`, {})).status).toBe(400);
     expect((await release(`${name}x`)).body).toMatchObject({ code: 'owl_name_mismatch' });
@@ -286,7 +292,14 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
       (await release(name.toLowerCase() === name ? name.toUpperCase() : name.toLowerCase())).body,
     ).toMatchObject({ code: 'owl_name_mismatch' });
     expect((await release(name)).status).toBe(200);
-    expect(await owls(anna)).toEqual([]);
+    const left = await owls(anna);
+    expect(left).toHaveLength(20);
+    // At 20 the limit is reached.
+    expect(left.every((owl) => !owl.actions.release)).toBe(true);
+    const next = left[0]!;
+    expect(
+      (await anna.agent.json('POST', `/api/owls/${next.id}/release`, { name: next.name })).body,
+    ).toMatchObject({ code: 'owl_release_limit' });
   });
 });
 
@@ -296,9 +309,11 @@ describe('flights with own owls (SPEC 9.4)', () => {
     const id = await buyOwl(app, anna);
     app.db.run('UPDATE owls SET energy = 540 WHERE id = ?', id);
     const preview = await anna.agent.json<{
-      owls: { id: string; arrivals: { at: number }[]; returnsAt: number | null }[];
+      owls: { id: string; arrivals: { at: number }[]; returnsAt: number | null; offer?: boolean }[];
     }>('POST', '/api/flights/preview', { recipients: [ben.id] });
-    expect(preview.body.owls.map((owl) => owl.id)).toEqual([id]);
+    // Own owls first; v0.8.5 the loan owls of the day follow (always offered).
+    expect(preview.body.owls[0]?.id).toBe(id);
+    expect(preview.body.owls.slice(1).every((owl) => owl.offer === true)).toBe(true);
     const own = preview.body.owls[0]!;
     expect(own.returnsAt).toBeGreaterThan(own.arrivals[0]!.at);
 

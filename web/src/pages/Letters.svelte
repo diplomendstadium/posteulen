@@ -19,7 +19,16 @@
     <li>
       <Link href={`/app/briefe/${chat.peerId}`} class="chat">
         <span class="icon" aria-hidden="true">{chat.peerKind === 'bot' ? '🤖' : '✉'}</span>
-        <span class="who name">{chat.name ?? t.letters.unknown}</span>
+        <span class="who"
+          ><span class="name">{chat.name ?? t.letters.unknown}</span
+          >{#if chat.owlResting}<!-- v0.8.5: an owl of this peer rests here right now. -->
+            {@const resting = fill(t.letters.owlRestingHere, {
+              name: chat.name ?? t.letters.unknown,
+            })}
+            <span class="resting" aria-hidden="true" title={resting}>🦉</span><span
+              class="visually-hidden">{` – ${resting}`}</span
+            >{/if}</span
+        >
         {#if chat.peerKind === 'bot'}<span class="bot-label">{t.bots.label}</span>{/if}
         <span class="when">{dateTime(chat.lastActivityAt)}</span>
         {#if chat.unread > 0}<span class="badge"
@@ -72,6 +81,11 @@
   .who {
     font-weight: 700;
     flex: 1;
+  }
+
+  .resting {
+    margin-left: 0.35rem;
+    font-weight: 400;
   }
 
   .when {

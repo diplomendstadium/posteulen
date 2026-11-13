@@ -66,6 +66,8 @@ export interface GuestOwl {
   readonly holderId: string;
   readonly holderName: string | null;
   readonly restUntil: number;
+  /** v0.8.5: letters for others still on board – a reply comes after them. */
+  readonly moreStops?: boolean;
   /** v0.8: the owl of a control-centre bot – no care, only a reply. */
   readonly bot?: boolean;
 }
@@ -84,6 +86,8 @@ export interface OwlChoice {
   /** v0.7: a visiting owl resting here (until `restUntil`) that takes a reply to its holder. */
   readonly guest?: boolean;
   readonly restUntil?: number | null;
+  /** v0.8.5: the visiting owl still has letters for others – the reply comes after them. */
+  readonly moreStops?: boolean;
 }
 
 export interface Clutch {
@@ -157,12 +161,14 @@ export function releaseOwl(id: string, name: string): Promise<{ ok: true }> {
  */
 export async function previewFlights(
   recipients: readonly string[],
-  options: { rest?: number; guests?: boolean } = {},
+  options: { rest?: number; restLoan?: number; guests?: boolean } = {},
 ): Promise<OwlChoice[]> {
   return (
     await api<{ owls: OwlChoice[] }>('POST', '/api/flights/preview', {
       recipients,
       ...(options.rest ? { rest: options.rest } : {}),
+      // v0.8.5: loan owls rest as long as their own preselection says (also 0).
+      ...(options.restLoan !== undefined ? { restLoan: options.restLoan } : {}),
       ...(options.guests ? { guests: true } : {}),
     })
   ).owls;
@@ -237,8 +243,10 @@ export interface MapFlight {
   readonly stops: readonly {
     readonly name: string | null;
     readonly type: 'deliver' | 'home';
-    readonly status: 'pending' | 'done' | 'skipped';
+    readonly status: 'pending' | 'done' | 'skipped' | 'resting';
     readonly arrivesAt: number;
+    /** v0.8.5: set while the owl rests at this stop. */
+    readonly restUntil?: number | null;
     readonly lat: number;
     readonly lon: number;
   }[];

@@ -48,6 +48,24 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.8.5',
+    title: 'Post aus der Leserschaft: Version 0.8.5',
+    paragraphs: [
+      'Zuerst ein großes Dankeschön! Die meisten Neuerungen dieser Version stammen von euch: aus Nachrichten an den Admin, aus Gesprächen am Küchentisch und aus Beobachtungen, die ihr beim Schreiben, Pflegen und Ausleihen gemacht habt. Ihr habt gemerkt, wo eine Eule umständlich zu finden war, wo ein Hinweis fehlte und wo die Karte zu voll wurde. Jede dieser Anregungen hat den Eulenturm ein Stück wohnlicher gemacht – vielen, vielen Dank dafür.',
+      'Das ist neu:',
+      '• Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“: Empfänger wählen, und schon sitzt sie im Briefwechsel bereit. Beim Schreiben steht die Eulenwahl jetzt von Anfang an da und bleibt auch beim Tippen stehen. Die Leiheulen des Tages stehen immer mit zur Wahl.',
+      '• Rast: Eigene Eulen bleiben zunächst 2 Stunden, Leiheulen 24 Stunden bei jedem Empfänger – wählst du selbst etwas anderes, bleibt es dabei.',
+      '• In der Menagerie würfelt jetzt jede und jeder ein eigenes Tagesangebot. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
+      '• Rastet eine Eule bei dir, zeigt dir eine kleine Eule im Briefwechsel, von wem sie kommt – statt einer Systemnachricht. Bringt sie noch Briefe zu anderen, verrät sie dir das, wenn du ihr eine Antwort mitgibst (aber nicht, zu wem).',
+      '• Eine eigene Eule, die gerade woanders rastet, zeigt in der Übersicht ihre leere Stange. Bilder in Briefen von Bots lassen sich mit einem Tipp groß ansehen.',
+      '• Küken: Für Namen und Geschenk habt ihr jetzt fünf Tage Zeit, bevor das Los entscheidet.',
+      '• In die Freiheit entlassen kann man eine Eule nur noch, solange man mehr als 20 eigene hat.',
+      '• Die Flugspuren und das „Zzz“ auf der Karte sind fort – sie machten sie schnell unübersichtlich.',
+      '• Alte Briefe räumt PostEulen jetzt einmal in der Woche auf, montags früh. Verbrennen wirkt weiterhin sofort.',
+      'Und bitte schreibt weiter! Ganz unten in den Einstellungen findet ihr „Nachricht an den Admin“ – jede Idee, jede Frage und jedes kleine Ärgernis ist dort willkommen. Die nächste Eulenpost wartet schon.',
+    ],
+  },
+  {
     version: '0.8.4',
     title: 'Ein Gast aus Übersee: Version 0.8.4',
     paragraphs: [
@@ -280,6 +298,24 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.8.5',
+    title: 'Letters from our readers: version 0.8.5',
+    paragraphs: [
+      'First of all, a big thank you! Most of what is new in this version comes from you: from messages to the admin, from chats around the kitchen table and from things you noticed while writing, caring and borrowing. You spotted where an owl was awkward to find, where a hint was missing and where the map got too crowded. Every one of these suggestions has made the owl tower a little cosier – thank you so very much.',
+      'What is new:',
+      '• Every owl that is ready has a “Write a letter” button in the owl overview: pick the recipients and it is already waiting in the conversation. When writing, the owl choice is there from the start and stays while you type. The loan owls of the day are always among the choices.',
+      '• Rest: your own owls first stay 2 hours, loan owls 24 hours with each recipient – if you choose something else, it sticks.',
+      '• In the Menagerie everyone now rolls an offer of their own each day. Once a loan is over, its offer disappears until tomorrow.',
+      '• If an owl is resting with you, a little owl in your conversations shows whose it is – instead of a system message. If it still carries letters for others, it tells you when you hand it a reply (but not for whom).',
+      '• One of your own owls resting elsewhere shows its empty perch in the overview. Pictures in letters from bots can be viewed large with a tap.',
+      '• Chicks: you now have five days for names and the gift before the lot decides.',
+      '• You can only release an owl into the wild while you have more than 20 of your own.',
+      '• The flight paths and the “Zzz” on the map are gone – they quickly made it cluttered.',
+      '• PostEulen now tidies away old letters once a week, early on Mondays. Burning letters still works at once.',
+      'And please keep writing! At the very bottom of the settings you will find “Message to the admin” – every idea, every question and every little annoyance is welcome there. The next owl post is already waiting.',
+    ],
+  },
   {
     version: '0.8.4',
     title: 'A guest from overseas: version 0.8.4',

@@ -14,7 +14,9 @@ export const de = {
     newPost: 'Neue Post!',
     newPostCount: '{count} ungelesen',
     version: 'v{version}',
-    versionLink: ' – Quelltext auf GitHub',
+    /** v0.8.5: the footer link to the repository (before: the version number). */
+    sourceCode: 'Quelltext',
+    versionLink: ' auf GitHub (öffnet in einem neuen Tab)',
     skipToContent: 'Zum Inhalt springen',
   },
   language: {
@@ -142,14 +144,14 @@ export const de = {
     nameChanged: 'Du heißt jetzt {name}.',
     lettersTitle: 'Briefe',
     retentionIntro:
-      'Alle Briefe und Systemnachrichten werden spätestens ein Jahr nach ihrer Zustellung unwiderruflich gelöscht – bei dir und bei allen anderen. Deine eigenen Kopien (geschriebene und erhaltene Briefe) kannst du auch früher löschen lassen. Dein Gegenüber behält seine Kopie, bis seine eigene Frist abläuft.',
+      'Alle Briefe und Systemnachrichten werden ein Jahr nach ihrer Zustellung unwiderruflich gelöscht – bei dir und bei allen anderen. Deine eigenen Kopien (geschriebene und erhaltene Briefe) kannst du auch früher löschen lassen. Dein Gegenüber behält seine Kopie, bis seine eigene Frist abläuft. Aufgeräumt wird einmal in der Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben als seine Frist.',
     retentionLegend: 'Meine Briefe löschen nach',
     retention30: '30 Tagen',
     retention90: '90 Tagen',
     retention180: '180 Tagen',
     retention365: 'einem Jahr (Standard)',
     retentionConfirm:
-      'Alle deine Briefe und Systemnachrichten, die älter als {days} Tage sind, werden sofort und unwiderruflich gelöscht. Fortfahren?',
+      'Alle deine Briefe und Systemnachrichten, die älter als {days} Tage sind, werden beim nächsten wöchentlichen Aufräumen (montags früh) unwiderruflich gelöscht. Fortfahren?',
     printLabel: 'Briefe in Druckschrift statt Handschrift anzeigen',
     /** v0.8.2 */
     linksLabel: 'Links in Briefen anklickbar',
@@ -211,6 +213,8 @@ export const de = {
     title: 'Briefwechsel',
     none: 'Noch keine Briefe. Füge im Adressbuch einen Kontakt hinzu und schreib den ersten Brief.',
     system: 'Systemnachrichten',
+    /** v0.8.5: behind the name in the chat list. */
+    owlRestingHere: 'Eine Eule von {name} rastet gerade bei dir',
     unread: '{count} ungelesen',
     unknown: 'unbekannt',
     from: 'Gebracht von {owl} ({species})',
@@ -243,9 +247,14 @@ export const de = {
     restHint:
       'So lange bleibt die Eule bei jedem Empfänger, erholt sich dort wie zu Hause und nimmt eine Antwort an dich mit. Bekommt sie eine Antwort, fliegt sie sofort weiter.',
     guestGone: 'Die Gast-Eule ist inzwischen weitergeflogen. Wähle eine andere Eule.',
-    restGuestHint:
-      'Eine Gast-Eule bringt deine Antwort direkt zurück – eine Rast gibt es dabei nicht.',
+    /** v0.8.5: the preselected rest depends on the kind of owl. */
+    restDefaultOwn: 'Vorgewählt für eigene Eulen: 2 Std.',
+    restDefaultLoan: 'Vorgewählt für Leiheulen: 24 Std.',
+    choicesLoading: 'Die Eulen werden gerufen …',
     guestHint: 'Rastet gerade bei dir (bis {time}) und bringt deine Antwort direkt zu {name}.',
+    /** v0.8.5: the visiting owl still has letters for others (their names stay private). */
+    guestHintOnward:
+      'Rastet gerade bei dir (bis {time}). Sie stellt zuerst ihre übrigen Briefe zu und bringt deine Antwort danach zu {name}.',
     routeHint:
       'PostEulen hat die Empfänger so sortiert, dass die Eule den kürzesten Weg fliegt. Mit ↑ und ↓ kannst du die Reihenfolge trotzdem ändern.',
     addRecipient: 'Weiteren Empfänger hinzufügen',
@@ -260,7 +269,7 @@ export const de = {
     loanHint:
       'Leiheule: trägt einen Brief an bis zu 5 Empfänger (Gold an einen); zurück kommt sie nur mit einer Antwort.',
     retentionHint:
-      'Briefe werden {period} nach der Zustellung automatisch und unwiderruflich gelöscht (Einstellungen).',
+      'Briefe werden {period} nach der Zustellung beim wöchentlichen Aufräumen (montags früh) automatisch und unwiderruflich gelöscht (Einstellungen).',
     retentionYear: 'ein Jahr',
     retentionDays: '{days} Tage',
     loanOffers:
@@ -326,11 +335,12 @@ export const de = {
     owl_sick: '{owl} ist krank geworden. Pflege sie selbst oder bring sie zum Eulenarzt.',
     owl_healthy: '{owl} ist wieder gesund.',
     eggs_laid: '{owl} hat Eier gelegt und brütet jetzt 7 Tage.',
-    chicks_hatched: 'Bei {owl} ist ein Küken geschlüpft. Gib ihm einen Namen!',
+    chicks_hatched:
+      'Bei {owl} ist ein Küken geschlüpft. Gib ihm in den nächsten 5 Tagen einen Namen – sonst sucht das Los einen aus.',
     chicks_hatched_gift:
-      'Bei {owl} sind {count} Küken geschlüpft. Gib ihnen Namen und verschenke eines davon innerhalb von 24 Stunden.',
+      'Bei {owl} sind {count} Küken geschlüpft. Lass dir ruhig Zeit: Gib ihnen Namen und verschenke eines davon innerhalb von 5 Tagen. Erst danach entscheidet das Los.',
     clutch_reminder:
-      'Erinnerung: Ein Küken muss in wenigen Stunden verschenkt sein, sonst wird gelost.',
+      'Erinnerung: Ein Küken muss bis morgen um diese Zeit verschenkt sein, sonst wird gelost.',
     clutch_lot: 'Das Los hat entschieden: Das Küken {owl} fliegt zu {name}.',
     clutch_kept: 'Du hast keine aktiven Kontakte – alle Küken bleiben bei dir.',
     chick_adult: '{owl} ist erwachsen.',
@@ -341,10 +351,12 @@ export const de = {
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
     broadcast: '{text}',
   },
-  /** v0.7.2: remaining times – under an hour in minutes. */
+  /** v0.7.2: remaining times – under an hour in minutes; v0.8.5 written out (no "Min.."). */
   duration: {
-    minutes: '{n} Min.',
-    hours: '{n} Std.',
+    minute: '1 Minute',
+    minutes: '{n} Minuten',
+    hour: '1 Stunde',
+    hours: '{n} Stunden',
   },
   /** v0.7.1: a short message to the admin (settings). */
   feedback: {
@@ -439,6 +451,9 @@ export const de = {
     botOwlOnly:
       'Diesem Bot kannst du nur antworten, solange seine Eule bei dir rastet (unter „Eulen“: „Antwort … mitgeben“).',
     pictureAlt: 'Bild {n} zum Brief von {name}',
+    /** v0.8.5: pictures open full screen. */
+    pictureOpen: 'Bild vergrößern',
+    pictureClose: 'Tippen, klicken oder Escape schließt das Bild.',
     title: 'Bots',
     remove: '{name} entfernen',
     removeAllTitle: 'Bots',
@@ -519,6 +534,9 @@ export const de = {
     guestLoanOf: 'Leiheule von {name}',
     guestHint:
       'Du kannst sie pflegen, damit sie gestärkt weiterfliegt, und ihr eine Antwort an {name} mitgeben – dann fliegt sie sofort los.',
+    /** v0.8.5: the owl still has letters for others (their names stay private). */
+    guestHintOnward:
+      'Du kannst sie pflegen, damit sie gestärkt weiterfliegt, und ihr eine Antwort an {name} mitgeben. Dann fliegt sie sofort weiter: Zuerst stellt sie ihre übrigen Briefe zu, danach bringt sie deine Antwort zu {name}.',
     guestReply: 'Antwort an {name} mitgeben',
     /** v0.8.2 */
     guestSendOn: 'Weiterfliegen lassen',
@@ -535,6 +553,17 @@ export const de = {
     napAlt: '{name} hält zu Hause ein Nickerchen',
     broodingAlt: '{name} brütet im Nest auf ihren Eiern',
     perchAlt: 'Leere Stange – {name} hilft gerade in der Menagerie aus',
+    /** v0.8.5 */
+    perchRestingAlt: 'Leere Stange – {name} rastet gerade bei {host}',
+    write: 'Brief schreiben',
+    writeTitle: 'Brief mit {name} schicken',
+    writeIntro:
+      'An wen soll der Brief gehen? Wähle bis zu 5 Kontakte – oder einen Bot, der bekommt seine Briefe nur einzeln. Danach öffnet sich der Briefwechsel mit dieser Eule.',
+    writeContacts: 'Kontakte',
+    writeBots: 'Bots',
+    writeGo: 'Weiter zum Brief',
+    writeNobody:
+      'Gerade kannst du niemandem schreiben. Füge im Adressbuch einen Kontakt hinzu – ihr müsst euch beide eintragen.',
     homeDayAlt: '{name} sitzt bei Tag auf dem Fensterbrett',
     homeNightAlt: '{name} sitzt bei Nacht im Kerzenschein auf dem Fensterbrett',
     nameTitle: 'Wie soll dein Neuzugang heißen? ({species})',
@@ -578,10 +607,12 @@ export const de = {
     limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     loanTitle: 'Eulen leihen',
     loanIntro:
-      'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung).',
+      'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
     loanCount: 'Heute geliehen: {count} von {max}. Morgen gibt es neue Eulen zum Leihen.',
     loan: '{name} leihen ({species}, {sex})',
     loaned: 'Schon geliehen',
+    /** v0.8.5: every offer of the day has been borrowed and its loan is over. */
+    allDone: 'Alle Leiheulen von heute sind wieder in der Menagerie. Morgen gibt es neue.',
     loanDone: '{name} wartet jetzt bei deinen Eulen.',
   },
   finance: {
@@ -624,8 +655,6 @@ export const de = {
     legendContact: 'Kontakte',
     legendBot: 'Bots',
     legendOwl: 'Deine Eulen unterwegs',
-    legendTrack: 'Bisherige Flugstrecke',
-    legendSleep: 'Hier hat eine Eule übernachtet',
     legendNight: 'Nacht (Sonne 6° oder mehr unter dem Horizont)',
     flightsTitle: 'Deine Eulen unterwegs',
     flightsNone: 'Gerade ist keine deiner Eulen unterwegs.',
@@ -634,6 +663,8 @@ export const de = {
     purposeGold: 'Gold',
     purposeGift: 'Geschenk',
     nextStop: 'nächster Halt {name} ca. {time}',
+    /** v0.8.5 */
+    restingAt: 'rastet bei {name} bis {time}',
     homeAt: 'zurück ca. {time}',
     sleeping: 'schläft gerade',
     updated: 'Stand {time} – wird alle {minutes} Minuten neu berechnet.',
@@ -822,7 +853,14 @@ export const de = {
     back: '← Alle Bots',
     mapTitle: 'Bot-Eulen unterwegs',
     mapIntro:
-      'Alle Eulen von Bots, die gerade hinfliegen, rasten oder zurückfliegen – ohne Namen der Spieler. Rauten: Wohnorte der Bots.',
+      'Alle Eulen von Bots, die gerade hinfliegen, rasten oder zurückfliegen – ohne Namen der Spieler.',
+    /** v0.8.5: legend of the map. */
+    legendTitle: 'Legende',
+    legendHome: 'Wohnort eines Bots (Raute)',
+    legendFlying: 'Bot-Eule fliegt hin (blauer Kreis)',
+    legendResting: 'Bot-Eule rastet beim Spieler (grünes Quadrat)',
+    legendReturning: 'Bot-Eule fliegt zurück (orangefarbenes Dreieck)',
+    legendPicked: 'Gewählter Wohnort (roter Ring)',
     mapNone: 'Gerade ist keine Bot-Eule unterwegs.',
     mapLabel: 'Weltkarte mit Bot-Eulen',
     owl_flying: 'fliegt hin',
@@ -936,6 +974,9 @@ export const de = {
     exportSelected: 'Ausgewählte Events exportieren',
     pastTitle: 'Vergangene Events (Archiv)',
     pastNone: 'Noch keine vergangenen Events.',
+    /** v0.8.5 */
+    pastRetention:
+      '36 Monate nach dem Versand wird ein Event endgültig gelöscht – mit Texten, Zahlen, Zustellungen und Bildern, die sonst nichts mehr nutzt. Die Statistik der Bots bleibt.',
     pastState_running: 'läuft (Briefe oder Antworten unterwegs)',
     pastState_archived: 'abgeschlossen',
     pastState_skipped: 'nicht ausgeführt',
@@ -1022,6 +1063,8 @@ export const de = {
     owl_not_home: 'Das geht nur, wenn die Eule zu Hause ist.',
     owl_name_mismatch:
       'Der Name stimmt nicht. Bitte tippe den Namen der Eule genau so ein, wie er dasteht.',
+    owl_release_limit:
+      'Freilassen geht nur, solange du mehr als 20 eigene Eulen hast (Küken zählen mit).',
     owl_rename_blocked: 'Diese Eule kann erst im nächsten Kalenderjahr wieder umbenannt werden.',
     owl_name_too_short: 'Der Name ist zu kurz (mindestens 2 Zeichen).',
     owl_name_too_long: 'Der Name ist zu lang (höchstens 20 Zeichen).',

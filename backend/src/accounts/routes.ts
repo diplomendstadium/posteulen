@@ -17,7 +17,6 @@ import { nameLocked, profileOf, utcMonth } from '../auth/user-routes.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { rerouteForMove } from '../flights/service.ts';
 import { contactIdsOf, lockName, requestDeletion } from './lifecycle.ts';
-import { purgeOldLetters } from '../letters/retention.ts';
 import { sendFeedback } from '../admin/feedback.ts';
 import { FeedbackSend } from '@posteulen/shared/schemas/feedback.ts';
 import { ipKey } from '../security/ip.ts';
@@ -127,7 +126,6 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
   app.patch('/api/account/letters', { preHandler: authenticated }, async (request) => {
     const body = parse(LetterSettings, request.body);
     const me = userOf(request).id;
-    const now = ctx.now();
     ctx.db.transaction(() => {
       ctx.db.run(
         'UPDATE users SET letter_retention_days = ?, letters_print = ? WHERE id = ?',
@@ -137,7 +135,8 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
       );
       if (body.links !== undefined)
         ctx.db.run('UPDATE users SET links_clickable = ? WHERE id = ?', body.links ? 1 : 0, me);
-      purgeOldLetters(ctx, now, me);
+      // v0.8.5: a shorter period takes effect with the next weekly clean-up (Monday 04:00 UTC),
+      // like every deletion by age; burning letters still works at once.
     });
     ctx.hub.notify(me, 'profile', 'chats');
     return { profile: profileOf(ctx, me) };

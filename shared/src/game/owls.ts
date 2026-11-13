@@ -48,8 +48,18 @@ export function canLendToMenagerie(owl: OwlFacts): boolean {
   return owl.kind === 'own' && !owl.isChick && owl.state === 'home' && owl.mythical !== true;
 }
 
+/** The state allows a release (9.2.5); whether the stock does, says `releaseAllowed`. */
 export function canRelease(owl: OwlFacts): boolean {
   return owl.kind === 'own' && !owl.isChick && ['home', 'sick', 'self_care'].includes(owl.state);
+}
+
+/**
+ * v0.8.5: owls may only be released while the player has more than 20 own owls (the count of
+ * the buying limit: chicks count, loan owls and owls on a gift flight not; 9.2.8). At 21 one
+ * suitable owl can go; then the limit is reached.
+ */
+export function releaseAllowed(owl: OwlFacts, ownOwlCount: number): boolean {
+  return canRelease(owl) && ownOwlCount > OWL.RELEASE_ABOVE_OWN_OWLS;
 }
 
 export function canRename(owl: OwlFacts): boolean {

@@ -4,9 +4,11 @@
  * daily clean-up.
  */
 import { pruneMedia } from '../central/media.ts';
+import { pruneOldEvents } from '../central/retention.ts';
+import { cleanUpOffers } from '../owls/lifecycle.ts';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { pruneCareHistory } from '../owls/care.ts';
-import { purgeOldLetters } from '../letters/retention.ts';
+import { isRetentionDay, purgeOldLetters } from '../letters/retention.ts';
 import { pruneFeedback } from '../admin/feedback.ts';
 import type { Context } from '../context.ts';
 import { hmac, utcDay } from '../security/ids.ts';
@@ -182,7 +184,9 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   // Unconfirmed notifications are kept for "Neuigkeiten", but not forever.
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
   pruneCareHistory(ctx, at);
-  purgeOldLetters(ctx, at, undefined, after);
+  // v0.8.5: letters and system messages past their period only once a week, on Mondays. A
+  // missed run waits for the next Monday (the daily job only runs for the current day).
+  if (isRetentionDay(day)) purgeOldLetters(ctx, at, undefined, after);
   // v0.7.1: messages to the admin go after 90 days.
   pruneFeedback(ctx, at);
   // v0.7.2: homecomings nobody looked at (overlay) go after 60 days.
@@ -191,8 +195,12 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   ctx.db.run('DELETE FROM banners WHERE ends_at <= ?', at);
   // v0.8.3: care marks of visiting bot owls only matter for the current day.
   ctx.db.run('DELETE FROM bot_owl_care WHERE day < ?', utcDay(at - TIME.DAY));
+  // v0.8.5: events of bots go 36 months after they were sent (SPEC 10.10).
+  pruneOldEvents(ctx, at);
   // v0.8: pictures of bots that no event and no letter uses any more (SPEC 10.11).
   pruneMedia(ctx, at);
+  // v0.8.5: loan offers per account are only needed for two days (9.6).
+  cleanUpOffers(ctx, at);
   ctx.db.run(
     'DELETE FROM bots_admin_sessions WHERE last_used_at < ?',
     at - ACCOUNT.BOTS_SESSION_IDLE_HOURS * TIME.HOUR,

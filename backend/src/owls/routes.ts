@@ -17,6 +17,7 @@ import {
   canGift,
   canLendToMenagerie,
   canRelease,
+  releaseAllowed,
   canRenameInYear,
   randomSex,
   speciesById,
@@ -37,7 +38,14 @@ import {
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
 import { careForBotOwl } from '../central/care.ts';
-import { borrow, loanedOn, loanIdentitiesFor, loanProblem, offerOf } from './lifecycle.ts';
+import {
+  borrow,
+  loanedOn,
+  loanIdentitiesFor,
+  loanProblem,
+  loanStillHere,
+  offerOf,
+} from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -105,8 +113,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         : undefined;
       return owl ? [guestView(ctx, owl, flight, index, now)] : [];
     });
+    const count = ownOwlCount(ctx, me);
     return {
-      owls: rows.map((owl) => owlView(ctx, owl, now)),
+      owls: rows.map((owl) => owlView(ctx, owl, now, count)),
       guests,
       canBuy: canBuyMore(ownOwlCount(ctx, me)),
       // Chicks of which one must be given away within 24 hours (9.9).
@@ -277,6 +286,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const owl = ownOwl(ctx, me, id);
     const body = parse(OwlRelease, request.body);
     if (!canRelease(facts(owl))) throw new HttpError(400, 'owl_not_home');
+    // v0.8.5: only while more than 20 own owls live here (9.2.8).
+    if (!releaseAllowed(facts(owl), ownOwlCount(ctx, me)))
+      throw new HttpError(400, 'owl_release_limit');
     // The user typed the exact name and confirmed twice (v0.3).
     if (owl.name === null || body.name.normalize('NFC') !== owl.name.normalize('NFC'))
       throw new HttpError(400, 'owl_name_mismatch');
@@ -301,14 +313,13 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       )
       .filter(isReady)
       .map((owl) => owl.id);
-    // No owl ready: the loan owls of the day, borrowed only on sending (8.4 step 4, 9.6).
-    // Since v0.4 also for several recipients.
-    const offers =
-      own.length === 0 && canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
-        ? offerOf(ctx, utcDay(now))
-            .filter((species) => loanProblem(ctx, me, species, now) === null)
-            .map((species) => `${LOAN_REF_PREFIX}${species}`)
-        : [];
+    // The loan owls of the day, borrowed only on sending (8.4 step 4, 9.6). Since v0.4 also for
+    // several recipients; v0.8.5 always, not only when no owl is ready.
+    const offers = canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
+      ? offerOf(ctx, me, utcDay(now))
+          .filter((species) => loanProblem(ctx, me, species, now) === null)
+          .map((species) => `${LOAN_REF_PREFIX}${species}`)
+      : [];
     const owls = [];
     // v0.7: a visiting owl of the only recipient comes first – it takes the reply straight back.
     if (body.guests && body.recipients.length === 1) {
@@ -316,6 +327,11 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         if (guest.flight.holder_id !== body.recipients[0]) continue;
         const ref = guestRef(guest.flight);
         const owl = chooseOwl(ctx, me, ref, now);
+        // v0.8.5: further recipients first – the reply waits on board (their names stay private).
+        const moreStops = routeOf(guest.flight).some(
+          (stop, index) =>
+            index > guest.index && stop.type === 'deliver' && stop.status === 'pending',
+        );
         owls.push({
           id: ref,
           kind: owl.kind,
@@ -332,6 +348,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           ],
           returnsAt: null,
           restUntil: routeOf(guest.flight)[guest.index]?.restUntil ?? null,
+          moreStops,
         });
       }
     }
@@ -344,8 +361,11 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         recipients: body.recipients,
         returnsHome: owl.returnsHome,
         now,
-        // v0.7: the rest at each person is part of the preview (not with bots).
-        restMs: body.recipients.some((id) => isBotId(ctx, id)) ? 0 : body.rest * TIME.HOUR,
+        // v0.7: the rest at each person is part of the preview (not with bots); v0.8.5 for loan
+        // owls the one of their kind, exactly as it is sent later.
+        restMs: body.recipients.some((id) => isBotId(ctx, id))
+          ? 0
+          : (owl.kind === 'loan' ? (body.restLoan ?? body.rest) : body.rest) * TIME.HOUR,
       });
       owls.push({
         id: owlId,
@@ -497,12 +517,16 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       day,
       maxLoans: MENAGERIE.LOANS_PER_DAY,
       loans: loaned.length,
-      offer: offerOf(ctx, day).map((species) => ({
-        species,
-        name: identities.get(species)?.name ?? '',
-        sex: identities.get(species)?.sex ?? 'f',
-        loaned: loaned.includes(species),
-      })),
+      // v0.8.5: a loan of this offer day that is over (vanished after the last stop, back with
+      // replies, or expired unused) hides its offer until the next day; it still counts.
+      offer: offerOf(ctx, me, day)
+        .filter((species) => !loaned.includes(species) || loanStillHere(ctx, me, species, day))
+        .map((species) => ({
+          species,
+          name: identities.get(species)?.name ?? '',
+          sex: identities.get(species)?.sex ?? 'f',
+          loaned: loaned.includes(species),
+        })),
     };
   });
 

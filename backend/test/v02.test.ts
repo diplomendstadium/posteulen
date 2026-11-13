@@ -8,6 +8,7 @@ import { TIME } from '@posteulen/shared/constants.ts';
 import { openDatabase } from '../src/db/database.ts';
 import { loadMigrations, migrate } from '../src/db/migrate.ts';
 import { utcDay } from '../src/security/ids.ts';
+import { purgeOldLetters } from '../src/letters/retention.ts';
 import { tempDir } from './helpers.ts';
 import {
   advanceTo,
@@ -63,11 +64,16 @@ function copies(id: string) {
   );
 }
 
+/**
+ * The 04:00 job of that day plus the deletion by age – v0.8.5 the latter only runs on Mondays,
+ * so here it is called directly for the day under test (the weekday rule: v085.test.ts).
+ */
 function runCleanup(at: number): void {
   app.db.run("DELETE FROM scheduled_events WHERE type = 'daily:inactivity'");
   app.db.run("DELETE FROM daily_job_runs WHERE job = 'inactivity' AND day = ?", utcDay(at));
   app.ctx.queue.schedule('daily:inactivity', 'inactivity', at);
   advanceTo(app, at);
+  app.db.transaction(() => purgeOldLetters(app.ctx, at));
 }
 
 const settings = (who: Person, retentionDays: number, print = false) =>
@@ -98,7 +104,7 @@ describe('deletion of old letters (v0.2)', () => {
     expect(app.db.get('SELECT 1 FROM system_messages WHERE created_at = 0')).toBeUndefined();
   });
 
-  it('a shorter own period deletes only one’s own copies, at once and then nightly', async () => {
+  it('a shorter own period deletes only one’s own copies, at the next clean-up', async () => {
     const sent = letter(anna, ben, 40);
     const received = letter(ben, anna, 40, 0);
     const recent = letter(ben, anna, 10, 0);
@@ -117,6 +123,9 @@ describe('deletion of old letters (v0.2)', () => {
     );
     const changed = await settings(anna, 30, true);
     expect(changed.body.profile).toMatchObject({ letterRetentionDays: 30, lettersPrint: true });
+    // v0.8.5: not at once any more – with the next (weekly) clean-up.
+    expect(copies(sent)).toEqual({ sender_has: 1, recipient_has: 1 });
+    runCleanup(app.clock.now);
     expect(copies(sent)).toEqual({ sender_has: 0, recipient_has: 1 });
     expect(copies(received)).toEqual({ sender_has: 1, recipient_has: 0 });
     expect(copies(recent)).toEqual({ sender_has: 1, recipient_has: 1 });
@@ -165,6 +174,8 @@ describe('deletion of old letters (v0.2)', () => {
     await settings(ben, 90);
     expect(messages()).toBe(before);
     await settings(anna, 90);
+    expect(messages()).toBe(before);
+    runCleanup(app.clock.now);
     expect(messages()).toBe(before - 1);
   });
 });
@@ -207,7 +218,7 @@ describe('migration 0007 (v0.2)', () => {
       "INSERT INTO scheduled_events (type, ref, due_at, logical_at) VALUES ('papeterie_end', 'o1', 5000, 5000)",
     );
 
-    expect(migrate(db, migrations)).toEqual([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+    expect(migrate(db, migrations)).toEqual([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(db.all('SELECT id, state FROM owls ORDER BY id')).toEqual([
       { id: 'o1', state: 'menagerie' },
       { id: 'o2', state: 'flying' },

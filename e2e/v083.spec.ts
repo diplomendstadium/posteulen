@@ -19,8 +19,8 @@ test.describe('Lange Briefe (v0.8.3)', () => {
       (_, i) => `Zeile ${i + 1} eines sehr langen Briefes.`,
     ).join(' ');
     await page.getByLabel('Text').fill(text.slice(0, 14_500));
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await expect(page.getByText(/Ankunft bei Erklärbär/)).toBeVisible();
+    // v0.8.5: the owl choice appears by itself.
+    await expect(page.getByText(/Ankunft bei Erklärbär/).first()).toBeVisible();
     await page.getByRole('button', { name: 'Absenden' }).click();
     const own = page.locator('li.letter.mine').last();
     await expect(own).toContainText('Zeile 1 eines sehr langen Briefes.', { timeout: 30_000 });

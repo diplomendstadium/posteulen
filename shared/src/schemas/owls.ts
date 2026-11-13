@@ -46,6 +46,13 @@ export const FlightPreview = v.strictObject({
   recipients: Recipients,
   /** v0.7: rest at each recipient (hours). */
   rest: RestHours,
+  /**
+   * v0.8.5: rest for loan owls and loan offers, if it differs from `rest` (the preselection
+   * depends on the kind of owl, SPEC 8.4); without it `rest` counts for all owls.
+   */
+  restLoan: v.optional(
+    v.picklist(LETTER.REST_HOURS_CHOICES as unknown as readonly [number, ...number[]]),
+  ),
   /** v0.7: offer visiting owls resting here that can take a reply to their holder (letters). */
   guests: v.optional(v.boolean(), false),
 });

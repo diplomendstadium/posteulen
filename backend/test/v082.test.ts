@@ -149,16 +149,16 @@ describe('the conversation (v0.8.2)', () => {
 });
 
 describe('visiting owls (v0.8.2)', () => {
-  it('announce themselves (system message and push) and can be sent on early', async () => {
+  it('announce themselves (push; v0.8.5 no system message) and can be sent on early', async () => {
     const annaOwl = await owl(anna, 'Waldi');
     const sent = await send(anna, ben, annaOwl, 24);
     advanceTo(app, sent.body.letters[0]!.arrivesAt + TIME.MINUTE);
-    const messages = app.db.all<{ params: string }>(
-      "SELECT params FROM system_messages WHERE user_id = ? AND type = 'owl_resting'",
-      ben.id,
-    );
-    expect(messages).toHaveLength(1);
-    expect(JSON.parse(messages[0]!.params)).toMatchObject({ owl: 'Waldi', name: 'Anna' });
+    expect(
+      app.db.all(
+        "SELECT 1 FROM system_messages WHERE user_id = ? AND type = 'owl_resting'",
+        ben.id,
+      ),
+    ).toHaveLength(0);
     expect(
       app.db.all("SELECT 1 FROM notifications WHERE user_id = ? AND type = 'owl_resting'", ben.id),
     ).toHaveLength(1);

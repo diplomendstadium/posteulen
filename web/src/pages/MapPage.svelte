@@ -1,14 +1,13 @@
 <script lang="ts">
   /**
-   * Map (SPEC 12.1): own home, contacts, own owls on the way with the path flown so far and
-   * their overnight stops (v0.3), day and night. Positions, paths and the night areas are
-   * recomputed every 5 minutes from the flight plans – no server request.
+   * Map (SPEC 12.1): own home, contacts, own owls on the way, day and night. Positions and the
+   * night areas are recomputed every 5 minutes from the flight plans – no server request.
+   * v0.8.5: no flight paths and overnight marks any more (the map got crowded too quickly).
    */
   import { onDestroy } from 'svelte';
   import { t, fill } from '../lib/i18n.svelte.ts';
   import { MAP, TIME } from '@posteulen/shared/constants.ts';
-  import { positionAt, segmentsUntil } from '@posteulen/shared/game/flight.ts';
-  import { distanceKm, interpolate, type Point } from '@posteulen/shared/game/geo.ts';
+  import { positionAt } from '@posteulen/shared/game/flight.ts';
   import { occupiedBoxes, placeLabels, type LabelRequest } from '@posteulen/shared/map/labels.ts';
   import MapView from '../components/MapView.svelte';
   import { mapInfo, type MapFlight, type MapInfo } from '../lib/owls.ts';
@@ -41,28 +40,6 @@
     (info?.flights ?? []).map((flight) => ({ flight, at: positionAt(flight.segments, now) })),
   );
 
-  /**
-   * The part of each flight that lies behind the owl (v0.3): a path along the great circles
-   * and the places where it slept. The route still ahead is never drawn.
-   */
-  const tracks = $derived(
-    owls.map(({ flight }) => {
-      const points: Point[] = [];
-      const sleeps: Point[] = [];
-      for (const segment of segmentsUntil(flight.segments, now)) {
-        if (segment.kind === 'sleep') {
-          sleeps.push(segment.at);
-          continue;
-        }
-        if (segment.kind !== 'fly') continue;
-        const steps = Math.max(1, Math.ceil(distanceKm(segment.from, segment.to) / 40));
-        for (let i = points.length === 0 ? 0 : 1; i <= steps; i++)
-          points.push(interpolate(segment.from, segment.to, i / steps));
-      }
-      return { id: flight.id, points, sleeps };
-    }),
-  );
-
   type ToSvg = (lat: number, lon: number) => { x: number; y: number };
 
   /** Sizes in screen pixels (v0.2: readable on phones); `scale` converts to SVG units. */
@@ -74,8 +51,6 @@
     font: 16,
     owlFont: 15,
     glyph: 19,
-    track: 2,
-    zzz: 13,
   };
 
   /**
@@ -154,6 +129,24 @@
   function whereText(flight: MapFlight, phase: string | undefined): string {
     const next = flight.stops.find((stop) => stop.status === 'pending');
     const parts: string[] = [];
+    // v0.8.5: resting at a recipient right now (before: only "Brief" without where).
+    const resting = flight.stops.find((stop) => stop.status === 'resting');
+    if (resting) {
+      parts.push(
+        fill(t.map.restingAt, {
+          name: resting.name ?? t.letters.unknown,
+          time: dateTime(resting.restUntil ?? resting.arrivesAt, true),
+        }),
+      );
+      if (next?.type === 'deliver')
+        parts.push(
+          fill(t.map.nextStop, {
+            name: next.name ?? t.letters.unknown,
+            time: dateTime(next.arrivesAt),
+          }),
+        );
+      return parts.join(', ');
+    }
     if (phase === 'sleep') parts.push(t.map.sleeping);
     if (next?.type === 'deliver') {
       parts.push(
@@ -178,26 +171,6 @@
   {#snippet markers(toSvg, scale)}
     {#if info}
       {@const view = layout(info, toSvg, scale)}
-      <g class="tracks" data-testid="map-tracks" aria-hidden="true">
-        {#each tracks as track (track.id)}
-          {#if track.points.length > 1}
-            <polyline
-              class="track"
-              points={track.points
-                .map((point) => {
-                  const q = toSvg(point.lat, point.lon);
-                  return `${q.x},${q.y}`;
-                })
-                .join(' ')}
-              stroke-width={SIZE.track * scale}
-            />
-          {/if}
-          {#each track.sleeps as sleep, index (index)}
-            {@const q = toSvg(sleep.lat, sleep.lon)}
-            <text class="zzz" x={q.x} y={q.y - 4 * scale} font-size={SIZE.zzz * scale}>Zzz</text>
-          {/each}
-        {/each}
-      </g>
       {#each view.contacts as { contact, p, text } (contact.id)}
         {@const label = view.at(`contact-${contact.id}`)}
         <g class="contact" class:bot={contact.bot}>
@@ -247,8 +220,6 @@
   <li><span class="key contact-key" aria-hidden="true"></span>{t.map.legendContact}</li>
   <li><span class="key bot-key" aria-hidden="true"></span>{t.map.legendBot}</li>
   <li><span class="key owl-key" aria-hidden="true"></span>{t.map.legendOwl}</li>
-  <li><span class="key track-key" aria-hidden="true"></span>{t.map.legendTrack}</li>
-  <li><span class="zzz-key" aria-hidden="true">Zzz</span>{t.map.legendSleep}</li>
   <li><span class="key night-key" aria-hidden="true"></span>{t.map.legendNight}</li>
 </ul>
 
@@ -355,32 +326,6 @@
 
   .night-key {
     background: rgb(25 30 70 / 28%);
-  }
-
-  /* Path flown so far: thin dark brown line; Zzz where the owl slept (v0.3). */
-  .track {
-    fill: none;
-    stroke: var(--wood-dark);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .zzz {
-    font-style: italic;
-    font-weight: 700;
-    fill: var(--wood-dark);
-  }
-
-  .track-key {
-    height: 0;
-    border-width: 2px 0 0;
-    width: 1.5rem;
-  }
-
-  .zzz-key {
-    font-style: italic;
-    font-weight: 700;
-    color: var(--wood-dark);
   }
 
   .hint {

@@ -227,6 +227,12 @@ input:not([type]) {
   font: inherit;
 }
 
+/* v0.8.5: text fields only grow in height – a wider field would widen the page. */
+textarea {
+  resize: vertical;
+  max-width: 100%;
+}
+
 .button[aria-disabled='true'] {
   cursor: not-allowed;
 }

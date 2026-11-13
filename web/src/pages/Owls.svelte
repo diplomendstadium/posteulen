@@ -15,7 +15,7 @@
   import { speciesSnack } from '@posteulen/shared/texts/species.ts';
   import GaugeBar from '../components/GaugeBar.svelte';
   import { isDay } from '@posteulen/shared/game/sun.ts';
-  import { OWL_NAP_AFTER_CARE_MS, OWL_NAP_SHARE } from '@posteulen/shared/constants.ts';
+  import { MAP, OWL_NAP_AFTER_CARE_MS, OWL_NAP_SHARE, TIME } from '@posteulen/shared/constants.ts';
   import { account } from '../lib/auth.svelte.ts';
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
   import Link from '../components/Link.svelte';
@@ -24,6 +24,7 @@
   import OwlGift from '../components/OwlGift.svelte';
   import ChickGift from '../components/ChickGift.svelte';
   import ReleaseDialog from '../components/ReleaseDialog.svelte';
+  import WriteDialog from '../components/WriteDialog.svelte';
   import {
     feedOwl,
     lendToMenagerie,
@@ -45,6 +46,8 @@
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
 
+  const OWLS_REFRESH_MS = MAP.CLIENT_REFRESH_MINUTES * TIME.MINUTE;
+
   let owls = $state<Owl[]>([]);
   /** v0.7: owls of others resting here. */
   let guests = $state<GuestOwl[]>([]);
@@ -55,6 +58,8 @@
   let renaming = $state<string | null>(null);
   let gifting = $state<string | null>(null);
   let releasing = $state<Owl | null>(null);
+  /** v0.8.5: "Brief schreiben" with this owl – choosing the recipients. */
+  let writing = $state<Owl | null>(null);
   let released = $state<string | null>(null);
   let newName = $state('');
 
@@ -75,6 +80,20 @@
   $effect(() => {
     void live.owlsVersion;
     void load();
+  });
+
+  /**
+   * v0.8.5: the server works out the flight phase and daylight when the list is fetched. While
+   * the overview stays open with owls on their way, it is fetched again every five minutes (as
+   * the map recalculates) – so a day flight turns into a nap without any new event.
+   */
+  const flying = $derived(owls.some((owl) => owl.state === 'flying'));
+  $effect(() => {
+    if (!flying) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, OWLS_REFRESH_MS);
+    return () => clearInterval(timer);
   });
 
   function replace(updated: Owl): void {
@@ -193,9 +212,13 @@
     return asleep;
   }
 
+  /**
+   * v0.8.5: resting at a recipient, the owl is not here – its empty perch is shown (as in the
+   * menagerie; until v0.8.4 the normal picture).
+   */
+  const restingAway = (owl: Owl): boolean => owl.state === 'flying' && !!owl.absence?.resting;
+
   function pictureKind(owl: Owl): OwlImageKind {
-    // v0.7: resting at a recipient: the normal picture.
-    if (owl.state === 'flying' && owl.absence?.resting) return 'normal';
     if (owl.state === 'flying' && owl.absence) {
       // v0.5.1: asleep on the way, by day or at night where it is right now.
       if (owl.absence.sleeping) return owl.absence.daylight ? 'sleepDay' : 'sleepNight';
@@ -212,6 +235,11 @@
     const name = owl.name ?? '';
     const species = speciesName(owl.species);
     if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
+    if (restingAway(owl))
+      return fill(t.owls.perchRestingAlt, {
+        name,
+        host: owl.absence?.resting?.name ?? t.letters.unknown,
+      });
     if (owl.state === 'flying' && owl.absence) {
       const text = owl.absence.sleeping
         ? owl.absence.daylight
@@ -337,10 +365,6 @@
   />
 {/each}
 
-{#if loaded && owls.length > 0}
-  <p class="hint plate motivation-hint">{t.owls.motivationHint}</p>
-{/if}
-
 {#if loaded && owls.length === 0 && guests.length === 0}
   <p class="notice">
     <span aria-hidden="true">ℹ</span><span>{t.owls.none}</span>
@@ -354,7 +378,7 @@
       <OwlPicture
         speciesId={owl.species}
         kind={pictureKind(owl)}
-        perch={owl.state === 'menagerie'}
+        perch={owl.state === 'menagerie' || restingAway(owl)}
         alt={pictureAlt(owl)}
       />
     </div>
@@ -402,6 +426,15 @@
         {stateText(owl)}
       </p>
       <div class="actions">
+        {#if owl.ready}
+          <!-- v0.8.5: write a letter with exactly this owl. -->
+          <button
+            class="button"
+            type="button"
+            disabled={!status.online}
+            onclick={() => (writing = owl)}>{t.owls.write}</button
+          >
+        {/if}
         {#if owl.actions.care}
           <button
             class="button secondary"
@@ -547,6 +580,15 @@
   </section>
 {/each}
 
+<!-- v0.8.5: the explanation of motivation, care and sickness at the end of the page. -->
+{#if loaded && owls.length > 0}
+  <p class="hint plate motivation-hint">{t.owls.motivationHint}</p>
+{/if}
+
+{#if writing}
+  <WriteDialog owl={writing} onclose={() => (writing = null)} />
+{/if}
+
 {#if releasing}
   <ReleaseDialog
     owl={releasing}
@@ -626,7 +668,7 @@
   }
 
   .motivation-hint {
-    margin: 0 0 1rem;
+    margin: 1.5rem 0 1rem;
   }
 
   .state.away {

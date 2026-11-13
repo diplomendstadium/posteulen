@@ -130,11 +130,10 @@ describe('loan owls (SPEC 9.6)', () => {
     expect(new Set(menagerie.body.offer.map((o) => o.species)).size).toBe(4);
     expect(menagerie.body.offer.map((o) => o.species)).not.toContain('phoenix');
     expect((await anna.agent.json('GET', '/api/menagerie')).body).toEqual(menagerie.body);
-    // Ben sees the same species, but with his own names.
+    // v0.8.5: Ben has his own four species (rolled for his account), stable for the day.
     const forBen = await ben.agent.json<{ offer: { species: string }[] }>('GET', '/api/menagerie');
-    expect(forBen.body.offer.map((o) => o.species)).toEqual(
-      menagerie.body.offer.map((o) => o.species),
-    );
+    expect(forBen.body.offer).toHaveLength(4);
+    expect((await ben.agent.json('GET', '/api/menagerie')).body).toEqual(forBen.body);
 
     const first = await borrowOwl(anna);
     expect(gold(anna)).toBe(GOLD.START - GOLD.LOAN_PRICE);
@@ -271,7 +270,7 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     expect((await preview(anna, [ben.id])).map((o) => o.id)).not.toContain(chosen.id);
   });
 
-  it('no offers with a ready owl or without enough gold; several recipients are fine (v0.4)', async () => {
+  it('offers also with a ready owl (v0.8.5), none without enough gold; several recipients are fine (v0.4)', async () => {
     const carla = await person(app, 'Carla');
     await couple(anna, carla);
     setGold(app, anna, 200);
@@ -283,8 +282,9 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     setGold(app, anna, 200);
     await buyOwl(app, anna);
     const choices = await preview(anna, [ben.id]);
-    expect(choices).toHaveLength(1);
+    expect(choices).toHaveLength(5);
     expect(choices[0]?.offer).toBe(false);
+    expect(choices.slice(1).every((choice) => choice.offer)).toBe(true);
   });
 
   it('rejects a loan reference of a species that is not offered or already borrowed', async () => {
@@ -312,9 +312,10 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
   });
 
   it('the four loan owls of a day never share a name; motivation 0.8–1.0 (v0.5)', () => {
-    const day = utcDay(app.clock.now);
+    // v0.8.5: offers belong to real accounts – many days of one account instead of many users.
     for (let i = 0; i < 2000; i++) {
-      const identities = [...loanIdentitiesFor(app.ctx, `nutzer-${i}`, day).values()];
+      const day = utcDay(app.clock.now + i * TIME.DAY);
+      const identities = [...loanIdentitiesFor(app.ctx, anna.id, day).values()];
       expect(new Set(identities.map((o) => o.name)).size).toBe(4);
       for (const identity of identities) expect([8, 9, 10]).toContain(identity.motivation);
     }
@@ -478,7 +479,8 @@ describe('sickness (SPEC 9.8, 17.2)', () => {
     expect(
       (await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${a}/treat`, { kind: 'self' }))
         .body.owl,
-    ).toMatchObject({ state: 'self_care', actions: { care: true, release: true } });
+      // v0.8.5: releasing needs more than 20 own owls (9.2.8).
+    ).toMatchObject({ state: 'self_care', actions: { care: true, release: false } });
     expect(
       (await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${b}/treat`, { kind: 'vet' }))
         .body.owl,
@@ -535,13 +537,22 @@ describe('eggs and chicks (SPEC 9.9, 17.2)', () => {
     expect(await systemTypes(anna)).toContain('chick_adult');
   });
 
-  it('two or three chicks: random names after 24 h, lot among active contacts, no cover letter', async () => {
+  it('two or three chicks: random names after 5 days (v0.8.5), lot among active contacts, no cover letter', async () => {
     const { hatchAt } = await brood(3);
     const list = await owls(anna);
     expect(list.owls.filter((owl) => owl.isChick)).toHaveLength(3);
     expect(list.clutches).toHaveLength(1);
     expect(await systemTypes(anna)).toContain('chicks_hatched_gift');
+    // v0.8.5: a day later nothing is decided yet – the holder has five days.
     advanceTo(app, hatchAt + 24 * TIME.HOUR);
+    expect(app.db.all("SELECT 1 FROM owls WHERE is_chick = 1 AND state = 'gift_flight'")).toEqual(
+      [],
+    );
+    expect(app.db.all('SELECT 1 FROM owls WHERE is_chick = 1 AND name IS NULL')).toHaveLength(3);
+    expect(await systemTypes(anna)).not.toContain('clutch_reminder');
+    advanceTo(app, hatchAt + 4 * TIME.DAY);
+    expect(await systemTypes(anna)).toContain('clutch_reminder');
+    advanceTo(app, hatchAt + 5 * TIME.DAY);
     const chicks = app.db.all<{ id: string; name: string | null; state: string }>(
       'SELECT id, name, state FROM owls WHERE is_chick = 1',
     );
@@ -565,7 +576,7 @@ describe('eggs and chicks (SPEC 9.9, 17.2)', () => {
   it('without active contacts all chicks stay', async () => {
     await anna.agent.json('DELETE', `/api/contacts/${ben.id}`);
     const { hatchAt } = await brood(2);
-    advanceTo(app, hatchAt + 24 * TIME.HOUR);
+    advanceTo(app, hatchAt + 5 * TIME.DAY);
     expect(
       app.db.all(
         "SELECT 1 FROM owls WHERE is_chick = 1 AND owner_id = ? AND state = 'home'",

@@ -9,6 +9,7 @@
   import { onMount, tick } from 'svelte';
   import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
   import Compose from '../components/Compose.svelte';
+  import PictureViewer from '../components/PictureViewer.svelte';
   import LetterText from '../components/LetterText.svelte';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
@@ -20,11 +21,13 @@
   import { queueOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
   import { deckleClass } from '../lib/deckle.ts';
   import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
-  import { clearReplyWith, replyWith } from '../lib/reply.svelte.ts';
+  import { clearReplyWith, clearWriteWith, replyWith, writeWith } from '../lib/reply.svelte.ts';
 
   let { peerId }: { peerId: string } = $props();
 
   let letters = $state<ShownLetter[]>([]);
+  /** v0.8.5: a bot picture shown full screen. */
+  let enlarged = $state<{ src: string; alt: string } | null>(null);
   let loading = $state(true);
   let list = $state<HTMLOListElement>();
   /** The first load jumps to the latest letter, a sent letter scrolls to it (v0.4). */
@@ -237,11 +240,16 @@
             <!-- v0.8: pictures of a control-centre bot, below the letter, without file names. -->
             <div class="pictures">
               {#each letter.media as id, index (id)}
-                <img
-                  src={`/api/bot-media/${id}`}
-                  alt={fill(t.bots.pictureAlt, { n: index + 1, name })}
-                  loading="lazy"
-                />
+                {@const alt = fill(t.bots.pictureAlt, { n: index + 1, name })}
+                <!-- v0.8.5: a tap shows the picture full screen. -->
+                <button
+                  type="button"
+                  class="picture"
+                  aria-label={`${alt} – ${t.bots.pictureOpen}`}
+                  onclick={() => (enlarged = { src: `/api/bot-media/${id}`, alt })}
+                >
+                  <img src={`/api/bot-media/${id}`} {alt} loading="lazy" />
+                </button>
               {/each}
             </div>
           {/if}
@@ -275,8 +283,11 @@
   <Compose
     {peerId}
     guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
+    presetOwl={writeWith.peerId === peerId ? writeWith.owlId : null}
+    presetRecipients={writeWith.peerId === peerId ? writeWith.recipients : null}
     onsent={() => {
       clearReplyWith();
+      clearWriteWith();
       jump = 'smooth';
       void load();
     }}
@@ -297,14 +308,20 @@
       bot
       guestOnly={bot.type === 'central' && !bot.playerOwls}
       guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
+      presetOwl={writeWith.peerId === peerId ? writeWith.owlId : null}
       onsent={() => {
         clearReplyWith();
+        clearWriteWith();
         jump = 'smooth';
         void load();
         void refreshTopics('contacts');
       }}
     />
   {/if}
+{/if}
+
+{#if enlarged}
+  <PictureViewer src={enlarged.src} alt={enlarged.alt} onclose={() => (enlarged = null)} />
 {/if}
 
 <p class="danger">
@@ -326,7 +343,16 @@
     margin-top: 0.75rem;
   }
 
+  .pictures .picture {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+    max-width: 100%;
+  }
+
   .pictures img {
+    display: block;
     max-width: 100%;
     max-height: 20rem;
     border-radius: 0.25rem;
@@ -465,7 +491,11 @@
     font-weight: 700;
   }
 
+  /* v0.8.5: space between "Alle Briefe verbrennen" and "[Bot] entfernen", also when wrapped. */
   .danger {
     margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 </style>

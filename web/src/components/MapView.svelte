@@ -40,7 +40,10 @@
     /** v0.8.3: language and texts of another panel (default: those of the app). */
     lang?: Language;
     texts?: Texts['map'];
-    /** v0.8.3: as wide as its container (control centre), not limited to the window height. */
+    /**
+     * v0.8.3: control centre. v0.8.5: as wide as its container, but never taller than the window
+     * (wherever it stands on the page), so the page can be scrolled past it.
+     */
     wide?: boolean;
     /** Own markers; `scale` is SVG units per screen pixel. */
     markers?: Snippet<[(lat: number, lon: number) => { x: number; y: number }, number]>;
@@ -103,7 +106,9 @@
     const top = wrapper.getBoundingClientRect().top + window.scrollY;
     const nav = document.querySelector('[data-bottom-nav]')?.getBoundingClientRect().height ?? 0;
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    maxSide = Math.max(18 * rem, window.innerHeight - top - nav - rem);
+    maxSide = wide
+      ? Math.max(18 * rem, window.innerHeight - 6 * rem)
+      : Math.max(18 * rem, window.innerHeight - top - nav - rem);
   }
 
   // Through the CSSOM, which the CSP allows (no inline style attribute).
@@ -346,6 +351,8 @@
   }
 
   function wheel(event: WheelEvent) {
+    // v0.8.5: zoomed out as far as it goes, the wheel scrolls the page instead.
+    if (event.deltaY > 0 && view.w >= largest.w) return;
     event.preventDefault();
     const point = svgPoint(event.clientX, event.clientY);
     zoom(event.deltaY > 0 ? 1.25 : 0.8, point?.x, point?.y);
@@ -454,7 +461,7 @@
   }
 
   .map.wide {
-    width: 100%;
+    width: min(100%, var(--map-max, max(18rem, 100dvh - 6rem)));
   }
 
   svg {

@@ -416,7 +416,8 @@ describe('loan owls are locked for two days (v0.7, SPEC 9.6)', () => {
     let at = app.clock.now;
     const previous: string[][] = [];
     for (let day = 0; day < 20; day++) {
-      const offer = offerOf(app.ctx, utcDay(at));
+      // v0.8.5: per account.
+      const offer = offerOf(app.ctx, anna.id, utcDay(at));
       for (const before of previous.slice(-2))
         for (const s of offer) expect(before).not.toContain(s);
       previous.push(offer);
@@ -463,7 +464,12 @@ describe('notice about deleted letters (v0.7, SPEC 8.4.1)', () => {
     // Keep the session alive (30 days without use end it).
     advanceTo(app, sent.body.letters[0]!.arrivesAt + 15 * TIME.DAY);
     await anna.agent.json('GET', '/api/system-messages');
-    advanceTo(app, sent.body.letters[0]!.arrivesAt + 31 * TIME.DAY);
+    advanceTo(app, sent.body.letters[0]!.arrivesAt + 29 * TIME.DAY);
+    await anna.agent.json('GET', '/api/system-messages');
+    // v0.8.5: deleted at the weekly clean-up (Monday) after the 30 days – day by day, as a
+    // jump would count as downtime (a missed clean-up waits for the next Monday).
+    for (let day = 30; day <= 38; day++)
+      advanceTo(app, sent.body.letters[0]!.arrivesAt + day * TIME.DAY);
     const messages = await anna.agent.json<{
       messages: { type: string; params: Record<string, unknown> }[];
     }>('GET', '/api/system-messages');

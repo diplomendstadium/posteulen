@@ -147,7 +147,9 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
       'IP-Adresse wird nicht gespeichert',
       `nach ${OPERATIONS.BACKUP_RETENTION_DAYS} Tagen`,
       'Automatische Löschung',
-      `spätestens ${LETTER.RETENTION_MAX_DAYS} Tage`,
+      // v0.8.5: deleted at the weekly run after the period.
+      `${LETTER.RETENTION_MAX_DAYS} Tage nach ihrer Zustellung`,
+      'einmal pro Woche',
     ])
       expect(text).toContain(required);
   });
@@ -173,7 +175,9 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
 describe('Hilfe zu Version 0.2', () => {
   it('weist deutlich auf die Löschung alter Briefe hin und erklärt die neuen Regeln', () => {
     const text = helpAsText();
-    expect(text).toContain('spätestens 365 Tage');
+    // v0.8.5: deleted 365 days after delivery, at the weekly clean-up (Mondays).
+    expect(text).toContain('365 Tage – also ein Jahr – nach ihrer Zustellung');
+    expect(text).toContain('einmal in der Woche, montags früh');
     expect(text).toContain('30, 90 oder 180 Tagen');
     expect(text).toContain('mindestens 1 Stunde zu Hause');
     expect(text).toContain('3-mal pro Kalendermonat');

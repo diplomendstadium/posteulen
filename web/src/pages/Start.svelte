@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t, fill } from '../lib/i18n.svelte.ts';
-  import { REPOSITORY_URL, VERSION } from '@posteulen/shared/version.ts';
+  import { REPOSITORY_URL } from '@posteulen/shared/version.ts';
   import { DONATION } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
   import ErrorText from '../components/ErrorText.svelte';
@@ -108,7 +108,7 @@
       >{t.nav.donate}<span class="visually-hidden">{` ${t.nav.donateLink}`}</span></a
     >
     <a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
-      >v{VERSION}<span class="visually-hidden">{t.app.versionLink}</span></a
+      >{t.app.sourceCode}<span class="visually-hidden">{t.app.versionLink}</span></a
     >
   </nav>
 </div>

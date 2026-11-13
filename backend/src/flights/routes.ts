@@ -78,6 +78,8 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
           type: stop.type,
           status: stop.status,
           arrivesAt: stop.arrivesAt,
+          // v0.8.5: resting at this recipient until then ("Deine Eulen unterwegs").
+          restUntil: stop.status === 'resting' ? (stop.restUntil ?? null) : null,
           lat: stop.lat,
           lon: stop.lon,
         })),

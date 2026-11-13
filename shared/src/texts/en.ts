@@ -16,7 +16,8 @@ export const en: Texts = {
     newPost: 'New post!',
     newPostCount: '{count} unread',
     version: 'v{version}',
-    versionLink: ' – source code on GitHub',
+    sourceCode: 'Source code',
+    versionLink: ' on GitHub (opens in a new tab)',
     skipToContent: 'Skip to content',
   },
   language: {
@@ -142,14 +143,14 @@ export const en: Texts = {
     nameChanged: 'You are now called {name}.',
     lettersTitle: 'Letters',
     retentionIntro:
-      'All letters and system messages are deleted for good one year after delivery at the latest – for you and for everyone else. You can have your own copies (letters written and received) deleted sooner. The other person keeps their copy until their own period runs out.',
+      'All letters and system messages are deleted for good one year after delivery – for you and for everyone else. You can have your own copies (letters written and received) deleted sooner. The other person keeps their copy until their own period runs out. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer than its period.',
     retentionLegend: 'Delete my letters after',
     retention30: '30 days',
     retention90: '90 days',
     retention180: '180 days',
     retention365: 'one year (default)',
     retentionConfirm:
-      'All your letters and system messages older than {days} days will be deleted immediately and for good. Continue?',
+      'All your letters and system messages older than {days} days will be deleted for good at the next weekly tidy-up (early on Monday). Continue?',
     printLabel: 'Show letters in print instead of handwriting',
     linksLabel: 'Links in letters clickable',
     linksHint:
@@ -208,6 +209,7 @@ export const en: Texts = {
     title: 'Letters',
     none: 'No letters yet. Add a contact in the address book and write the first letter.',
     system: 'System messages',
+    owlRestingHere: 'An owl of {name} is resting with you right now',
     unread: '{count} unread',
     unknown: 'unknown',
     from: 'Brought by {owl} ({species})',
@@ -237,8 +239,12 @@ export const en: Texts = {
     restHint:
       'This is how long the owl stays with each recipient – it recovers there as at home and takes a reply back to you. Once it has a reply, it flies on at once.',
     guestGone: 'The visiting owl has flown on in the meantime. Choose another owl.',
-    restGuestHint: 'A visiting owl takes your reply straight back – without a rest.',
+    restDefaultOwn: 'Preselected for your own owls: 2 h.',
+    restDefaultLoan: 'Preselected for loan owls: 24 h.',
+    choicesLoading: 'Calling the owls …',
     guestHint: 'Is resting with you (until {time}) and takes your reply straight to {name}.',
+    guestHintOnward:
+      'Is resting with you (until {time}). It first delivers its other letters and then takes your reply to {name}.',
     routeHint:
       'PostEulen has sorted the recipients so that the owl flies the shortest way. You can still change the order with ↑ and ↓.',
     addRecipient: 'Add another recipient',
@@ -253,7 +259,7 @@ export const en: Texts = {
     loanHint:
       'Loan owl: carries a letter to up to 5 recipients (gold to one); it only comes back with a reply.',
     retentionHint:
-      'Letters are deleted automatically and for good {period} after delivery (settings).',
+      'Letters are deleted automatically and for good {period} after delivery, at the weekly tidy-up (early on Mondays; settings).',
     retentionYear: 'one year',
     retentionDays: '{days} days',
     loanOffers:
@@ -317,11 +323,12 @@ export const en: Texts = {
     owl_sick: '{owl} has fallen ill. Nurse it yourself or take it to the owl vet.',
     owl_healthy: '{owl} is healthy again.',
     eggs_laid: '{owl} has laid eggs and is now brooding for 7 days.',
-    chicks_hatched: '{owl} has hatched a chick. Give it a name!',
+    chicks_hatched:
+      '{owl} has hatched a chick. Give it a name within the next 5 days – otherwise the lot picks one.',
     chicks_hatched_gift:
-      '{owl} has hatched {count} chicks. Give them names and give one of them away within 24 hours.',
+      '{owl} has hatched {count} chicks. Take your time: give them names and give one of them away within 5 days. Only then will lots be drawn.',
     clutch_reminder:
-      'Reminder: a chick must be given away within a few hours, or lots will be drawn.',
+      'Reminder: a chick must be given away by this time tomorrow, or lots will be drawn.',
     clutch_lot: 'The lot has decided: the chick {owl} is flying to {name}.',
     clutch_kept: 'You have no active contacts – all chicks stay with you.',
     chick_adult: '{owl} is grown up.',
@@ -333,8 +340,10 @@ export const en: Texts = {
     broadcast: '{text}',
   },
   duration: {
-    minutes: '{n} min',
-    hours: '{n} h',
+    minute: '1 minute',
+    minutes: '{n} minutes',
+    hour: '1 hour',
+    hours: '{n} hours',
   },
   feedback: {
     title: 'Message to the admin',
@@ -426,6 +435,8 @@ export const en: Texts = {
     botOwlOnly:
       'You can only reply to this bot while its owl is resting with you (under “Owls”: “Hand … a reply”).',
     pictureAlt: 'Picture {n} with the letter from {name}',
+    pictureOpen: 'Enlarge picture',
+    pictureClose: 'Tap, click or press Escape to close the picture.',
     title: 'Bots',
     remove: 'Remove {name}',
     removeAllTitle: 'Bots',
@@ -504,6 +515,8 @@ export const en: Texts = {
     guestLoanOf: 'loan owl of {name}',
     guestHint:
       'You can care for it so it flies on refreshed, and hand it a reply to {name} – then it takes off at once.',
+    guestHintOnward:
+      'You can care for it so it flies on refreshed, and hand it a reply to {name}. Then it flies on at once: it first delivers its other letters and then takes your reply to {name}.',
     guestReply: 'Give it a reply to {name}',
     guestSendOn: 'Send on its way',
     guestSendOnConfirm: 'Send {name} on its way now without a reply?',
@@ -518,6 +531,16 @@ export const en: Texts = {
     sleepNightAlt: '{name} is taking a night rest on the way',
     broodingAlt: '{name} is brooding on her eggs in the nest',
     napAlt: '{name} is having a nap at home',
+    perchRestingAlt: 'Empty perch – {name} is resting with {host} right now',
+    write: 'Write a letter',
+    writeTitle: 'Send a letter with {name}',
+    writeIntro:
+      'Who should get the letter? Choose up to 5 contacts – or one bot, which only gets letters on their own. Then the conversation opens with this owl.',
+    writeContacts: 'Contacts',
+    writeBots: 'Bots',
+    writeGo: 'On to the letter',
+    writeNobody:
+      'You cannot write to anyone right now. Add a contact in the address book – you both need to add each other.',
     perchAlt: 'Empty perch – {name} is helping out in the Menagerie',
     homeDayAlt: '{name} sits on the window sill by day',
     homeNightAlt: '{name} sits on the window sill by candlelight at night',
@@ -560,10 +583,12 @@ export const en: Texts = {
     limit: 'You already have 50 owls of your own – that is the limit.',
     loanTitle: 'Borrow owls',
     loanIntro:
-      'On offer today – for 0.1 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. You must send it off within 24 hours, or it flies back to the Menagerie (no refund).',
+      'On offer today – for 0.1 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back to the Menagerie (no refund). Once a loan is over, its offer disappears until tomorrow.',
     loanCount: 'Borrowed today: {count} of {max}. Tomorrow there are new owls to borrow.',
     loan: 'Borrow {name} ({species}, {sex})',
     loaned: 'Already borrowed',
+    /** v0.8.5: every offer of the day has been borrowed and its loan is over. */
+    allDone: 'All loan owls of today are back in the Menagerie. Tomorrow there are new ones.',
     loanDone: '{name} is now waiting with your owls.',
   },
   finance: {
@@ -606,8 +631,6 @@ export const en: Texts = {
     legendContact: 'Contacts',
     legendBot: 'Bots',
     legendOwl: 'Your owls on their way',
-    legendTrack: 'Route flown so far',
-    legendSleep: 'An owl spent the night here',
     legendNight: 'Night (sun 6° or more below the horizon)',
     flightsTitle: 'Your owls on their way',
     flightsNone: 'None of your owls is on its way right now.',
@@ -615,6 +638,7 @@ export const en: Texts = {
     purposeLetter: 'Letter',
     purposeGold: 'Gold',
     purposeGift: 'Gift',
+    restingAt: 'resting with {name} until {time}',
     nextStop: 'next stop {name} around {time}',
     homeAt: 'back around {time}',
     sleeping: 'sleeping right now',
@@ -796,7 +820,13 @@ export const en: Texts = {
     back: '← All bots',
     mapTitle: 'Bot owls on their way',
     mapIntro:
-      'All owls of bots flying out, resting or flying back right now – without names of players. Diamonds: homes of the bots.',
+      'All owls of bots flying out, resting or flying back right now – without names of players.',
+    legendTitle: 'Legend',
+    legendHome: 'Home of a bot (diamond)',
+    legendFlying: 'Bot owl flying out (blue circle)',
+    legendResting: 'Bot owl resting with a player (green square)',
+    legendReturning: 'Bot owl flying back (orange triangle)',
+    legendPicked: 'Chosen home (red ring)',
     mapNone: 'No bot owl is out right now.',
     mapLabel: 'World map with bot owls',
     owl_flying: 'flying out',
@@ -910,6 +940,8 @@ export const en: Texts = {
     exportSelected: 'Export selected events',
     pastTitle: 'Past events (archive)',
     pastNone: 'No past events yet.',
+    pastRetention:
+      'An event is deleted for good 36 months after it was sent – with texts, numbers, deliveries and the pictures nothing else uses. The statistics of the bots stay.',
     pastState_running: 'running (letters or replies on their way)',
     pastState_archived: 'finished',
     pastState_skipped: 'not run',
@@ -994,6 +1026,8 @@ export const en: Texts = {
     owl_snacked_today: 'This owl has already had its favourite snack today.',
     owl_not_home: 'This is only possible while the owl is at home.',
     owl_name_mismatch: 'The name does not match. Please type the owl’s name exactly as shown.',
+    owl_release_limit:
+      'You can only release an owl while you have more than 20 owls of your own (chicks count).',
     owl_rename_blocked: 'This owl can only be renamed again next calendar year.',
     owl_name_too_short: 'The name is too short (at least 2 characters).',
     owl_name_too_long: 'The name is too long (at most 20 characters).',

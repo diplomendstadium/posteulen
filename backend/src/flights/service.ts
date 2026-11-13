@@ -826,22 +826,10 @@ export function registerFlightHandlers(ctx: Context): void {
     if (stop.type === 'deliver') deliver(ctx, flight, stop, event.logicalAt, tools.after);
     else arriveHome(ctx, flight, stop, event.logicalAt, tools.after);
     if (rests) {
-      // v0.8.2: the host learns who rests with them and until when – system message and push.
-      addSystemMessage(
-        ctx,
-        stop.userId,
-        'owl_resting',
-        {
-          owl: flight.owl_name,
-          species: flight.owl_species,
-          name: displayName(ctx.db, flight.holder_id) ?? '',
-          until: stop.restUntil ?? event.logicalAt,
-        },
-        event.logicalAt,
-        tools.after,
-      );
+      // v0.8.2: the host learns that an owl rests with them – a push; v0.8.5 no system message
+      // any more: the chat list shows a little owl behind the holder's name instead (8.4).
       ctx.push.notify(stop.userId, 'owl_resting', flight.id, event.logicalAt, tools.after);
-      tools.after(() => ctx.hub.notify(stop.userId, 'owls', 'system'));
+      tools.after(() => ctx.hub.notify(stop.userId, 'owls', 'chats'));
       return;
     }
     if (!route.some((other) => other.status === 'pending')) {

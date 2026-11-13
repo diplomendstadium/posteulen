@@ -48,7 +48,7 @@ test.describe('Version 0.7', () => {
     await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Magst du mir antworten?');
     await page.getByLabel('Rast bei jedem Empfänger').selectOption('48');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
     await expect(
@@ -63,7 +63,7 @@ test.describe('Version 0.7', () => {
     await other.getByLabel('Text').fill('Gern, hier ist meine Antwort.');
     // v0.7.1: replying with the visiting owl – no rest option, no other owls.
     await expect(other.getByLabel('Rast bei jedem Empfänger')).toBeHidden();
-    await other.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     const guestChoice = other.locator('input[name="letter-owl"][value^="guest:"]');
     await expect(guestChoice).toBeChecked();
     await expect(other.locator('input[name="letter-owl"]')).toHaveCount(1);

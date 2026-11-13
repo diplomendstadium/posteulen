@@ -35,14 +35,14 @@ Dein Erklärbär`,
 
 Jede Eule hat Energie. Nachts braucht sie 1 Punkt pro Kilometer, tagsüber 1,5. Ist sie leer, schläft sie und erholt sich dabei wie zu Hause – aber nur so lange, bis die Kraft fürs nächste Ziel reicht. Über Wasser fliegt sie weiter, bis sie Land findet.
 
-Zu Hause erholt sie sich von selbst. Beim Schreiben wählst du, wie lange sie bei jedem Empfänger rastet – dann kann sie dir gleich eine Antwort mitbringen. Auf der Karte siehst du, wo deine Eulen gerade sind, welchen Weg sie schon geflogen sind und wo es Nacht ist. Ein „Zzz“ zeigt, wo eine Eule übernachtet hat.
+Zu Hause erholt sie sich von selbst. Beim Schreiben wählst du, wie lange sie bei jedem Empfänger rastet – dann kann sie dir gleich eine Antwort mitbringen. Ist eine Eule bereit, schickst du sie in der Eulenübersicht auch direkt mit „Brief schreiben“ los. Auf der Karte siehst du, wo deine Eulen gerade sind und wo es Nacht ist.
 
 Bis bald, dein Erklärbär`,
   day2: `Hallo, heute geht es ums Gold!
 
 In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Gold kannst du per Eule an Kontakte schicken.
 
-In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort vier neue Leiheulen, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort vier neue Leiheulen, eigens für dich ausgewürfelt, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
 Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück. Klemmt etwas, oder hast du eine Idee? Ganz unten in den Einstellungen schickst du dem Admin eine kurze Nachricht.
 
@@ -62,7 +62,7 @@ Dein Erklärbär`,
 
 Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und mit Motivation fliegen sie die nächste Strecke schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Ist eine Eule krank, pflegst du sie selbst gesund oder bringst sie zum Eulenarzt.
 
-Manchmal legt eine Eule Eier. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt.
+Manchmal legt eine Eule Eier. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
 
 Das war mein letzter Brief der Reihe. Fragen beantworte ich gern!
 

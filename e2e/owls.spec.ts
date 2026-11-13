@@ -195,7 +195,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await page.goto('/app/adressbuch');
     await page.getByTestId('person-contact').getByRole('link', { name: 'Brief schreiben' }).click();
     await page.getByLabel('Text').fill('Ein Brief mit echter Eule');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
+    // v0.8.5: the owl choice appears by itself.
     await page.getByRole('radio', { name: /Kartenkauz/ }).check();
     await expect(page.getByText(/Wieder zu Hause: ca\./).first()).toBeVisible();
     await page.getByRole('button', { name: 'Absenden' }).click();

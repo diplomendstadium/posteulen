@@ -48,13 +48,19 @@ export const LETTER = {
   RETENTION_MAX_DAYS: 365,
   /** Shorter periods a user can choose for their own copies (settings, v0.2). */
   RETENTION_CHOICES: [30, 90, 180, 365],
+  /** v0.8.5: letters past their period are deleted once a week, on this weekday (1 = Monday). */
+  RETENTION_WEEKDAY_UTC: 1,
   /**
    * v0.7: how long (hours) the owl rests at each recipient before flying on; the recipient may
    * hand it a reply to the sender meanwhile. 0 = no rest.
    */
   REST_HOURS_CHOICES: [0, 1, 2, 24, 48],
-  /** v0.7: preselected when writing a letter. */
-  REST_HOURS_DEFAULT: 1,
+  /**
+   * v0.8.5: preselected when writing a letter to people – 2 hours with an own owl, 24 hours
+   * with a loan owl (until the writer picks a rest by hand; before: 1 hour for all).
+   */
+  REST_HOURS_DEFAULT_OWN: 2,
+  REST_HOURS_DEFAULT_LOAN: 24,
 } as const;
 
 export const FLIGHT = {
@@ -83,6 +89,8 @@ export const OWL = {
   /** v0.5: a day counts as cared for with this many different interactions. */
   CARE_DAY_INTERACTIONS: 2,
   MAX_OWN_OWLS: 50,
+  /** v0.8.5: releasing an owl needs more than this many own owls (chicks count, 9.2.8). */
+  RELEASE_ABOVE_OWN_OWLS: 20,
   NAME_MIN_CHARS: 2,
   NAME_MAX_CHARS: 20,
   /** Care bonus (9.3): the last 14 days with at least one hour at home, 10 of them cared for. */
@@ -103,8 +111,11 @@ export const OWL = {
   CHICKS_MIN: 1,
   CHICKS_MAX: 3,
   CHICK_GIFT_FROM_COUNT: 2,
-  CHICK_GIFT_DEADLINE_HOURS: 24,
-  CHICK_NAME_DEADLINE_HOURS: 24,
+  /** v0.8.5: five days to choose the gift and the names (before: 24 hours, 9.9). */
+  CHICK_GIFT_DEADLINE_HOURS: 120,
+  CHICK_NAME_DEADLINE_HOURS: 120,
+  /** v0.8.5: the reminder comes one day before the lot (before: 4 hours). */
+  CHICK_GIFT_REMINDER_HOURS_BEFORE: 24,
   CHICK_ADULT_AT_MOTHER_DAYS: 14,
   CHICK_ADULT_AT_RECIPIENT_DAYS: 7,
 } as const;
@@ -221,6 +232,8 @@ export const CENTRAL_BOTS = {
   /** How long a bot owl waits at the player before it flies back (hours). */
   REST_HOURS_MAX: 168,
   REST_HOURS_DEFAULT: 24,
+  /** v0.8.5: sent events (with deliveries and unused pictures) are deleted after 36 months. */
+  EVENT_RETENTION_MONTHS: 36,
   /** Spontaneous AI reply only if no letter event is planned within this many days. */
   SPONTANEOUS_WINDOW_DAYS: 28,
   REPLY_AFTER_HOURS: 2,

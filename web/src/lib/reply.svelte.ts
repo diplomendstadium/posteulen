@@ -14,4 +14,21 @@ export function clearReplyWith(): void {
   replyWith.owlId = null;
 }
 
+/**
+ * v0.8.5: "Brief schreiben" on the card of a ready own or loan owl: the chat of the first
+ * chosen recipient opens with this owl and all chosen recipients in the editor.
+ */
+export const writeWith = $state<{
+  peerId: string | null;
+  owlId: string | null;
+  recipients: string[];
+}>({ peerId: null, owlId: null, recipients: [] });
+
+export function clearWriteWith(): void {
+  writeWith.peerId = null;
+  writeWith.owlId = null;
+  writeWith.recipients = [];
+}
+
 onSignOut(clearReplyWith);
+onSignOut(clearWriteWith);

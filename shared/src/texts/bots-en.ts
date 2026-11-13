@@ -33,7 +33,7 @@ Your Explainer Bear`,
 
 Your finances show how much gold you have and your latest bookings. You can send gold to your contacts by owl.
 
-In the Menagerie you buy your own owls or borrow one. Every day there are four new loan owls, and you can borrow each of them once that day. If you have an owl to spare, you can lend it to the Menagerie for 7 days and get 10 % of its price afterwards.
+In the Menagerie you buy your own owls or borrow one. Every day there are four new loan owls, rolled just for you, and you can borrow each of them once that day. If you have an owl to spare, you can lend it to the Menagerie for 7 days and get 10 % of its price afterwards.
 
 By the way: the little flag in the top right corner switches PostEulen to German and back. Something not working, or an idea? At the very bottom of the settings you can send the admin a short message.
 
@@ -42,7 +42,7 @@ Happy saving, your Explainer Bear`,
 
 Every owl has energy. At night it needs 1 point per kilometre, by day 1.5. When it is empty, it sleeps and recovers just as at home – but only until it has the strength for its next destination. Over water it keeps flying until it finds land.
 
-At home it recovers by itself. When writing, you choose how long it rests with each recipient – then it can bring you a reply straight away. The map shows where your owls are right now, the way they have already flown and where it is night. A "Zzz" marks where an owl spent the night.
+At home it recovers by itself. When writing, you choose how long it rests with each recipient – then it can bring you a reply straight away. Once an owl is ready, you can also send it off straight from the owl overview with "Write a letter". The map shows where your owls are right now and where it is night.
 
 See you soon, your Explainer Bear`,
     day4: `Hello, today is all about contacts!
@@ -60,7 +60,7 @@ Your Explainer Bear`,
 
 Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people's owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl is ill, nurse it back to health yourself or take it to the owl vet.
 
-Sometimes an owl lays eggs. With two or three chicks, you give one of them to a contact.
+Sometimes an owl lays eggs. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
 
 That was the last letter of my series. I am happy to answer your questions!
 

@@ -26,8 +26,8 @@ test.describe('Bots (Stufe 5, SPEC 10)', () => {
     await expect(page.getByRole('link', { name: /Tante|Onkel/ })).toHaveCount(0);
     await page.getByRole('link', { name: /Erklärbär/ }).click();
     await page.getByLabel('Text').fill('Wie füttere ich meine Eule?');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await expect(page.getByText(/Ankunft bei Erklärbär/)).toBeVisible();
+    // v0.8.5: the owl choice appears by itself.
+    await expect(page.getByText(/Ankunft bei Erklärbär/).first()).toBeVisible();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Wie füttere ich meine Eule?')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/Diesem Bot kannst du wieder ab .* schreiben/)).toBeVisible({
