@@ -23,6 +23,22 @@ readonly PE_NODE_MAJOR=26
 readonly PE_RELEASES_KEPT=3
 readonly PE_BACKUP_DAYS=7
 
+# v0.9: Onion-Dienst (SPEC 16.5). Eigene Tor-Instanz nach Debian-Art („tor@posteulen“), damit die
+# Konfiguration ganz PostEulen gehört; die Schlüssel liegen zusätzlich als maßgebliche Kopie in
+# /etc/posteulen/onion (nie überschrieben, Teil der Sicherung).
+readonly PE_TOR_INSTANCE=posteulen
+readonly PE_TOR_UNIT=tor@posteulen.service
+readonly PE_TOR_ETC=/etc/tor/instances/posteulen
+readonly PE_TOR_DATA=/var/lib/tor-instances/posteulen
+readonly PE_TOR_HS_DIR=$PE_TOR_DATA/onion
+readonly PE_TOR_SOCKS=/run/tor-instances/posteulen/socks
+readonly PE_ONION_KEYS=$PE_ETC/onion
+readonly PE_TOR_SWITCH=$PE_DATA/tor-switch
+# Caddy nimmt die Onion-Seite nur lokal an; Tor leitet Port 80 der Onion-Adresse hierher.
+readonly PE_ONION_LISTEN_PORT=3005
+# Hinweise, die am Ende von Installation oder Update gesammelt angezeigt werden.
+readonly PE_NOTICES=/run/posteulen-hinweise
+
 # Fest eingetragene Fingerabdrücke der Paketquellen-Schlüssel (geprüft am 2026-11-05).
 readonly NODESOURCE_KEY_URL=https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
 readonly NODESOURCE_KEY_FPR=6F71F525282841EEDAF851B42F59B5F99B1BE0B4
@@ -50,6 +66,23 @@ banner() {
   printf '\n%s\n' "${PE_YELLOW}${PE_BOLD}################################################################${PE_RESET}"
   for line in "$@"; do printf '%s\n' "${PE_YELLOW}${PE_BOLD}#${PE_RESET} $line"; done
   printf '%s\n\n' "${PE_YELLOW}${PE_BOLD}################################################################${PE_RESET}"
+}
+
+# v0.9: ein Hinweis, der sofort erscheint UND am Ende gesammelt und unübersehbar wiederholt wird
+# (Erreichbarkeit über www, IPv4/IPv6, Tor). Hinweise halten Installation und Update nie auf.
+notice() {
+  warn "$*"
+  printf '%s\n' "$*" >>"$PE_NOTICES" 2>/dev/null || true
+}
+
+# Zeigt alle gesammelten Hinweise als Banner und leert die Sammlung.
+show_notices() {
+  [[ -s $PE_NOTICES ]] || return 0
+  local -a lines=("ACHTUNG – bitte prüfen (PostEulen läuft trotzdem):" "")
+  local line
+  while IFS= read -r line; do lines+=("• $line"); done <"$PE_NOTICES"
+  rm -f "$PE_NOTICES"
+  banner "${lines[@]}"
 }
 
 require_root() {
@@ -145,7 +178,7 @@ health_check() {
   # Nur wenn die laufende Version das Kontrollzentrum kennt (nach einem Rückfall auf eine ältere nicht).
   if grep -q "bots.$domain" /etc/caddy/Caddyfile 2>/dev/null &&
     ! curl "${curl_opts[@]}" "https://bots.$domain/api/health" >/dev/null 2>&1; then
-    warn "https://bots.$domain antwortet (noch) nicht. Für das Bots-Kontrollzentrum braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server."
+    notice "https://bots.$domain antwortet (noch) nicht. Für das Bots-Kontrollzentrum braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server."
   fi
 }
 
@@ -167,23 +200,85 @@ server_addresses() {
   ip -o addr show scope global 2>/dev/null | awk '$0 !~ / temporary/ {print $4}' | cut -d/ -f1 | sort -u
 }
 
+# v0.9: Onion-Adresse dieser Instanz aus der maßgeblichen Schlüsselkopie (leer, wenn es keine gibt).
+onion_host() {
+  local host
+  [[ -f $PE_ONION_KEYS/hostname ]] || return 0
+  host=$(tr -d '[:space:]' <"$PE_ONION_KEYS/hostname")
+  [[ $host =~ ^[a-z2-7]{56}\.onion$ ]] && printf '%s' "$host"
+  return 0
+}
+
+# v0.9: Soll Tor laufen? Ja, außer der Schalter im Adminpanel steht auf „aus“ (SPEC 16.5).
+tor_wanted() {
+  [[ $(cat "$PE_TOR_SWITCH" 2>/dev/null || true) != off ]]
+}
+
+# v0.9: Meldet den Zustand von Tor ans Adminpanel (ok|off|error|warning, bei error/warning mit
+# --what/--cause/--action). Ohne laufende Datenbank oder mit älterer Version still ohne Wirkung.
+tor_report() {
+  local cli=$PE_CURRENT/backend/src/cli.ts
+  [[ -f $cli ]] || return 0
+  as_service node "$cli" tor-status "$@" >/dev/null 2>&1 || true
+}
+
+# v0.9: Soll www.<Domain> per Weiterleitung bedient werden? Ja im Testmodus; sonst nur, wenn
+# www im DNS auf eine Adresse dieses Servers zeigt (sonst gäbe es kein Zertifikat).
+www_wanted() {
+  local domain=$1 test_mode=$2 address
+  [[ $test_mode == 1 ]] && return 0
+  for address in $(getent ahosts "www.$domain" 2>/dev/null | awk '{print $1}' | sort -u); do
+    server_addresses | grep -qxF "$address" && return 0
+  done
+  return 1
+}
+
+# Öffentlich erreichbare Adresse? (Private IPv4-Netze und IPv6-ULA zählen nicht – ein Server hinter
+# NAT oder mit internem IPv6 braucht dafür keinen DNS-Eintrag.)
+is_public_address() {
+  case $1 in
+    10.* | 192.168.* | 127.* | 169.254.*) return 1 ;;
+    172.1[6-9].* | 172.2[0-9].* | 172.3[01].*) return 1 ;;
+    100.6[4-9].* | 100.[7-9][0-9].* | 100.1[01][0-9].* | 100.12[0-7].*) return 1 ;;
+    [fF][cCdD]*:* | ::1) return 1 ;;
+  esac
+  return 0
+}
+
 # v0.8.2: Jeder Hostname über jede eigene Adresse (SPEC 16.2): DNS-Einträge (A/AAAA) gegen die
 # Adressen des Servers abgleichen und je Adresse prüfen, ob HTTPS mit gültigem Zertifikat
-# antwortet. Fehlende Zertifikate stößt ein Neuladen von Caddy an. Nur Warnungen – DNS liegt
+# antwortet. Fehlende Zertifikate stößt ein Neuladen von Caddy an. Nur Hinweise – DNS liegt
 # außerhalb des Servers und ist kein Grund für einen Rückfall. $1 = Domain, $2 = Testmodus.
+# v0.9: auch www.<Domain> (Weiterleitung, sofern im DNS eingetragen) und die Frage, ob jeder
+# Hostname über IPv4 UND IPv6 erreichbar ist, wenn der Server beides hat. Probleme erscheinen am
+# Ende von Installation und Update noch einmal gesammelt (notice).
 address_check() {
   local domain=$1 test_mode=$2 host address resolved problems=0 attempt reloaded=0
-  local -a hosts=("$domain" "admin.$domain") own_addresses ca_opts=()
-  grep -q "bots.$domain" /etc/caddy/Caddyfile 2>/dev/null && hosts+=("bots.$domain")
+  local -a hosts=("$domain") own_addresses ca_opts=() public_v4=() public_v6=()
+  local caddyfile=/etc/caddy/Caddyfile
+  grep -q "^www\.$domain {" "$caddyfile" 2>/dev/null && hosts+=("www.$domain")
+  hosts+=("admin.$domain")
+  grep -q "bots.$domain" "$caddyfile" 2>/dev/null && hosts+=("bots.$domain")
   # Nur Zeilen, die wie IPv4- oder IPv6-Adressen aussehen.
   mapfile -t own_addresses < <(server_addresses | grep -E '^[0-9a-fA-F.:]+$' || true)
   if [[ ${#own_addresses[@]} -eq 0 ]]; then
-    warn "Die Adressen dieses Servers ließen sich nicht ermitteln („ip -o addr“); die Adressprüfung entfällt."
+    notice "Die Adressen dieses Servers ließen sich nicht ermitteln („ip -o addr“); die Prüfung von DNS, IPv4 und IPv6 entfällt."
     return 0
   fi
+  for address in "${own_addresses[@]}"; do
+    is_public_address "$address" || continue
+    if [[ $address == *:* ]]; then public_v6+=("$address"); else public_v4+=("$address"); fi
+  done
   if [[ $test_mode -eq 1 ]]; then
     local ca=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt
     [[ -f $ca ]] && ca_opts=(--cacert "$ca") || ca_opts=(--insecure)
+  elif [[ ! " ${hosts[*]} " == *" www.$domain "* ]]; then
+    resolved=$(getent ahosts "www.$domain" | awk '{print $1}' | sort -u || true)
+    if [[ -z $resolved ]]; then
+      info "www.$domain hat keinen DNS-Eintrag – PostEulen ist nur unter https://$domain erreichbar. Wer auch www möchte: A/AAAA-Eintrag für www.$domain auf diesen Server setzen und danach „sudo $PE_CURRENT/deploy/configure.sh“ ausführen."
+    else
+      notice "DNS: www.$domain zeigt auf ${resolved//$'\n'/, } – keine Adresse dieses Servers. Deshalb leitet www nicht auf https://$domain weiter. Den A- bzw. AAAA-Eintrag von www korrigieren und danach „sudo $PE_CURRENT/deploy/configure.sh“ ausführen."
+    fi
   fi
   probe() {
     local target=$2
@@ -196,11 +291,20 @@ address_check() {
       resolved=$(printf '%s\n' "${own_addresses[@]}")
     else
       resolved=$(getent ahosts "$host" | awk '{print $1}' | sort -u || true)
-      [[ -z $resolved ]] && { warn "DNS: $host hat keinen A/AAAA-Eintrag."; problems=1; continue; }
+      [[ -z $resolved ]] && { notice "DNS: $host hat keinen A/AAAA-Eintrag – über diese Adresse ist PostEulen nicht erreichbar."; problems=1; continue; }
+      # v0.9: hat der Server eine öffentliche IPv4- bzw. IPv6-Adresse, soll der Name sie auch nennen.
+      if [[ ${#public_v4[@]} -gt 0 ]] && ! grep -qv ':' <<<"$resolved"; then
+        notice "DNS: $host hat keinen A-Eintrag (IPv4), obwohl der Server die IPv4-Adresse ${public_v4[0]} hat – Besucher ohne IPv6 erreichen $host nicht. Einen A-Eintrag auf ${public_v4[0]} anlegen."
+        problems=1
+      fi
+      if [[ ${#public_v6[@]} -gt 0 ]] && ! grep -q ':' <<<"$resolved"; then
+        notice "DNS: $host hat keinen AAAA-Eintrag (IPv6), obwohl der Server die IPv6-Adresse ${public_v6[0]} hat – über IPv6 ist $host nicht erreichbar. Einen AAAA-Eintrag auf ${public_v6[0]} anlegen (oder die IPv6-Adresse bewusst ungenutzt lassen)."
+        problems=1
+      fi
     fi
     for address in $resolved; do
       if ! printf '%s\n' "${own_addresses[@]}" | grep -qxF "$address"; then
-        warn "DNS: $host zeigt auf $address – das ist keine Adresse dieses Servers. Den A- bzw. AAAA-Eintrag korrigieren oder entfernen; sonst schlagen Zertifikate und Verbindungen über diese Adresse fehl."
+        notice "DNS: $host zeigt auf $address – das ist keine Adresse dieses Servers. Den A- bzw. AAAA-Eintrag korrigieren oder entfernen; sonst schlagen Zertifikate und Verbindungen über diese Adresse fehl."
         problems=1
         continue
       fi
@@ -214,12 +318,12 @@ address_check() {
         sleep 10
       done
       if ! probe "$host" "$address"; then
-        warn "https://$host über $address antwortet nicht mit gültigem Zertifikat. Prüfen: Firewall (Ports 80 und 443 auch für IPv6), DNS-Eintrag, „journalctl -u caddy -n 50“."
+        notice "https://$host über $address ($([[ $address == *:* ]] && echo IPv6 || echo IPv4)) antwortet nicht mit gültigem Zertifikat. Prüfen: Firewall (Ports 80 und 443 auch für IPv6), DNS-Eintrag, „journalctl -u caddy -n 50“."
         problems=1
       fi
     done
   done
-  [[ $problems -eq 0 ]] && ok "Alle Hostnamen antworten über alle ihre Adressen (IPv4/IPv6) mit gültigem Zertifikat."
+  [[ $problems -eq 0 ]] && ok "Alle Hostnamen (${hosts[*]}) antworten über alle ihre Adressen (IPv4/IPv6) mit gültigem Zertifikat."
   return 0
 }
 

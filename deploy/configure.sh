@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Schreibt alle erzeugten Konfigurationsdateien aus dem gerade aktiven Release:
 # service.env, systemd-Units, Caddyfile, Befehle in /usr/local/sbin, Platzhalter in local/.
+# v0.9: mit www-Weiterleitung (wenn www im DNS auf diesen Server zeigt) und Onion-Seite (SPEC 16.5).
 # Lokale Anpassungen in /etc/posteulen/local/ werden nie überschrieben (SPEC 16.3).
 set -euo pipefail
 SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -13,8 +14,14 @@ domain=$(conf_get POSTEULEN_DOMAIN)
 test_mode=$(conf_get POSTEULEN_TEST_MODE)
 valid_domain "$domain" || die "Keine gültige Domain in $PE_CONF." "Die Datei prüfen oder install.sh erneut ausführen."
 
+# v0.9: Onion-Adresse aus der maßgeblichen Schlüsselkopie (leer, solange Tor nicht eingerichtet ist).
+onion=$(onion_host)
+
 umask 022
-printf 'POSTEULEN_DOMAIN=%s\n' "$domain" >"$PE_SERVICE_ENV.new"
+{
+  printf 'POSTEULEN_DOMAIN=%s\n' "$domain"
+  [[ -n $onion ]] && printf 'POSTEULEN_ONION=%s\n' "$onion"
+} >"$PE_SERVICE_ENV.new"
 chmod 0644 "$PE_SERVICE_ENV.new"
 mv "$PE_SERVICE_ENV.new" "$PE_SERVICE_ENV"
 
@@ -44,6 +51,13 @@ if [[ -f $caddyfile ]] && ! grep -q '^# Erzeugt von posteulen-cli caddyfile' "$c
 fi
 args=(caddyfile --domain "$domain")
 [[ $test_mode == 1 ]] && args+=(--test-mode)
+# v0.9: www.<Domain> leitet auf <Domain> um – nur, wenn www im DNS auf diesen Server zeigt.
+www_wanted "$domain" "${test_mode:-0}" && args+=(--www)
+# v0.9: Onion-Seite (nur lokal, für Tor) und – solange Tor läuft – Onion-Location für den Tor Browser.
+if [[ -n $onion ]]; then
+  args+=(--onion "$onion")
+  tor_wanted && systemctl is-active --quiet "$PE_TOR_UNIT" && args+=(--onion-active)
+fi
 node "$RELEASE/backend/src/cli.ts" "${args[@]}" >"$caddyfile.new"
 if ! caddy validate --config "$caddyfile.new" --adapter caddyfile >/dev/null 2>&1; then
   caddy validate --config "$caddyfile.new" --adapter caddyfile || true

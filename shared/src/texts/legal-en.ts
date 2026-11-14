@@ -72,6 +72,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
     title: 'No IP addresses, no logs',
     blocks: [
       'Your IP address is not stored. It is only kept briefly in memory to slow down attacks such as mass password guessing, and disappears by itself. The web server keeps no access log; error logs contain no IP addresses, names or content either. Browser identifiers (user agent) and fingerprints are not collected.',
+      'Access through the Tor network: PostEulen can also be reached as an onion service. The server then does not see your IP address at all; to it, all visitors over Tor look the same. For this access the server keeps connections to the Tor network; no data about you is passed on to third parties.',
     ],
   },
   {

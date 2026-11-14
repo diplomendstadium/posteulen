@@ -6,6 +6,9 @@ export const BOTS_URL = 'http://localhost:18082';
 /** Second instance for admin tests (SPEC Anhang L.8). */
 export const ISOLATED_WEB_URL = 'http://localhost:18090';
 export const ISOLATED_ADMIN_URL = 'http://localhost:18091';
+/** v0.9: stand-ins for the onion sites of both instances. */
+export const TOR_WEB_URL = 'http://127.0.0.1:18083';
+export const ISOLATED_TOR_WEB_URL = 'http://127.0.0.1:18093';
 const ALLOWED_HOSTS = new Set([
   'localhost:18080',
   'localhost:18081',
@@ -13,6 +16,9 @@ const ALLOWED_HOSTS = new Set([
   'localhost:18090',
   'localhost:18091',
   'localhost:18092',
+  // v0.9: stand-ins for the onion site (another host than „localhost“, SPEC 16.5).
+  '127.0.0.1:18083',
+  '127.0.0.1:18093',
 ]);
 
 interface Guard {

@@ -4,6 +4,7 @@
  */
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
+import { SPECIES } from '@posteulen/shared/species.ts';
 import {
   BannerCreate,
   Broadcast,
@@ -53,7 +54,28 @@ export function adminStats(ctx: Context, now: number) {
         utcDay(now - 7 * TIME.DAY),
       ),
     },
+    owls: owlsBySpecies(ctx),
   };
+}
+
+/**
+ * v0.9: owls currently owned by players, per species (SPEC 13 item 1). Only own owls
+ * (`kind = 'own'`, chicks included and shown separately): no loan owls, no bot owls. Every species
+ * appears, also with 0, in the order of the species list; a numbers-only view without owners.
+ */
+export function owlsBySpecies(ctx: Context): { species: string; count: number; chicks: number }[] {
+  const rows = ctx.db.all<{ species: string; n: number; chicks: number }>(
+    `SELECT species, COUNT(*) AS n, SUM(is_chick) AS chicks
+       FROM owls WHERE kind = 'own' GROUP BY species`,
+  );
+  const counts = new Map(rows.map((row) => [row.species, row]));
+  const known = SPECIES.map((species) => species.id);
+  const unknown = rows.map((row) => row.species).filter((id) => !known.includes(id));
+  return [...known, ...unknown.sort()].map((id) => ({
+    species: id,
+    count: counts.get(id)?.n ?? 0,
+    chicks: counts.get(id)?.chicks ?? 0,
+  }));
 }
 
 /** A message in the system chat of every account, with push (SPEC 13 item 6). */

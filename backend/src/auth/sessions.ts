@@ -16,6 +16,17 @@ export interface CookieSpec {
   readonly secure: boolean;
   /** Lifetime in seconds; undefined = cookie of the browser session. */
   readonly maxAgeSeconds?: number;
+  /**
+   * v0.9: the cookie for requests through the onion service (SPEC 16.5). The onion site runs on
+   * plain http (Tor encrypts the transport), so the cookie there is `pe_session` without `Secure`
+   * and without the `__Host-` prefix – not every Tor Browser treats http onion sites as secure.
+   */
+  readonly tor?: CookieSpec;
+}
+
+/** The cookie of a request: over Tor the onion variant (v0.9). */
+export function specFor(spec: CookieSpec, request: { readonly viaTor?: boolean }): CookieSpec {
+  return request.viaTor === true && spec.tor ? spec.tor : spec;
 }
 
 /**
@@ -33,7 +44,19 @@ export function cookieSpec(
     : { name, secure };
 }
 
-export function setSessionCookie(reply: FastifyReply, spec: CookieSpec, token: string): void {
+/** The session cookie of the player app: clearnet and, if set up, the onion site (v0.9). */
+export function userCookieSpec(config: {
+  readonly userOrigin: string;
+  readonly torOrigin: string | undefined;
+}): CookieSpec {
+  const spec = cookieSpec(config.userOrigin, 'pe_session');
+  return config.torOrigin === undefined
+    ? spec
+    : { ...spec, tor: cookieSpec(config.torOrigin, 'pe_session') };
+}
+
+export function setSessionCookie(reply: FastifyReply, base: CookieSpec, token: string): void {
+  const spec = specFor(base, reply.request);
   reply.setCookie(spec.name, token, {
     path: '/',
     httpOnly: true,
@@ -43,7 +66,8 @@ export function setSessionCookie(reply: FastifyReply, spec: CookieSpec, token: s
   });
 }
 
-export function clearSessionCookie(reply: FastifyReply, spec: CookieSpec): void {
+export function clearSessionCookie(reply: FastifyReply, base: CookieSpec): void {
+  const spec = specFor(base, reply.request);
   reply.clearCookie(spec.name, {
     path: '/',
     httpOnly: true,
@@ -94,7 +118,7 @@ export function resolveSession(
   request: FastifyRequest,
   options: { background?: boolean } = {},
 ): SessionResult {
-  const token = request.cookies[spec.name];
+  const token = request.cookies[specFor(spec, request).name];
   if (!token) return { reason: 'no_session' };
   const now = ctx.now();
   const hash = sha256(token);
@@ -153,7 +177,7 @@ export function renewCookie(
   spec: CookieSpec,
   session: SessionUser,
 ): void {
-  const token = request.cookies[spec.name];
+  const token = request.cookies[specFor(spec, request).name];
   if (session.renewed && spec.maxAgeSeconds !== undefined && token) {
     setSessionCookie(reply, spec, token);
   }

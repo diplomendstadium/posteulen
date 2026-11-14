@@ -13,7 +13,7 @@ test.describe('Lange Briefe (v0.8.3)', () => {
     await borrowViaUi(page);
     await page.goto('/app/briefe');
     await page.getByRole('link', { name: /Erklärbär/ }).click();
-    await page.getByLabel(/Groß – bis 15 000 Zeichen/).check();
+    await page.getByLabel(/Lang – bis 15 000 Zeichen/).check();
     const text = Array.from(
       { length: 900 },
       (_, i) => `Zeile ${i + 1} eines sehr langen Briefes.`,

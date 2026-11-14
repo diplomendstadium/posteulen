@@ -8,7 +8,21 @@ SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$SELF_DIR/lib.sh"
 
 from_version=${1:-unbekannt}
-info "Update-Schritte (von $from_version): für diese Version keine besonderen Schritte."
+info "Update-Schritte (von $from_version)."
+
+# v0.9: Tor für den Onion-Dienst (SPEC 16.5) – schon jetzt, während die alte Version noch läuft.
+# Ein Fehler hier hält das Update nicht auf; tor.sh meldet ihn später deutlich.
+if ! command -v tor >/dev/null 2>&1; then
+  info "Installiere Tor für den Onion-Dienst …"
+  install -d -m 0755 "$PE_STATE"
+  if DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tor >/dev/null 2>&1; then
+    touch "$PE_STATE/tor-von-posteulen-installiert"
+    systemctl mask --now tor@default.service >/dev/null 2>&1 || true
+    ok "Tor installiert."
+  else
+    warn "Tor ließ sich (noch) nicht installieren – das Update läuft trotzdem weiter."
+  fi
+fi
 
 # Node.js-Hauptversion sicherstellen (falls eine spätere Version sie anhebt, reicht es,
 # PE_NODE_MAJOR in lib.sh zu ändern; install.sh richtet die Quelle passend ein).

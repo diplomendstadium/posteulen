@@ -1,6 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, ISOLATED_ADMIN_URL, ISOLATED_WEB_URL, test } from './fixtures.ts';
+import {
+  expect,
+  ISOLATED_ADMIN_URL,
+  ISOLATED_TOR_WEB_URL,
+  ISOLATED_WEB_URL,
+  test,
+} from './fixtures.ts';
 import { registerViaUi } from './account-helpers.ts';
 import { shoot } from './screenshot-helpers.ts';
 
@@ -18,6 +24,7 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
   test('Erstpasswort → Pflichtwechsel → Modus → Einladung → Registrierung mit Code', async ({
     page,
     context,
+    browser,
   }) => {
     const initial = fs
       .readFileSync(
@@ -123,6 +130,34 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     ).toBeVisible();
     await page.reload();
     await expect(page.getByText(/Gutschein …\w{4}: 2,5 Gold – eingelöst/)).toBeVisible();
+    // v0.9: owls of the players per species – the new account has none yet.
+    const owlStats = page.getByTestId('admin-owl-stats');
+    await expect(owlStats.getByRole('row', { name: /Waldkauz/ })).toContainText('0');
+    await expect(owlStats.getByRole('row', { name: /Zusammen/ })).toBeVisible();
+    // v0.9: the onion service – footer link only while Tor runs; the switch stops it.
+    const visitor = await browser.newPage();
+    await visitor.goto(`${ISOLATED_WEB_URL}/`);
+    await expect(visitor.getByTestId('tor-link')).toHaveAttribute(
+      'href',
+      `${ISOLATED_TOR_WEB_URL}/`,
+    );
+    await expect(visitor.getByTestId('tor-link')).toContainText('Tor-Netz');
+    const tor = page.getByTestId('admin-tor');
+    await expect(tor).toContainText('läuft');
+    page.once('dialog', (dialog) => void dialog.accept());
+    await tor.getByLabel('Zugang über das Tor-Netz eingeschaltet').uncheck();
+    await expect(tor.getByText('Tor wird abgeschaltet.')).toBeVisible();
+    await expect(tor).toContainText('abgeschaltet');
+    await visitor.reload();
+    await expect(visitor.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(visitor.getByTestId('tor-link')).toHaveCount(0);
+    const refused = await visitor.request.get(`${ISOLATED_TOR_WEB_URL}/api/health`);
+    expect(refused.status()).toBe(503);
+    await tor.getByLabel('Zugang über das Tor-Netz eingeschaltet').check();
+    await expect(tor.getByText(/Tor wird eingeschaltet/)).toBeVisible();
+    await visitor.reload();
+    await expect(visitor.getByTestId('tor-link')).toBeVisible();
+    await visitor.close();
     await page.getByRole('button', { name: 'Abmelden' }).click();
     await expect(page.getByRole('heading', { name: 'Anmeldung für die Verwaltung' })).toBeVisible();
   });

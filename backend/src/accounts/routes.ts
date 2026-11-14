@@ -12,22 +12,22 @@ import {
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
-import { clearSessionCookie, cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { clearSessionCookie, userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { nameLocked, profileOf, utcMonth } from '../auth/user-routes.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { rerouteForMove } from '../flights/service.ts';
 import { contactIdsOf, lockName, requestDeletion } from './lifecycle.ts';
 import { sendFeedback } from '../admin/feedback.ts';
 import { FeedbackSend } from '@posteulen/shared/schemas/feedback.ts';
-import { ipKey } from '../security/ip.ts';
+import { clientKey } from '../security/ip.ts';
 
 export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void {
-  const spec = cookieSpec(ctx.config.userOrigin, 'pe_session');
+  const spec = userCookieSpec(ctx.config);
   const authenticated = requireUser(ctx, spec);
 
   /** v0.7.1: a short, unencrypted message to the admin, once per calendar day (8.10). */
   app.post('/api/feedback', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(FeedbackSend, request.body);
     const me = userOf(request).id;

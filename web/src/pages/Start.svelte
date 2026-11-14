@@ -10,6 +10,8 @@
   import { status } from '../lib/status.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { sceneImage } from '../lib/owl-image.ts';
+  import { onMount } from 'svelte';
+  import { api } from '../lib/api.ts';
 
   /** The whole menagerie on its perches, next to the login (v0.3.1: instead of the tawny owl). */
   const group = sceneImage('group');
@@ -18,6 +20,19 @@
   let password = $state('');
   let busy = $state<string | null>(null);
   let error = $state<string | null>(null);
+  /** v0.9: the onion address – only once the server has set up Tor and it is running (SPEC 8.1). */
+  let onion = $state<string | null>(null);
+
+  onMount(() => {
+    api<{ url?: unknown }>('GET', '/api/onion')
+      .then((body) => {
+        const url = body.url;
+        onion = typeof url === 'string' && url.startsWith('http://') ? url : null;
+      })
+      .catch(() => {
+        // Offline or an older server: simply no link.
+      });
+  });
 
   async function submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -110,6 +125,11 @@
     <a href={REPOSITORY_URL} target="_blank" rel="noopener noreferrer"
       >{t.app.sourceCode}<span class="visually-hidden">{t.app.versionLink}</span></a
     >
+    {#if onion}
+      <a href={onion} rel="noopener noreferrer" data-testid="tor-link"
+        >{t.nav.tor}<span class="visually-hidden">{` ${t.nav.torLink}`}</span></a
+      >
+    {/if}
   </nav>
 </div>
 

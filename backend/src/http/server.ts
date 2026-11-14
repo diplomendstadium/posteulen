@@ -1,3 +1,4 @@
+import http from 'node:http';
 import Fastify, { LogController, type FastifyInstance, type FastifyError } from 'fastify';
 import cookie from '@fastify/cookie';
 import { VERSION } from '@posteulen/shared/version.ts';
@@ -23,6 +24,43 @@ export interface ApiOptions {
   /** HSTS on API responses (production behind HTTPS). */
   readonly hsts: boolean;
   readonly logLevel?: string | undefined;
+  /**
+   * v0.9 (user API only): the onion service. The same routes also answer on a second, local
+   * listener that only the onion site of Caddy reaches; requests there carry this origin, count
+   * as one client for all IP-based limits and are refused while Tor is switched off (SPEC 16.5).
+   */
+  readonly tor?: { readonly origin: string; readonly enabled: () => boolean } | undefined;
+}
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    /** v0.9: the request came through the onion service (the local Tor listener). */
+    viaTor: boolean;
+  }
+}
+
+/** Marks requests of the Tor listener; set by its server, never derived from headers. */
+const VIA_TOR = Symbol('posteulen.viaTor');
+type MarkedRequest = http.IncomingMessage & { [VIA_TOR]?: true };
+
+/** The extra Tor listener of a user API (v0.9), started by listenTor(). */
+const torServers = new WeakMap<FastifyInstance, http.Server>();
+
+/** Starts the Tor listener of a user API on the loopback interface (v0.9, SPEC 16.5). */
+export async function listenTor(app: FastifyInstance, host: string, port: number): Promise<number> {
+  const server = torServers.get(app);
+  if (!server) throw new Error('this API has no Tor listener');
+  // Routes and hooks are compiled only once the instance is ready.
+  await app.ready();
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen({ host, port }, () => {
+      server.off('error', reject);
+      resolve();
+    });
+  });
+  const address = server.address();
+  return typeof address === 'object' && address !== null ? address.port : port;
 }
 
 const STATE_CHANGING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -37,7 +75,8 @@ export type ErrorCode =
   | 'unsupported_media_type'
   | 'payload_too_large'
   | 'client_outdated'
-  | 'rate_limited';
+  | 'rate_limited'
+  | 'tor_disabled';
 
 function mapFastifyError(error: FastifyError): { status: number; code: ErrorCode } {
   switch (error.code) {
@@ -64,7 +103,19 @@ function mapFastifyError(error: FastifyError): { status: number; code: ErrorCode
  * Fetch-Metadata check, no internals in errors, security headers on every response.
  */
 export function buildApi(options: ApiOptions): FastifyInstance {
+  let torServer: http.Server | undefined;
   const app = Fastify({
+    // v0.9: one router for both listeners – the clearnet one (Caddy, HTTPS) and, for the user
+    // API, the local Tor listener. Requests of the latter are marked by their server.
+    serverFactory: (handler) => {
+      if (options.tor) {
+        torServer = http.createServer((request: MarkedRequest, response) => {
+          request[VIA_TOR] = true;
+          handler(request, response);
+        });
+      }
+      return http.createServer(handler);
+    },
     logger: options.logLevel === undefined ? false : loggerOptions(options.logLevel),
     logController: new LogController({ disableRequestLogging: true }),
     bodyLimit: SECURITY.MAX_REQUEST_BYTES,
@@ -79,14 +130,35 @@ export function buildApi(options: ApiOptions): FastifyInstance {
   void app.register(cookie);
 
   const headers = apiHeaders({ hsts: options.hsts });
+  // Over the onion service there is no HTTPS: no HSTS (browsers ignore it there anyway).
+  const torHeaders = apiHeaders({ hsts: false });
+  if (torServer) {
+    const server = torServer;
+    torServers.set(app, server);
+    app.addHook('onClose', async () => {
+      if (!server.listening) return;
+      await new Promise<void>((resolve) => {
+        server.close(() => resolve());
+        server.closeAllConnections();
+      });
+    });
+  }
+  app.decorateRequest('viaTor', false);
 
   app.addHook('onRequest', async (request, reply) => {
-    reply.headers(headers);
+    const viaTor = options.tor !== undefined && (request.raw as MarkedRequest)[VIA_TOR] === true;
+    request.viaTor = viaTor;
+    reply.headers(viaTor ? torHeaders : headers);
     reply.header(VERSION_HEADER, VERSION);
 
+    // v0.9: switched off in the admin panel – the root helper stops Tor as well (SPEC 16.5).
+    if (viaTor && !options.tor?.enabled()) {
+      return reply.code(503).send({ code: 'tor_disabled' });
+    }
     const origin = request.headers.origin;
     const site = request.headers['sec-fetch-site'];
-    if (origin !== undefined && origin !== options.origin) {
+    const expectedOrigin = viaTor ? options.tor?.origin : options.origin;
+    if (origin !== undefined && origin !== expectedOrigin) {
       return reply.code(403).send({ code: 'forbidden_origin' });
     }
     // Admin and user origins are same-site, so SameSite cookies do not separate them (SPEC 4.3).
@@ -112,7 +184,7 @@ export function buildApi(options: ApiOptions): FastifyInstance {
   });
 
   app.setErrorHandler((error: FastifyError | HttpError, request, reply) => {
-    reply.headers(headers);
+    reply.headers(request.viaTor ? torHeaders : headers);
     if (error instanceof HttpError) {
       if (error.status === 429 && typeof error.extra['retryAfterSeconds'] === 'number') {
         reply.header('retry-after', String(error.extra['retryAfterSeconds']));

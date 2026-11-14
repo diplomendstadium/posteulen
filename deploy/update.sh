@@ -18,6 +18,7 @@ require_root
 domain=$(conf_get POSTEULEN_DOMAIN)
 test_mode=$(conf_get POSTEULEN_TEST_MODE)
 [[ $test_mode == 1 ]] || test_mode=0
+rm -f "$PE_NOTICES"
 
 # Stellt Release und Datenbank wieder her. $1 = Release, $2 = Momentaufnahme der Datenbank.
 restore() {
@@ -29,6 +30,9 @@ restore() {
     install -m 0600 -o "$PE_USER" -g "$PE_USER" "$snapshot" "$PE_DATA/posteulen.sqlite"
   fi
   switch_symlink "$release" "$PE_CURRENT"
+  # v0.9: Eine Version vor 0.9 kennt keinen Onion-Dienst – Tor ruht dann (Schlüssel bleiben
+  # erhalten); das nächste Update auf 0.9 oder neuer startet ihn wieder.
+  [[ -x $release/deploy/tor.sh ]] || systemctl stop "$PE_TOR_UNIT" >/dev/null 2>&1 || true
   "$release/deploy/configure.sh"
   systemctl start posteulen.service
   health_check "$domain" "$test_mode"
@@ -46,6 +50,7 @@ if [[ ${1:-} == --rollback ]]; then
   printf '%s\n' "$current" >"$PE_STATE/rolled-back-from"
   rm -f "$PE_STATE/previous-release" "$PE_STATE/previous-snapshot"
   ok "Zurück auf $(release_version "$previous")."
+  show_notices
   exit 0
 fi
 
@@ -77,10 +82,14 @@ admin_output=$(as_service node "$RELEASE/backend/src/cli.ts" admin-init)
 # v0.8: Zugang zum Bots-Kontrollzentrum – nur beim ersten Update mit dem Kontrollzentrum.
 bots_output=$(as_service node "$RELEASE/backend/src/cli.ts" bots-init)
 switch_symlink "$RELEASE" "$PE_CURRENT"
+# v0.9: Onion-Dienst einrichten bzw. erhalten (SPEC 16.5). Probleme mit Tor lösen nie einen
+# Rückfall aus – tor.sh endet immer erfolgreich und meldet sie als Hinweis.
+"$RELEASE/deploy/tor.sh" setup || true
 "$RELEASE/deploy/configure.sh"
 systemctl start posteulen.service
 health_check "$domain" "$test_mode"
 trap - ERR
+"$RELEASE/deploy/tor.sh" check --network || true
 
 printf '%s\n' "$old_release" >"$PE_STATE/previous-release"
 printf '%s\n' "$snapshot" >"$PE_STATE/previous-snapshot"
@@ -106,3 +115,5 @@ if [[ -f $RELEASE/CHANGELOG.md ]]; then
   info "Hinweise für Betreiber (CHANGELOG.md):"
   sed -n '1,40p' "$RELEASE/CHANGELOG.md"
 fi
+# v0.9: alles, was bei Erreichbarkeit (www, IPv4/IPv6) oder Tor nicht stimmt, gesammelt am Ende.
+show_notices

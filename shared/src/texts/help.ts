@@ -90,8 +90,23 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Verwendet werden nur bewährte, offen geprüfte Bibliotheken (libsodium, hpke-js, OPAQUE von Serenity) – keine selbst gebastelte Kryptografie. Der Quelltext ist offen.',
       ],
       'Was PostEulen nicht verbergen kann: wer wem wann schreibt (Metadaten). Und wer dein entsperrtes Gerät in der Hand hat, kann deine Briefe lesen. Briefe an Bots und Systemnachrichten sind nicht verschlüsselt.',
-      'Sparsam mit Daten: Du brauchst weder deinen echten Namen noch eine E-Mail-Adresse oder Telefonnummer. Du kannst unter einem Pseudonym spielen und einen ausgedachten Wohnort wählen. Auch über ein VPN oder das Tor-Netz kannst du PostEulen nutzen – im Tor-Browser auf der Sicherheitsstufe „Standard“ (auf den strengeren Stufen fehlt eine Technik, die die Anmeldung braucht), dort allerdings ohne Benachrichtigungen.',
+      'Sparsam mit Daten: Du brauchst weder deinen echten Namen noch eine E-Mail-Adresse oder Telefonnummer. Du kannst unter einem Pseudonym spielen und einen ausgedachten Wohnort wählen. Auch über ein VPN oder das Tor-Netz kannst du PostEulen nutzen – im Tor-Netz sogar über eine eigene Onion-Adresse (siehe „PostEulen im Tor-Netz“).',
       'Auch der Admin schaut nicht hinein: Das Adminpanel, mit dem der Spieleserver verwaltet wird, hat keine Ansichten für Spielernamen, Kontakte oder Briefinhalte. Im Klartext zeigt es nur die Nachrichten, die du freiwillig über „Nachricht an den Admin“ in den Einstellungen schickst.',
+    ],
+  },
+  {
+    id: 'tor',
+    title: 'PostEulen im Tor-Netz',
+    blocks: [
+      'PostEulen ist nicht nur unter seiner normalen Adresse erreichbar, sondern auch als Onion-Dienst im Tor-Netz. Den Link „Tor-Netz“ findest du ganz unten auf der Startseite; er öffnet sich im Tor Browser. Öffnest du die normale Adresse im Tor Browser, zeigt er dir in der Adresszeile von selbst „.onion verfügbar“ an.',
+      [
+        'Über Tor erfährt der Server nicht, von wo du kommst – nicht einmal deine IP-Adresse. Die Verbindung verschlüsselt das Tor-Netz selbst von deinem Gerät bis zum Server; deshalb beginnt die Onion-Adresse mit „http://“ und nicht mit „https://“. Das ist bei Onion-Diensten so richtig.',
+        'Es ist dieselbe App: dasselbe Konto, dieselben Briefe, Eulen und dasselbe Gold. Du kannst nach Belieben zwischen der normalen Adresse und dem Tor-Netz wechseln.',
+        'Angemeldet bist du aber immer nur an einer Stelle zugleich. Meldest du dich über Tor an, endet die Sitzung unter der normalen Adresse – und umgekehrt. Jede Adresse merkt sich deine Anmeldung für sich.',
+        'Nutze den Tor Browser auf der Sicherheitsstufe „Standard“: Auf den strengeren Stufen fehlt eine Technik, die die Anmeldung braucht. Benachrichtigungen gibt es im Tor Browser nicht.',
+        'Über Tor sieht der Server keine einzelnen Besucher. Deshalb zählen alle Tor-Nutzer zusammen wie ein einziger Besucher, wenn es um Schutz vor Überlastung geht. Kommt die Meldung, dass die Eulen nicht hinterherkommen, warte kurz und versuch es noch einmal.',
+        'Der Betreiber kann den Zugang über das Tor-Netz vorübergehend abschalten. Dann verschwindet der Link auf der Startseite, und du nutzt einfach die normale Adresse.',
+      ],
     ],
   },
   {
@@ -101,7 +116,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Dein Nutzername hat ${ACCOUNT.USER_NAME_MIN_CHARS} bis ${ACCOUNT.USER_NAME_MAX_CHARS} Zeichen: lateinische Buchstaben, Umlaute, ß, gängige Akzentbuchstaben, Ziffern und einzelne Leerzeichen. Groß- und Kleinschreibung und leicht verwechselbare Zeichen (0 und O, 1, l und I) zählen als gleich – so kann sich niemand als jemand anderes ausgeben.`,
       `Dein Passwort hat mindestens ${ACCOUNT.PASSWORD_MIN_CHARS} Zeichen. Ein Satz, den du dir gut merken kannst, ist ideal. Das Passwort verlässt nie dein Gerät und liegt nirgends auf dem Server. Deshalb gilt: Wenn du es vergisst, sind alle deine Daten unwiderruflich verloren. Niemand kann es zurücksetzen, auch der Admin nicht.`,
       'Beim Erstellen setzt du einen fiktiven Wohnort per Pin auf die Karte – überlege sorgfältig, ob du deine echte Adresse wählen möchtest. Dort wohnen deine Eulen; von dort fliegen sie los.',
-      'Du kannst immer nur auf einem Gerät angemeldet sein. Meldest du dich auf einem anderen Gerät an, endet die Sitzung auf dem alten. Das ist auch ein Schutz: Benutzt jemand anderes dein Passwort, wirst du selbst ständig abgemeldet und merkst es sofort – ändere dann gleich dein Passwort. Nach mehrfach falschem Passwort musst du etwas warten und ein kleines Rechenrätsel lösen lassen (das macht dein Gerät automatisch).',
+      'Du kannst immer nur auf einem Gerät angemeldet sein. Meldest du dich auf einem anderen Gerät an, endet die Sitzung auf dem alten – das gilt auch beim Wechsel zwischen der normalen Adresse und dem Tor-Netz. Das ist auch ein Schutz: Benutzt jemand anderes dein Passwort, wirst du selbst ständig abgemeldet und merkst es sofort – ändere dann gleich dein Passwort. Nach mehrfach falschem Passwort musst du etwas warten und ein kleines Rechenrätsel lösen lassen (das macht dein Gerät automatisch).',
       `Ohne Nutzung endet die Anmeldung nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen. Beim Abmelden löscht PostEulen alle Schlüssel von deinem Gerät und vergisst auch alles, was es sich über deine Kontakte gemerkt hat – meldet sich danach jemand anderes im selben Fenster an, sieht er nichts davon. Beim nächsten Anmelden holt PostEulen deine Schlüssel verschlüsselt vom Server zurück.`,
     ],
   },
@@ -147,7 +162,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'verschluesselung',
     title: 'Verschlüsselung und Sicherheitsnummer',
     blocks: [
-      'Briefe zwischen Menschen werden auf deinem Gerät verschlüsselt und unterschrieben. Der Server sieht nur Kauderwelsch. Er sieht aber, wer wem wann schreibt, wie groß das Pergament ist und ob ein Brief gelesen wurde – deinem Gegenüber verrät PostEulen das nicht.',
+      'Briefe zwischen Menschen werden auf deinem Gerät verschlüsselt und unterschrieben. Der Server sieht nur Kauderwelsch. Er sieht aber, wer wem wann schreibt, wie lang das Pergament ist und ob ein Brief gelesen wurde – deinem Gegenüber verrät PostEulen das nicht.',
       'Jeder Kontakt hat mit dir eine gemeinsame Sicherheitsnummer aus 60 Ziffern. Vergleicht sie außerhalb der App, etwa beim Treffen oder am Telefon. Stimmt sie überein, markiere sie im Adressbuch als verglichen. So weißt du sicher, dass niemand dazwischensitzt.',
       'Dein Gerät vergleicht die Schlüssel deiner Kontakte vor jedem Brief und beim Öffnen eines Briefwechsels. Bemerkt es, dass sich die Schlüssel eines Kontakts geändert haben, warnt es deutlich und sperrt den Versand an ihn. Das sollte nie passieren, denn Schlüssel ändern sich in PostEulen nie. Klärt es außerhalb der App; danach entfernt ihr euch und koppelt euch neu.',
       'Kann dein Gerät einen Brief nicht entschlüsseln oder nicht als echt bestätigen, zeigt PostEulen den Inhalt nicht an. Dann steht dort: „Der Brief ist unterwegs so nass geworden, dass man ihn nicht mehr lesen kann.“ Dein Gegenüber sieht: „Die Eule hat den Brief unterwegs verloren.“ Den technischen Grund bekommt nur der Admin im Fehlerprotokoll, ohne Namen.',
@@ -160,8 +175,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Im Briefwechsel siehst du für jedes Gegenüber einen Chat, sortiert nach der letzten Aktivität und mit Zähler für ungelesene Briefe. Oben angeheftet sind die Systemnachrichten.',
       [
-        `Kleines Pergament: bis ${LETTER.SMALL_MAX_CHARS} Zeichen, kostenlos.`,
-        `Großes Pergament: bis ${LETTER.LARGE_MAX_CHARS} Zeichen, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} Aufpreis pro Versand.`,
+        `Kurzes Pergament: bis ${LETTER.SMALL_MAX_CHARS} Zeichen, kostenlos.`,
+        `Langes Pergament: bis ${LETTER.LARGE_MAX_CHARS} Zeichen, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} Aufpreis pro Versand.`,
       ],
       `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}), Eule wählen und absenden. Die Eulenwahl steht schon da, bevor du das erste Wort schreibst, und bleibt beim Tippen stehen. Bei mehreren Empfängern sortiert PostEulen sie so, dass die Eule den kürzesten Weg fliegt – von dir zu allen und wieder nach Hause. Mit den Pfeilen kannst du die Reihenfolge trotzdem ändern. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
       'Du kannst auch bei der Eule anfangen: In der Eulenübersicht hat jede einsatzbereite eigene Eule und jede Leiheule den Knopf „Brief schreiben“. Du wählst bis zu fünf Kontakte – oder einen Bot –, und der Briefwechsel öffnet sich mit genau dieser Eule.',
@@ -279,7 +294,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Gold und Finanzen',
     blocks: [
       `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Manchmal schickt dir auch ein Bot Gold oder sogar eine Eule.`,
-      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, großes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
+      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, langes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
       `Die Finanzübersicht zeigt deinen Goldstand und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
       `Gold verschicken: ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} per Eule an einen Kontakt, gern mit kurzem Begleitbrief. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
     ],
@@ -427,6 +442,11 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
     answer: `Nichts. PostEulen ist kostenlos, ohne Werbung und ohne Bezahlschranke – und das bleibt so. Server und Entwicklung kosten trotzdem Geld. Deshalb bitten wir alle fünf Wochen freundlich um eine freiwillige Spende über ${DONATION.URL.replace('https://', '')}; den Link findest du auch unten auf der Startseite unter „Spenden“. Niemand muss etwas geben.`,
   },
   {
+    question: 'Kann ich PostEulen über Tor benutzen?',
+    answer:
+      'Ja. Unten auf der Startseite führt der Link „Tor-Netz“ zur Onion-Adresse von PostEulen; öffne ihn im Tor Browser (Sicherheitsstufe „Standard“). Dort meldest du dich mit deinem gewohnten Konto an. Fehlt der Link, ist der Tor-Zugang gerade abgeschaltet.',
+  },
+  {
     question: 'Ich habe mein Passwort vergessen. Was nun?',
     answer:
       'Leider lässt es sich nicht zurücksetzen, weil es nirgends gespeichert ist – das ist der Preis für echte Verschlüsselung. Erstelle ein neues Konto und koppelt euch neu.',
@@ -457,7 +477,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'Mir ist das Gold ausgegangen.',
-    answer: `Jeden Tag gibt es Gold, solange du aktiv bist: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen ${gold(GOLD.DAILY)}, danach ${gold(GOLD.DAILY_LATER)}. Kleine Briefe sind kostenlos; nur Eulen, Leihen, Eulenkeks, Lieblingsleckerli, großes Pergament und Behandlungen kosten Gold.`,
+    answer: `Jeden Tag gibt es Gold, solange du aktiv bist: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen ${gold(GOLD.DAILY)}, danach ${gold(GOLD.DAILY_LATER)}. Kurze Briefe sind kostenlos; nur Eulen, Leihen, Eulenkeks, Lieblingsleckerli, langes Pergament und Behandlungen kosten Gold.`,
   },
   {
     question: 'Warum ist meine Eule diesmal langsamer (oder schneller) als sonst?',

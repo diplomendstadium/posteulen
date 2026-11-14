@@ -172,7 +172,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await buyAndName(page, 'Waldohreule', 'Ohrchen');
     await page.getByRole('button', { name: 'Verschenken' }).click();
     await page.getByLabel('An').selectOption({ index: 1 });
-    await page.getByLabel('Begleitbrief mitgeben (kleines Pergament, kostenlos)').check();
+    await page.getByLabel('Begleitbrief mitgeben (kurzes Pergament, kostenlos)').check();
     await page.getByLabel('Begleitbrief', { exact: true }).fill('Pass gut auf Ohrchen auf!');
     await page.getByRole('button', { name: 'Verschenken' }).last().click();
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'departure');

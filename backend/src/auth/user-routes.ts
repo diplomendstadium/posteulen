@@ -27,12 +27,13 @@ import { addSystemMessage } from '../messages/system.ts';
 import { cancelDeletion } from '../accounts/lifecycle.ts';
 import { createBots } from '../bots/service.ts';
 import { scheduleDonations } from '../messages/periodic.ts';
-import { ipKey } from '../security/ip.ts';
+import { clientKey } from '../security/ip.ts';
+import { footerOnionLink } from '../ops/tor.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
 import {
   clearSessionCookie,
-  cookieSpec,
+  userCookieSpec,
   createUserSession,
   requireUser,
   renewCookie,
@@ -48,7 +49,7 @@ function limit(
   limiter: 'general' | 'expensive' | 'registration',
   request: FastifyRequest,
 ): string {
-  const ip = ipKey(request.ip);
+  const ip = clientKey(request);
   const wait = ctx.limits[limiter].hit(ip, ctx.now());
   if (wait > 0)
     throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
@@ -109,12 +110,18 @@ async function loginThrottle(
 export { loginThrottle };
 
 export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
-  const spec = cookieSpec(ctx.config.userOrigin, 'pe_session');
+  const spec = userCookieSpec(ctx.config);
   const authenticated = requireUser(ctx, spec);
 
   app.get('/api/registration', async (request) => {
     limit(ctx, 'general', request);
     return { mode: getRegistrationMode(ctx.db) };
+  });
+
+  // v0.9: target of the footer link „Tor-Netz“ – only once Tor is set up and running (SPEC 8.1).
+  app.get('/api/onion', async (request) => {
+    limit(ctx, 'general', request);
+    return { url: footerOnionLink(ctx, request.viaTor) };
   });
 
   app.get('/api/altcha/challenge', async (request) => {

@@ -86,7 +86,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     );
     await page.getByLabel('Welches Küken?').selectOption({ label: 'Daune' });
     await page.getByLabel('An').selectOption({ label: ben.name });
-    await page.getByLabel('Begleitbrief mitgeben (kleines Pergament, kostenlos)').check();
+    await page.getByLabel('Begleitbrief mitgeben (kurzes Pergament, kostenlos)').check();
     await page.getByLabel('Begleitbrief', { exact: true }).fill('Für dich, Daune!');
     await page.getByRole('button', { name: 'Verschenken' }).click();
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick');

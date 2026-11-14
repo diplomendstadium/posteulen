@@ -15,9 +15,9 @@ import { ContactRequest, VaultPut } from '@posteulen/shared/schemas/letters.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
-import { ipKey } from '../security/ip.ts';
+import { clientKey } from '../security/ip.ts';
 import { addSystemMessage } from '../messages/system.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
 import { deriveServerKey } from '../secrets.ts';
 import {
@@ -30,12 +30,12 @@ import {
 } from './model.ts';
 
 export async function registerContactRoutes(app: FastifyInstance, ctx: Context): Promise<void> {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
   const requestKey = await deriveServerKey(ctx.secrets, SERVER_CONTEXTS.CONTACT_REQUEST);
   const targetHmac = (nameKey: string): Buffer => hmac(requestKey, nameKey);
 
   app.post('/api/contacts/requests', { preHandler: authenticated }, async (request) => {
-    const wait = ctx.limits.expensive.hit(ipKey(request.ip), ctx.now());
+    const wait = ctx.limits.expensive.hit(clientKey(request), ctx.now());
     if (wait > 0) throw new HttpError(429, 'rate_limited');
     const body = parse(ContactRequest, request.body);
     const me = userOf(request).id;

@@ -48,6 +48,19 @@ if [[ $reason == update ]]; then
   printf '%s\n' "$snapshot" >"$PE_STATE/last-snapshot"
 fi
 
+# v0.9: die Schlüssel des Onion-Dienstes (SPEC 16.5), verschlüsselt wie die Datenbank. Mit ihnen
+# behält ein wiederhergestellter Server dieselbe Onion-Adresse. Ein Fehler hier bricht nicht ab.
+if [[ -s $PE_ONION_KEYS/hs_ed25519_secret_key ]]; then
+  onion_target="$PE_BACKUPS/posteulen-onion-$stamp-$reason.tar.age"
+  if tar -C "$PE_ETC" -cf - onion | age --encrypt --recipients-file "$PE_BACKUP_PUB" --output "$onion_target.part"; then
+    chmod 0600 "$onion_target.part"
+    mv "$onion_target.part" "$onion_target"
+  else
+    rm -f "$onion_target.part"
+    warn "Sicherung der Onion-Schlüssel fehlgeschlagen – die Datenbanksicherung ist trotzdem da."
+  fi
+fi
+
 # v0.8: alle Bot-Definitionen und Events mit Bildern als importierbare ZIP-Datei, unverschlüsselt
 # (enthält keine Briefe von Spielern), SPEC Anhang S. Ein Fehler hier bricht die Sicherung nicht ab.
 bots_zip="$PE_BACKUPS/posteulen-bots-$stamp-$reason.zip"
@@ -60,6 +73,7 @@ fi
 # Aufbewahrung: höchstens 7 Tage (SPEC 8.11, 16.3).
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-*.sqlite.age' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-bots-*.zip' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
+find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-onion-*.tar.age' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 find "$PE_SNAPSHOTS" -maxdepth 1 -name 'vor-update-*.sqlite' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 
 ok "Sicherung erstellt: $target"

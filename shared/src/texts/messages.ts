@@ -48,6 +48,20 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.9.0',
+    title: 'Eulen auf verborgenen Pfaden: Version 0.9.0',
+    paragraphs: [
+      'Manche Eulen fliegen am liebsten dort, wo niemand ihnen folgen kann. Deshalb ist PostEulen ab sofort auch im Tor-Netz zu Hause – als sogenannter Onion-Dienst, eine Art verborgener Eulenturm mit eigenem Zugang.',
+      'Das ist neu:',
+      '• Auf der Startseite steht ganz unten der Link „Tor-Netz“. Im Tor Browser öffnet er PostEulen über das Tor-Netz. Öffnest du PostEulen ohnehin im Tor Browser, schlägt er dir die Onion-Adresse von selbst vor.',
+      '• Dort ist alles wie gewohnt: dasselbe Konto, dieselben Briefe, dieselben Eulen. Du kannst zwischen beiden Wegen wechseln, wie du magst – angemeldet bist du aber immer nur an einer Stelle zugleich. Meldest du dich auf dem einen Weg an, endet die Sitzung auf dem anderen.',
+      '• Damit es im verborgenen Turm nicht zu voll wird, achtet PostEulen dort besonders streng auf Andrang. Wird es einmal eng, hilft kurzes Warten.',
+      '• Das kostenlose Pergament heißt jetzt „kurzes Pergament“, das große „langes Pergament“. An Länge und Preis ändert sich nichts.',
+      '• Ein paar Eulen haben neue Porträts bekommen: Sie fliegen jetzt noch schöner los und kommen noch schöner heim.',
+      'Gute Flüge auf allen Wegen!',
+    ],
+  },
+  {
     version: '0.8.5',
     title: 'Post aus der Leserschaft: Version 0.8.5',
     paragraphs: [
@@ -298,6 +312,20 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.9.0',
+    title: 'Owls on hidden paths: version 0.9.0',
+    paragraphs: [
+      'Some owls like to fly where nobody can follow them. That is why PostEulen now also lives in the Tor network – as a so-called onion service, a kind of hidden owl tower with an entrance of its own.',
+      'What is new:',
+      '• At the very bottom of the start page there is the link “Tor network”. In the Tor Browser it opens PostEulen through the Tor network. If you open PostEulen in the Tor Browser anyway, it suggests the onion address by itself.',
+      '• Everything there is as usual: the same account, the same letters, the same owls. You can switch between both ways as you like – but you are only ever signed in in one place at a time. Signing in on one way ends the session on the other.',
+      '• To keep the hidden tower from getting too crowded, PostEulen watches the rush there particularly strictly. If it ever gets busy, a short wait helps.',
+      '• The free parchment is now called “short parchment”, the large one “long parchment”. Length and price stay the same.',
+      '• A few owls have new portraits: they now take off and come home even more beautifully.',
+      'Happy flying on every path!',
+    ],
+  },
   {
     version: '0.8.5',
     title: 'Letters from our readers: version 0.8.5',

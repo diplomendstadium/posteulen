@@ -53,6 +53,10 @@ done
 # ───────────────────────── 1. Prüfungen ─────────────────────────
 info "Prüfe das System …"
 require_root
+# v0.9: nicht gleichzeitig mit einem Update oder dem Tor-Schalter (tor.sh apply wartet darauf).
+exec 9>/run/posteulen-update.lock
+flock -n 9 || die "Es läuft bereits eine Installation oder ein Update." "Warten, bis es fertig ist."
+rm -f "$PE_NOTICES"
 # shellcheck source=/dev/null
 . /etc/os-release
 [[ ${ID:-} == debian && ${VERSION_ID:-} == 13 ]] || die "PostEulen braucht Debian 13 (gefunden: ${PRETTY_NAME:-unbekannt})." "Einen frischen Debian-13-Server verwenden."
@@ -299,6 +303,9 @@ bots_output=$(as_service node "$release/backend/src/cli.ts" bots-init)
 bots_password=$(sed -n 's/^BOTS-ERSTPASSWORT: //p' <<<"$bots_output")
 
 switch_symlink "$release" "$PE_CURRENT"
+# v0.9: Onion-Dienst (SPEC 16.5) – Tor installieren, Schlüssel erhalten oder aus
+# /etc/posteulen/onion wiederherstellen. Probleme damit halten die Installation nie auf.
+"$PE_CURRENT/deploy/tor.sh" setup || true
 "$PE_CURRENT/deploy/configure.sh"
 
 # ───────────────────────── 5. Start und Prüfung ─────────────────────────
@@ -306,11 +313,15 @@ systemctl enable --quiet posteulen.service posteulen-backup.timer
 systemctl restart posteulen.service
 systemctl start posteulen-backup.timer
 health_check "$domain" "$test_mode" || die "Die Funktionsprüfung ist fehlgeschlagen." "„journalctl -u posteulen -u caddy -n 100“ ansehen."
+"$PE_CURRENT/deploy/tor.sh" check --network || true
+onion=$(onion_host)
 
 # ───────────────────────── 6. Zusammenfassung ─────────────────────────
 version=$(release_version "$(readlink -f "$PE_CURRENT")")
 printf '\n%s\n' "${PE_GREEN}${PE_BOLD}PostEulen $version läuft.${PE_RESET}"
-printf '  Website:      https://%s\n  Verwaltung:   https://admin.%s\n  Bots:         https://bots.%s\n  Updates:      sudo posteulen-update\n' "$domain" "$domain" "$domain"
+printf '  Website:      https://%s\n  Verwaltung:   https://admin.%s\n  Bots:         https://bots.%s\n' "$domain" "$domain" "$domain"
+[[ -n $onion ]] && printf '  Tor-Netz:     http://%s\n' "$onion"
+printf '  Updates:      sudo posteulen-update\n'
 messages=(
   "WICHTIG: Jetzt die Geheimnis-Datei außerhalb des Servers sichern:"
   "  $PE_SECRETS"
@@ -325,6 +336,14 @@ if [[ -n $backup_private_file ]]; then
   )
 fi
 [[ $secrets_created -eq 1 ]] || messages+=("" "(Die Geheimnis-Datei war schon vorhanden und ist unverändert.)")
+if [[ -n $onion ]]; then
+  messages+=(
+    ""
+    "Onion-Adresse im Tor-Netz: http://$onion"
+    "Ihre Schlüssel liegen in $PE_ONION_KEYS und sind Teil jeder Sicherung"
+    "(posteulen-onion-….tar.age) – so behält ein neuer Server dieselbe Adresse."
+  )
+fi
 if [[ -n $admin_password ]]; then
   messages+=(
     ""
@@ -342,3 +361,4 @@ if [[ -n $bots_password ]]; then
   )
 fi
 banner "${messages[@]}"
+show_notices

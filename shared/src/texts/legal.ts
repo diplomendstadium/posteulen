@@ -78,6 +78,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     title: 'Keine IP-Adressen, keine Protokolle',
     blocks: [
       'Deine IP-Adresse wird nicht gespeichert. Sie liegt nur kurz im Arbeitsspeicher, um Angriffe wie massenhaftes Passwortraten zu bremsen, und verschwindet von selbst. Der Webserver führt kein Zugriffsprotokoll; auch Fehlerprotokolle enthalten keine IP-Adressen, Namen oder Inhalte. Browser-Kennungen (User-Agent) und Fingerabdrücke werden nicht erfasst.',
+      'Zugang über das Tor-Netz: PostEulen ist zusätzlich als Onion-Dienst erreichbar. Dabei sieht der Server deine IP-Adresse gar nicht; alle Besucher über Tor erscheinen ihm gleich. Für diesen Zugang hält der Server Verbindungen ins Tor-Netz; es werden dabei keine Daten über dich an Dritte übermittelt.',
     ],
   },
   {

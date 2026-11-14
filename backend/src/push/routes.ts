@@ -4,12 +4,12 @@ import { IdList, PushAck, PushSubscriptionInput } from '@posteulen/shared/schema
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
-import { ipKey } from '../security/ip.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { clientKey } from '../security/ip.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { checkEndpointUrl, EndpointError } from './transport.ts';
 
 export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
   /**
    * v0.6.1: every test push to an endpoint that keeps failing costs the server a connection
@@ -27,7 +27,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
 
   /** One subscription per account, bound to the last device (SPEC 11.3); starts the test. */
   app.put('/api/push/subscription', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     pushLimit(userOf(request).id);
     const body = parse(PushSubscriptionInput, request.body);
@@ -68,7 +68,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
   );
 
   app.post('/api/push/test', { preHandler: [authenticated, emptyBody] }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const me = userOf(request).id;
     pushLimit(me);
@@ -132,7 +132,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
    * unguessable push ID. Background request – does not count as activity (SPEC 9.10).
    */
   app.post('/api/push/ack', async (request) => {
-    if (ctx.limits.general.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.general.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(PushAck, request.body);
     const now = ctx.now();

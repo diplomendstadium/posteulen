@@ -61,6 +61,48 @@ letters() {
   NODE_EXTRA_CA_CERTS=/var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt \
     node /opt/posteulen/current/deploy/test/vm-account.ts "$1" "$ACCOUNT_NAME" "$ACCOUNT_PASSWORD" "${2:-}"
 }
+# v0.9: Onion-Dienst (SPEC 16.5).
+has_tor_support() { [[ -x /opt/posteulen/current/deploy/tor.sh ]]; }
+onion() { tr -d '[:space:]' </etc/posteulen/onion/hostname 2>/dev/null; }
+tor_running() { systemctl is-active --quiet tor@posteulen; }
+onion_keys_saved() {
+  [[ $(stat -c '%a %U' /etc/posteulen/onion) == '700 root' ]] &&
+    [[ $(stat -c '%a %U' /etc/posteulen/onion/hs_ed25519_secret_key) == '600 root' ]] &&
+    cmp -s /etc/posteulen/onion/hs_ed25519_secret_key /var/lib/tor-instances/posteulen/onion/hs_ed25519_secret_key
+}
+onion_local() { curl -s --max-time 10 -H "Host: $(onion)" http://127.0.0.1:3005/api/health | grep -q '"status":"ok"'; }
+onion_loopback_only() { ! ss -Hltn | grep -E ':300[45] ' | grep -vq '127.0.0.1'; }
+onion_location() {
+  curl -s --insecure -o /dev/null -D - --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -qi "^onion-location: http://$(onion)/"
+}
+no_onion_location() {
+  ! curl -s --insecure -o /dev/null -D - --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -qi '^onion-location:'
+}
+footer_link() {
+  curl -s --insecure --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/api/onion" | grep -q "\"url\":\"http://$(onion)/\""
+}
+www_redirect() {
+  curl -s --insecure -o /dev/null -D - --resolve "www.$DOMAIN:443:127.0.0.1" "https://www.$DOMAIN/hilfe?x=1" |
+    grep -qi "^location: https://$DOMAIN/hilfe?x=1"
+}
+onion_over_tor() {
+  local _
+  for _ in 1 2 3 4; do
+    curl -s --max-time 60 --proxy "socks5h://localhost/run/tor-instances/posteulen/socks" "http://$(onion)/api/health" | grep -q '"status":"ok"' && return 0
+  done
+  return 1
+}
+wait_for() {
+  local _
+  for _ in $(seq 1 30); do "$@" && return 0; sleep 2; done
+  return 1
+}
+tor_stopped() { ! tor_running; }
+tor_checks() {
+  check "Tor-Instanz läuft ($1)" tor_running
+  check "Onion-Adresse unverändert ($1)" test "$(onion)" = "$onion_before"
+  check "Onion-Seite antwortet lokal ($1)" onion_local
+}
 account_registered=0
 wait_delivered() {
   local _
@@ -84,7 +126,7 @@ apt-get update -qq && apt-get install -y -qq git >/dev/null
 git clone --quiet --bare /tmp/posteulen.bundle /srv/posteulen.git
 git -C /srv/posteulen.git config uploadpack.allowFilter true
 git clone --quiet /srv/posteulen.git /root/posteulen
-printf '127.0.0.1 %s admin.%s bots.%s\n' "$DOMAIN" "$DOMAIN" "$DOMAIN" >>/etc/hosts
+printf '127.0.0.1 %s admin.%s bots.%s www.%s\n' "$DOMAIN" "$DOMAIN" "$DOMAIN" "$DOMAIN" >>/etc/hosts
 
 if [[ -n $previous ]]; then
   echo "── 0. Installation der vorigen Stufe ($previous) und Update auf $v1"
@@ -152,6 +194,35 @@ grep -q 'address_check' /opt/posteulen/current/deploy/lib.sh 2>/dev/null &&
 check "SSH nur mit Schlüssel" test -f /etc/ssh/sshd_config.d/50-posteulen.conf
 check "Backup-Timer aktiv" systemctl is-active --quiet posteulen-backup.timer
 check "systemd-Härtung (Bewertung ≤ 2,5)" hardening_score
+onion_before=''
+if has_tor_support; then
+  echo "── 1a. Onion-Dienst (v0.9, SPEC 16.5)"
+  check "Tor-Instanz tor@posteulen läuft" tor_running
+  check "Onion-Adresse (v3) vorhanden" bash -c "[[ \$(tr -d '[:space:]' </etc/posteulen/onion/hostname) =~ ^[a-z2-7]{56}\\.onion\$ ]]"
+  onion_before=$(onion)
+  echo "   Onion-Adresse: $onion_before"
+  check "Schlüssel maßgeblich gesichert (/etc/posteulen/onion, 0700/0600 root)" onion_keys_saved
+  check "Standard-Tor-Client abgeschaltet" bash -c "! systemctl is-active --quiet tor@default"
+  check "Onion-Seite antwortet lokal (http, ohne HSTS)" onion_local
+  check "Onion-Listener nur auf localhost" onion_loopback_only
+  check "Onion-Location auf der normalen Seite" onion_location
+  check "Footer-Link nennt die Onion-Adresse" footer_link
+  check "Service-Umgebung kennt die Onion-Adresse" grep -qx "POSTEULEN_ONION=$onion_before" /etc/posteulen/service.env
+  check "www leitet dauerhaft auf die Domain um (308, mit Pfad)" www_redirect
+  check "Onion-Adresse über das Tor-Netz erreichbar" onion_over_tor
+  echo "   Schalter im Adminpanel: aus (Einstellung in der Datenbank, Neustart gleicht ab)"
+  sql "INSERT INTO settings (key, value) VALUES ('tor_enabled', '0') ON CONFLICT (key) DO UPDATE SET value = excluded.value" >/dev/null
+  systemctl restart posteulen
+  check "Schalter aus: Tor gestoppt" wait_for tor_stopped
+  check "Schalter aus: kein Onion-Location mehr" wait_for no_onion_location
+  check "Schalter aus: normale Seite läuft" test "$(api_version)" = "${v1#v}"
+  check "Schalter aus: Tor startet auch nicht von selbst" bash -c "systemctl start tor@posteulen; ! systemctl is-active --quiet tor@posteulen"
+  sql "UPDATE settings SET value = '1' WHERE key = 'tor_enabled'" >/dev/null
+  systemctl restart posteulen
+  check "Schalter an: Tor läuft wieder" wait_for tor_running
+  check "Schalter an: Onion-Location wieder da" wait_for onion_location
+  check "Schalter an: dieselbe Onion-Adresse" test "$(onion)" = "$onion_before"
+fi
 
 echo "── 2. Zweiter Lauf überschreibt nichts"
 sql "INSERT INTO settings (key, value) VALUES ('vmtest-marker', 'bleibt')" >/dev/null
@@ -163,6 +234,7 @@ check "Datenbank-Inhalt erhalten" has_marker
 check "Lokale Anpassung erhalten" grep -q '# lokale Anpassung' /etc/posteulen/local/admin-00-leer.caddy
 check "Dienst läuft weiter" test "$(api_version)" = "${v1#v}"
 has_account_support && check "Konto nach zweitem Lauf" account login
+has_tor_support && tor_checks "zweiter Lauf"
 
 echo "── 3. Update $v1 → $v2"
 check "posteulen-update --check" posteulen-update --check
@@ -174,6 +246,7 @@ check "Verschlüsselte Sicherung vor dem Update" update_backup_exists
 has_bots_support && check "Passwort des Kontrollzentrums beim Update unverändert" test "$(bots_access)" = "$bots_before"
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
+has_tor_support && tor_checks "Update"
 
 echo "── 3a. Nur signierte Tags (v0.6.1)"
 if posteulen-update "$unsigned" --yes; then check "unsigniertes Tag abgelehnt" false; else check "unsigniertes Tag abgelehnt" true; fi
@@ -187,6 +260,7 @@ check "Daten nach Rückfall erhalten" has_marker
 check "Kaputte Migration nicht in der DB" no_broken_table
 has_account_support && check "Konto nach Rückfall" account login
 has_letter_support && check "Brief nach Rückfall für beide lesbar" letters letters-check --delivered
+has_tor_support && tor_checks "automatischer Rückfall"
 
 echo "── 5. posteulen-update --rollback ($v2 → $v1)"
 check "Rollback" posteulen-update --rollback --yes
@@ -194,10 +268,24 @@ check "Version $v1 läuft" test "$(api_version)" = "${v1#v}"
 check "Daten von vor dem Update" has_marker
 has_account_support && check "Konto nach --rollback" account login
 has_letter_support && check "Brief nach --rollback für beide lesbar" letters letters-check --delivered
+has_tor_support && tor_checks "--rollback"
 
 echo "── 6. Sicherung und Wiederherstellung nach README.md"
 check "Sicherung manuell" systemctl start posteulen-backup.service
 has_bots_support && check "Tägliche Bot-Sicherung als ZIP (0600)" bots_backup_ok
+onion_backup_ok() {
+  local file
+  file=$(find /var/backups/posteulen -name 'posteulen-onion-*-taeglich.tar.age' | sort | tail -1)
+  [[ -n $file && $(stat -c %a "$file") == 600 ]] || return 1
+  rm -rf /tmp/onion-test && install -d -m 0700 /tmp/onion-test
+  age --decrypt --identity /root/posteulen-backup-schluessel.txt --output /tmp/onion-test/onion.tar "$file" || return 1
+  tar -x -C /tmp/onion-test -f /tmp/onion-test/onion.tar || return 1
+  cmp -s /tmp/onion-test/onion/hs_ed25519_secret_key /etc/posteulen/onion/hs_ed25519_secret_key
+  local result=$?
+  rm -rf /tmp/onion-test
+  return $result
+}
+has_tor_support && check "Onion-Schlüssel verschlüsselt in der Sicherung" onion_backup_ok
 latest=$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)
 check "Sicherung ist verschlüsselt (kein SQLite-Klartext)" bash -c "! head -c 16 \"\$1\" | grep -q 'SQLite format'" _ "$latest"
 sql "DELETE FROM settings WHERE key = 'vmtest-marker'" >/dev/null
@@ -222,12 +310,23 @@ cp /root/posteulen-backup-schluessel.txt "$rescue/posteulen-backup-schluessel.tx
 systemctl start posteulen-backup.service
 cp "$(find /var/backups/posteulen -name '*-taeglich.sqlite.age' | sort | tail -1)" "$rescue/"
 rescued_backup=$(find "$rescue" -name '*-taeglich.sqlite.age' | head -1)
+if has_tor_support; then
+  cp "$(find /var/backups/posteulen -name 'posteulen-onion-*-taeglich.tar.age' | sort | tail -1)" "$rescue/"
+fi
+rescued_onion=$(find "$rescue" -name 'posteulen-onion-*.tar.age' | head -1)
 # Der Server ist weg: nur der Testlauf löscht hier, nie die Skripte selbst.
 systemctl stop posteulen.service posteulen-backup.timer
 rm -rf /etc/posteulen /var/lib/posteulen /var/backups/posteulen /opt/posteulen /root/posteulen-backup-schluessel.txt
+# v0.9: auch die Tor-Instanz samt Schlüsseln ist weg (das Paket darf bleiben).
+systemctl stop tor@posteulen >/dev/null 2>&1 || true
+rm -rf /etc/tor/instances/posteulen /var/lib/tor-instances/posteulen
 # Schritt 1 der readme: Geheimnis-Datei vor der Installation zurücklegen.
 install -d -m 0700 /etc/posteulen
 install -m 0600 "$rescue/posteulen-secrets.json" /etc/posteulen/secrets.json
+# v0.9, ebenfalls Schritt 1: die Onion-Schlüssel aus der Sicherung zurücklegen.
+if [[ -n $rescued_onion ]]; then
+  age --decrypt --identity "$rescue/posteulen-backup-schluessel.txt" "$rescued_onion" | tar -x -C /etc/posteulen
+fi
 old_pub=$(sed -n 's/^# public key: //p' "$rescue/posteulen-backup-schluessel.txt")
 # Schritt 2: installieren, mit dem bisherigen öffentlichen Backup-Schlüssel.
 check "Neuinstallation mit geretteter Geheimnis-Datei" /root/posteulen/deploy/install.sh --domain "$DOMAIN" --test-mode --yes \
@@ -261,6 +360,11 @@ new_backup_readable() {
   [[ $header == 'SQLite format 3' ]]
 }
 check "Neue Sicherungen mit dem bisherigen Schlüssel lesbar" new_backup_readable
+if [[ -n $onion_before ]]; then
+  check "Neuer Server behält die Onion-Adresse" test "$(onion)" = "$onion_before"
+  check "Tor läuft auf dem neuen Server" tor_running
+  check "Onion-Seite antwortet auf dem neuen Server" onion_local
+fi
 rm -rf "$rescue"
 
 echo

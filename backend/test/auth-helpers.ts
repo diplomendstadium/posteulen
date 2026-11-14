@@ -45,6 +45,8 @@ export async function testApp(
     pushStatus?: number;
     random?: () => number;
     aiClient?: import('../src/bots/ai.ts').AiClient;
+    /** v0.9: extra environment (e.g. the onion address). */
+    env?: Record<string, string>;
   } = {},
 ): Promise<TestApp & { pushes: SentPush[] }> {
   const pushes: SentPush[] = [];
@@ -58,6 +60,7 @@ export async function testApp(
       POSTEULEN_DATA_DIR: path.join(dir, 'data'),
       POSTEULEN_SECRETS_FILE: secretsFile,
       POSTEULEN_DOMAIN: 'posteulen.test',
+      ...options.env,
     }),
     {
       now: () => clock.now,

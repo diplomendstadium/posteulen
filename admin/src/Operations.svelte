@@ -1,7 +1,7 @@
 <script lang="ts">
   /** Statistics, inactivity period and broadcasts (SPEC 13 items 1, 2, 4, 6). */
   import { onMount } from 'svelte';
-  import { t, fill } from './lib/i18n.svelte.ts';
+  import { t, fill, speciesName } from './lib/i18n.svelte.ts';
   import { locale } from './lib/i18n.svelte.ts';
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
@@ -9,6 +9,8 @@
   interface Stats {
     accounts: { created: number; current: number; active30: number };
     letters: { total: number; last7: number };
+    /** v0.9: owls owned by players per species (no loan or bot owls). */
+    owls: { species: string; count: number; chicks: number }[];
   }
   interface Sent {
     id: number;
@@ -91,6 +93,39 @@
         {fill(t.admin.statsLetters, { total: stats.letters.total, last7: stats.letters.last7 })}
       </li>
     </ul>
+    <h3 id="owl-stats-title">{t.admin.statsOwlsTitle}</h3>
+    <p>{t.admin.statsOwlsIntro}</p>
+    <div class="table-wrap">
+      <table aria-labelledby="owl-stats-title" data-testid="admin-owl-stats">
+        <thead>
+          <tr>
+            <th scope="col">{t.admin.statsOwlsSpecies}</th>
+            <th scope="col" class="number">{t.admin.statsOwlsCount}</th>
+            <th scope="col" class="number">{t.admin.statsOwlsChicks}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each stats.owls as row (row.species)}
+            <tr>
+              <th scope="row">{speciesName(row.species)}</th>
+              <td class="number">{row.count.toLocaleString(locale())}</td>
+              <td class="number">{row.chicks.toLocaleString(locale())}</td>
+            </tr>
+          {/each}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">{t.admin.statsOwlsTotal}</th>
+            <td class="number"
+              >{stats.owls.reduce((sum, row) => sum + row.count, 0).toLocaleString(locale())}</td
+            >
+            <td class="number"
+              >{stats.owls.reduce((sum, row) => sum + row.chicks, 0).toLocaleString(locale())}</td
+            >
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   {/if}
 </section>
 
@@ -144,6 +179,35 @@
 
   .plain {
     padding-left: 1.25rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    max-width: 30rem;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid currentColor;
+    font-weight: normal;
+  }
+
+  thead th,
+  tfoot th,
+  tfoot td {
+    font-weight: bold;
+  }
+
+  .number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   .sent li {

@@ -71,8 +71,23 @@ const SECTIONS: readonly HelpSection[] = [
         'Only proven, openly reviewed libraries are used (libsodium, hpke-js, OPAQUE by Serenity) – no home-made cryptography. The source code is open.',
       ],
       'What PostEulen cannot hide: who writes to whom and when (metadata). And anyone holding your unlocked device can read your letters. Letters to bots and system messages are not encrypted.',
-      'Sparing with data: you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a made-up home. You can also use PostEulen through a VPN or the Tor network – in Tor Browser at the security level “Standard” (the stricter levels switch off a technique the login needs), though without notifications there.',
+      'Sparing with data: you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a made-up home. You can also use PostEulen through a VPN or the Tor network – in the Tor network even through an onion address of its own (see “PostEulen in the Tor network”).',
       'The admin does not look inside either: the admin panel used to run the game server has no views of player names, contacts or letter contents. The only thing it shows in plain text is the messages you choose to send via “Message to the admin” in the settings.',
+    ],
+  },
+  {
+    id: 'tor',
+    title: 'PostEulen in the Tor network',
+    blocks: [
+      'PostEulen can be reached not only at its normal address but also as an onion service in the Tor network. You will find the link “Tor network” at the very bottom of the start page; it opens in the Tor Browser. If you open the normal address in the Tor Browser, it shows “.onion available” in the address bar by itself.',
+      [
+        'Over Tor the server does not learn where you come from – not even your IP address. The Tor network itself encrypts the connection from your device to the server; that is why the onion address starts with “http://” and not “https://”. For onion services this is just right.',
+        'It is the same app: the same account, the same letters, owls and the same gold. You can switch between the normal address and the Tor network as you like.',
+        'But you are only ever signed in in one place at a time. Signing in over Tor ends the session at the normal address – and the other way round. Each address remembers your sign-in on its own.',
+        'Use the Tor Browser at the security level “Standard”: the stricter levels switch off a technique the login needs. There are no notifications in the Tor Browser.',
+        'Over Tor the server cannot tell visitors apart. That is why all Tor users together count as one single visitor when it comes to protection against overload. If you are told that the owls cannot keep up, wait a moment and try again.',
+        'The operator can switch off access through the Tor network for a while. The link on the start page then disappears, and you simply use the normal address.',
+      ],
     ],
   },
   {
@@ -82,7 +97,7 @@ const SECTIONS: readonly HelpSection[] = [
       `Your user name has ${ACCOUNT.USER_NAME_MIN_CHARS} to ${ACCOUNT.USER_NAME_MAX_CHARS} characters: Latin letters, umlauts, ß, common accented letters, digits and single spaces. Upper and lower case and easily confused characters (0 and O, 1, l and I) count as the same – so nobody can pretend to be somebody else.`,
       `Your password has at least ${ACCOUNT.PASSWORD_MIN_CHARS} characters. A sentence you can remember easily is ideal. The password never leaves your device and is not stored anywhere on the server. So remember: if you forget it, all your data is lost for good. Nobody can reset it, not even the admin.`,
       'When creating your account you set a fictional home on the map with a pin – think carefully about whether you want to choose your real address. That is where your owls live and where they take off from.',
-      'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends. This is also a safeguard: if someone else is using your password, you keep getting signed out and notice at once – then change your password straight away. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
+      'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends – this also applies when switching between the normal address and the Tor network. This is also a safeguard: if someone else is using your password, you keep getting signed out and notice at once – then change your password straight away. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
       `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device and also forgets everything it remembered about your contacts – if someone else then signs in in the same window, they see nothing of it. The next time you sign in, PostEulen fetches your keys back from the server, encrypted.`,
     ],
   },
@@ -128,7 +143,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'verschluesselung',
     title: 'Encryption and safety number',
     blocks: [
-      'Letters between people are encrypted and signed on your device. The server only sees gibberish. But it does see who writes to whom and when, how large the parchment is and whether a letter has been read – PostEulen does not tell the other person.',
+      'Letters between people are encrypted and signed on your device. The server only sees gibberish. But it does see who writes to whom and when, how long the parchment is and whether a letter has been read – PostEulen does not tell the other person.',
       'Each contact shares a safety number of 60 digits with you. Compare it outside the app, for example when you meet or on the phone. If it matches, mark it as compared in the address book. Then you know for sure that nobody is sitting in between.',
       'Your device compares your contacts’ keys before every letter and when you open a conversation. If it notices that a contact’s keys have changed, it warns you clearly and blocks sending to them. That should never happen, because keys never change in PostEulen. Sort it out outside the app; then remove each other and pair again.',
       'If your device cannot decrypt a letter or cannot confirm it as genuine, PostEulen does not show its content. Instead it says: “The letter got so wet on its way that it can no longer be read.” The other person sees: “The owl lost the letter on its way.” Only the admin gets the technical reason in the error log, without names.',
@@ -141,8 +156,8 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       'Under Letters you see a chat for every person, sorted by latest activity and with a counter for unread letters. The system messages are pinned at the top.',
       [
-        `Small parchment: up to ${LETTER.SMALL_MAX_CHARS} characters, free.`,
-        `Large parchment: up to ${LETTER.LARGE_MAX_CHARS.toLocaleString('en-GB')} characters, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} extra each time you send.`,
+        `Short parchment: up to ${LETTER.SMALL_MAX_CHARS} characters, free.`,
+        `Long parchment: up to ${LETTER.LARGE_MAX_CHARS.toLocaleString('en-GB')} characters, ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)} extra each time you send.`,
       ],
       `How it works: choose the parchment, write the text, add more recipients if you like (at most ${LETTER.MAX_RECIPIENTS} in total), choose an owl and send. The owl choice is there before you write the first word and stays while you type. With several recipients, PostEulen sorts them so that the owl flies the shortest way – from you to all of them and back home. You can still change the order with the arrows. When you choose an owl, PostEulen shows you for every owl when it arrives at each recipient and when it is back home.`,
       'You can also start with the owl: in the owl overview every ready owl of your own and every loan owl has the button “Write a letter”. You choose up to five contacts – or one bot – and the conversation opens with exactly this owl.',
@@ -260,7 +275,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Gold and finances',
     blocks: [
       `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. Sometimes a bot sends you gold or even an owl, too.`,
-      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}, large parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
+      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)}, owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}, long parchment ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
       `The finances show how much gold you have and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
       `Sending gold: ${gold(GOLD.TRANSFER_MIN)} to ${gold(GOLD.TRANSFER_MAX)} by owl to a contact, with a short cover letter if you like. Afterwards you must have more than ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} left. The gold is debited when the owl takes off and arrives with the owl. If it turns back, you get it back as soon as it is home again. You cannot send gold to bots.`,
     ],
@@ -410,6 +425,11 @@ const FAQ: readonly HelpQuestion[] = [
     answer: `Nothing. PostEulen is free, without adverts and without a paywall – and it will stay that way. Servers and development still cost money, though. That is why every five weeks we kindly ask for a voluntary donation via ${DONATION.URL.replace('https://', '')}; you also find the link at the bottom of the start page under “Donate”. Nobody has to give anything.`,
   },
   {
+    question: 'Can I use PostEulen over Tor?',
+    answer:
+      'Yes. At the bottom of the start page, the link “Tor network” leads to the onion address of PostEulen; open it in the Tor Browser (security level “Standard”). Sign in there with your usual account. If the link is missing, access over Tor is switched off at the moment.',
+  },
+  {
     question: 'I have forgotten my password. What now?',
     answer:
       'Sadly it cannot be reset because it is not stored anywhere – that is the price of real encryption. Create a new account and pair again.',
@@ -440,7 +460,7 @@ const FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'I have run out of gold.',
-    answer: `You get gold every day as long as you are active: ${gold(GOLD.DAILY)} during the first ${GOLD.DAILY_HIGH_DAYS} days, then ${gold(GOLD.DAILY_LATER)}. Small letters are free; only owls, borrowing, owl biscuits, favourite snacks, large parchment and treatments cost gold.`,
+    answer: `You get gold every day as long as you are active: ${gold(GOLD.DAILY)} during the first ${GOLD.DAILY_HIGH_DAYS} days, then ${gold(GOLD.DAILY_LATER)}. Short letters are free; only owls, borrowing, owl biscuits, favourite snacks, long parchment and treatments cost gold.`,
   },
   {
     question: 'Why is my owl slower (or faster) than usual this time?',

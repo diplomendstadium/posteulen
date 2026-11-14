@@ -82,6 +82,8 @@ const PUBLIC = [
   'bots POST /api/login/start',
   'user GET /api/altcha/challenge',
   'user GET /api/health',
+  // v0.9: target of the footer link „Tor-Netz“ (public like the registration mode).
+  'user GET /api/onion',
   'user GET /api/registration',
   'user GET /api/session',
   'user GET /api/version',

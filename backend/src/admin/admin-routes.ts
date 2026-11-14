@@ -2,7 +2,11 @@
 import * as v from 'valibot';
 import type { FastifyInstance } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
-import { ErrorLogUpdate, RegistrationModeUpdate } from '@posteulen/shared/schemas/auth.ts';
+import {
+  ErrorLogUpdate,
+  RegistrationModeUpdate,
+  TorUpdate,
+} from '@posteulen/shared/schemas/auth.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
@@ -12,6 +16,7 @@ import { listFeedback } from './feedback.ts';
 import { VoucherCreate } from '@posteulen/shared/schemas/vouchers.ts';
 import { registerAdminOperations } from './operations.ts';
 import { registerPanelAuth } from './panel-auth.ts';
+import { setTorEnabled, torOverview } from '../ops/tor.ts';
 
 /** Error log IDs are positive integers in decimal notation (no `1e2`, no signs). */
 const ErrorLogId = v.pipe(v.string(), v.regex(/^[1-9][0-9]{0,14}$/));
@@ -82,6 +87,15 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     const result = ctx.db.run('DELETE FROM feedback WHERE id = ?', id);
     if (result.changes !== 1) throw new HttpError(404, 'not_found');
     return { ok: true };
+  });
+
+  // ── Tor-Netz (v0.9, SPEC 13 item 9, 16.5) ──
+  app.get('/api/settings/tor', { preHandler: authenticated }, async () => torOverview(ctx));
+
+  app.put('/api/settings/tor', { preHandler: authenticated }, async (request) => {
+    const body = parse(TorUpdate, request.body);
+    setTorEnabled(ctx, body.enabled);
+    return torOverview(ctx);
   });
 
   // ── Fehlerprotokoll (SPEC 13 item 7) ──

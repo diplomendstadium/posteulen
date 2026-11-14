@@ -2,7 +2,7 @@
 /**
  * posteulen-cli – server administration commands (run as root or the service user).
  * Commands: setup, migrate, check, admin-init, admin-reset, bots-init, bots-reset, bots-export,
- * bots-import, caddyfile, backup, version, schema-version.
+ * bots-import, caddyfile, backup, tor-status (v0.9), version, schema-version.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,6 +17,8 @@ import { generateCaddyfile } from './ops/caddyfile.ts';
 import { adminExists, setInitialAdminPassword } from './admin/admin-auth.ts';
 import { createContext } from './context.ts';
 import { applyImport, exportBots, planImport } from './central/transfer.ts';
+import { reportTorError, setTorStatus } from './ops/tor.ts';
+import { logError } from './ops/error-log.ts';
 
 function fail(message: string): never {
   console.error(`Fehler: ${message}`);
@@ -194,9 +196,16 @@ async function main(argv: string[]): Promise<void> {
           'admin-root': { type: 'string', default: '/opt/posteulen/current/admin/dist' },
           'bots-root': { type: 'string', default: '/opt/posteulen/current/bots/dist' },
           'local-dir': { type: 'string', default: '/etc/posteulen/local' },
+          // v0.9 (SPEC 16.5)
+          www: { type: 'boolean', default: false },
+          onion: { type: 'string' },
+          'onion-active': { type: 'boolean', default: false },
         },
       });
       if (!values.domain) fail('--domain fehlt');
+      const onion = values.onion
+        ? { host: values.onion, listenPort: 3005, apiPort: 3004, active: values['onion-active'] }
+        : undefined;
       process.stdout.write(
         generateCaddyfile({
           domain: values.domain,
@@ -208,8 +217,49 @@ async function main(argv: string[]): Promise<void> {
           userPort: 3001,
           adminPort: 3002,
           botsPort: 3003,
+          www: values.www,
+          onion,
         }),
       );
+      return;
+    }
+
+    case 'tor-status': {
+      // v0.9 (SPEC 16.5): the server scripts report the state of Tor. „error“ also writes the
+      // error log of the admin panel, „warning“ only the error log (state unchanged).
+      const [state, ...more] = rest;
+      const { values } = parseArgs({
+        args: more,
+        options: {
+          what: { type: 'string', default: '' },
+          cause: { type: 'string', default: '' },
+          action: { type: 'string', default: '' },
+        },
+      });
+      if (state !== 'ok' && state !== 'off' && state !== 'error' && state !== 'warning') {
+        fail(
+          'Aufruf: posteulen-cli tor-status <ok|off|error|warning> [--what … --cause … --action …]',
+        );
+      }
+      const config = configFromEnv();
+      if (!fs.existsSync(config.databaseFile)) fail(`Datenbank fehlt: ${config.databaseFile}`);
+      const db = openDatabase(config.databaseFile);
+      try {
+        if (schemaState(db, loadMigrations()).kind !== 'current')
+          fail('Bitte zuerst „posteulen-cli migrate“ ausführen.');
+        const entry = {
+          what: values.what || 'Der Tor-Dienst (Onion-Adresse) funktioniert nicht.',
+          cause: values.cause || 'Unbekannt.',
+          action: values.action || '„journalctl -u tor@posteulen -n 50“ auf dem Server ansehen.',
+        };
+        if (state === 'error') reportTorError(db, Date.now(), entry);
+        else if (state === 'warning')
+          logError(db, { component: 'Tor', severity: 'warning', ...entry }, Date.now());
+        else setTorStatus(db, state, Date.now());
+        console.log(`Tor-Status: ${state}`);
+      } finally {
+        db.close();
+      }
       return;
     }
 
@@ -232,7 +282,7 @@ async function main(argv: string[]): Promise<void> {
 
     default:
       console.error(
-        'Aufruf: posteulen-cli <setup|migrate|check|admin-init|admin-reset|bots-init|bots-reset|bots-export|bots-import|caddyfile|backup|version|schema-version>',
+        'Aufruf: posteulen-cli <setup|migrate|check|admin-init|admin-reset|bots-init|bots-reset|bots-export|bots-import|caddyfile|backup|tor-status|version|schema-version>',
       );
       process.exit(2);
   }

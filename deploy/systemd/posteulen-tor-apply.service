@@ -1,0 +1,8 @@
+# PostEulen – Tor-Schalter anwenden (v0.9, SPEC 16.5). Ausgelöst von posteulen-tor.path.
+[Unit]
+Description=PostEulen: Tor-Schalter anwenden
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/tor.sh apply
+TimeoutStartSec=2000

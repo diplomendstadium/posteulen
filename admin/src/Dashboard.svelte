@@ -10,6 +10,7 @@
   import Vouchers from './Vouchers.svelte';
   import Feedback from './Feedback.svelte';
   import Banners from './Banners.svelte';
+  import Tor from './Tor.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -102,6 +103,8 @@
 <Banners />
 
 <OpenAi />
+
+<Tor />
 
 <section class="card" aria-labelledby="reg-title">
   <h2 id="reg-title">{t.admin.registrationTitle}</h2>

@@ -18,7 +18,7 @@ import {
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, randomToken, sha256 } from '../security/ids.ts';
-import { ipKey } from '../security/ip.ts';
+import { clientKey } from '../security/ip.ts';
 import { loginThrottle } from '../auth/user-routes.ts';
 import { checkRegistrationRecord, opaqueStep } from '../auth/opaque-guard.ts';
 import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
@@ -60,7 +60,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
 
   // Strict limit for everything on the panel's host (SPEC 13, 10.12).
   app.addHook('onRequest', async (request) => {
-    const wait = limiter.hit(ipKey(request.ip), ctx.now());
+    const wait = limiter.hit(clientKey(request), ctx.now());
     if (wait > 0)
       throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
   });
@@ -106,7 +106,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   app.get('/api/altcha/challenge', async () => ctx.altcha.create(ctx.now()));
 
   app.post('/api/login/start', async (request): Promise<LoginStartResponse> => {
-    const ip = ipKey(request.ip);
+    const ip = clientKey(request);
     const body = parse(AdminLoginStart, request.body);
     const throttle = await loginThrottle(
       ctx,
@@ -199,7 +199,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   app.post('/api/reauth/start', { preHandler: authenticated }, async (request) => {
     const body = parse(AdminReauthStart, request.body);
     const now = ctx.now();
-    const ip = ipKey(request.ip);
+    const ip = clientKey(request);
     const wait = guard.waitMs(panel.key, now);
     if (wait > 0) return { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) };
     const admin = panelRecord();

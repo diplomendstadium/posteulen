@@ -19,3 +19,15 @@ export function ipKey(ip: string): string {
     .map((g) => parseInt(g, 16).toString(16))
     .join(':')}::/64`;
 }
+
+/** All requests through the onion service share this key (v0.9, SPEC 5.10, 16.5). */
+export const TOR_CLIENT_KEY = 'tor';
+
+/**
+ * Key of the client for IP-based limits. v0.9: over Tor the server sees no addresses of its own
+ * visitors (only the local Tor listener), so all of them count together as one client – rather
+ * block all Tor users for a short while than weaken the protection of the server.
+ */
+export function clientKey(request: { readonly ip: string; readonly viaTor?: boolean }): string {
+  return request.viaTor === true ? TOR_CLIENT_KEY : ipKey(request.ip);
+}

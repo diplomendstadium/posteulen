@@ -4,7 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Config } from './config.ts';
 import { openDatabase, type Database } from './db/database.ts';
 import { loadMigrations, migrate, schemaState } from './db/migrate.ts';
-import { buildApi } from './http/server.ts';
+import { buildApi, listenTor } from './http/server.ts';
 import { loadSecrets, secretsFingerprint, type Secrets } from './secrets.ts';
 import { createContext, type Context, type ContextOptions } from './context.ts';
 import { registerUserRoutes } from './auth/user-routes.ts';
@@ -33,6 +33,7 @@ import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
 import { registerCentralHandlers } from './central/service.ts';
 import { registerBotsCentreRoutes } from './central/routes.ts';
+import { syncTorSwitch, torEnabled } from './ops/tor.ts';
 
 export interface App {
   readonly config: Config;
@@ -91,7 +92,18 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   const hsts = config.env === 'production';
   const logLevel = config.env === 'test' ? undefined : config.logLevel;
   const ctx = await createContext(config, db, secrets, options);
-  const userApi = buildApi({ kind: 'user', origin: config.userOrigin, db, hsts, logLevel });
+  const userApi = buildApi({
+    kind: 'user',
+    origin: config.userOrigin,
+    db,
+    hsts,
+    logLevel,
+    // v0.9: the onion service – only once the server scripts have set up Tor (SPEC 16.5).
+    tor:
+      config.torOrigin === undefined
+        ? undefined
+        : { origin: config.torOrigin, enabled: () => torEnabled(db) },
+  });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
   const botsApi = buildApi({ kind: 'bots', origin: config.botsOrigin, db, hsts, logLevel });
   ctx.push = new PushService(ctx, options.pushSender);
@@ -128,6 +140,8 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerDonationHandler(ctx);
   ensureDonationSchedules(ctx);
   sendUpdateNotes(ctx);
+  // v0.9: hand the Tor switch of the admin panel to the root helper (also after a restore).
+  if (config.env === 'production') syncTorSwitch(ctx);
   registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);
@@ -168,6 +182,9 @@ export function startWorkers(app: App): void {
 
 export async function listen(app: App): Promise<void> {
   await app.userApi.listen({ host: app.config.host, port: app.config.userPort });
+  if (app.config.torOrigin !== undefined) {
+    await listenTor(app.userApi, app.config.host, app.config.torPort);
+  }
   await app.adminApi.listen({ host: app.config.host, port: app.config.adminPort });
   await app.botsApi.listen({ host: app.config.host, port: app.config.botsPort });
 }

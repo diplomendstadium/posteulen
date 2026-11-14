@@ -11,8 +11,8 @@ import { letterTextError } from '@posteulen/shared/text-rules.ts';
 import type { Context } from '../context.ts';
 import { HttpError, emptyBody, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { ipKey } from '../security/ip.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { clientKey } from '../security/ip.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { debit } from '../gold/ledger.ts';
 import { checkRecipients, depart, departWithBotReply, guestRefOwl } from '../flights/transport.ts';
 import { removeAllCentralBotsForPlayer } from '../central/service.ts';
@@ -20,7 +20,7 @@ import { playerBot } from './registry.ts';
 import { removeAllBots } from './service.ts';
 
 export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
   /**
    * "Alle Bots entfernen" (settings): the Erklärbär and every bot of the control centre go for
@@ -42,7 +42,7 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
     '/api/bot-letters/send',
     { preHandler: authenticated, bodyLimit: SECURITY.MAX_BOT_LETTER_REQUEST_BYTES },
     async (request) => {
-      if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+      if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');
       const body = parse(BotLetterSend, request.body);
       const me = userOf(request).id;

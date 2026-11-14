@@ -16,12 +16,18 @@ import { loadConfig } from '../config.ts';
 import { createSecretsFileIfMissing } from '../secrets.ts';
 import { adminExists, setInitialAdminPassword } from '../admin/admin-auth.ts';
 import { setRegistrationMode, type RegistrationMode } from '../admin/settings.ts';
+import { setTorStatus } from '../ops/tor.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../../..');
 const WEB_PORT = Number(process.env['POSTEULEN_PREVIEW_WEB_PORT'] ?? 8080);
 const ADMIN_PORT = Number(process.env['POSTEULEN_PREVIEW_ADMIN_PORT'] ?? 8081);
 /** v0.8: the bots control centre. */
 const BOTS_PORT = Number(process.env['POSTEULEN_PREVIEW_BOTS_PORT'] ?? 8082);
+/**
+ * v0.9: optional stand-in for the onion site – the app once more on 127.0.0.1 (another host than
+ * „localhost“, so the browser keeps its cookies apart), with the API behind the Tor listener.
+ */
+const TOR_WEB_PORT = process.env['POSTEULEN_PREVIEW_TOR_WEB_PORT'];
 const DATA_DIR = path.resolve(process.env['POSTEULEN_DATA_DIR'] ?? path.join(ROOT, 'data'));
 
 const TYPES: Record<string, string> = {
@@ -109,6 +115,12 @@ const config = loadConfig({
   POSTEULEN_USER_ORIGIN: `http://localhost:${WEB_PORT}`,
   POSTEULEN_ADMIN_ORIGIN: `http://localhost:${ADMIN_PORT}`,
   POSTEULEN_BOTS_ORIGIN: `http://localhost:${BOTS_PORT}`,
+  ...(TOR_WEB_PORT
+    ? {
+        POSTEULEN_TOR_ORIGIN: `http://127.0.0.1:${TOR_WEB_PORT}`,
+        POSTEULEN_TOR_PORT: process.env['POSTEULEN_TOR_PORT'] ?? '3004',
+      }
+    : {}),
   POSTEULEN_LOG_LEVEL: process.env['POSTEULEN_LOG_LEVEL'] ?? 'warn',
 });
 const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
@@ -139,6 +151,8 @@ const mode = process.env['POSTEULEN_PREVIEW_REGISTRATION'];
 if (mode === 'open' || mode === 'invite' || mode === 'closed') {
   setRegistrationMode(app.db, mode as RegistrationMode);
 }
+// v0.9: on servers the Tor scripts report the state; the stand-in is simply running.
+if (TOR_WEB_PORT) setTorStatus(app.db, 'ok', Date.now());
 await listen(app);
 startWorkers(app);
 const web = staticServer(path.join(ROOT, 'web/dist'), config.userPort).listen(
@@ -153,14 +167,21 @@ const bots = staticServer(path.join(ROOT, 'bots/dist'), config.botsPort).listen(
   BOTS_PORT,
   '127.0.0.1',
 );
+const tor = TOR_WEB_PORT
+  ? staticServer(path.join(ROOT, 'web/dist'), config.torPort).listen(
+      Number(TOR_WEB_PORT),
+      '127.0.0.1',
+    )
+  : undefined;
 console.warn(
-  `PostEulen läuft lokal:\n  App:         http://localhost:${WEB_PORT}\n  Verwaltung:  http://localhost:${ADMIN_PORT}\n  Bots:        http://localhost:${BOTS_PORT}\n  Daten:       ${DATA_DIR}\nBeenden mit Strg+C.`,
+  `PostEulen läuft lokal:\n  App:         http://localhost:${WEB_PORT}\n  Verwaltung:  http://localhost:${ADMIN_PORT}\n  Bots:        http://localhost:${BOTS_PORT}\n${TOR_WEB_PORT ? `  „Tor“:       http://127.0.0.1:${TOR_WEB_PORT} (Ersatz für die Onion-Seite)\n` : ''}  Daten:       ${DATA_DIR}\nBeenden mit Strg+C.`,
 );
 
 const stop = (): void => {
   web.close();
   admin.close();
   bots.close();
+  tor?.close();
   void app.close().finally(() => process.exit(0));
 };
 process.on('SIGINT', stop);

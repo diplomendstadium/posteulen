@@ -4,13 +4,13 @@
  */
 import type { FastifyInstance } from 'fastify';
 import type { Context } from '../context.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName } from '../contacts/model.ts';
 import { botTitle, type BotRow } from '../bots/service.ts';
 import { homeOf, planOf, routeOf, type FlightRow } from './service.ts';
 
 export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
   app.get('/api/map', { preHandler: authenticated }, async (request) => {
     const me = userOf(request).id;

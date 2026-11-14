@@ -16,7 +16,7 @@ const desktop = { viewport: { width: 1440, height: 900 } };
 
 function preview(
   name: string,
-  ports: [number, number, number, number, number, number],
+  ports: [number, number, number, number, number, number, number, number],
   registration: string,
 ) {
   return {
@@ -32,6 +32,9 @@ function preview(
       // v0.8: the bots control centre.
       POSTEULEN_PREVIEW_BOTS_PORT: String(ports[4]),
       POSTEULEN_BOTS_PORT: String(ports[5]),
+      // v0.9: stand-in for the onion site (127.0.0.1) and the Tor listener of the API.
+      POSTEULEN_PREVIEW_TOR_WEB_PORT: String(ports[6]),
+      POSTEULEN_TOR_PORT: String(ports[7]),
       POSTEULEN_DATA_DIR: path.join(RUN_DIR, name),
       POSTEULEN_PREVIEW_REGISTRATION: registration,
       POSTEULEN_PREVIEW_RELAXED_LIMITS: '1',
@@ -62,8 +65,8 @@ export default defineConfig({
     ...(SHOTS ? [{ name: 'chromium-mobile', use: { ...devices['Pixel 7'], ...mobile } }] : []),
   ],
   webServer: [
-    preview('main', [18080, 18081, 13001, 13002, 18082, 13003], 'open'),
+    preview('main', [18080, 18081, 13001, 13002, 18082, 13003, 18083, 13004], 'open'),
     // Separate instance for admin tests: mode changes must not affect other tests.
-    preview('admin', [18090, 18091, 13011, 13012, 18092, 13013], 'closed'),
+    preview('admin', [18090, 18091, 13011, 13012, 18092, 13013, 18093, 13014], 'closed'),
   ],
 });

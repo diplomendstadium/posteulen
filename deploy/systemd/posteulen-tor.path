@@ -1,0 +1,12 @@
+# PostEulen – wendet den Tor-Schalter aus dem Adminpanel an (v0.9, SPEC 16.5).
+# Das Backend schreibt nur „on“ oder „off“ in diese Datei; tor.sh apply startet oder stoppt
+# daraufhin den Onion-Dienst und passt Caddy an. Erzeugt von deploy/tor.sh.
+[Unit]
+Description=PostEulen: Tor-Schalter aus dem Adminpanel beobachten
+
+[Path]
+PathModified=/var/lib/posteulen/tor-switch
+Unit=posteulen-tor-apply.service
+
+[Install]
+WantedBy=multi-user.target

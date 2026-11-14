@@ -9,8 +9,8 @@ import { CoverSend, GoldPrepare } from '@posteulen/shared/schemas/owls.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { ipKey } from '../security/ip.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { clientKey } from '../security/ip.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { planFlight } from '../flights/service.ts';
@@ -75,11 +75,11 @@ export function registerGoldJobs(ctx: Context): void {
 }
 
 export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
   /** v0.7: redeem a voucher of the admin – gold or an owl (SPEC 8.10, 13). */
   app.post('/api/vouchers/redeem', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(VoucherRedeem, request.body);
     const me = userOf(request).id;
@@ -123,7 +123,7 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   app.post('/api/gold/prepare', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(GoldPrepare, request.body);
     const me = userOf(request).id;

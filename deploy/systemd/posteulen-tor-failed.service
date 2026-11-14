@@ -1,0 +1,8 @@
+# PostEulen – meldet einen dauerhaften Ausfall von Tor im Fehlerprotokoll des Adminpanels
+# (v0.9, SPEC 16.5). Ausgelöst über OnFailure von tor@posteulen.
+[Unit]
+Description=PostEulen: Ausfall von Tor melden
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/tor.sh failed

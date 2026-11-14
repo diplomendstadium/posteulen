@@ -124,6 +124,9 @@ export const ErrorLogUpdate = v.strictObject({
   read: v.literal(true),
 });
 
+/** v0.9: switch the onion service on or off (admin panel, SPEC 13 item 9). */
+export const TorUpdate = v.strictObject({ enabled: v.boolean() });
+
 export const AccountDelete = v.strictObject({ token: Id });
 
 export const NameChange = v.strictObject({ name: v.pipe(v.string(), v.maxLength(100)) });

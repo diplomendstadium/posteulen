@@ -19,8 +19,8 @@ import { logError } from '../ops/error-log.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { ipKey } from '../security/ip.ts';
-import { cookieSpec, requireUser, userOf } from '../auth/sessions.ts';
+import { clientKey } from '../security/ip.ts';
+import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { playerBot } from '../bots/registry.ts';
 import { countStat } from '../central/model.ts';
@@ -112,7 +112,7 @@ const UNREADABLE_CAUSES: Readonly<Record<string, string>> = {
 };
 
 export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
-  const authenticated = requireUser(ctx, cookieSpec(ctx.config.userOrigin, 'pe_session'));
+  const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
   function costOf(parchment: 'small' | 'large'): number {
     // Large parchment costs once per owl, also with several recipients (SPEC 5.9).
@@ -120,7 +120,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   }
 
   app.post('/api/letters/prepare', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(LetterPrepare, request.body);
     const me = userOf(request).id;
@@ -158,7 +158,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     '/api/letters/send',
     { preHandler: authenticated, bodyLimit: SECURITY.MAX_LETTER_REQUEST_BYTES },
     async (request) => {
-      if (ctx.limits.expensive.hit(ipKey(request.ip), ctx.now()) > 0)
+      if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');
       const body = parse(LetterSend, request.body);
       const me = userOf(request).id;
