@@ -238,7 +238,7 @@ cmd_check() {
       return 0
     fi
   done
-  notice "Tor: http://$onion war über das Tor-Netz noch nicht erreichbar. Nach der ersten Einrichtung kann das einige Minuten dauern; lokal funktioniert die Onion-Seite. Später prüfen, z. B. im Tor Browser."
+  notice "Tor: http://$onion war über das Tor-Netz noch nicht erreichbar. Nach der ersten Einrichtung dauert die Veröffentlichung oft 5 bis 10 Minuten; lokal funktioniert die Onion-Seite. Später prüfen: „sudo $PE_CURRENT/deploy/tor.sh check --network“ oder im Tor Browser."
   tor_report warning --what "Die Onion-Adresse war bei der Prüfung über das Tor-Netz nicht erreichbar." --cause "Veröffentlichung im Tor-Netz noch nicht abgeschlossen oder keine Verbindung zum Tor-Netz." --action "Später im Tor Browser prüfen; bleibt es so: „journalctl -u $PE_TOR_UNIT -n 50“."
 }
 

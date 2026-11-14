@@ -1,7 +1,7 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 0.8.5 (2026-11-13); keine neuen Pakete gegenüber 0.6.1 – `sharp` ist seit 0.8 zusätzlich Laufzeitabhängigkeit des Backends; die Schriften Dancing Script und Playwrite DE Grund nutzt seit 0.8 auch das Bots-Kontrollzentrum (Vorschau). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
-> `npm audit` vom 2026-11-13: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
+> Stand: Version 0.9.0 (2026-11-14); keine neuen npm-Pakete gegenüber 0.6.1 – `sharp` ist seit 0.8 zusätzlich Laufzeitabhängigkeit des Backends; seit 0.9 kommt auf dem Server das Debian-Paket `tor` für den Onion-Dienst dazu; die Schriften Dancing Script und Playwrite DE Grund nutzt seit 0.8 auch das Bots-Kontrollzentrum (Vorschau). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> `npm audit` vom 2026-11-14: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
@@ -75,6 +75,7 @@ Das Werkzeug kommt ohne npm-Abhängigkeiten aus (eigene Rasterung, Douglas–Peu
 | `nodejs` 26.x | NodeSource `https://deb.nodesource.com/node_26.x nodistro main`, `signed-by` | MIT | Laufzeit |
 | `caddy` 2.11.x | Cloudsmith `caddy/stable` (offizielle Caddy-Quelle), `signed-by` | Apache-2.0 | Reverse Proxy, HTTPS, statische Dateien |
 | `age` 1.2.1 | Debian | BSD-3-Clause | Verschlüsselung der Backups |
+| `tor` 0.4.9.x | Debian (`trixie` bzw. `trixie-security`, Sicherheitsupdates über unattended-upgrades) | BSD-3-Clause (mit `--enable-gpl` gebaut: GPL-3.0 für die PoW-Abwehr) | v0.9: Onion-Dienst (eigene Instanz `tor@posteulen`, SPEC 16.5) |
 | `git`, `nftables`/`ufw`, `unattended-upgrades`, `ca-certificates`, `curl`, `gnupg` | Debian | GPL/LGPL/MIT | Betrieb |
 | `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
 | `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |

@@ -32,7 +32,9 @@ PostEulen deliberately sits on the border between game and messenger. The owls a
 - **No read receipts:** the other person only sees that their letter was delivered – whether and when you read it stays your secret.
 - No adverts, no tracking, no stored IP addresses, no content from other servers.
 
-**Sparing with data from the start:** you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a fictional home. Using it via a VPN, the Tor network or Tor Browser works too – in Tor Browser at the security level “Standard” (the stricter levels switch off WebAssembly, which the login needs) and without notifications. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
+**Sparing with data from the start:** you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a fictional home. Using it via a VPN, the Tor network or Tor Browser works too – in Tor Browser at the security level “Standard” (the stricter levels switch off WebAssembly, which the login needs) and without notifications.
+
+**Since version 0.9 the owls also live in the Tor network:** PostEulen can additionally be reached as an onion service – a hidden owl tower with an entrance of its own. You will find the link “Tor network” at the very bottom of the start page; if you open PostEulen in the Tor Browser, it even suggests the onion address by itself (“.onion available”). Everything there is as usual: the same account, the same letters, the same owls. You can switch as you like – but you are only ever signed in in one place at a time. Over Tor the server does not even learn your IP address; in return, all Tor users share the limits that protect against overload, as if they were one single visitor. If it gets busy there, a short wait helps. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
 
 So PostEulen is quite suitable as a secure way of communicating – as long as minutes do not matter. What it cannot hide: *who* writes to *whom* and *when*. And anyone holding your unlocked phone can of course read along. That is not the owl’s fault.
 
@@ -93,7 +95,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.8.5**.
+Version: **0.9.0**.
 
 **In short**
 
@@ -107,15 +109,16 @@ Version: **0.8.5**.
 
 - A VPS with a freshly installed Debian 13 (amd64 or arm64). At least 1 GB of RAM (2 GB recommended), 1 CPU core, 10 GB of storage. With less than 2 GB of RAM the script offers to create a swap file so that the build does not fail.
 - Your own domain, e.g. `posteulen.de`.
-- Three DNS records (A for IPv4, plus AAAA for IPv6 if available) pointing to the server’s address:
+- Three DNS records (A for IPv4 and – if the server has an IPv6 address – AAAA for IPv6) pointing to the server’s address, plus `www` if you like:
 
   ```
   posteulen.de        →  IP of the server
   admin.posteulen.de  →  IP of the server
   bots.posteulen.de   →  IP of the server   (since 0.8: bots control centre)
+  www.posteulen.de    →  IP of the server   (optional, since 0.9: redirects to posteulen.de)
   ```
 
-  Without these records Caddy cannot get HTTPS certificates from Let’s Encrypt.
+  Without these records Caddy cannot get HTTPS certificates from Let’s Encrypt. If the server has IPv4 **and** IPv6, every name needs an A **and** an AAAA record – otherwise the script says so clearly. The Tor network needs neither a DNS record nor an open port: the script sets up the onion address by itself.
 - SSH access to the server, ideally with an SSH key instead of a password. You store the key from your own computer with `ssh-copy-id user@server`. Only then does the installation script offer to switch off password login.
 - For the bots, an OpenAI API key (<https://platform.openai.com>). Without a key everything else works; the bots just do not reply – the Explainer Bear only sends his fixed letters, the other bots their planned letters unchanged.
 
@@ -132,7 +135,7 @@ sudo ./posteulen/deploy/install.sh --domain posteulen.de
 The script only asks what is necessary. All questions can also be answered with parameters (overview: `sudo ./posteulen/deploy/install.sh --help`). It does the following:
 
 1. It checks the system: Debian 13, root rights, architecture, RAM, free storage, whether ports 80 and 443 are free and whether the DNS records point to this server (only a warning if they do not).
-2. It sets up two package sources with verified signing keys: Node.js 26 (NodeSource) and Caddy (official Caddy source). This way their security updates also arrive via apt. The key fingerprints are fixed in the script (`deploy/lib.sh`); if one does not match, the script stops.
+2. It sets up two package sources with verified signing keys: Node.js 26 (NodeSource) and Caddy (official Caddy source). This way their security updates also arrive via apt. Since 0.9 Tor comes straight from Debian (with the normal Debian security updates). The key fingerprints are fixed in the script (`deploy/lib.sh`); if one does not match, the script stops.
 3. Basic hardening:
    - Firewall (ufw): only 22/tcp (SSH), 80/tcp, 443/tcp and 443/udp (HTTP/3) are open – for IPv4 and IPv6 (since 0.8.2 checked again at every installation and update).
    - Automatic security updates (unattended-upgrades), also for Node.js and Caddy; affected services are restarted automatically afterwards (needrestart).
@@ -148,12 +151,13 @@ The script only asks what is necessary. All questions can also be answered with 
    | `/var/backups/posteulen` | encrypted backups |
    | `/etc/posteulen` | configuration and secrets file |
    | `/etc/posteulen/local` | your own adjustments (never overwritten) |
+   | `/etc/posteulen/onion` | since 0.9: keys of the onion address (never overwritten) |
 
    Before building, it checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
 
-   Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database and writes the Caddyfile, the hardened systemd service `posteulen` and the backup timer.
-5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work. Since 0.8.2 it also checks every host name over **every** IPv4 and IPv6 address of the server with a valid certificate and compares the A and AAAA records with the server’s addresses. If a certificate is missing (for example after a new AAAA record), it nudges Caddy to fetch it; whatever is still missing then is reported as a warning. So if you later give the server an IPv6 address and the matching AAAA records, the next update or another run of `install.sh` is all it takes.
-6. At the end it shows a summary and a big note about backups.
+   Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database, sets up the onion service (see [section 3b](#3b-the-tor-network-since-09)) and writes the Caddyfile (since 0.9 with `www.posteulen.de` as a redirect if `www` points to the server in DNS), the hardened systemd service `posteulen` and the backup timer.
+5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work. Since 0.8.2 it also checks every host name over **every** IPv4 and IPv6 address of the server with a valid certificate and compares the A and AAAA records with the server’s addresses. If a certificate is missing (for example after a new AAAA record), it nudges Caddy to fetch it; whatever is still missing then is reported as a warning. So if you later give the server an IPv6 address and the matching AAAA records, the next update or another run of `install.sh` is all it takes. Since 0.9 it also checks `www.posteulen.de` (if it is in DNS) and reports when a name lacks its A or AAAA record although the server has a public IPv4 or IPv6 address. Afterwards it checks the onion address locally and once through the Tor network.
+6. At the end it shows a summary (with the onion address) and a big note about backups. **Everything that is not right but does not prevent operation** (DNS, IPv4/IPv6, www, Tor) is listed once more at the very end in a yellow box “ACHTUNG – bitte prüfen”. The installation still runs to the end. If you add `www` to DNS only later, run `sudo /opt/posteulen/current/deploy/configure.sh` afterwards.
 
 > [!CAUTION]
 > **Back up the file `/etc/posteulen/secrets.json` outside the server immediately** (e.g. with scp to your own computer, and keep it encrypted there):
@@ -198,6 +202,25 @@ At `https://bots.posteulen.de` you create pen friends for all players. It is com
 - **Deleting** is final and asks for the bot’s name to be typed. Players who had contact with it get a system message.
 - Whoever has the password can write to everyone in the name of the bots and give away gold – so guard it well. As with the admin panel, access can additionally be limited to IP ranges with `/etc/posteulen/local/bots-*.caddy`.
 
+### 3b. The Tor network (since 0.9)
+
+PostEulen can be reached as an **onion service** in parallel to the domain – the same app with the same accounts, letters and game states. This is set up automatically with every installation and every update, also afterwards on older installations:
+
+- **Tor** comes as a Debian package and runs as an instance of its own, `tor@posteulen` (configuration `/etc/tor/instances/posteulen/torrc`, written anew with every update). If PostEulen installed Tor itself, it switches off the Tor client that would otherwise run as well (`tor@default`).
+- **The onion address never changes.** Its keys live authoritatively in `/etc/posteulen/onion` and are part of every backup (`posteulen-onion-…tar.age`). Reinstalling, updates and rollbacks leave them alone; a new server gets the same address with the keys put back ([section 5](#5-backups-and-restoring)).
+- **No HTTPS over Tor – on purpose:** Tor encrypts and authenticates the connection itself. The onion site therefore speaks `http://…onion` to a Caddy listener that only listens on `127.0.0.1:3005`; its API requests go to a separate, likewise local-only entrance of the backend (`127.0.0.1:3004`). No port needs to be opened.
+- **Strict limits:** over Tor the server cannot tell visitors apart. So all Tor users together count as one single IP address (e.g. at most 5 registrations per hour for all of them together). On top come Tor’s own protections (a proof-of-work puzzle when busy, limits per connection).
+- **One session per account** applies to the whole instance: signing in over Tor signs you out on the clearnet and vice versa.
+- The start page shows the link **“Tor network”** as soon as everything runs. The normal site sends the Tor Browser the `Onion-Location` hint so that it offers the onion address by itself.
+- **Switching off:** in the admin panel under “Tor network (onion service)”. The switch stops Tor on the server within a few seconds (it stays off after a reboot too) and removes the link and the hint; the normal site keeps running. Switching on restores everything with the same address.
+- **Errors** of Tor appear in the error log of the admin panel (component “Tor”); the normal site always keeps running. On the server:
+
+  ```bash
+  systemctl status tor@posteulen
+  journalctl -u tor@posteulen -n 50
+  sudo cat /etc/posteulen/onion/hostname      # the onion address
+  ```
+
 ### 4. Functional test
 
 Open `https://posteulen.de` in the browser, create an account (open registration in the admin panel first or create an invitation code), sign out and sign in again. Pair with a second account (both add each other in the address book) and send a letter – without an owl of your own, the owl choice offers a loan owl of the day straight away (0.1 gold). The owl flies in real time (25 km/h times the species factor): if both live close together, it arrives within minutes, otherwise within hours. Patience is a feature here.
@@ -218,16 +241,24 @@ Bots control centre: sign in, create a bot, set home and owl, activate it and pl
 
   Keep them there for at most 7 days as well (`rsync --delete` takes care of that).
 - Keep the secrets file and the private backup key safe and separate, once.
+- **Since 0.9** every backup also stores `posteulen-onion-…tar.age`: the keys of the onion address, encrypted with the same backup key. With them a restored server keeps its onion address.
 
 **Restore A – on the same server** (e.g. after an operating mistake): continue with step 2 below. The secrets file is still there.
 
-**Restore B – after a total failure, on a new server:** you need the three things that should be backed up outside the server: `posteulen-secrets.json`, `posteulen-backup-schluessel.txt` and a backup (`posteulen-…-taeglich.sqlite.age`). Copy all three to the new server with scp, e.g. to `/root`.
+**Restore B – after a total failure, on a new server:** you need the three things that should be backed up outside the server: `posteulen-secrets.json`, `posteulen-backup-schluessel.txt` and a backup (`posteulen-…-taeglich.sqlite.age`, since 0.9 plus the matching `posteulen-onion-…-taeglich.tar.age`). Copy everything to the new server with scp, e.g. to `/root`.
 
 1. **Before** installing, put the secrets file back. The script then takes it over (it never overwrites it) and sets the right permissions:
 
    ```bash
    sudo install -d -m 0700 /etc/posteulen
    sudo install -m 0600 posteulen-secrets.json /etc/posteulen/secrets.json
+   ```
+
+   Since 0.9 do the same with the onion keys so that the new server gets the same onion address:
+
+   ```bash
+   sudo age --decrypt --identity posteulen-backup-schluessel.txt posteulen-onion-YYYYMMDDTHHMMSSZ-taeglich.tar.age \
+        | sudo tar -x -C /etc/posteulen
    ```
 
    Then install as in section 2, but with the previous public backup key. It is in the key file in the line `# public key: age1…`:
@@ -258,7 +289,7 @@ Bots control centre: sign in, create a bot, set home and owl, activate it and pl
    ```
 
    `check` reports an error if the secrets file and the database do not belong together.
-4. For B: delete the key file and the backup from the new server again (`sudo rm /root/posteulen-backup-schluessel.txt /root/posteulen-*.sqlite.age`). Then sign in with an account and open an old letter.
+4. For B: delete the key file and the backups from the new server again (`sudo rm /root/posteulen-backup-schluessel.txt /root/posteulen-*.sqlite.age /root/posteulen-onion-*.tar.age`). Then sign in with an account and open an old letter.
 
 Everything that happened after the backup used is lost. Users have to sign in again if their session was created after the backup. Owls that were on their way according to the backup land immediately after the start if their arrival time has already passed.
 
@@ -281,7 +312,7 @@ sudo posteulen-update             # installs the newest version
 sudo posteulen-update v0.5.0      # installs a particular version
 ```
 
-Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → start → functional check (including all IPv4 and IPv6 addresses, see installation). Downtime is a few minutes at most. Versions may be skipped.
+Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.
 
 After the first start of a new version, every existing account gets one system message that explains what is new in simple words (without a push notification). Anyone skipping versions gets the messages of all skipped versions. A fresh installation sends nothing. The texts are in `shared/src/texts/messages.ts` (German and English); every new version gets a new entry there. The message appears in the language the user currently has set.
 
@@ -306,6 +337,8 @@ Going back to the previous version afterwards (everything created since the upda
 sudo posteulen-update --rollback
 ```
 
+Rollbacks leave the onion address alone. If you go back to a version before 0.9, Tor merely rests until the next update starts it again with the same address.
+
 For the automatic rollback, an additional unencrypted snapshot is kept in `/var/lib/posteulen/snapshots` before every update (protected just like the database itself); it is also deleted after 7 days.
 
 ### 7. Logs and common errors
@@ -313,6 +346,7 @@ For the automatic rollback, an additional unencrypted snapshot is kept in `/var/
 ```bash
 journalctl -u posteulen -n 100    # backend
 journalctl -u caddy -n 100        # web server/HTTPS
+journalctl -u tor@posteulen -n 50 # Tor (onion service, since 0.9)
 systemctl status posteulen
 ```
 
@@ -327,6 +361,8 @@ The logs deliberately contain no IP addresses, no names and no content. The owls
 - Users see “Please reload”: after an update the app reloads by itself; older tabs get this request instead of an error.
 - The app shows “No connection”: is the service running (`systemctl status posteulen`) and is Caddy reachable (`systemctl status caddy`)?
 - Old letters are gone: that is on purpose. Letters and system messages are deleted one year after delivery, or sooner if users choose so – since 0.8.5 once a week, on Mondays at 04:00 UTC (a missed run is only made up the next Monday). Since 0.7 those affected get a system message saying how many letters from which chats were deleted.
+- The link “Tor network” is missing on the start page: is Tor switched on in the admin panel? Is there anything about “Tor” in the error log? `systemctl status tor@posteulen` shows whether the service runs; `sudo posteulen-update` (or another run of `install.sh`) sets it up again – with the same address. Right after the first setup it can take a few minutes until the address is reachable in the Tor network.
+- Tor users get “Slow down, the owls cannot keep up”: all Tor users share the limits of one IP address – that is on purpose and passes after a short while.
 - “Fontconfig error: Cannot load default config file” during the build: harmless (the image library looks for a font configuration while converting the logo, which a fresh Debian does not have). Since 0.7 PostEulen brings its own minimal configuration for the build, and the message no longer appears.
 
 ### 8. Optional
@@ -340,7 +376,7 @@ The logs deliberately contain no IP addresses, no names and no content. The owls
 
   then: `sudo systemctl reload caddy`
 - Your own ntfy server as UnifiedPush server: if you use Android without Google services and do not want a third-party push server, you can run ntfy yourself (<https://docs.ntfy.sh/install/>) and enter it as the server in the ntfy app on the phone. PostEulen needs no setting for this: it sends to any push address the browser reports (HTTPS only, no private addresses).
-- Outgoing connections: the server must be able to reach push services over HTTPS (port 443) (Mozilla, Google, Apple, UnifiedPush servers).
+- Outgoing connections: the server must be able to reach push services over HTTPS (port 443) (Mozilla, Google, Apple, UnifiedPush servers). Since 0.9 the Tor service also connects to the Tor network (Tor needs no open port for incoming connections).
 
 ### 9. Privacy policy and imprint
 

@@ -3,6 +3,53 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.9.0 – Eulen auf verborgenen Pfaden
+
+Schwerpunkt: PostEulen im Tor-Netz (SPEC Anhang AA, 16.5, D-309 bis D-327).
+
+- **Onion-Dienst:** PostEulen ist parallel zur Domain als Onion-Adresse erreichbar – dieselbe App mit
+  denselben Konten, Briefen und Spielständen; eine Sitzung je Konto gilt für die ganze Instanz. Die
+  Onion-Seite spricht `http` (Tor verschlüsselt selbst) über einen lokalen Caddy-Listener; die API kommt
+  über einen zweiten, lokalen Eingang des Backends.
+- **Einrichtung automatisch** bei Installation und Update (auch nachträglich): Paket `tor` aus Debian,
+  eigene Instanz `tor@posteulen`, Schlüssel maßgeblich in `/etc/posteulen/onion` (nie überschrieben,
+  Teil jeder Sicherung). Die Adresse bleibt bei erneuter Installation, Update, Rückfall und
+  Wiederherstellung gleich.
+- **Strenge Limits über Tor:** alle Tor-Besucher zählen wie eine IP; dazu Proof of Work und
+  Verbindungsgrenzen von Tor.
+- **Adminpanel:** Schalter „Zugang über das Tor-Netz“ (Standard an; stoppt Tor auf dem Server ganz),
+  Zustand und Adresse; Fehler von Tor im Fehlerprotokoll. Neue Statistik: Eulen der Spieler je Art (ohne
+  Leih- und Bot-Eulen, mit Küken).
+- **Startseite:** Link „Tor-Netz“ in der Fußzeile (erst nach erfolgreicher Einrichtung); die normale Seite
+  sendet `Onion-Location`, damit der Tor Browser die Onion-Adresse anbietet.
+- **www und IPv4/IPv6:** `www.<domain>` leitet per 308 auf die Domain um, wenn www im DNS auf den Server
+  zeigt. Installation und Update prüfen A- **und** AAAA-Einträge je Name und zeigen alle Probleme am Ende
+  gesammelt in einem deutlichen Hinweis – ohne abzubrechen.
+- **Pergament:** „kleines“ und „großes“ Pergament heißen jetzt „kurzes“ und „langes“ Pergament (beide
+  Sprachen; Länge und Preis unverändert).
+- **Bilder:** zehn Eulenbilder ersetzt (Bartkauz-Abflug, Mähnenkauz-Heimkehr Tag und Nacht,
+  Riesenfischuhu-, Schneeeulen- und Sumpfohreulen-Flugbilder, Schneeeule-Abflug).
+- **Doku:** Hilfe und FAQ zum Tor-Netz, Erklärbär-Wissen, Datenschutzerklärung (Tor-Zugang), README,
+  SPEC und PROMPT; Update-Nachricht an alle Konten.
+
+### Hinweise für Betreiber
+
+- **Neues Paket `tor`** (aus Debian). Das Update installiert es selbst, richtet die Instanz `tor@posteulen`
+  ein und zeigt am Ende die Onion-Adresse. Hat PostEulen Tor installiert, wird `tor@default` maskiert.
+  Es muss **kein Port** geöffnet werden; Tor braucht ausgehende Verbindungen ins Tor-Netz.
+- **Neue systemd-Units:** `posteulen-tor.path`, `posteulen-tor-apply.service`, `posteulen-tor-failed.service`
+  und die Ergänzung `/etc/systemd/system/tor@posteulen.service.d/posteulen.conf`.
+- **Sicherungen:** zusätzlich `posteulen-onion-…tar.age` in `/var/backups/posteulen` (7 Tage). Wer Sicherungen
+  extern abholt, bekommt sie mit `rsync` automatisch mit. Wiederherstellung auf einem neuen Server: vor der
+  Installation nach `/etc/posteulen` entpacken (README, Abschnitt 5).
+- **www:** Wer `www.<domain>` nutzen möchte, legt dafür A/AAAA-Einträge an; ohne Eintrag gibt es nur einen
+  Hinweis. Wird www erst später eingetragen: `sudo /opt/posteulen/current/deploy/configure.sh`.
+- Keine Datenbank-Migration. Datenschutzerklärung um den Tor-Zugang ergänzt – wer eigene Rechtstexte pflegt,
+  bitte nachziehen.
+- Neue Bilder in `images/` (werden beim Build umgerechnet).
+- Ein Rückfall auf 0.8.x hält Tor nur an (Schlüssel bleiben); das nächste Update startet es wieder.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v0.8.5 – Post aus der Leserschaft
 
 Version mit vielen Anregungen der Nutzerinnen und Nutzer (SPEC Anhang Z, D-291 bis D-308).
