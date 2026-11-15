@@ -12,7 +12,7 @@
   import PictureViewer from '../components/PictureViewer.svelte';
   import LetterText from '../components/LetterText.svelte';
   import { api } from '../lib/api.ts';
-  import { dateTime } from '../lib/format.ts';
+  import { date, dateTime, time } from '../lib/format.ts';
   import { loadConversation, type ShownLetter } from '../lib/letters.ts';
   import { live, markChatRead, refreshTopics } from '../lib/live.svelte.ts';
   import { account } from '../lib/auth.svelte.ts';
@@ -199,6 +199,17 @@
       species: what,
     });
   }
+  /**
+   * v0.10.1: "Empfangen am … um …" with the arrival for letters to me, "Abgeschickt am … um …"
+   * with the sending time for my own (SPEC 8.4). When the other side wrote a letter is not shown.
+   */
+  function stamp(letter: ShownLetter): string {
+    const at = letter.role === 'recipient' ? letter.arrivesAt : letter.sentAt;
+    return fill(letter.role === 'recipient' ? t.letters.receivedAt : t.letters.sentOffAt, {
+      date: date(at),
+      time: time(at),
+    });
+  }
 </script>
 
 <p class="partner plate">
@@ -228,9 +239,8 @@
       <article class={`sheet ${deckleClass(letter.id)}`} use:tilt>
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         <p class="meta">
-          {dateTime(letter.sentAt)} · {letter.parchment === 'large'
-            ? t.letters.large
-            : t.letters.small}
+          <!-- v0.10.1: received letters say when they arrived, never when they were written. -->
+          {stamp(letter)} · {letter.parchment === 'large' ? t.letters.large : t.letters.small}
           {#if letter.status !== 'returned'}
             · {carrierText(letter)}{/if}
         </p>

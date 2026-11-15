@@ -222,6 +222,9 @@ export const de = {
     carrierLoan: '{species}, Leiheule',
     carrierYours: '{species}, deine Eule',
     carrierOf: '{species}, Eule von {name}',
+    /** v0.10.1: head of a letter – when it arrived or when it was sent off. */
+    receivedAt: 'Empfangen am {date} um {time}',
+    sentOffAt: 'Abgeschickt am {date} um {time}',
     small: 'kurzes Pergament',
     large: 'langes Pergament',
     inFlight: 'Eule unterwegs – Ankunft ca. {time}',
@@ -273,7 +276,7 @@ export const de = {
     retentionYear: 'ein Jahr',
     retentionDays: '{days} Tage',
     loanOffers:
-      'Gerade ist keine eigene Eule einsatzbereit. Du kannst eine Leiheule des Tages nehmen: Sie wird erst beim Abschicken für 0,1 Gold geliehen.',
+      'Gerade ist keine deiner Eulen einsatzbereit, die diesen Brief tragen kann. Du kannst eine Leiheule des Tages nehmen: Sie wird erst beim Abschicken geliehen (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold).',
     loanOfferHint: 'Leiheule des Tages: {price}, erst beim Abschicken.',
     /** v0.10: the owl cannot carry the chosen parchment. */
     cannotCarryLong: 'Trägt kein langes Pergament.',
@@ -637,7 +640,6 @@ export const de = {
     allDone: 'Alle Leiheulen von heute sind wieder zurück. Morgen gibt es neue.',
     loanDone: '{name} wartet jetzt hier und bei deinen Eulen.',
     borrowedTitle: 'Deine Leiheulen',
-    borrowedNone: 'Gerade wartet keine Leiheule auf dich.',
   },
   finance: {
     /** v0.10: in the settings (the overview „Finanzen“ is gone). */

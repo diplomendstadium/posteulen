@@ -84,8 +84,9 @@
   const named = $derived(owls.filter((owl) => owl.name !== null));
   const groups = $derived(
     [
-      { id: 'loan-owls', title: t.owls.loanGroup, list: named.filter((o) => o.kind === 'loan') },
+      // v0.10.1: own owls above the loan owls.
       { id: 'own-owls', title: t.owls.ownGroup, list: named.filter((o) => o.kind !== 'loan') },
+      { id: 'loan-owls', title: t.owls.loanGroup, list: named.filter((o) => o.kind === 'loan') },
     ].filter((group) => group.list.length > 0),
   );
 </script>

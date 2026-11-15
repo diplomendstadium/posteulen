@@ -25,6 +25,11 @@ function format(options: Intl.DateTimeFormatOptions, ms: number): string {
   }
 }
 
+/** v0.10.1: the date with the full year, e.g. "15.11.2026" (British: "15/11/2026"). */
+export function date(ms: number): string {
+  return format({ day: '2-digit', month: '2-digit', year: 'numeric' }, ms);
+}
+
 /** Time of day, in the notation of the language. */
 export function time(ms: number): string {
   return format({ hour: '2-digit', minute: '2-digit' }, ms);

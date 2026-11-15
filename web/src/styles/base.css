@@ -156,6 +156,13 @@ a:hover {
   box-shadow: var(--shadow);
 }
 
+/* v0.10.1: page titles and subheadings on a plate span the width of the contents, centred. */
+h1.plate,
+h2.plate {
+  width: auto;
+  text-align: center;
+}
+
 .card {
   background: var(--paper);
   border: 1px solid var(--line);

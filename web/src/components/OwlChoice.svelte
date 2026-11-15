@@ -37,7 +37,7 @@
   <legend>{t.letters.chooseOwl}</legend>
   {#if choices.length === 0}
     <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.letters.noOwl}</span></p>
-  {:else if choices.every((choice) => choice.offer)}
+  {:else if choices.some((choice) => choice.offer) && !choices.some((choice) => !choice.offer && cargoCovers(choice.cargo, need))}
     <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.letters.loanOffers}</span></p>
   {/if}
   {#each choices as choice (choice.id)}

@@ -171,7 +171,7 @@ test.describe('Version 0.3', () => {
     expect(fits).toBe(true);
   });
 
-  test('Eulen: Leiheulen über den eigenen, Freilassen nur mit Namen und zweiter Bestätigung', async ({
+  test('Eulen: eigene über den Leiheulen (v0.10.1), Freilassen nur mit Namen und zweiter Bestätigung', async ({
     page,
   }) => {
     const { name } = await registerViaUi(page);
@@ -189,7 +189,8 @@ test.describe('Version 0.3', () => {
     const loans = page.getByRole('heading', { name: 'Leiheulen', level: 2 });
     const own = page.getByRole('heading', { name: 'Deine Eulen', level: 2 });
     await expect(own).toBeVisible();
-    expect((await loans.boundingBox())!.y).toBeLessThan((await own.boundingBox())!.y);
+    // v0.10.1: own owls first (before: the loan owls on top).
+    expect((await own.boundingBox())!.y).toBeLessThan((await loans.boundingBox())!.y);
 
     const card = page.getByTestId('owl-card').filter({ hasText: 'Federchen' });
     // v0.8.5: releasing only with more than 20 own owls.

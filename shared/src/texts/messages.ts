@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.10.1',
+    title: 'Frisch gefegt im Postamt: Version 0.10.1',
+    paragraphs: [
+      'Nach dem großen Umbau haben wir noch einmal durchgefegt:',
+      '• In der Eulenübersicht stehen deine eigenen Eulen jetzt wieder oben, die Leiheulen darunter.',
+      '• Im Postamt siehst du deine geliehenen Eulen gleich oben, das Tagesangebot darunter.',
+      '• Beim Briefeschreiben drängeln sich die Leiheulen des Tages nicht mehr dazwischen – sie erscheinen nur, wenn gerade keine deiner Eulen den Brief tragen kann.',
+      '• Oben auf jedem Brief steht jetzt, wann er bei dir angekommen ist – bei deinen eigenen, wann du ihn abgeschickt hast.',
+      '• Der Virginiauhu hat seine Küken- und Brütenbilder bekommen, und Überschriften und Bilder sind ordentlich in Reih und Glied.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '0.10.0',
     title: 'Ein Postamt für den Eulenturm: Version 0.10.0',
     paragraphs: [
@@ -327,6 +340,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.10.1',
+    title: 'A good sweep at the post office: version 0.10.1',
+    paragraphs: [
+      'After the big rebuild we gave everything another sweep:',
+      '• In the owl overview your own owls are back at the top, the loan owls below.',
+      '• At the post office you see your borrowed owls right at the top, the offer of the day below.',
+      '• When writing a letter, the loan owls of the day no longer crowd in – they only appear when none of your owls can carry the letter right now.',
+      '• At the top of every letter it now says when it arrived with you – on your own, when you sent it off.',
+      '• The Great Horned Owl has got its chick and brooding pictures, and headings and pictures stand neatly in line.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '0.10.0',
     title: 'A post office for the owl tower: version 0.10.0',

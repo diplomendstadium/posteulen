@@ -21,7 +21,8 @@ describe('Texte von v0.3', () => {
     expect(updateNote('0.3.0-vmtest.2')?.version).toBe('0.3.0');
     expect(updateNote('9.9.9')).toBeUndefined();
     expect(notesSince('', '0.3.0').map((note) => note.version)).toEqual(['0.3.0']);
-    expect(notesSince('0.10.0', '0.11.0')).toEqual([]);
+    expect(notesSince('0.10.1', '0.11.0')).toEqual([]);
+    expect(notesSince('0.9.0', '0.10.1').map((note) => note.version)).toEqual(['0.10.0', '0.10.1']);
     for (const note of UPDATE_NOTES) expect(note.paragraphs.length).toBeGreaterThan(2);
   });
 

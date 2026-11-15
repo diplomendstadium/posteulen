@@ -217,6 +217,9 @@ export const en: Texts = {
     carrierLoan: '{species}, loan owl',
     carrierYours: '{species}, your owl',
     carrierOf: '{species}, {name}’s owl',
+    /** v0.10.1: head of a letter – when it arrived or when it was sent off. */
+    receivedAt: 'Received on {date} at {time}',
+    sentOffAt: 'Sent on {date} at {time}',
     small: 'short parchment',
     large: 'long parchment',
     inFlight: 'Owl on its way – arrives around {time}',
@@ -263,7 +266,7 @@ export const en: Texts = {
     retentionYear: 'one year',
     retentionDays: '{days} days',
     loanOffers:
-      'None of your own owls is ready right now. You can take a loan owl of the day: it is only borrowed, for 0.1 gold, when you send the letter.',
+      'None of your owls that can carry this letter is ready right now. You can take a loan owl of the day: it is only borrowed when you send the letter (0.1 gold, owls that also carry gold 0.2 gold).',
     loanOfferHint: 'Loan owl of the day: {price}, only when sending.',
     /** v0.10: the owl cannot carry the chosen parchment. */
     cannotCarryLong: 'Carries no long parchment.',
@@ -613,7 +616,6 @@ export const en: Texts = {
     allDone: 'All loan owls of today are back. Tomorrow there are new ones.',
     loanDone: '{name} is now waiting here and with your owls.',
     borrowedTitle: 'Your loan owls',
-    borrowedNone: 'No loan owl is waiting for you right now.',
   },
   finance: {
     /** v0.10: in the settings (the overview “Finances” is gone). */

@@ -150,7 +150,8 @@ test.describe('Version 0.7', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
-    await expect(page.locator('.footer-links a')).toHaveCount(5);
+    // The Tor link comes and goes while admin.spec.ts switches Tor in parallel: not counted.
+    await expect(page.locator('.footer-links a:not([data-testid="tor-link"])')).toHaveCount(5);
     const colours = await page
       .locator('.footer-links a')
       .evaluateAll((links) => links.map((link) => getComputedStyle(link).color));

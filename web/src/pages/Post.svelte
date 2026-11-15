@@ -1,8 +1,8 @@
 <script lang="ts">
   /**
    * v0.10: the owl post office (SPEC 8.6): the picture of the place by day or night at the
-   * player's home, the loan owls of the day (before v0.10 in the Menagerie) with price and
-   * carrying capacity, and the borrowed owls with the same controls as in the owl overview.
+   * player's home, the intro, (v0.10.1) the borrowed owls with the same controls as in the owl
+   * overview if there are any, then the loan owls of the day with price and carrying capacity.
    */
   import { t, fill, speciesName, decimal, goldText, locale } from '../lib/i18n.svelte.ts';
   import { OWL } from '@posteulen/shared/constants.ts';
@@ -82,6 +82,19 @@
 <p class="card intro">{t.post.intro}</p>
 <ErrorText message={error} />
 
+{#if borrowed.length > 0}
+  <!-- v0.10.1: the borrowed owls first (only if there are any), then the offer. -->
+  <section aria-labelledby="borrowed-title">
+    <h2 id="borrowed-title" class="plate">{t.post.borrowedTitle}</h2>
+    <OwlCards
+      owls={borrowed}
+      onchange={replace}
+      onreload={() => void load()}
+      onremove={(id) => (owls = owls.filter((other) => other.id !== id))}
+    />
+  </section>
+{/if}
+
 <section aria-labelledby="loan-title">
   <div class="card section-head">
     <h2 id="loan-title">{t.post.loanTitle}</h2>
@@ -133,20 +146,6 @@
   {#if loanDone}<p class="notice" role="status">
       <span aria-hidden="true">🦉</span><span>{loanDone}</span>
     </p>{/if}
-</section>
-
-<section aria-labelledby="borrowed-title">
-  <h2 id="borrowed-title" class="plate">{t.post.borrowedTitle}</h2>
-  {#if borrowed.length === 0}
-    <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.post.borrowedNone}</span></p>
-  {:else}
-    <OwlCards
-      owls={borrowed}
-      onchange={replace}
-      onreload={() => void load()}
-      onremove={(id) => (owls = owls.filter((other) => other.id !== id))}
-    />
-  {/if}
 </section>
 
 <style>

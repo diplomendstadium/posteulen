@@ -86,11 +86,21 @@
   /** v0.10: what the chosen parchment needs from the owl (SPEC 9.2.1). */
   const need = $derived<Cargo>(parchment === 'large' ? 'long' : 'short');
   const carries = (choice: Choice): boolean => cargoCovers(choice.cargo, need);
-  // v0.10: switching to the long parchment lets go of an owl that cannot carry it.
+  /**
+   * v0.10.1: loan owls of the day that are not borrowed yet only when no other owl (own, already
+   * borrowed or visiting) can carry this letter – otherwise they would only crowd the choice.
+   */
+  const shown = $derived.by((): Choice[] | null => {
+    if (!prepared) return null;
+    const others = prepared.filter((choice) => !choice.offer);
+    return others.some(carries) ? others : prepared;
+  });
+  // v0.10: switching to the long parchment lets go of an owl that cannot carry it;
+  // v0.10.1 also of a loan offer that is no longer shown.
   $effect(() => {
     const current = prepared?.find((choice) => choice.id === owlId);
-    if (current && !cargoCovers(current.cargo, need)) {
-      owlId = prepared?.find((choice) => !choice.offer && carries(choice))?.id ?? null;
+    if (current && (!cargoCovers(current.cargo, need) || !shown?.includes(current))) {
+      owlId = shown?.find((choice) => !choice.offer && carries(choice))?.id ?? null;
     }
   });
   const nameOf = (id: string): string =>
@@ -341,7 +351,7 @@
     </p>{/if}
   <ErrorText message={error} />
   {#if prepared}
-    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" {need} />
+    <OwlChoice choices={shown ?? []} bind:selected={owlId} name="letter-owl" {need} />
   {:else if loading}
     <p class="hint" role="status">{t.letters.choicesLoading}</p>
   {:else}

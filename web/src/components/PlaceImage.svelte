@@ -40,7 +40,7 @@
     <img
       src={image.files['s960']}
       srcset={`${image.files['s480']} 480w, ${image.files['s960']} 960w`}
-      sizes="(min-width: 36rem) 32rem, 100vw"
+      sizes="(min-width: 60rem) 60rem, 100vw"
       width="960"
       height="960"
       {alt}
@@ -50,9 +50,9 @@
 {/if}
 
 <style>
+  /* v0.10.1: as wide as the other contents of the page, the whole square. */
   .place {
-    margin: 0 auto 1rem;
-    max-width: 32rem;
+    margin: 0 0 1rem;
   }
 
   img {

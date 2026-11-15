@@ -360,8 +360,10 @@
               >{/if}</span
           >
         </p>
-        <!-- v0.10: what the owl can carry. -->
-        <p class="cargo" data-testid="owl-cargo">{t.owls[`cargo_${owl.cargo}`]}</p>
+        <!-- v0.10: what the owl can carry; v0.10.1 not while it is on its way (also resting). -->
+        {#if owl.state !== 'flying'}
+          <p class="cargo" data-testid="owl-cargo">{t.owls[`cargo_${owl.cargo}`]}</p>
+        {/if}
         <p class="state" class:away={owl.state !== 'home'}>
           <span aria-hidden="true"
             >{owl.state === 'home' ? '⌂' : owl.state === 'flying' ? '🦉' : 'ℹ'}</span
