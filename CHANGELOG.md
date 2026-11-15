@@ -3,6 +3,40 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.10.0 – Ein Postamt für den Eulenturm
+
+Schwerpunkt: Eulenpostamt und Tragfähigkeit der Eulen (SPEC Anhang AB, D-328 bis D-345).
+
+- **Eulenpostamt:** neue Kachel „Postamt“ an der Stelle von „Finanzen“. Dort stehen die Leiheulen des
+  Tages mit Werten, Tragfähigkeit und Leihgebühr, darunter die geliehenen Eulen mit allen Knöpfen (pflegen,
+  Brief schreiben, Gold verschicken). Die Menagerie ist nur noch zum Kaufen und Verleihen da.
+- **Ortsbilder:** Menagerie und Postamt zeigen oben ein Bild – bei Tag oder Nacht am Wohnort.
+- **Tragfähigkeit:** nur kurzes Pergament (Kanincheneule, Elfenkauz), kurzes und langes (Waldkauz,
+  Schleiereule, Sumpfohreule, Waldohreule, Südliche Weißgesichtseule, Maskeneule, Haubenkauz, Mähnenkauz)
+  oder alles inkl. Gold (Bartkauz, Sperbereule, Schneeeule, Brillenkauz, Milchuhu, Riesenkauz,
+  Riesenfischuhu, Virginiauhu, Phönix). Gilt für die Eulen der Spieler, der Server prüft es; Bot-Eulen
+  tragen weiter alles. Kaufliste, Leihangebot, Eulenkarten und Eulenwahl zeigen es an.
+- **Leiheulen**, die Gold tragen, kosten 0,2 Gold; alle anderen weiter 0,1. Die Auswahl bleibt zufällig.
+- **Preise:** Phönix 150 Gold (vorher 100). Der Virginiauhu ist eine normale Art für 60 Gold: kaufen,
+  leihen, an die Menagerie verleihen, Eier.
+- **Füttern:** Eulenkeks und Lieblingsleckerli je einmal am Tag immer, danach erneut, solange die Energie
+  gerade nicht voll ist – jedes Mal bezahlt; die Motivation steigt weiter nur einmal am Tag.
+- **Gold verschicken** per Knopf an einer einsatzbereiten Gold-Eule (eigen oder geliehen), sobald genug
+  Gold da ist. Goldstand oben rechts; tägliches Gold und Buchungen in den Einstellungen, wo „Abmelden“ jetzt
+  ganz oben steht.
+- **Grummelig:** Eulen mit 80 % Motivation zeigen zu Hause das grummelige Bild.
+- **Doku:** Hilfe (neue Abschnitte „Eulenpostamt“ und „Was eine Eule tragen kann“), Erklärbär, README,
+  SPEC und PROMPT; Update-Nachricht an alle Konten.
+
+### Hinweise für Betreiber
+
+- Keine Migration, keine neuen Pakete, keine Änderung an Skripten oder Diensten.
+- Neue Bilder in `images/`: `Menagerie-Tag.png`, `Menagerie-Nacht.png`, `Postamt-Tag.png`,
+  `Postamt-Nacht.png` (werden beim Build umgerechnet). Für den Virginiauhu fehlen noch
+  `Virginiauhu-Brueten.png` und `Virginiauhu-Kueken.png` – bis dahin Platzhalter (der Build warnt).
+- Laufende Flüge, Leihen und Gelege bleiben unverändert; die Tragfähigkeit gilt für neue Sendungen.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v0.9.0 – Eulen auf verborgenen Pfaden
 
 Schwerpunkt: PostEulen im Tor-Netz (SPEC Anhang AA, 16.5, D-309 bis D-327).

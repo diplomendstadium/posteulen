@@ -39,13 +39,14 @@ test.describe('Version 0.2', () => {
     await expect(offers).toHaveCount(4);
     // Nothing is preselected – borrowing costs gold.
     for (const offer of await offers.all()) await expect(offer).not.toBeChecked();
-    await expect(page.getByText('Leiheule des Tages: 0,1 Gold, erst beim Abschicken.')).toHaveCount(
-      4,
-    );
+    // v0.10: 0.1 gold, or 0.2 for species that carry gold.
+    await expect(
+      page.getByText(/^Leiheule des Tages: 0,[12] Gold, erst beim Abschicken\.$/),
+    ).toHaveCount(4);
     await offers.first().check();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(/4,9 Gold/).first()).toBeVisible();
+    await expect(page.getByText(/4,[89] Gold/).first()).toBeVisible();
     // (In the test time-lapse the loan owl may already have delivered and vanished.)
 
     // The letter arrives as a scroll in handwriting; Ben's top bar says "Neue Post!".
