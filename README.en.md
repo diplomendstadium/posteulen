@@ -43,7 +43,7 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Letters do not last for ever.** All letters are deleted automatically and for good **one year** after delivery. If you like, set 30, 90 or 180 days in the settings. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer. Anything you want to keep is best copied out – like in the old days.
 - **Forgotten password means: account gone.** Nobody can reset it, not even the operator. That is not a bug; it is the price of real encryption.
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
-- **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route. Every ready owl has a “Write a letter” button in the owl overview; when writing, the owl choice is there at once, including the loan owls of the day.
+- **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route. Every ready owl has a “Write a letter” button in the owl overview; when writing, the owl choice is there at once – it only offers the loan owls of the day if none of your owls can carry the letter. In the correspondence every letter shows when it arrived or when you sent it.
 - **An offer of your own:** the owl post office rolls the four loan owls of the day for each account separately – with values, what they carry and the loan fee (0.1 gold, owls that also carry gold 0.2 gold). There you can also look after your borrowed owls and send them off. Once a loan is over, its offer disappears until tomorrow.
 - **Gold with the owl:** if an owl can carry gold and you have enough, it has the button “Send gold” in the owl overview. Bookings and the daily gold are in the settings.
 - **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
@@ -96,7 +96,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **0.10.0**.
+Version: **0.10.1**.
 
 **In short**
 

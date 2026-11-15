@@ -3,6 +3,30 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v0.10.1 – Frisch gefegt im Postamt
+
+Kleinigkeiten aus 0.10.0 (SPEC Anhang AC, D-346 bis D-353).
+
+- **Virginiauhu:** eigene Bilder für Brüten und Küken; die Bildliste ist vollständig.
+- **Eulenübersicht:** „Deine Eulen“ stehen über den Leiheulen. Eulen, die gerade unterwegs sind, zeigen
+  keine Tragfähigkeit mehr – nur, was sie gerade tun.
+- **Eulenwahl:** Die Leiheulen des Tages erscheinen nur noch, wenn keine andere Eule den Brief tragen kann
+  (z. B. keine einsatzbereit ist oder alle nur das kurze Pergament tragen). Sonst leiht man im Postamt.
+- **Briefwechsel:** Empfangene Briefe zeigen „Empfangen am TT.MM.JJJJ um hh:mm“, eigene „Abgeschickt am …“.
+  Wann das Gegenüber geschrieben hat, ist nicht mehr zu sehen.
+- **Postamt:** Titel, Bild, Einleitung, dann „Deine Leiheulen“ (nur wenn es welche gibt), zuletzt das
+  Leihangebot.
+- **Gestaltung:** Seitentitel und Zwischenüberschriften außerhalb von Karten stehen zentriert auf einem
+  Schild in voller Inhaltsbreite; die Ortsbilder von Postamt und Menagerie sind so breit wie die Inhalte.
+- **Doku:** Hilfe, Erklärbär, README, SPEC und PROMPT; Update-Nachricht an alle Konten.
+
+### Hinweise für Betreiber
+
+- Keine Migration, keine neuen Pakete, keine Änderung an Skripten oder Diensten.
+- Neue Bilder in `images/`: `Virginiauhu-Brueten.png`, `Virginiauhu-Kueken.png` (werden beim Build
+  umgerechnet; der Build warnt nicht mehr über fehlende Bilder).
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v0.10.0 – Ein Postamt für den Eulenturm
 
 Schwerpunkt: Eulenpostamt und Tragfähigkeit der Eulen (SPEC Anhang AB, D-328 bis D-345).

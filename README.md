@@ -41,7 +41,7 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Briefe sind vergänglich.** Alle Briefe werden **ein Jahr** nach der Zustellung automatisch und unwiderruflich gelöscht. Wer mag, stellt in den Einstellungen 30, 90 oder 180 Tage ein. Aufgeräumt wird einmal pro Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben. Was bleiben soll, schreibt man sich besser ab – wie früher.
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
-- **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da, samt den Leiheulen des Tages.
+- **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da – die Leiheulen des Tages bietet sie nur an, wenn keine deiner Eulen den Brief tragen kann. Im Briefwechsel steht bei jedem Brief, wann er angekommen ist bzw. wann du ihn abgeschickt hast.
 - **Jedem sein Angebot:** Die vier Leiheulen des Tages würfelt das Eulenpostamt für jedes Konto eigens aus – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
 - **Gold mit der Eule:** Kann eine Eule Gold tragen und hast du genug, hat sie in der Eulenübersicht den Knopf „Gold verschicken“. Buchungen und tägliches Gold stehen in den Einstellungen.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
@@ -92,7 +92,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.10.0**.
+Stand: **Version 0.10.1**.
 
 **Kurzfassung**
 
