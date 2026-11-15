@@ -5,6 +5,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
+  displayEnergy,
   energyAfterFeeding,
   energyAfterSnack,
   startEnergy,
@@ -14,6 +15,9 @@ import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
 import {
   canBuyMore,
   canCare,
+  canFeedAgain,
+  cargoOf,
+  loanPrice,
   canGift,
   canLendToMenagerie,
   canRelease,
@@ -184,8 +188,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
 
   /**
    * The four interactions (v0.5, 9.3): water (free, once a day), petting (free, unlimited),
-   * the owl biscuit (0.1 gold, once a day, +10 % energy) and the favourite snack (0.2 gold,
-   * once a day, +20 % energy). Each kind raises the motivation once a day.
+   * the owl biscuit (0.1 gold, +10 % energy) and the favourite snack (0.2 gold, +20 % energy) –
+   * v0.10 each once a day in any case and again while the energy is not full. Each kind raises
+   * the motivation once a day.
    */
   const interaction = (kind: Interaction) => async (request: FastifyRequest) => {
     const id = owlIdParam(request.params);
@@ -210,10 +215,19 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       if (!owl) throw new HttpError(404, 'not_found');
       const species = speciesById(owl.species);
       if (!species || (!guest && !canCare(facts(owl)))) throw new HttpError(400, 'owl_not_home');
-      if (kind === 'feed' && owl.fed_on === today) throw new HttpError(400, 'owl_fed_today');
+      // v0.10: biscuit and snack once a day in any case, more often while the energy is not
+      // full right now (each time paid, SPEC 9.3). Motivation rises only once a day per kind.
+      const fullNow = () =>
+        !canFeedAgain({
+          fedToday: true,
+          energy: displayEnergy(currentEnergy(ctx, owl, now)),
+          maxEnergy: species.maxEnergy,
+        });
+      if (kind === 'feed' && owl.fed_on === today && fullNow())
+        throw new HttpError(400, 'owl_fed_today');
       if (kind === 'water' && owl.watered_on === today)
         throw new HttpError(400, 'owl_watered_today');
-      if (kind === 'snack' && owl.snacked_on === today)
+      if (kind === 'snack' && owl.snacked_on === today && fullNow())
         throw new HttpError(400, 'owl_snacked_today');
       if (kind === 'feed') debit(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
       if (kind === 'snack') debit(ctx.db, me, 'snack', GOLD.SNACK_PRICE, now);
@@ -315,11 +329,12 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       .map((owl) => owl.id);
     // The loan owls of the day, borrowed only on sending (8.4 step 4, 9.6). Since v0.4 also for
     // several recipients; v0.8.5 always, not only when no owl is ready.
-    const offers = canAfford(balance(ctx.db, me), GOLD.LOAN_PRICE)
-      ? offerOf(ctx, me, utcDay(now))
-          .filter((species) => loanProblem(ctx, me, species, now) === null)
-          .map((species) => `${LOAN_REF_PREFIX}${species}`)
-      : [];
+    // v0.10: the price depends on the species (0.2 gold for gold carriers).
+    const gold = balance(ctx.db, me);
+    const offers = offerOf(ctx, me, utcDay(now))
+      .filter((species) => canAfford(gold, loanPrice(species)))
+      .filter((species) => loanProblem(ctx, me, species, now) === null)
+      .map((species) => `${LOAN_REF_PREFIX}${species}`);
     const owls = [];
     // v0.7: a visiting owl of the only recipient comes first – it takes the reply straight back.
     if (body.guests && body.recipients.length === 1) {
@@ -349,6 +364,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           returnsAt: null,
           restUntil: routeOf(guest.flight)[guest.index]?.restUntil ?? null,
           moreStops,
+          // v0.10: owls of bots carry everything (the rule is for the owls of players).
+          cargo: guest.flight.holder_kind === 'bot' ? 'gold' : cargoOf(owl.species),
         });
       }
     }
@@ -379,6 +396,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           .filter((stop) => stop.type === 'deliver')
           .map((stop) => ({ recipientId: stop.userId, at: stop.arrivesAt })),
         returnsAt: planned.route.find((stop) => stop.type === 'home')?.arrivesAt ?? null,
+        cargo: cargoOf(owl.species),
+        ...(owlId.startsWith(LOAN_REF_PREFIX) ? { price: loanPrice(owl.species) } : {}),
       });
     }
     return { owls };
@@ -526,6 +545,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           name: identities.get(species)?.name ?? '',
           sex: identities.get(species)?.sex ?? 'f',
           loaned: loaned.includes(species),
+          // v0.10: price and carrying capacity depend on the species.
+          price: loanPrice(species),
+          cargo: cargoOf(species),
         })),
     };
   });

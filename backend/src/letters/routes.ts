@@ -126,7 +126,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const me = userOf(request).id;
     const now = ctx.now();
     checkRecipients(ctx, me, body.recipients, now);
-    const owl = chooseOwl(ctx, me, body.owlId, now);
+    const owl = chooseOwl(ctx, me, body.owlId, now, { parchment: body.parchment });
     if (body.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
     // v0.7: a visiting owl takes a reply only to its holder.
     if (owl.guest && body.recipients[0] !== owl.guest.flight.holder_id)

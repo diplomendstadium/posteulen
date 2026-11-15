@@ -4,18 +4,27 @@
    * Owl selection with the server-computed preview (SPEC 8.4 step 4): energy, speed,
    * arrival per recipient, return home.
    */
-  import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
+  import { t, fill, goldText, speciesName } from '../lib/i18n.svelte.ts';
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   import OwlPicture from './OwlPicture.svelte';
   import { dateTime } from '../lib/format.ts';
   import { live } from '../lib/live.svelte.ts';
   import type { OwlChoice } from '../lib/owls.ts';
+  import { cargoCovers } from '@posteulen/shared/game/owls.ts';
+  import type { Cargo } from '@posteulen/shared/species.ts';
 
   let {
     choices,
     selected = $bindable(null),
     name,
-  }: { choices: readonly OwlChoice[]; selected: string | null; name: string } = $props();
+    need = 'short',
+  }: {
+    choices: readonly OwlChoice[];
+    selected: string | null;
+    name: string;
+    /** v0.10: what the load needs; owls that cannot carry it cannot be chosen. */
+    need?: Cargo;
+  } = $props();
 
   const species = (id: string) => speciesById(id);
   const nameOf = (id: string): string =>
@@ -32,8 +41,9 @@
     <p class="notice"><span aria-hidden="true">ℹ</span><span>{t.letters.loanOffers}</span></p>
   {/if}
   {#each choices as choice (choice.id)}
-    <label class="choice" class:chosen={selected === choice.id}>
-      <input type="radio" {name} value={choice.id} bind:group={selected} />
+    {@const able = cargoCovers(choice.cargo, need)}
+    <label class="choice" class:chosen={selected === choice.id} class:unable={!able}>
+      <input type="radio" {name} value={choice.id} bind:group={selected} disabled={!able} />
       <span class="picture"><OwlPicture speciesId={choice.species} alt="" /></span>
       <span class="text">
         <strong>
@@ -53,7 +63,10 @@
             })}</span
           >
         {/if}
-        {#if choice.offer}<span class="hint offer">{t.letters.loanOfferHint}</span>{/if}
+        {#if !able}<span class="hint">{t.letters.cannotCarryLong}</span>{/if}
+        {#if choice.offer}<span class="hint offer"
+            >{fill(t.letters.loanOfferHint, { price: goldText(choice.price ?? 0) })}</span
+          >{/if}
         {#if choice.kind === 'loan' && !choice.guest}<span class="hint">{t.letters.loanHint}</span
           >{/if}
         {#each choice.arrivals as arrival (arrival.recipientId)}
@@ -80,6 +93,10 @@
     margin: 0 0 1rem;
     display: grid;
     gap: 0.5rem;
+  }
+
+  .unable {
+    opacity: 0.6;
   }
 
   legend {

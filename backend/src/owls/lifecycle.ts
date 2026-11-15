@@ -3,7 +3,7 @@
  * menagerie, sickness and treatment, eggs, hatching, naming and gift deadlines of chicks,
  * growing up. All handlers run in the event queue and are idempotent (SPEC 4.5).
  */
-import { ACCOUNT, GOLD, MENAGERIE, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, MENAGERIE, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   chickCount,
   giftRequired,
@@ -19,7 +19,7 @@ import {
   speciesPrice,
 } from '@posteulen/shared/game/chance.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
-import { isMythical, randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
+import { isMythical, loanPrice, randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
 import { languageOf } from '../accounts/language.ts';
 import type { Context } from '../context.ts';
@@ -167,11 +167,12 @@ export function loanStartEnergy(identity: LoanIdentity, species: string): number
   return startEnergy(kind, identity.energyShare);
 }
 
-/** Borrow (inside a transaction): checks, 0.1 gold, the new loan owl (9.6). */
+/** Borrow (inside a transaction): checks, the price of the species, the new loan owl (9.6). */
 export function borrow(ctx: Context, userId: string, species: string, now: number): OwlRow {
   const problem = loanProblem(ctx, userId, species, now);
   if (problem) throw new HttpError(400, problem);
-  debit(ctx.db, userId, 'loan', GOLD.LOAN_PRICE, now);
+  // v0.10: 0.2 gold for species that carry gold, otherwise 0.1 gold.
+  debit(ctx.db, userId, 'loan', loanPrice(species), now);
   const day = utcDay(now);
   ctx.db.run('DELETE FROM loan_days WHERE user_id = ? AND day < ?', userId, day);
   ctx.db.run(

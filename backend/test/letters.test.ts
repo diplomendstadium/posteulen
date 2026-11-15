@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { openLetter, sealLetter, type LetterMeta } from '@posteulen/shared/crypto/letter.ts';
 import { LETTER, TIME } from '@posteulen/shared/constants.ts';
+import { loanPrice } from '@posteulen/shared/game/owls.ts';
 import {
   withoutBots,
   advanceTo,
@@ -48,7 +49,8 @@ async function send(
   const prepared = await from.agent.json<Prepared>('POST', '/api/letters/prepare', {
     recipients: to.map((p) => p.id),
     parchment,
-    owlId: owlId ?? (await borrowOwl(from)),
+    // v0.10: a loan owl that carries the parchment (SPEC 9.2.1).
+    owlId: owlId ?? (await borrowOwl(from, parchment === 'large' ? 'long' : undefined)),
   });
   if (prepared.status !== 200) return prepared;
   const items = [];
@@ -309,7 +311,17 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(arrival(sent, 1)).toBeGreaterThan(arrival(sent, 0));
     expect(sent.body).toMatchObject({ returnsAt: expect.any(Number) });
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      100 - 60 - 1 - 1 - 1, // owl, large parchment twice, the loan owl (once for both letters)
+      // Owl, large parchment twice, the loan owl (once for both letters, v0.10 by species).
+      100 -
+        60 -
+        1 -
+        1 -
+        loanPrice(
+          app.db.get<{ s: string }>(
+            "SELECT owl_species AS s FROM flights WHERE owl_kind = 'loan' AND holder_id = ?",
+            anna.id,
+          )!.s,
+        ),
     );
     // Only letters between people (Clara's bots write to her as well).
     const ids = app.db.all<{ id: string }>('SELECT id FROM letters WHERE ciphertext IS NOT NULL');

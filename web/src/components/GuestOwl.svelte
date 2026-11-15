@@ -126,17 +126,17 @@
       <button
         class="button secondary"
         type="button"
-        disabled={busy || guest.fedToday || !status.online}
+        disabled={busy || !guest.feedable || !status.online}
         onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
-        >{guest.fedToday ? t.owls.fedToday : guest.bot ? t.owls.feedFree : t.owls.feed}</button
+        >{!guest.feedable ? t.owls.fedToday : guest.bot ? t.owls.feedFree : t.owls.feed}</button
       >
       <button
         class="button secondary"
         type="button"
-        disabled={busy || guest.snackedToday || !status.online}
+        disabled={busy || !guest.snackable || !status.online}
         onclick={() =>
           void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
-        >{guest.snackedToday ? t.owls.snackedToday : snackButton()}</button
+        >{!guest.snackable ? t.owls.snackedToday : snackButton()}</button
       >
       {#if guest.holderName !== null}
         <!-- v0.7.1: opens the chat with exactly this owl chosen. -->

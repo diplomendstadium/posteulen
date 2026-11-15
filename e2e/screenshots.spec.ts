@@ -82,12 +82,12 @@ test.describe('Screenshots Briefwechsel', () => {
   });
 });
 
-test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
+test.describe('Screenshots Eulen, Postamt, Gold, Karte (Stufe 3)', () => {
   test.beforeEach(({ browserName }) => {
     test.skip(browserName !== 'chromium', 'Screenshots für den Bericht nur aus Chromium');
   });
 
-  test('Menagerie, Eulen, Einblendung, Finanzen, Karte', async ({ browser, page }, info) => {
+  test('Menagerie, Postamt, Eulen, Einblendung, Gold, Karte', async ({ browser, page }, info) => {
     const anna = await registerViaUi(page);
     const other = await (await browser.newContext({ locale: 'de-DE' })).newPage();
     const ben = await registerViaUi(other, { mapKeys: ['+', 'ArrowRight'] });
@@ -103,6 +103,10 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     setGold(anna.name, 600);
     await page.goto('/app/menagerie');
     await shoot(page, info, 'menagerie', true);
+    await page.goto('/app/postamt');
+    await page.getByTestId('loan-offer').first().waitFor();
+    await shoot(page, info, 'postamt', true);
+    await page.goto('/app/menagerie');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Schneeeule kaufen' }).click();
@@ -113,7 +117,7 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
     await page.goto('/app/menagerie');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
-    await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
+    await page.getByRole('button', { name: 'Bartkauz kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Waldi');
     await page.getByRole('button', { name: 'Speichern' }).click();
     await page.getByRole('heading', { name: 'Waldi', exact: true }).waitFor();
@@ -140,14 +144,24 @@ test.describe('Screenshots Eulen, Finanzen, Karte (Stufe 3)', () => {
       .waitFor();
     await shoot(page, info, 'eulen-unterwegs');
 
-    await page.goto('/app/finanzen');
-    await page.getByLabel('An').selectOption({ index: 1 });
-    await page.getByLabel('Betrag in Gold (z. B. 1,5)').fill('2,5');
-    // v0.8.5: the owl choice appears by itself.
-    await page.getByRole('radio', { name: /Waldi/ }).check();
-    await page.getByRole('button', { name: 'Gold losschicken' }).click();
-    await page.getByText(/Waldi bringt 2,5 Gold/).waitFor();
+    // v0.10: gold leaves from the card of an owl that carries it (Waldi is a great grey owl).
+    await page
+      .getByTestId('owl-card')
+      .filter({ hasText: 'Waldi' })
+      .getByRole('button', { name: 'Gold verschicken' })
+      .click();
+    const dialog = page.getByTestId('gold-dialog');
+    await dialog.getByLabel('An').selectOption({ index: 1 });
+    await dialog.getByLabel('Betrag in Gold (z. B. 1,5)').fill('2,5');
+    await dialog.getByRole('button', { name: 'Ankunft berechnen' }).click();
+    await shoot(page, info, 'gold-verschicken');
+    await dialog.getByRole('button', { name: 'Gold losschicken' }).click();
+    await page
+      .getByTestId('owl-overlay')
+      .filter({ hasText: /Waldi bringt 2,5 Gold/ })
+      .waitFor();
     await page.keyboard.press('Escape');
+    await page.goto('/app/einstellungen');
     await shoot(page, info, 'finanzen', true);
   });
 });

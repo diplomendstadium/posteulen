@@ -264,7 +264,9 @@ export const en: Texts = {
     retentionDays: '{days} days',
     loanOffers:
       'None of your own owls is ready right now. You can take a loan owl of the day: it is only borrowed, for 0.1 gold, when you send the letter.',
-    loanOfferHint: 'Loan owl of the day: 0.1 gold, only when sending.',
+    loanOfferHint: 'Loan owl of the day: {price}, only when sending.',
+    /** v0.10: the owl cannot carry the chosen parchment. */
+    cannotCarryLong: 'Carries no long parchment.',
     arrival: 'Arrives at {name}: around {time}',
     returnsAt: 'Back home: around {time}',
     noOwl:
@@ -493,9 +495,15 @@ export const en: Texts = {
     water: 'Give water',
     wateredToday: 'Already had a drink today',
     feed: 'Owl biscuit (0.1 gold)',
-    fedToday: 'Already fed today',
+    fedToday: 'Full – already fed today',
     snack: 'Give {snack} (0.2 gold)',
-    snackedToday: 'Already had a treat today',
+    snackedToday: 'Full – already had a treat today',
+    /** v0.10: send gold with this owl (only owls that carry gold). */
+    sendGold: 'Send gold',
+    /** v0.10: carrying capacity of the species (purchase, loan offers, owl cards). */
+    cargo_short: 'Carries short parchment',
+    cargo_long: 'Carries short and long parchment',
+    cargo_gold: 'Carries short and long parchment as well as gold',
     rename: 'Rename',
     renameBlocked: 'Renaming possible again next calendar year.',
     gift: 'Give away',
@@ -529,6 +537,8 @@ export const en: Texts = {
     flyingNightAlt: '{name} in flight by night',
     sleepDayAlt: '{name} is asleep on the way by day',
     sleepNightAlt: '{name} is taking a night rest on the way',
+    /** v0.10: an owl at home with a motivation of 80 %. */
+    grumpyAlt: '{name} looks grumpy – motivation is at rock bottom',
     broodingAlt: '{name} is brooding on her eggs in the nest',
     napAlt: '{name} is having a nap at home',
     perchRestingAlt: 'Empty perch – {name} is resting with {host} right now',
@@ -573,7 +583,11 @@ export const en: Texts = {
     imageAlt: '{species}: {what}',
   },
   menagerie: {
-    intro: 'The Menagerie: here you can buy owls, borrow owls and lend your own owls.',
+    intro:
+      'The Menagerie: here you can buy owls and lend your own owls. Loan owls are now at the owl post office.',
+    /** v0.10: picture of the place, by day or by night at the player's home. */
+    pictureDay: 'The Menagerie in old stone walls, by day',
+    pictureNight: 'The Menagerie in old stone walls, at night',
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery} %/h',
@@ -581,17 +595,29 @@ export const en: Texts = {
     buy: 'Buy {species}',
     buyConfirm: 'Really buy the {species} for {price}?',
     limit: 'You already have 50 owls of your own – that is the limit.',
+  },
+  /** v0.10: the post office – loan owls (before in the Menagerie) and the borrowed ones. */
+  post: {
+    intro:
+      'The owl post office: here you borrow owls for a letter or for gold – different ones every day. You can also look after your borrowed owls and send them off right here.',
+    pictureDay: 'The owl post office by day',
+    pictureNight: 'The owl post office at night',
     loanTitle: 'Borrow owls',
     loanIntro:
-      'On offer today – for 0.1 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back to the Menagerie (no refund). Once a loan is over, its offer disappears until tomorrow.',
+      'On offer today – for 0.1 gold, owls that also carry gold for 0.2 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back (no refund). Once a loan is over, its offer disappears until tomorrow.',
     loanCount: 'Borrowed today: {count} of {max}. Tomorrow there are new owls to borrow.',
+    loanPrice: 'Loan fee: {price}',
     loan: 'Borrow {name} ({species}, {sex})',
     loaned: 'Already borrowed',
     /** v0.8.5: every offer of the day has been borrowed and its loan is over. */
-    allDone: 'All loan owls of today are back in the Menagerie. Tomorrow there are new ones.',
-    loanDone: '{name} is now waiting with your owls.',
+    allDone: 'All loan owls of today are back. Tomorrow there are new ones.',
+    loanDone: '{name} is now waiting here and with your owls.',
+    borrowedTitle: 'Your loan owls',
+    borrowedNone: 'No loan owl is waiting for you right now.',
   },
   finance: {
+    /** v0.10: in the settings (the overview “Finances” is gone). */
+    title: 'Gold and bookings',
     balance: 'Your gold: {amount}',
     daily: 'Every day at {time} you get {amount}, as long as you are active.',
     dailyRule:
@@ -615,7 +641,9 @@ export const en: Texts = {
     type_menagerie_wage: 'Menagerie wage',
     type_bot_gift: 'Gift from {name}',
     type_voucher: 'Voucher redeemed',
-    sendTitle: 'Send gold by owl',
+    sendTitle: '{owl} carries gold',
+    /** v0.10: the arrival of exactly this owl before sending. */
+    check: 'Work out the arrival',
     sendHint: '0.1 to 20.0 gold; afterwards you must have more than 10.0 gold left.',
     notPossible: 'You can send gold once you have more than 10.1 gold.',
     maxNow: 'Possible right now: up to {amount}',
@@ -654,7 +682,7 @@ export const en: Texts = {
     main: 'Main navigation',
     letters: 'Letters',
     owls: 'Owls',
-    finance: 'Finances',
+    post: 'Post office',
     menagerie: 'Menagerie',
     addressBook: 'Address book',
     map: 'Map',
@@ -1052,9 +1080,10 @@ export const en: Texts = {
     owl_recipients: 'This owl cannot fly to that many recipients (at most 5).',
     owl_limit: 'You already have 50 owls of your own – that is the limit.',
     owl_not_for_sale: 'This owl is not for sale in the Menagerie.',
-    owl_fed_today: 'This owl has already eaten today.',
+    owl_fed_today: 'This owl has already eaten today and is full.',
     owl_watered_today: 'This owl has already had a drink today.',
-    owl_snacked_today: 'This owl has already had its favourite snack today.',
+    owl_snacked_today: 'This owl has already had its favourite snack today and is full.',
+    owl_cannot_carry: 'This owl cannot carry that. Choose another owl or a short parchment.',
     owl_not_home: 'This is only possible while the owl is at home.',
     owl_name_mismatch: 'The name does not match. Please type the owl’s name exactly as shown.',
     owl_release_limit:

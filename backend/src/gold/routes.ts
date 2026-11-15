@@ -131,7 +131,8 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, [body.recipient], now);
     const problem = transferProblem(balance(ctx.db, me), body.amount);
     if (problem) throw new HttpError(400, problem);
-    const owl = chooseOwl(ctx, me, body.owlId, now);
+    // v0.10: only species that carry gold (SPEC 9.2.1).
+    const owl = chooseOwl(ctx, me, body.owlId, now, { parchment: 'small', gold: true });
     // v0.7: a visiting owl only carries a reply letter.
     if (owl.guest) throw new HttpError(400, 'owl_not_ready');
     const planned = planFlight(ctx, {

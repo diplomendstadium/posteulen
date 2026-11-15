@@ -4,6 +4,7 @@
  */
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { SPECIES } from '@posteulen/shared/species.ts';
 
 function databaseOf(instance: 'main' | 'admin'): string {
   const dir = process.env['POSTEULEN_E2E_DIR'];
@@ -98,4 +99,33 @@ export function addOwls(name: string, species: string, count: number): void {
       );
     }
   });
+}
+
+/**
+ * v0.10: sets energy (share of the maximum, 0–1) and motivation (tenths, 8–12) of all own and
+ * loan owls of an account – feeding is possible again while the energy is not full (SPEC 9.3).
+ */
+export function setOwlEnergy(
+  name: string,
+  share: number,
+  motivation?: number,
+  instance: 'main' | 'admin' = 'main',
+): void {
+  withDb((db) => {
+    const owls = db
+      .prepare(
+        "SELECT id, species FROM owls WHERE kind IN ('own', 'loan') AND owner_id = (SELECT id FROM users WHERE name_display = ?)",
+      )
+      .all(name) as { id: string; species: string }[];
+    for (const owl of owls) {
+      db.prepare(
+        `UPDATE owls SET energy = ?, energy_at = ?, motivation = COALESCE(?, motivation) WHERE id = ?`,
+      ).run(
+        share * (SPECIES.find((species) => species.id === owl.species)?.maxEnergy ?? 0),
+        Date.now(),
+        motivation ?? null,
+        owl.id,
+      );
+    }
+  }, instance);
 }

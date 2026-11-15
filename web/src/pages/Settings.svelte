@@ -10,6 +10,7 @@
   import VoucherRedeem from '../components/VoucherRedeem.svelte';
   import FeedbackForm from '../components/FeedbackForm.svelte';
   import BotSettings from '../components/BotSettings.svelte';
+  import FinanceSettings from '../components/FinanceSettings.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -59,6 +60,18 @@
   }
 </script>
 
+<!-- v0.10: signing out at the very top. -->
+<section class="card" aria-labelledby="logout-title">
+  <h2 id="logout-title">{t.settings.logoutTitle}</h2>
+  <p>{t.settings.logoutHint}</p>
+  <button class="button secondary" type="button" onclick={() => void signOut()}
+    >{t.settings.logout}</button
+  >
+</section>
+
+<!-- v0.10: gold, daily gold and bookings (before: the page "Finanzen"). -->
+<FinanceSettings />
+
 <PushSettings />
 
 <LetterSettings />
@@ -106,14 +119,6 @@
 <BotSettings />
 
 <AccountSettings />
-
-<section class="card" aria-labelledby="logout-title">
-  <h2 id="logout-title">{t.settings.logoutTitle}</h2>
-  <p>{t.settings.logoutHint}</p>
-  <button class="button secondary" type="button" onclick={() => void signOut()}
-    >{t.settings.logout}</button
-  >
-</section>
 
 <!-- v0.7.1: at the very bottom, a short message to the admin. -->
 <FeedbackForm />

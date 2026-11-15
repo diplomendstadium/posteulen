@@ -16,33 +16,42 @@ export interface Species {
    * lent to the Menagerie, never carries bot letters and has no chick picture.
    */
   readonly mythical?: true;
-  /** v0.8.4: not for sale in the Menagerie (the Virginiauhu: only from bots and vouchers). */
+  /** v0.8.4: not for sale in the Menagerie (v0.10: no species is any more). */
   readonly notForSale?: true;
   /** v0.8.4: a special species bots may use anyway (own bot owl, gift of an event). */
   readonly forBots?: true;
+  /**
+   * v0.10: what the owl can carry (SPEC 9.2.1): `short` only the short parchment, `long` short
+   * and long parchment, `gold` both parchments and gold. Applies to the owls of players (own,
+   * loan and visiting owls), not to the owls of bots.
+   */
+  readonly cargo: Cargo;
 }
+
+/** v0.10: carrying capacity of a species, from small to large. */
+export type Cargo = 'short' | 'long' | 'gold';
 
 // prettier-ignore
 export const SPECIES: readonly Species[] = [
-  { id: 'bartkauz', name: 'Bartkauz', nameEn: 'Great Grey Owl', imageName: 'Bartkauz', price: 12, maxEnergy: 760, speedFactor: 0.9, recoveryFactor: 0.85 },
-  { id: 'brillenkauz', name: 'Brillenkauz', nameEn: 'Spectacled Owl', imageName: 'Brillenkauz', price: 34, maxEnergy: 640, speedFactor: 1.15, recoveryFactor: 1.15 },
-  { id: 'elfenkauz', name: 'Elfenkauz', nameEn: 'Elf Owl', imageName: 'Elfenkauz', price: 40, maxEnergy: 100, speedFactor: 1.65, recoveryFactor: 2.0 },
-  { id: 'haubenkauz', name: 'Haubenkauz', nameEn: 'Crested Owl', imageName: 'Haubenkauz', price: 48, maxEnergy: 540, speedFactor: 1.2, recoveryFactor: 1.2 },
-  { id: 'kanincheneule', name: 'Kanincheneule', nameEn: 'Burrowing Owl', imageName: 'Kanincheneule', price: 29, maxEnergy: 350, speedFactor: 1.7, recoveryFactor: 1.7 },
-  { id: 'maehnenkauz', name: 'Mähnenkauz', nameEn: 'Maned Owl', imageName: 'Maehnenkauz', price: 49, maxEnergy: 330, speedFactor: 1.1, recoveryFactor: 1.5 },
-  { id: 'maskeneule', name: 'Maskeneule', nameEn: 'Oriental Bay Owl', imageName: 'Maskeneule', price: 45, maxEnergy: 340, speedFactor: 1.35, recoveryFactor: 1.5 },
-  { id: 'milchuhu', name: 'Milchuhu', nameEn: 'Verreaux\'s Eagle-Owl', imageName: 'Milchuhu', price: 35, maxEnergy: 1080, speedFactor: 0.9, recoveryFactor: 0.6 },
-  { id: 'riesenfischuhu', name: 'Riesenfischuhu', nameEn: 'Blakiston\'s Fish Owl', imageName: 'Riesenfischuhu', price: 50, maxEnergy: 1200, speedFactor: 0.7, recoveryFactor: 0.5 },
-  { id: 'riesenkauz', name: 'Riesenkauz', nameEn: 'Powerful Owl', imageName: 'Riesenkauz', price: 44, maxEnergy: 900, speedFactor: 1.8, recoveryFactor: 0.9 },
-  { id: 'schleiereule', name: 'Schleiereule', nameEn: 'Barn Owl', imageName: 'Schleiereule', price: 7, maxEnergy: 380, speedFactor: 1.45, recoveryFactor: 1.5 },
-  { id: 'schneeeule', name: 'Schneeeule', nameEn: 'Snowy Owl', imageName: 'Schneeeule', price: 24, maxEnergy: 990, speedFactor: 1.75, recoveryFactor: 0.85 },
-  { id: 'sperbereule', name: 'Sperbereule', nameEn: 'Northern Hawk Owl', imageName: 'Sperbereule', price: 22, maxEnergy: 440, speedFactor: 2.0, recoveryFactor: 1.4 },
-  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 7, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4 },
-  { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65 },
-  { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25 },
-  { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 100, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true },
-  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 80, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, mythical: true, notForSale: true, forBots: true },
-  { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45 },
+  { id: 'bartkauz', name: 'Bartkauz', nameEn: 'Great Grey Owl', imageName: 'Bartkauz', price: 12, maxEnergy: 760, speedFactor: 0.9, recoveryFactor: 0.85, cargo: 'gold' },
+  { id: 'brillenkauz', name: 'Brillenkauz', nameEn: 'Spectacled Owl', imageName: 'Brillenkauz', price: 34, maxEnergy: 640, speedFactor: 1.15, recoveryFactor: 1.15, cargo: 'gold' },
+  { id: 'elfenkauz', name: 'Elfenkauz', nameEn: 'Elf Owl', imageName: 'Elfenkauz', price: 40, maxEnergy: 100, speedFactor: 1.65, recoveryFactor: 2.0, cargo: 'short' },
+  { id: 'haubenkauz', name: 'Haubenkauz', nameEn: 'Crested Owl', imageName: 'Haubenkauz', price: 48, maxEnergy: 540, speedFactor: 1.2, recoveryFactor: 1.2, cargo: 'long' },
+  { id: 'kanincheneule', name: 'Kanincheneule', nameEn: 'Burrowing Owl', imageName: 'Kanincheneule', price: 29, maxEnergy: 350, speedFactor: 1.7, recoveryFactor: 1.7, cargo: 'short' },
+  { id: 'maehnenkauz', name: 'Mähnenkauz', nameEn: 'Maned Owl', imageName: 'Maehnenkauz', price: 49, maxEnergy: 330, speedFactor: 1.1, recoveryFactor: 1.5, cargo: 'long' },
+  { id: 'maskeneule', name: 'Maskeneule', nameEn: 'Oriental Bay Owl', imageName: 'Maskeneule', price: 45, maxEnergy: 340, speedFactor: 1.35, recoveryFactor: 1.5, cargo: 'long' },
+  { id: 'milchuhu', name: 'Milchuhu', nameEn: 'Verreaux\'s Eagle-Owl', imageName: 'Milchuhu', price: 35, maxEnergy: 1080, speedFactor: 0.9, recoveryFactor: 0.6, cargo: 'gold' },
+  { id: 'riesenfischuhu', name: 'Riesenfischuhu', nameEn: 'Blakiston\'s Fish Owl', imageName: 'Riesenfischuhu', price: 50, maxEnergy: 1200, speedFactor: 0.7, recoveryFactor: 0.5, cargo: 'gold' },
+  { id: 'riesenkauz', name: 'Riesenkauz', nameEn: 'Powerful Owl', imageName: 'Riesenkauz', price: 44, maxEnergy: 900, speedFactor: 1.8, recoveryFactor: 0.9, cargo: 'gold' },
+  { id: 'schleiereule', name: 'Schleiereule', nameEn: 'Barn Owl', imageName: 'Schleiereule', price: 7, maxEnergy: 380, speedFactor: 1.45, recoveryFactor: 1.5, cargo: 'long' },
+  { id: 'schneeeule', name: 'Schneeeule', nameEn: 'Snowy Owl', imageName: 'Schneeeule', price: 24, maxEnergy: 990, speedFactor: 1.75, recoveryFactor: 0.85, cargo: 'gold' },
+  { id: 'sperbereule', name: 'Sperbereule', nameEn: 'Northern Hawk Owl', imageName: 'Sperbereule', price: 22, maxEnergy: 440, speedFactor: 2.0, recoveryFactor: 1.4, cargo: 'gold' },
+  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 7, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4, cargo: 'long' },
+  { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65, cargo: 'long' },
+  { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25, cargo: 'long' },
+  { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 150, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true, cargo: 'gold' },
+  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 60, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, cargo: 'gold' },
+  { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45, cargo: 'long' },
 ];
 
 /** The cheapest species to buy (tip in the help, v0.6). */
@@ -92,6 +101,11 @@ export const SCENE_IMAGES = [
   { id: 'perch', file: 'Leere-Stange.png', sizes: [160, 480] },
   { id: 'group', file: 'Gruppenbild.png', sizes: [480, 960] },
   { id: 'burn', file: 'Verbrennen.png', sizes: [480, 960] },
+  // v0.10: pictures of the places on top of Menagerie and post office, by day and by night.
+  { id: 'menagerieDay', file: 'Menagerie-Tag.png', sizes: [480, 960] },
+  { id: 'menagerieNight', file: 'Menagerie-Nacht.png', sizes: [480, 960] },
+  { id: 'postDay', file: 'Postamt-Tag.png', sizes: [480, 960] },
+  { id: 'postNight', file: 'Postamt-Nacht.png', sizes: [480, 960] },
 ] as const;
 
 export type SceneId = (typeof SCENE_IMAGES)[number]['id'];

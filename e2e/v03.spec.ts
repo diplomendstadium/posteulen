@@ -70,7 +70,7 @@ test.describe('Version 0.3', () => {
       '/app/eulen',
       '/app/menagerie',
       '/app/karte',
-      '/app/finanzen',
+      '/app/postamt',
       '/app/einstellungen',
     ]) {
       await page.goto(path);
@@ -137,24 +137,24 @@ test.describe('Version 0.3', () => {
     await expect(hint).toBeVisible({ timeout: 30_000 });
   });
 
-  test('Menagerie: Leiheulen oben, Kaufeulen nach Preis mit Beschreibung, lange Namen passen', async ({
+  test('Menagerie: Ortsbild oben, Kaufeulen nach Preis mit Beschreibung, lange Namen passen', async ({
     page,
   }) => {
     await registerViaUi(page);
     await page.goto('/app/menagerie');
-    const loan = page.getByRole('heading', { name: 'Eulen leihen' });
+    const picture = page.getByTestId('place-image');
     const buy = page.getByRole('heading', { name: 'Eulen kaufen' });
     await expect(buy).toBeVisible();
-    expect((await loan.boundingBox())!.y).toBeLessThan((await buy.boundingBox())!.y);
+    expect((await picture.boundingBox())!.y).toBeLessThan((await buy.boundingBox())!.y);
+    // v0.10: the loan owls are in the post office now.
+    await expect(page.getByRole('heading', { name: 'Eulen leihen' })).toHaveCount(0);
     const cards = page.locator('ul.for-sale > li');
-    // v0.8.4: the Virginiauhu is not for sale.
-    const byPrice = SPECIES.filter((species) => !species.notForSale).sort(
+    // v0.10: every species is for sale again (the Virginiauhu too).
+    const byPrice = [...SPECIES].sort(
       (a, b) => a.price - b.price || a.name.localeCompare(b.name, 'de'),
     );
     await expect(cards.locator('h3')).toHaveText(byPrice.map((species) => species.name));
     await expect(cards.first().locator('.description')).toContainText('Haselnüsse');
-    // Loan owls carry no description.
-    await expect(page.getByTestId('loan-offer').locator('.description')).toHaveCount(0);
     // The picture stays as wide as the card; the long name stays inside it.
     const card = cards.filter({ hasText: 'Südliche Weißgesichtseule' });
     const cardBox = (await card.boundingBox())!;
@@ -176,9 +176,10 @@ test.describe('Version 0.3', () => {
   }) => {
     const { name } = await registerViaUi(page);
     setGold(name, 300);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/postamt');
     await page.getByTestId('loan-offer').first().getByRole('button').click();
-    await expect(page.getByText(/wartet jetzt bei deinen Eulen/)).toBeVisible();
+    await expect(page.getByText(/wartet jetzt hier und bei deinen Eulen/)).toBeVisible();
+    await page.goto('/app/menagerie');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();

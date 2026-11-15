@@ -19,9 +19,13 @@ export const GOLD = {
   /** v0.7: 03:00 UTC (before 15:00). */
   DAILY_HOUR_UTC: 3,
   LARGE_PARCHMENT_SURCHARGE: 1,
+  /** Loan owl of a species that carries short and long parchment only (v0.10: per species). */
   LOAN_PRICE: 1,
+  /** v0.10: loan owl of a species that also carries gold (SPEC 9.6). */
+  LOAN_PRICE_GOLD: 2,
+  /** Owl biscuit; v0.10: again and again while the energy is not full (each time paid). */
   FEED_PRICE: 1,
-  /** Favourite snack (v0.5), once a day. */
+  /** Favourite snack (v0.5); v0.10: like the biscuit, more than once while not full. */
   SNACK_PRICE: 2,
   SELF_CARE_PRICE: 2,
   VET_PRICE: 10,

@@ -18,7 +18,7 @@
   import AddressBook from './AddressBook.svelte';
   import Owls from './Owls.svelte';
   import Menagerie from './Menagerie.svelte';
-  import Finance from './Finance.svelte';
+  import Post from './Post.svelte';
   import MapPage from './MapPage.svelte';
   import OwlOverlay from '../components/OwlOverlay.svelte';
   import { showSystemArrivals } from '../lib/live.svelte.ts';
@@ -31,7 +31,8 @@
   const sections = [
     { href: '/app/briefe', label: t.nav.letters, icon: '✉' },
     { href: '/app/eulen', label: t.nav.owls, icon: '🦉' },
-    { href: '/app/finanzen', label: t.nav.finance, icon: '⛀' },
+    // v0.10: the post office takes the place of the finance page.
+    { href: '/app/postamt', label: t.nav.post, icon: '📯' },
     { href: '/app/menagerie', label: t.nav.menagerie, icon: '⌂' },
     { href: '/app/adressbuch', label: t.nav.addressBook, icon: '☰' },
     { href: '/app/karte', label: t.nav.map, icon: '⌖' },
@@ -144,8 +145,8 @@
         <Owls />
       {:else if current.href === '/app/menagerie'}
         <Menagerie />
-      {:else if current.href === '/app/finanzen'}
-        <Finance />
+      {:else if current.href === '/app/postamt'}
+        <Post />
       {:else if current.href === '/app/karte'}
         <MapPage />
       {:else}

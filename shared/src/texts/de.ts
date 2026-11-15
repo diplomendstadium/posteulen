@@ -274,7 +274,9 @@ export const de = {
     retentionDays: '{days} Tage',
     loanOffers:
       'Gerade ist keine eigene Eule einsatzbereit. Du kannst eine Leiheule des Tages nehmen: Sie wird erst beim Abschicken für 0,1 Gold geliehen.',
-    loanOfferHint: 'Leiheule des Tages: 0,1 Gold, erst beim Abschicken.',
+    loanOfferHint: 'Leiheule des Tages: {price}, erst beim Abschicken.',
+    /** v0.10: the owl cannot carry the chosen parchment. */
+    cannotCarryLong: 'Trägt kein langes Pergament.',
     arrival: 'Ankunft bei {name}: ca. {time}',
     returnsAt: 'Wieder zu Hause: ca. {time}',
     noOwl:
@@ -510,9 +512,15 @@ export const de = {
     water: 'Wasser geben',
     wateredToday: 'Heute schon getrunken',
     feed: 'Eulenkeks (0,1 Gold)',
-    fedToday: 'Heute schon gefüttert',
+    fedToday: 'Satt – heute schon gefüttert',
     snack: '{snack} geben (0,2 Gold)',
-    snackedToday: 'Heute schon genascht',
+    snackedToday: 'Satt – heute schon genascht',
+    /** v0.10: send gold with this owl (only owls that carry gold). */
+    sendGold: 'Gold verschicken',
+    /** v0.10: carrying capacity of the species (purchase, loan offers, owl cards). */
+    cargo_short: 'Trägt kurzes Pergament',
+    cargo_long: 'Trägt kurzes und langes Pergament',
+    cargo_gold: 'Trägt kurzes und langes Pergament sowie Gold',
     rename: 'Umbenennen',
     renameBlocked: 'Umbenennen erst wieder im nächsten Kalenderjahr.',
     gift: 'Verschenken',
@@ -551,6 +559,8 @@ export const de = {
     sleepDayAlt: '{name} schläft unterwegs bei Tag',
     sleepNightAlt: '{name} macht unterwegs eine Nachtpause',
     napAlt: '{name} hält zu Hause ein Nickerchen',
+    /** v0.10: an owl at home with a motivation of 80 %. */
+    grumpyAlt: '{name} schaut grummelig drein – die Motivation ist ganz unten',
     broodingAlt: '{name} brütet im Nest auf ihren Eiern',
     perchAlt: 'Leere Stange – {name} hilft gerade in der Menagerie aus',
     /** v0.8.5 */
@@ -596,7 +606,11 @@ export const de = {
     imageAlt: '{species}: {what}',
   },
   menagerie: {
-    intro: 'Die Menagerie: Hier kannst du Eulen kaufen, leihen und eigene Eulen verleihen.',
+    intro:
+      'Die Menagerie: Hier kannst du Eulen kaufen und eigene Eulen verleihen. Leiheulen gibt es jetzt im Eulenpostamt.',
+    /** v0.10: picture of the place, by day or by night at the player's home. */
+    pictureDay: 'Die Menagerie in einem alten Gemäuer, bei Tag',
+    pictureNight: 'Die Menagerie in einem alten Gemäuer, bei Nacht',
     buyTitle: 'Eulen kaufen',
     price: 'Preis: {price}',
     stats: 'Energie {energy} · Geschwindigkeit {speed} km/h · Erholung {recovery} %/h',
@@ -605,17 +619,29 @@ export const de = {
     buy: '{species} kaufen',
     buyConfirm: '{species} wirklich für {price} kaufen?',
     limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
+  },
+  /** v0.10: the post office – loan owls (before in the Menagerie) and the borrowed ones. */
+  post: {
+    intro:
+      'Das Eulenpostamt: Hier leihst du Eulen für einen Brief oder für Gold – jeden Tag andere. Deine geliehenen Eulen kannst du auch gleich hier versorgen und losschicken.',
+    pictureDay: 'Das Eulenpostamt bei Tag',
+    pictureNight: 'Das Eulenpostamt bei Nacht',
     loanTitle: 'Eulen leihen',
     loanIntro:
-      'Heute im Angebot – für 0,1 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück in die Menagerie (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
+      'Heute im Angebot – für 0,1 Gold, Eulen, die auch Gold tragen, für 0,2 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
     loanCount: 'Heute geliehen: {count} von {max}. Morgen gibt es neue Eulen zum Leihen.',
+    loanPrice: 'Leihgebühr: {price}',
     loan: '{name} leihen ({species}, {sex})',
     loaned: 'Schon geliehen',
     /** v0.8.5: every offer of the day has been borrowed and its loan is over. */
-    allDone: 'Alle Leiheulen von heute sind wieder in der Menagerie. Morgen gibt es neue.',
-    loanDone: '{name} wartet jetzt bei deinen Eulen.',
+    allDone: 'Alle Leiheulen von heute sind wieder zurück. Morgen gibt es neue.',
+    loanDone: '{name} wartet jetzt hier und bei deinen Eulen.',
+    borrowedTitle: 'Deine Leiheulen',
+    borrowedNone: 'Gerade wartet keine Leiheule auf dich.',
   },
   finance: {
+    /** v0.10: in the settings (the overview „Finanzen“ is gone). */
+    title: 'Gold und Buchungen',
     balance: 'Dein Gold: {amount}',
     daily: 'Jeden Tag um {time} Uhr bekommst du {amount}, solange du aktiv bist.',
     dailyRule:
@@ -639,7 +665,9 @@ export const de = {
     type_menagerie_wage: 'Lohn der Menagerie',
     type_bot_gift: 'Geschenk von {name}',
     type_voucher: 'Gutschein eingelöst',
-    sendTitle: 'Gold per Eule schicken',
+    sendTitle: '{owl} bringt Gold',
+    /** v0.10: the arrival of exactly this owl before sending. */
+    check: 'Ankunft berechnen',
     sendHint: '0,1 bis 20,0 Gold; danach müssen dir mehr als 10,0 Gold bleiben.',
     notPossible: 'Überweisen geht erst, wenn du mehr als 10,1 Gold hast.',
     maxNow: 'Gerade möglich: bis {amount}',
@@ -679,7 +707,7 @@ export const de = {
     main: 'Hauptnavigation',
     letters: 'Briefwechsel',
     owls: 'Eulen',
-    finance: 'Finanzen',
+    post: 'Postamt',
     menagerie: 'Menagerie',
     addressBook: 'Adressbuch',
     map: 'Karte',
@@ -1088,9 +1116,11 @@ export const de = {
     owl_recipients: 'So viele Empfänger kann diese Eule nicht anfliegen (höchstens 5).',
     owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
     owl_not_for_sale: 'Diese Eule ist in der Menagerie nicht zu kaufen.',
-    owl_fed_today: 'Diese Eule hat heute schon gefressen.',
+    owl_fed_today: 'Diese Eule hat heute schon gefressen und ist satt.',
     owl_watered_today: 'Diese Eule hat heute schon getrunken.',
-    owl_snacked_today: 'Diese Eule hat heute schon ihr Lieblingsleckerli bekommen.',
+    owl_snacked_today: 'Diese Eule hat heute schon ihr Lieblingsleckerli bekommen und ist satt.',
+    owl_cannot_carry:
+      'Diese Eule kann das nicht tragen. Wähle eine andere Eule oder ein kurzes Pergament.',
     owl_not_home: 'Das geht nur, wenn die Eule zu Hause ist.',
     owl_name_mismatch:
       'Der Name stimmt nicht. Bitte tippe den Namen der Eule genau so ein, wie er dasteht.',

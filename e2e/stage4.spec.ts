@@ -34,7 +34,7 @@ async function buyAndName(page: Page, species: string, name: string): Promise<vo
 test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
   test('Leiheule: im Angebot leihen, sie wartet 24 Stunden', async ({ page }) => {
     await registerViaUi(page);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/postamt');
     await expect(page.getByTestId('loan-offer')).toHaveCount(4);
     const name = await borrowViaUi(page);
     await expect(page.getByText(/^Heute geliehen: 1 von 4\./)).toBeVisible();
@@ -65,7 +65,7 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await other.getByRole('button', { name: 'Selbst pflegen (0,2 Gold, 7 Tage)' }).click();
     await expect(other).toContainText(/Wird zu Hause gesund gepflegt/);
     await expect(other.getByRole('button', { name: 'Streicheln' })).toBeVisible();
-    await page.goto('/app/finanzen');
+    await page.goto('/app/einstellungen');
     await expect(page.getByRole('cell', { name: 'Behandlung' })).toHaveCount(2);
   });
 

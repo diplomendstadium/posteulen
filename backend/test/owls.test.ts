@@ -38,6 +38,8 @@ afterEach(async () => {
 
 interface OwlView {
   id: string;
+  /** v0.10 */
+  feedable: boolean;
   name: string | null;
   species: string;
   state: string;
@@ -244,15 +246,23 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     expect(fed.body.owl.energy).toBe(168);
     expect(fed.body.owl.fedToday).toBe(true);
     expect(gold(anna)).toBe(39);
+    // v0.10: again while the energy is not full – paid again (SPEC 9.3).
+    expect(fed.body.owl.feedable).toBe(true);
+    const again = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/feed`, {});
+    expect(again.body.owl.energy).toBe(235);
+    expect(gold(anna)).toBe(39 - 1);
+    // Regeneration: 10 % × 1.25 per hour = 67.5 per hour.
+    app.clock.now += 2 * TIME.HOUR;
+    expect((await owls(anna))[0]?.energy).toBe(370);
+    app.clock.now += TIME.DAY;
+    // Full again: the first biscuit of a day is always possible, then the owl is full.
+    expect((await owls(anna))[0]?.feedable).toBe(true);
+    expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).status).toBe(200);
+    expect((await owls(anna))[0]?.energy).toBe(540);
+    expect((await owls(anna))[0]?.feedable).toBe(false);
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).body).toMatchObject({
       code: 'owl_fed_today',
     });
-    // Regeneration: 10 % × 1.25 per hour = 67.5 per hour.
-    app.clock.now += 2 * TIME.HOUR;
-    expect((await owls(anna))[0]?.energy).toBe(303);
-    app.clock.now += TIME.DAY;
-    expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).status).toBe(200);
-    expect((await owls(anna))[0]?.energy).toBe(540);
     for (let i = 0; i < 3; i++)
       expect((await anna.agent.json('POST', `/api/owls/${id}/pet`, {})).status).toBe(200);
     // v0.5: a care day needs two different interactions – only today (biscuit and petting).
@@ -262,12 +272,13 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
         id,
       ),
     ).toEqual([{ day: utcDay(app.clock.now) }]);
-    expect(gold(anna)).toBe(38);
+    expect(gold(anna)).toBe(37);
   });
 
   it('releases an owl at home, not while it flies', async () => {
-    setGold(app, anna, 100);
-    const id = await buyOwl(app, anna);
+    // v0.10: gold needs a species that carries it.
+    setGold(app, anna, 200);
+    const id = await buyOwl(app, anna, 'bartkauz');
     await sendGold(anna, ben, 1, id).catch(() => undefined);
     setGold(app, anna, 200);
     expect((await sendGold(anna, ben, 1, id)).status).toBe(200);
@@ -305,8 +316,8 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
 
 describe('flights with own owls (SPEC 9.4)', () => {
   it('previews, departs, delivers and comes home with the remaining energy', async () => {
-    setGold(app, anna, 200);
-    const id = await buyOwl(app, anna);
+    setGold(app, anna, 300);
+    const id = await buyOwl(app, anna, 'bartkauz');
     app.db.run('UPDATE owls SET energy = 540 WHERE id = ?', id);
     const preview = await anna.agent.json<{
       owls: { id: string; arrivals: { at: number }[]; returnsAt: number | null; offer?: boolean }[];
@@ -367,8 +378,8 @@ describe('flights with own owls (SPEC 9.4)', () => {
   it('a move re-plans the course at once, also during a sleep pause (SPEC 9.4.6)', async () => {
     const clara = await person(app, 'Clara', PARIS);
     await couple(anna, clara);
-    setGold(app, anna, 200);
-    const id = await buyOwl(app, anna);
+    setGold(app, anna, 300);
+    const id = await buyOwl(app, anna, 'bartkauz');
     app.db.run('UPDATE owls SET energy = 50 WHERE id = ?', id);
     const sent = await sendGold(anna, clara, 5, id);
     const before = sent.body.arrivesAt!;
@@ -398,8 +409,8 @@ describe('flights with own owls (SPEC 9.4)', () => {
 
 describe('gold transfers (SPEC 9.1.4)', () => {
   it('checks the limits, debits at departure and credits on arrival with one push', async () => {
-    setGold(app, anna, 111); // 0,1 for the loan owl
-    expect((await sendGold(anna, ben, 11, NO_OWL)).body).toMatchObject({
+    setGold(app, anna, 112); // v0.10: 0,2 for a loan owl that carries gold
+    expect((await sendGold(anna, ben, 13, NO_OWL)).body).toMatchObject({
       code: 'transfer_remaining',
     });
     expect(
@@ -420,7 +431,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
       keys: { p256dh: 'B'.repeat(87), auth: 'A'.repeat(22) },
     });
     await app.ctx.push.idle();
-    const sent = await sendGold(anna, ben, 9, await borrowOwl(anna));
+    const sent = await sendGold(anna, ben, 9, await borrowOwl(anna, 'gold'));
     expect(sent.status).toBe(200);
     expect(gold(anna)).toBe(101);
     expect(gold(ben)).toBe(GOLD.START);
@@ -449,7 +460,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
 
   it('delivers a cover letter with the gold; the letter carries the arrival image', async () => {
     setGold(app, anna, 200);
-    const sent = await sendGold(anna, ben, 20, await borrowOwl(anna), 'Für dich!');
+    const sent = await sendGold(anna, ben, 20, await borrowOwl(anna, 'gold'), 'Für dich!');
     expect(sent.status).toBe(200);
     advanceTo(app, sent.body.arrivesAt!);
     const letters = await ben.agent.json<{ letters: { kind: string; status: string }[] }>(
@@ -495,16 +506,16 @@ describe('gold transfers (SPEC 9.1.4)', () => {
 
   it('turns back: gold returns home with an own owl, at once with a loan owl (SPEC 9.5)', async () => {
     setGold(app, anna, 300);
-    const id = await buyOwl(app, anna);
+    const id = await buyOwl(app, anna, 'bartkauz');
     const withOwl = await sendGold(anna, ben, 20, id, 'Gruß');
-    const withStandIn = await sendGold(anna, ben, 10, await borrowOwl(anna));
+    const withStandIn = await sendGold(anna, ben, 10, await borrowOwl(anna, 'gold'));
     expect(withOwl.status).toBe(200);
     expect(withStandIn.status).toBe(200);
-    expect(gold(anna)).toBe(300 - 60 - 30 - 1);
+    expect(gold(anna)).toBe(300 - 120 - 30 - 2);
     app.clock.now += TIME.HOUR;
     await ben.agent.json('DELETE', `/api/contacts/${anna.id}`);
     // Loan owl: refund at once.
-    expect(gold(anna)).toBe(300 - 60 - 20 - 1);
+    expect(gold(anna)).toBe(300 - 120 - 20 - 2);
     const letters = await anna.agent.json<{ letters: { status: string }[] }>(
       'GET',
       `/api/chats/${ben.id}/letters`,
@@ -516,7 +527,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
     )!;
     expect(home.arrivesAt).toBeLessThan(app.clock.now + 2 * TIME.HOUR);
     advanceTo(app, home.arrivesAt);
-    expect(gold(anna)).toBe(300 - 60 - 1);
+    expect(gold(anna)).toBe(300 - 120 - 2);
     expect(gold(ben)).toBe(GOLD.START);
     expect((await systemTypes(anna)).filter((type) => type === 'letter_returned')).toHaveLength(2);
     expect(

@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '0.10.0',
+    title: 'Ein Postamt für den Eulenturm: Version 0.10.0',
+    paragraphs: [
+      'Im Eulenturm ist umgebaut worden – und zwar gründlich.',
+      'Das ist neu:',
+      '• Das Eulenpostamt hat eröffnet! Dort leihst du ab sofort deine Leiheulen und kannst die geliehenen gleich vor Ort versorgen und losschicken. Die Menagerie ist jetzt ganz fürs Kaufen da. Beide zeigen oben ein Bild – bei Tag oder bei Nacht, je nachdem, wie es gerade bei dir zu Hause ist.',
+      '• Nicht jede Eule trägt alles: Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen tragen außerdem Gold. Bei jeder Eule steht, was sie kann. Leiheulen, die Gold tragen, kosten 0,2 Gold, alle anderen weiter 0,1.',
+      '• Gold verschickst du jetzt direkt mit der Eule: Wer Gold tragen kann, hat in der Eulenübersicht den Knopf „Gold verschicken“. Deine Buchungen und das tägliche Gold findest du in den Einstellungen – ganz oben steht dort jetzt „Abmelden“.',
+      '• Hungrige Eulen dürfen öfter naschen: Eulenkeks und Lieblingsleckerli gehen jetzt mehrmals am Tag, solange die Eule nicht satt ist. Jeder Happen kostet wie gewohnt.',
+      '• Der Virginiauhu zieht für 60 Gold in die Menagerie ein und kommt auch als Leiheule vorbei. Der Phönix ist seltener geworden und kostet jetzt 150 Gold.',
+      '• Ist eine Eule ganz unten mit ihrer Motivation, sieht man es ihr an: Sie schaut grummelig drein. Ein bisschen Zuwendung hilft.',
+      'Viel Freude im neuen Postamt!',
+    ],
+  },
+  {
     version: '0.9.0',
     title: 'Eulen auf verborgenen Pfaden: Version 0.9.0',
     paragraphs: [
@@ -312,6 +327,21 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '0.10.0',
+    title: 'A post office for the owl tower: version 0.10.0',
+    paragraphs: [
+      'There has been some building work in the owl tower – and thorough work at that.',
+      'What is new:',
+      '• The owl post office has opened! From now on you borrow your loan owls there and can look after the borrowed ones and send them off right on the spot. The Menagerie is now all about buying. Both show a picture at the top – by day or at night, depending on what it is like at your home right now.',
+      '• Not every owl carries everything: small owls only manage a short parchment, medium ones a long one as well, and only the strong ones also carry gold. Every owl tells you what it can do. Loan owls that carry gold cost 0.2 gold, all others still 0.1.',
+      '• You now send gold straight with the owl: owls that can carry gold have the button “Send gold” in the owl overview. Your bookings and the daily gold are in the settings – where “Sign out” now sits at the very top.',
+      '• Hungry owls may snack more often: owl biscuit and favourite snack now work several times a day as long as the owl is not full. Every bite costs as usual.',
+      '• The Great Horned Owl moves into the Menagerie for 60 gold and also drops by as a loan owl. The phoenix has become rarer and now costs 150 gold.',
+      '• If an owl’s motivation is at rock bottom, you can tell: it looks grumpy. A little attention helps.',
+      'Enjoy the new post office!',
+    ],
+  },
   {
     version: '0.9.0',
     title: 'Owls on hidden paths: version 0.9.0',

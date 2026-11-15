@@ -83,6 +83,13 @@ describe('motivation and the four interactions (v0.5)', () => {
     expect(snacked.energy).toBe(235);
     expect(snacked.snackedToday).toBe(true);
     expect(gold(anna)).toBe(before - GOLD.SNACK_PRICE);
+    // v0.10: again while the energy is not full (paid again, no more motivation) …
+    const again = owlOf((await act(anna, id, 'snack')).body);
+    expect(again.energy).toBe(370);
+    expect(again.motivation).toBe(12);
+    expect(gold(anna)).toBe(before - 2 * GOLD.SNACK_PRICE);
+    // … but not once it is full.
+    app.db.run('UPDATE owls SET energy = 540, energy_at = ? WHERE id = ?', app.clock.now, id);
     expect((await act(anna, id, 'snack')).body).toMatchObject({ code: 'owl_snacked_today' });
   });
 
@@ -133,8 +140,9 @@ describe('motivation on a flight (v0.5)', () => {
   it('fixed at departure: speed, energy and recovery for the whole trip', async () => {
     await couple(anna, ben);
     setGold(app, anna, 500);
-    const slow = await buyOwl(app, anna, 'waldkauz', 'Langsam');
-    const fast = await buyOwl(app, anna, 'waldkauz', 'Flott');
+    // v0.10: species that carry gold.
+    const slow = await buyOwl(app, anna, 'bartkauz', 'Langsam');
+    const fast = await buyOwl(app, anna, 'bartkauz', 'Flott');
     app.db.run('UPDATE owls SET motivation = 8, energy = 540 WHERE id = ?', slow);
     app.db.run('UPDATE owls SET motivation = 12, energy = 540 WHERE id = ?', fast);
     const preview = await anna.agent.json<{ owls: { id: string; arrivals: { at: number }[] }[] }>(
@@ -150,9 +158,10 @@ describe('motivation on a flight (v0.5)', () => {
     const profile = JSON.parse(
       app.db.get<{ profile: string }>('SELECT profile FROM flights')!.profile,
     ) as { motivation: number; maxEnergy: number; speedKmh: number; recoveryPerHour: number };
-    expect(profile).toMatchObject({ motivation: 1.2, maxEnergy: 648, speedKmh: 33 });
-    // 10 % × 1.25 × 1.2 of the motivated maximum per hour.
-    expect(profile.recoveryPerHour).toBeCloseTo(648 * 0.1 * 1.25 * 1.2, 5);
+    // v0.10 a great grey owl (it carries gold): 760 × 1.2, 25 km/h × 0.9 × 1.2.
+    expect(profile).toMatchObject({ motivation: 1.2, maxEnergy: 912, speedKmh: 27 });
+    // 10 % × 0.85 × 1.2 of the motivated maximum per hour.
+    expect(profile.recoveryPerHour).toBeCloseTo(912 * 0.1 * 0.85 * 1.2, 5);
     // The motivation sinks during the trip, the trip keeps its values; back home the energy
     // is the owl's own again (never above its maximum).
     advanceTo(app, app.clock.now + 10 * TIME.DAY);
@@ -161,7 +170,7 @@ describe('motivation on a flight (v0.5)', () => {
       fast,
     );
     expect(home?.state).toBe('home');
-    expect(home?.energy).toBeLessThanOrEqual(540);
+    expect(home?.energy).toBeLessThanOrEqual(760);
   });
 });
 
@@ -188,7 +197,7 @@ describe('the phoenix (v0.5)', () => {
   it('v0.5.1: the owl list says whether an owl on its way is asleep right now', async () => {
     await couple(anna, ben);
     setGold(app, anna, 500);
-    const id = await buyOwl(app, anna);
+    const id = await buyOwl(app, anna, 'bartkauz');
     app.db.run('UPDATE owls SET energy = 20 WHERE id = ?', id);
     const sent = await sendGold(id);
     expect(sent.status).toBe(200);

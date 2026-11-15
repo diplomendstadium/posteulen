@@ -15,7 +15,7 @@ export const EXPLAINER_LETTERS = {
 
 Ich bin der Erklärbär und schreibe dir in den nächsten Tagen ein paar kurze Briefe.
 
-Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber in deinen ersten 30 Tagen gibt es jeden Tag 3 Gold dazu, danach 2 Gold. Bis dahin leihst du dir für 0,1 Gold eine Leiheule – in der Menagerie oder direkt beim Briefschreiben.
+Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber in deinen ersten 30 Tagen gibt es jeden Tag 3 Gold dazu, danach 2 Gold. Bis dahin leihst du dir eine Leiheule – im Postamt oder direkt beim Briefschreiben.
 
 Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
 
@@ -40,9 +40,9 @@ Zu Hause erholt sie sich von selbst. Beim Schreiben wählst du, wie lange sie be
 Bis bald, dein Erklärbär`,
   day2: `Hallo, heute geht es ums Gold!
 
-In der Finanzübersicht siehst du deinen Goldstand und die letzten Buchungen. Gold kannst du per Eule an Kontakte schicken.
+Dein Gold siehst du oben rechts, die Buchungen in den Einstellungen. Eulen, die Gold tragen können, haben in der Eulenübersicht den Knopf „Gold verschicken“.
 
-In der Menagerie kaufst du eigene Eulen oder leihst dir eine. Jeden Tag gibt es dort vier neue Leiheulen, eigens für dich ausgewürfelt, und jede davon kannst du an diesem Tag einmal leihen. Hast du eine Eule übrig, kannst du sie für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du Eulen, im Postamt leihst du jeden Tag eine von vier, eigens für dich ausgewürfelt. Kleine Eulen tragen nur kurzes Pergament, nur kräftige auch Gold. Eine Eule, die du übrig hast, kannst du für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
 Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück. Klemmt etwas, oder hast du eine Idee? Ganz unten in den Einstellungen schickst du dem Admin eine kurze Nachricht.
 

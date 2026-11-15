@@ -1,8 +1,9 @@
 <script lang="ts">
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   /**
-   * Menagerie (SPEC 8.7): the loan owls of the day on top, then all 17 species for sale by
-   * price, each with picture, values and a description (v0.3).
+   * Menagerie (SPEC 8.7): the picture of the place (v0.10, by day or night at home), then all
+   * species for sale by price, each with picture, values, carrying capacity (v0.10) and a
+   * description (v0.3). v0.10: the loan owls moved to the post office.
    */
   import { t, fill, i18n, speciesName, locale, goldText, decimal } from '../lib/i18n.svelte.ts';
   import { SPECIES } from '@posteulen/shared/species.ts';
@@ -11,8 +12,9 @@
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import { account } from '../lib/auth.svelte.ts';
-  import { borrow, buyOwl, listOwls, menagerie, type Offer } from '../lib/owls.ts';
-  import { GOLD, OWL } from '@posteulen/shared/constants.ts';
+  import PlaceImage from '../components/PlaceImage.svelte';
+  import { buyOwl, listOwls } from '../lib/owls.ts';
+  import { OWL } from '@posteulen/shared/constants.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { refreshTopics } from '../lib/live.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -21,15 +23,10 @@
   let error = $state<string | null>(null);
   let busy = $state(false);
   let canBuy = $state(true);
-  let offer = $state<Offer | null>(null);
-  let loanDone = $state<string | null>(null);
 
   $effect(() => {
     void listOwls()
       .then((result) => (canBuy = result.canBuy))
-      .catch(() => undefined);
-    void menagerie()
-      .then((result) => (offer = result))
       .catch(() => undefined);
   });
 
@@ -37,23 +34,6 @@
   const forSale = SPECIES.filter((species) => !species.notForSale)
     .map((species) => ({ ...species, name: speciesName(species.id) }))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, i18n.lang));
-
-  async function loan(item: Offer['offer'][number]): Promise<void> {
-    if (busy) return;
-    busy = true;
-    error = null;
-    loanDone = null;
-    try {
-      await borrow(item.species);
-      offer = await menagerie();
-      loanDone = fill(t.menagerie.loanDone, { name: item.name });
-      await refreshTopics('profile');
-    } catch (caught) {
-      error = errorMessage(caught);
-    } finally {
-      busy = false;
-    }
-  }
 
   const gold = $derived(account.profile?.gold ?? 0);
   const number = (value: number): string => value.toLocaleString(locale());
@@ -77,56 +57,13 @@
   }
 </script>
 
+<PlaceImage place="menagerie" />
+
 <p class="card intro">{t.menagerie.intro}</p>
 <ErrorText message={error} />
 {#if !canBuy}<p class="notice">
     <span aria-hidden="true">ℹ</span><span>{t.menagerie.limit}</span>
   </p>{/if}
-
-<section aria-labelledby="loan-title">
-  <div class="card section-head">
-    <h2 id="loan-title">{t.menagerie.loanTitle}</h2>
-    <p>{t.menagerie.loanIntro}</p>
-    {#if offer}
-      <p>{fill(t.menagerie.loanCount, { count: offer.loans, max: offer.maxLoans })}</p>
-    {/if}
-  </div>
-  {#if offer}
-    <ul class="species">
-      {#each offer.offer as item (item.species)}
-        <li class="card" data-testid="loan-offer">
-          <OwlPicture
-            speciesId={item.species}
-            alt={`${item.name}, ${speciesName(item.species)}`}
-            size={480}
-          />
-          <h3 class="name">{item.name}</h3>
-          <p class="stats">{speciesName(item.species)}</p>
-          <button
-            class="button"
-            type="button"
-            disabled={busy ||
-              item.loaned ||
-              offer.loans >= offer.maxLoans ||
-              !status.online ||
-              !canAfford(gold, GOLD.LOAN_PRICE)}
-            onclick={() => void loan(item)}
-            >{item.loaned
-              ? t.menagerie.loaned
-              : fill(t.menagerie.loan, {
-                  name: item.name,
-                  species: speciesName(item.species),
-                  sex: item.sex === 'f' ? t.owls.female : t.owls.male,
-                })}</button
-          >
-        </li>
-      {/each}
-    </ul>
-  {/if}
-  {#if loanDone}<p class="notice" role="status">
-      <span aria-hidden="true">🦉</span><span>{loanDone}</span>
-    </p>{/if}
-</section>
 
 <section aria-labelledby="buy-title">
   <h2 id="buy-title" class="plate">{t.menagerie.buyTitle}</h2>
@@ -144,7 +81,7 @@
             // v0.5: absolute values of the species instead of factors.
             speed: decimal(owlSpeedKmh(species.speedFactor), 1),
             recovery: decimal(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor, 1),
-          })}
+          })} · {t.owls[`cargo_${species.cargo}`]}
         </p>
         {#if species.mythical}<p class="hint">{t.menagerie.mythical}</p>{/if}
         {#if speciesDescription(species.id, i18n.lang)}<p class="description">
@@ -206,14 +143,6 @@
 
   .intro {
     margin: 0 0 1rem;
-  }
-
-  .section-head {
-    margin-bottom: 1rem;
-  }
-
-  .section-head > :last-child {
-    margin-bottom: 0;
   }
 
   .price {

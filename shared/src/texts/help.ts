@@ -124,7 +124,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'ueberblick',
     title: 'Die App im Überblick',
     blocks: [
-      'Nach der Anmeldung siehst du die Übersicht mit Kacheln für alle Bereiche: Briefwechsel, Eulen, Finanzen, Menagerie, Adressbuch, Karte, Einstellungen und Hilfe. Auf dem Handy erreichst du die wichtigsten Bereiche auch über die Leiste am unteren Rand.',
+      'Nach der Anmeldung siehst du die Übersicht mit Kacheln für alle Bereiche: Briefwechsel, Eulen, Postamt, Menagerie, Adressbuch, Karte, Einstellungen und Hilfe. Deinen Goldstand siehst du immer oben rechts; Buchungen und das tägliche Gold stehen in den Einstellungen. Auf dem Handy erreichst du die wichtigsten Bereiche auch über die Leiste am unteren Rand.',
       'Oben in der braunen Leiste siehst du deinen Goldstand. Ist neue Post da, hüpft dort „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
       'Was du schon gelesen hast, gilt sofort als gelesen – die Zähler in der Übersicht und in der Leiste gehen ohne Neuladen zurück.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
@@ -182,7 +182,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Du kannst auch bei der Eule anfangen: In der Eulenübersicht hat jede einsatzbereite eigene Eule und jede Leiheule den Knopf „Brief schreiben“. Du wählst bis zu fünf Kontakte – oder einen Bot –, und der Briefwechsel öffnet sich mit genau dieser Eule.',
       `Unter deinen eigenen Eulen stehen in der Eulenwahl immer auch die Leiheulen des Tages. Keine davon ist vorausgewählt; geliehen und bezahlt (${gold(GOLD.LOAN_PRICE)}) wird erst, wenn du wirklich abschickst – dein Brief bleibt dabei, wie er ist.`,
       'Bei mehreren Empfängern fliegt die Eule von einem zum nächsten. Jeder sieht nur seinen eigenen Brief und kann nur dir antworten. Das geht mit eigenen Eulen und mit Leiheulen; eine Leiheule verschwindet nach dem letzten Empfänger. Bots sind nie bei mehreren Empfängern dabei.',
-      `Rast beim Empfänger: Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt, bevor sie weiterfliegt – gar nicht, 1, 2, 24 oder ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} Stunden (vorgewählt: ${LETTER.REST_HOURS_DEFAULT_OWN} Stunden mit einer eigenen Eule, ${LETTER.REST_HOURS_DEFAULT_LOAN} Stunden mit einer Leiheule; hast du selbst etwas gewählt, bleibt es dabei, auch wenn du eine andere Eule nimmst). Die Ankunftszeiten in der Eulenwahl rechnen schon mit dieser Rast. Während der Rast erholt sie sich wie zu Hause, und der Empfänger sieht sie unter „Eulen“ mit dem deutlichen Hinweis „Nur zur Rast hier!“ und bis wann. Im Briefwechsel steht dann hinter deinem Namen ein kleines Eulensymbol, und hat er Benachrichtigungen eingerichtet, bekommt er eine. Er darf sie pflegen und ihr eine Antwort an dich mitgeben – dann fliegt sie sofort los. Hat sie noch Briefe für andere dabei, stellt sie zuerst diese zu und bringt dir seine Antwort danach (wer die anderen sind, erfährt er nicht). Er kann sie auch ohne Brief früher weiterfliegen lassen. Läuft die Zeit ungenutzt ab, fliegt sie von selbst weiter. Bei mehreren Empfängern kann dir jeder eine Antwort mitgeben; die Eule kommt dann mit mehreren Briefen nach Hause, und das Bild ihrer Heimkehr sagt dir, wie viele es sind. Eine Leiheule ohne Antwort verschwindet nach dem letzten Empfänger; hat sie Antworten dabei, bringt sie die noch zu dir und fliegt erst dann zurück in die Menagerie.`,
+      `Rast beim Empfänger: Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt, bevor sie weiterfliegt – gar nicht, 1, 2, 24 oder ${LETTER.REST_HOURS_CHOICES[LETTER.REST_HOURS_CHOICES.length - 1]} Stunden (vorgewählt: ${LETTER.REST_HOURS_DEFAULT_OWN} Stunden mit einer eigenen Eule, ${LETTER.REST_HOURS_DEFAULT_LOAN} Stunden mit einer Leiheule; hast du selbst etwas gewählt, bleibt es dabei, auch wenn du eine andere Eule nimmst). Die Ankunftszeiten in der Eulenwahl rechnen schon mit dieser Rast. Während der Rast erholt sie sich wie zu Hause, und der Empfänger sieht sie unter „Eulen“ mit dem deutlichen Hinweis „Nur zur Rast hier!“ und bis wann. Im Briefwechsel steht dann hinter deinem Namen ein kleines Eulensymbol, und hat er Benachrichtigungen eingerichtet, bekommt er eine. Er darf sie pflegen und ihr eine Antwort an dich mitgeben – dann fliegt sie sofort los. Hat sie noch Briefe für andere dabei, stellt sie zuerst diese zu und bringt dir seine Antwort danach (wer die anderen sind, erfährt er nicht). Er kann sie auch ohne Brief früher weiterfliegen lassen. Läuft die Zeit ungenutzt ab, fliegt sie von selbst weiter. Bei mehreren Empfängern kann dir jeder eine Antwort mitgeben; die Eule kommt dann mit mehreren Briefen nach Hause, und das Bild ihrer Heimkehr sagt dir, wie viele es sind. Eine Leiheule ohne Antwort verschwindet nach dem letzten Empfänger; hat sie Antworten dabei, bringt sie die noch zu dir und fliegt erst dann zurück ins Postamt.`,
       'Rastet die Eule eines Kontakts bei dir, steht im Briefwechsel ein kleines Eulensymbol hinter seinem Namen. Die Antwort schreibst du ganz normal in eurem Chat: In der Eulenwahl steht die Gast-Eule ganz oben und ist schon ausgewählt; eine Rast-Auswahl gibt es dann nicht. Die Eulenwahl sagt dir auch, welchen Weg sie nimmt: Hat sie keine weiteren Briefe dabei, bringt sie deinen direkt zu ihrem Halter. Hat sie noch Briefe für andere, stellt sie zuerst diese zu und bringt deine Antwort danach – an wen die übrigen Briefe gehen, verrät sie nicht.',
       'Briefe sind reiner Text. Smileys und Emojis kennt Pergament nicht – sie werden entfernt. Links mit http:// oder https:// sind anklickbar und öffnen sich im Browser; prüfe die angezeigte Adresse, bevor du tippst. Möchtest du lieber nichts versehentlich antippen, schalte in den Einstellungen den Regler „Links in Briefen anklickbar“ aus – dann stehen Links nur als Text da.',
       `Vorsicht vor verkleideten Adressen: Manche Buchstaben aus fremden Alphabeten sehen aus wie unsere (ein kyrillisches „а“ wie ein „a“). Enthält die Adresse eines Links solche Zeichen oder einen Namen mit „@“ vor der eigentlichen Adresse, zeigt PostEulen sie in ihrer technischen Form, etwa „xn--pypal-4ve.com“ statt „pаypal.com“, und schreibt daneben: „${de.letters.linkWarning}“ So siehst du, wohin der Link wirklich führt. Auch echte Adressen mit Umlauten (z. B. müller.de) sehen dann so aus.`,
@@ -226,10 +226,10 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'eulen',
     title: 'Deine Eulen',
     blocks: [
-      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie, Motivation und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter. Voraussichtlich zurück in 5 Stunden.“, „Schläft auf dem Heimweg“, „Rastet bei Peter bis 20:00“ oder „In der Menagerie bis Fr., 14:00“. Dauert es weniger als eine Stunde, steht die Zeit in Minuten da, etwa „zurück in 40 Minuten“. Die Erklärung zu Motivation, Pflege und Krankheit steht ganz unten auf der Seite.',
-      'Das Bild zeigt, was die Eule gerade tut: Ist sie unterwegs, siehst du sie fliegen – im Sonnenschein oder unter Sternen, je nachdem, ob es dort, wo sie gerade ist, hell oder dunkel ist. Macht sie unterwegs eine Schlafpause, siehst du sie schlafen, bei Tag oder bei Nacht. Brütet sie, sitzt sie im Nest auf ihren Eiern. Hilft sie in der Menagerie aus oder rastet sie gerade bei einem Empfänger, siehst du ihre leere Stange. Bleibt die Übersicht offen, während Eulen unterwegs sind, schaut PostEulen alle fünf Minuten nach, ob eine inzwischen schläft oder wieder fliegt.',
+      'Unter „Eulen“ siehst du alle deine Eulen, Küken und Leiheulen mit Bild, Name, Art, Geschlecht, Energie, Motivation und Zustand – oben die Leiheulen, darunter deine eigenen. Ist eine Eule nicht da, steht dabei, warum und bis wann, etwa „Fliegt gerade einen Brief zu Peter. Voraussichtlich zurück in 5 Stunden.“, „Schläft auf dem Heimweg“, „Rastet bei Peter bis 20:00“ oder „In der Menagerie bis Fr., 14:00“. Dauert es weniger als eine Stunde, steht die Zeit in Minuten da, etwa „zurück in 40 Minuten“. Bei jeder Eule steht auch, was sie tragen kann (siehe „Was eine Eule tragen kann“). Kann sie Gold tragen und hast du genug Gold, hat sie den Knopf „Gold verschicken“. Die Erklärung zu Motivation, Pflege und Krankheit steht ganz unten auf der Seite.',
+      'Das Bild zeigt, was die Eule gerade tut: Ist sie unterwegs, siehst du sie fliegen – im Sonnenschein oder unter Sternen, je nachdem, ob es dort, wo sie gerade ist, hell oder dunkel ist. Macht sie unterwegs eine Schlafpause, siehst du sie schlafen, bei Tag oder bei Nacht. Brütet sie, sitzt sie im Nest auf ihren Eiern. Ist ihre Motivation ganz unten (80 %), schaut sie zu Hause grummelig drein. Hilft sie in der Menagerie aus oder rastet sie gerade bei einem Empfänger, siehst du ihre leere Stange. Bleibt die Übersicht offen, während Eulen unterwegs sind, schaut PostEulen alle fünf Minuten nach, ob eine inzwischen schläft oder wieder fliegt.',
       'Jede einsatzbereite eigene Eule und jede Leiheule hat den Knopf „Brief schreiben“: Kontakte wählen, und die Eule wartet im Briefwechsel schon auf deinen Brief.',
-      'Rastet die Eule eines Kontakts bei dir, steht sie ganz oben unter „Zu Gast bei dir“ – mit dem Hinweis, dass sie nur zur Rast hier ist und bis wann. Du kannst sie tränken, streicheln und füttern (Eulenkeks und Leckerli bezahlst du) – das hebt ihre Motivation, und sie fliegt gestärkt weiter. Über „Antwort … mitgeben“ kommst du direkt in euren Chat; hat sie noch Briefe für andere dabei, steht dort, dass sie diese zuerst zustellt. Wenn sie bei dir ankommt, bekommst du (wenn eingerichtet) eine Benachrichtigung, und im Briefwechsel steht ein kleines Eulensymbol hinter dem Namen ihres Halters, solange sie bleibt. Möchtest du sie früher ziehen lassen, tippe auf „Weiterfliegen lassen“ – nach einer Rückfrage fliegt sie ohne Brief weiter.',
+      'Rastet die Eule eines Kontakts bei dir, steht sie ganz oben unter „Zu Gast bei dir“ – mit dem Hinweis, dass sie nur zur Rast hier ist und bis wann. Du kannst sie tränken, streicheln und füttern (Eulenkeks und Leckerli bezahlst du, wie bei deinen eigenen Eulen auch mehrmals, solange sie nicht satt ist) – das hebt ihre Motivation, und sie fliegt gestärkt weiter. Über „Antwort … mitgeben“ kommst du direkt in euren Chat; hat sie noch Briefe für andere dabei, steht dort, dass sie diese zuerst zustellt. Wenn sie bei dir ankommt, bekommst du (wenn eingerichtet) eine Benachrichtigung, und im Briefwechsel steht ein kleines Eulensymbol hinter dem Namen ihres Halters, solange sie bleibt. Möchtest du sie früher ziehen lassen, tippe auf „Weiterfliegen lassen“ – nach einer Rückfrage fliegt sie ohne Brief weiter.',
       'Eulen sind nachtaktiv: Ist es bei dir zu Hause hell, döst eine gesunde Eule manchmal vor sich hin – ob sie gerade schläft, entscheidet sich bei jedem Öffnen der Eulenübersicht neu, etwa jedes zweite Mal. Nachts und in den zehn Minuten nach deiner letzten Pflege ist sie immer wach. Pflegen und losschicken kannst du sie trotzdem jederzeit.',
       'Jede Art hat einen Preis, eine maximale Energie, einen Geschwindigkeitsfaktor und einen Erholungsfaktor. Eulen werden nicht alt und sterben nicht.',
       [
@@ -250,8 +250,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       [
         'Wasser geben: kostenlos, einmal am Tag.',
         'Streicheln: kostenlos und so oft du magst.',
-        `Eulenkeks: ${gold(GOLD.FEED_PRICE)}, einmal am Tag, gibt sofort ${percent(OWL.FEED_SHARE)} Energie mal Erholungsfaktor.`,
-        `Lieblingsleckerli: ${gold(GOLD.SNACK_PRICE)}, einmal am Tag, gibt sofort ${percent(OWL.SNACK_SHARE)} Energie mal Erholungsfaktor. Jede Art hat ihr eigenes – der Waldkauz liebt Haselnüsse, der Riesenfischuhu Räucherfisch; was genau, steht in der Menagerie bei der Beschreibung.`,
+        `Eulenkeks: ${gold(GOLD.FEED_PRICE)}, gibt sofort ${percent(OWL.FEED_SHARE)} Energie mal Erholungsfaktor. Einmal am Tag geht immer, auch wenn die Energie schon voll ist; danach so oft du magst, solange die Energie gerade nicht voll ist – jeder Keks kostet. Ist sie voll, ist die Eule satt.`,
+        `Lieblingsleckerli: ${gold(GOLD.SNACK_PRICE)}, gibt sofort ${percent(OWL.SNACK_SHARE)} Energie mal Erholungsfaktor – genauso: einmal am Tag immer, danach, solange die Energie nicht voll ist. Jede Art hat ihr eigenes – der Waldkauz liebt Haselnüsse, der Riesenfischuhu Räucherfisch; was genau, steht in der Menagerie bei der Beschreibung.`,
       ],
       `Jede dieser vier Arten der Pflege hebt einmal am Tag die Motivation (siehe Motivation). Pflegebonus gegen Krankheit: Ein Tag zählt als gepflegt, wenn die Eule an diesem Tag ${OWL.CARE_DAY_INTERACTIONS} verschiedene Arten von Pflege bekommen hat – zum Beispiel Wasser und Streicheln. Gezählt werden die letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage, an denen sie mindestens ${OWL.CARE_BONUS_MIN_HOME_HOURS} Stunde zu Hause war. War sie an mindestens ${OWL.CARE_BONUS_MIN_DAYS} davon gepflegt, wird sie viel seltener krank. Ganze Reisetage zählen also nicht – eine fleißige Brief-Eule verliert ihren Bonus nicht, nur weil sie unterwegs war.`,
     ],
@@ -261,7 +261,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Motivation',
     blocks: [
       'Jede deiner Eulen hat neben der Energie einen zweiten Balken: die Motivation. Sie liegt immer zwischen 80 % und 120 %. Gekaufte Eulen kommen mit 100 % zu dir, Leiheulen mit 80 % bis 100 %.',
-      'Jede Nacht um Mitternacht (UTC) sinkt sie um 10 Prozentpunkte – auch wenn die Eule gerade unterwegs ist oder in der Menagerie aushilft. Wasser, Streicheln, Eulenkeks und Lieblingsleckerli heben sie jeweils einmal am Tag um 10 Prozentpunkte. Wer sich jeden Tag ein bisschen kümmert, hat also bald eine hoch motivierte Eule.',
+      'Jede Nacht um Mitternacht (UTC) sinkt sie um 10 Prozentpunkte – auch wenn die Eule gerade unterwegs ist oder in der Menagerie aushilft. Wasser, Streicheln, Eulenkeks und Lieblingsleckerli heben sie jeweils einmal am Tag um 10 Prozentpunkte – mehrmals füttern hebt sie nicht weiter. Bei 80 % schaut die Eule grummelig drein. Wer sich jeden Tag ein bisschen kümmert, hat also bald eine hoch motivierte Eule.',
       'Die Motivation zählt immer für die nächste Strecke: beim Abflug von zu Hause bis zum ersten Empfänger, beim Weiterflug von jedem Empfänger bis zum nächsten Ziel. Mit 120 % hat die Eule auf dieser Strecke 20 % mehr Energie, ist 20 % schneller und erholt sich im Schlaf 20 % schneller; mit 80 % entsprechend 20 % weniger. Zu Hause und während einer Rast beim Empfänger gelten die normalen Werte der Art. Wer eine rastende Eule pflegt, schickt sie also flinker weiter.',
       'In der Eulenübersicht stehen unter den Balken die Geschwindigkeit in km/h und die Erholung in Prozent pro Stunde für die Art. Ist die Motivation nicht 100 %, steht dahinter grün „+10 %“ oder rot „−20 %“ – so viel ändert sich auf der nächsten Strecke.',
     ],
@@ -291,21 +291,28 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
   },
   {
     id: 'gold',
-    title: 'Gold und Finanzen',
+    title: 'Gold',
     blocks: [
       `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Manchmal schickt dir auch ein Bot Gold oder sogar eine Eule.`,
-      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)}, Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, langes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
-      `Die Finanzübersicht zeigt deinen Goldstand und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
-      `Gold verschicken: ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} per Eule an einen Kontakt, gern mit kurzem Begleitbrief. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
+      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)} (Eulen, die auch Gold tragen: ${gold(GOLD.LOAN_PRICE_GOLD)}), Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, langes Pergament ${gold(GOLD.LARGE_PARCHMENT_SURCHARGE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
+      `Deinen Goldstand siehst du oben rechts. In den Einstellungen unter „Gold und Buchungen“ stehen das tägliche Gold und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
+      `Gold verschicken: Jede einsatzbereite eigene oder geliehene Eule, die Gold tragen kann, hat unter „Eulen“ (Leiheulen auch im Postamt) den Knopf „Gold verschicken“ – sobald du genug Gold hast. ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} an einen Kontakt, gern mit kurzem Begleitbrief; vor dem Losschicken siehst du, wann sie ankommt. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
     ],
   },
   {
     id: 'menagerie',
-    title: 'Menagerie: Eulen kaufen und leihen',
+    title: 'Menagerie: Eulen kaufen',
     blocks: [
-      'Oben stehen die Leiheulen des Tages, darunter alle Eulen zum Kaufen – nach Preis sortiert, die günstigste zuerst. Zu jeder Kaufeule erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist.',
+      'Oben siehst du die Menagerie in ihrem alten Gemäuer – bei Tag oder bei Nacht, je nachdem, wie es gerade an deinem Wohnort ist. Darunter stehen alle Eulen zum Kaufen, nach Preis sortiert, die günstigste zuerst. Zu jeder erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist; bei den Werten steht auch, was sie tragen kann. Leiheulen gibt es seit Version 0.10 im Eulenpostamt.',
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen – ihr zufällig gewürfeltes Geschlecht steht dabei schon da. Ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
-      `Leihen: Jeden Tag (der Tag wechselt um Mitternacht UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule – jede mit einem anderen Namen. Das Angebot wird für jedes Konto eigens ausgewürfelt; deine Freunde sehen also meist andere Eulen. Es bleibt bis zum nächsten Tageswechsel gleich. Arten und Namen wiederholen sich an den beiden Folgetagen nicht – dieselbe Leiheule triffst du also nicht zwei Tage hintereinander. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Solange eine Leihe läuft, steht ihr Angebot mit „Schon geliehen“ da; ist sie vorbei – die Leiheule ist nach dem letzten Halt verschwunden, mit Antworten zu dir zurückgekehrt oder ungenutzt abgelaufen –, verschwindet ihr Angebot bis morgen und zählt trotzdem mit. Du kannst hier leihen oder direkt beim Briefschreiben. Den Phönix gibt es nie zum Leihen.`,
+    ],
+  },
+  {
+    id: 'postamt',
+    title: 'Eulenpostamt: Eulen leihen',
+    blocks: [
+      'Im Eulenpostamt leihst du Eulen – oben siehst du es bei Tag oder bei Nacht, je nachdem, wie es gerade an deinem Wohnort ist. Darunter stehen die Leiheulen des Tages mit ihren Werten, was sie tragen können, und ihrer Leihgebühr. Ganz unten findest du deine geliehenen Eulen und kannst sie genauso versorgen und losschicken wie unter „Eulen“.',
+      `Leihen: Jeden Tag (der Tag wechselt um Mitternacht UTC) gibt es ${MENAGERIE.OFFER_SPECIES_COUNT} Arten zum Leihen, für ${gold(GOLD.LOAN_PRICE)} je Eule, Eulen, die auch Gold tragen, für ${gold(GOLD.LOAN_PRICE_GOLD)} – jede mit einem anderen Namen. Das Angebot wird für jedes Konto eigens ausgewürfelt; deine Freunde sehen also meist andere Eulen. Es bleibt bis zum nächsten Tageswechsel gleich. Arten und Namen wiederholen sich an den beiden Folgetagen nicht – dieselbe Leiheule triffst du also nicht zwei Tage hintereinander. Jede angebotene Eule kannst du einmal pro Tag leihen, also bis zu ${MENAGERIE.LOANS_PER_DAY} am Tag – auch wenn von gestern noch Leiheulen bei dir warten. Solange eine Leihe läuft, steht ihr Angebot mit „Schon geliehen“ da; ist sie vorbei – die Leiheule ist nach dem letzten Halt verschwunden, mit Antworten zu dir zurückgekehrt oder ungenutzt abgelaufen –, verschwindet ihr Angebot bis morgen und zählt trotzdem mit. Du kannst hier leihen oder direkt beim Briefschreiben. Den Phönix gibt es nie zum Leihen.`,
       `Eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen Empfänger und ist nach dem letzten weg – zurück kommt sie nur, wenn ihr jemand eine Antwort mitgibt. Schickst du sie nicht binnen ${MENAGERIE.LOAN_EXPIRY_HOURS} Stunden los, verschwindet sie wieder, und das Gold ist verbraucht. Hast du beim Schreiben eine Rast gewählt und gibt ihr ein Empfänger eine Antwort mit, bringt sie diese noch zu dir. Sie lässt sich pflegen wie jede Eule, aber nicht umbenennen oder verschenken. Ihre Motivation liegt zwischen 80 % und 100 %.`,
       `Tipp für den Anfang: Mit ${gold(GOLD.START)} Startgold leihst du eine Eule für deinen ersten Brief. Für die günstigste eigene Eule (${CHEAPEST.name}, ${CHEAPEST.price} Gold) reicht es schon nach ein, zwei Tagen.`,
     ],
@@ -314,20 +321,41 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'arten',
     title: 'Eulenarten im Überblick',
     blocks: [
-      'Preis in Gold, maximale Energie, Geschwindigkeit und Erholung pro Stunde (bei Motivation 100 %):',
+      'Preis in Gold, maximale Energie, Geschwindigkeit, Erholung pro Stunde (bei Motivation 100 %) und was die Eule tragen kann:',
       SPECIES.map(
         (species) =>
-          `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde`,
+          `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde – ${de.owls[`cargo_${species.cargo}`]}`,
       ),
-      `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 100} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
-      'Der Virginiauhu (1 300 Energie, 85 km/h, 20 % Erholung pro Stunde) ist in der Menagerie nicht zu kaufen: Er kommt nur als Eule einer Brieffigur, als Geschenk eines Bots oder per Gutschein. Wie der Phönix wird er nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.',
+      `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 150} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
+      `Der Virginiauhu (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} Gold, 1 300 Energie, 85 km/h, 20 % Erholung pro Stunde) ist seit Version 0.10 eine ganz normale Art: Du kannst ihn kaufen, leihen und an die Menagerie verleihen, und er legt Eier.`,
+    ],
+  },
+  {
+    id: 'tragen',
+    title: 'Was eine Eule tragen kann',
+    blocks: [
+      'Nicht jede Eule trägt alles. Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen tragen außerdem Gold. Das gilt für deine eigenen Eulen, für Leiheulen und für Gast-Eulen, denen du eine Antwort mitgibst; die Eulen der Bots tragen alles.',
+      [
+        `Nur kurzes Pergament: ${SPECIES.filter((species) => species.cargo === 'short')
+          .map((species) => species.name)
+          .join(', ')}.`,
+        `Kurzes und langes Pergament: ${SPECIES.filter((species) => species.cargo === 'long')
+          .map((species) => species.name)
+          .join(', ')}.`,
+        `Kurzes und langes Pergament sowie Gold: ${SPECIES.filter(
+          (species) => species.cargo === 'gold',
+        )
+          .map((species) => species.name)
+          .join(', ')}.`,
+      ],
+      'Beim Briefschreiben kannst du eine Eule, die das gewählte Pergament nicht tragen kann, nicht auswählen – sie steht mit „Trägt kein langes Pergament“ in der Eulenwahl. Ein Begleitbrief ist immer ein kurzes Pergament. Eine Eule, die du verschenkst, trägt sich selbst – dafür gibt es keine Grenze.',
     ],
   },
   {
     id: 'verleih',
     title: 'Eulen an die Menagerie verleihen',
     blocks: [
-      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen (den Phönix nicht). Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
+      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen (den Phönix nicht, den Virginiauhu seit Version 0.10 schon). Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
     ],
   },
   {
@@ -390,6 +418,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Einstellungen und Konto',
     blocks: [
       [
+        'Abmelden (ganz oben): entfernt alle Schlüssel von diesem Gerät, und PostEulen vergisst alles über dein Konto, was es sich in diesem Fenster gemerkt hat.',
+        `Gold und Buchungen: dein Goldstand, wann und wie viel tägliches Gold du bekommst, und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen (seit Version 0.10 hier statt unter „Finanzen“).`,
         `Nutzername ändern: einmal pro Kalenderjahr. Dein aktueller Name steht gleich dabei. Deine Kontakte erfahren es per Systemnachricht; der alte Name ist ${ACCOUNT.NAME_LOCK_DAYS} Tage gesperrt.`,
         `Wohnort ändern: bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat, egal wie kurz hintereinander. Eulen unterwegs passen ihren Kurs an.`,
         'Passwort ändern: altes Passwort einmal, neues zweimal. Alle Briefe bleiben lesbar.',
@@ -400,7 +430,6 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         `Nachricht an den Admin (ganz unten): Bei technischen Problemen oder Verbesserungsvorschlägen schickst du dem Admin deiner PostEulen-Instanz eine kurze Nachricht – höchstens ${FEEDBACK.MAX_CHARS} Zeichen, eine pro Tag (der Tag wechselt um Mitternacht UTC). Sie ist nicht verschlüsselt, liegt ohne deinen Namen lesbar auf dem Server und wird nach ${FEEDBACK.RETENTION_DAYS} Tagen gelöscht. Schreib also nichts Vertrauliches hinein. Sie ist übrigens das Einzige, was das Adminpanel im Klartext zeigt.`,
         `Gutschein einlösen: Hast du von der Betreiberin oder dem Betreiber deiner PostEulen-Instanz einen Gutschein bekommen, tippst du hier den Code ein. Ein Gutschein bringt Gold oder eine neue Eule, gilt ${VOUCHER.VALID_DAYS} Tage und lässt sich einmal einlösen.`,
         `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
-        'Abmelden: entfernt alle Schlüssel von diesem Gerät, und PostEulen vergisst alles über dein Konto, was es sich in diesem Fenster gemerkt hat.',
       ],
     ],
   },
@@ -482,7 +511,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   {
     question: 'Warum ist meine Eule diesmal langsamer (oder schneller) als sonst?',
     answer:
-      'Das macht die Motivation: Sie sinkt jede Nacht ein wenig und steigt, wenn du deiner Eule Wasser gibst, sie streichelst, ihr einen Eulenkeks oder ihr Lieblingsleckerli gibst – jede Art einmal am Tag. Sie gilt für die nächste Strecke: beim Abflug von zu Hause und jedes Mal neu, wenn die Eule bei einem Empfänger weiterfliegt. Mit 120 % fliegt die Eule 20 % schneller und weiter, mit 80 % entsprechend langsamer.',
+      'Das macht die Motivation: Sie sinkt jede Nacht ein wenig und steigt, wenn du deiner Eule Wasser gibst, sie streichelst, ihr einen Eulenkeks oder ihr Lieblingsleckerli gibst – jede Art einmal am Tag (öfter füttern gibt Energie, aber keine Motivation mehr). Sie gilt für die nächste Strecke: beim Abflug von zu Hause und jedes Mal neu, wenn die Eule bei einem Empfänger weiterfliegt. Mit 120 % fliegt die Eule 20 % schneller und weiter, mit 80 % entsprechend langsamer.',
   },
   {
     question: 'Kann der Betreiber meine Briefe lesen?',

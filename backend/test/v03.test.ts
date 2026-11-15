@@ -93,7 +93,7 @@ describe('notes after an update (v0.3)', () => {
     // An update from 0.2: the remembered version is missing.
     app.db.run("DELETE FROM meta WHERE key = 'notes_version'");
     // From 0.2 straight to the current version: one note per version on the way.
-    expect(sendUpdateNotes(app.ctx)).toBe(18);
+    expect(sendUpdateNotes(app.ctx)).toBe(19);
     expect(systemMessages(anna, 'update_notes').map((m) => m.params)).toEqual([
       { version: '0.3.0' },
       { version: '0.3.1' },
@@ -113,6 +113,7 @@ describe('notes after an update (v0.3)', () => {
       { version: '0.8.4' },
       { version: '0.8.5' },
       { version: '0.9.0' },
+      { version: '0.10.0' },
     ]);
     // Starting again does not repeat it.
     expect(sendUpdateNotes(app.ctx)).toBe(0);
@@ -136,8 +137,9 @@ describe('owls in flight and back home (v0.3)', () => {
     withoutBots(app);
     const ben = await person(app, 'Ben', HAMBURG);
     await couple(anna, ben);
-    setGold(app, anna, 200);
-    const owl = await buyOwl(app, anna);
+    // v0.10: gold needs a species that carries it.
+    setGold(app, anna, 300);
+    const owl = await buyOwl(app, anna, 'bartkauz');
     app.db.run('UPDATE owls SET energy = 540 WHERE id = ?', owl);
     const subscription = await anna.agent.json('POST', '/api/push/subscribe', {
       endpoint: 'https://push.example.org/anna',
@@ -175,7 +177,7 @@ describe('owls in flight and back home (v0.3)', () => {
       homecomings: { species: string; letters: number }[];
     }>('GET', '/api/homecomings');
     expect(homecomings.body.homecomings).toEqual([
-      expect.objectContaining({ species: 'waldkauz', letters: 0 }),
+      expect.objectContaining({ species: 'bartkauz', letters: 0 }),
     ]);
     expect(
       app.db.all("SELECT 1 FROM notifications WHERE user_id = ? AND type = 'owl_home'", anna.id),

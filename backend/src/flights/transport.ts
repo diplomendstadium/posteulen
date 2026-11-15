@@ -7,7 +7,7 @@ import { isBotId, lastLetterDay, playerBot } from '../bots/registry.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { WRAPPED_KEY_BYTES } from '@posteulen/shared/crypto/hpke.ts';
 import { ciphertextBytes } from '@posteulen/shared/crypto/letter.ts';
-import { maxRecipients } from '@posteulen/shared/game/owls.ts';
+import { canCarry, maxRecipients, type Load } from '@posteulen/shared/game/owls.ts';
 import { GUEST_REF_PREFIX, LOAN_REF_PREFIX } from '@posteulen/shared/schemas/owls.ts';
 import type { Context, TransportToken } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
@@ -95,8 +95,23 @@ export function loanRefSpecies(owlRef: string): string | null {
 /**
  * The owl for a transport: an own or loan owl that is ready (9.2.5). A `loan:<species>`
  * reference plans with the loan owl of the day that would be borrowed on sending (9.6).
+ * v0.10: with a `load`, the owl must be able to carry it (SPEC 9.2.1) – owls of players only;
+ * the owls of bots carry everything.
  */
-export function chooseOwl(ctx: Context, userId: string, owlRef: string, now: number): ChosenOwl {
+export function chooseOwl(
+  ctx: Context,
+  userId: string,
+  owlRef: string,
+  now: number,
+  load?: Load,
+): ChosenOwl {
+  const owl = findOwl(ctx, userId, owlRef, now);
+  const botOwl = owl.guest?.flight.holder_kind === 'bot';
+  if (load && !botOwl && !canCarry(owl.species, load)) throw new HttpError(400, 'owl_cannot_carry');
+  return owl;
+}
+
+function findOwl(ctx: Context, userId: string, owlRef: string, now: number): ChosenOwl {
   const guestOwl = guestRefOwl(owlRef);
   if (guestOwl !== null) {
     const guest = guestFlight(ctx, userId, guestOwl);
@@ -303,9 +318,15 @@ export function depart(
   const loanSpecies = token.chick ? null : loanRefSpecies(token.owlId);
   const owlId =
     loanSpecies === null ? token.owlId : borrow(ctx, token.senderId, loanSpecies, now).id;
+  // v0.10: letters and gold need an owl that can carry them; a gift owl only carries itself
+  // (and a short cover letter).
+  const load: Load | undefined =
+    token.purpose === 'gift'
+      ? undefined
+      : { parchment: token.parchment, gold: token.purpose === 'gold' };
   const owl = token.chick
     ? chooseChick(ctx, token.senderId, owlId, now)
-    : chooseOwl(ctx, token.senderId, owlId, now);
+    : chooseOwl(ctx, token.senderId, owlId, now, load);
   if (token.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
   if (owl.id) {
     const state = token.purpose === 'gift' ? 'gift_flight' : 'flying';
@@ -379,7 +400,7 @@ function departWithReply(
   now: number,
   after: (work: () => void) => void,
 ): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
-  const owl = chooseOwl(ctx, token.senderId, token.owlId, now);
+  const owl = chooseOwl(ctx, token.senderId, token.owlId, now, { parchment: token.parchment });
   const guest = owl.guest;
   const letter = letters[0];
   if (!guest || !letter || letters.length !== 1) throw new HttpError(400, 'owl_not_ready');
@@ -430,7 +451,7 @@ export function departWithBotReply(
   now: number,
   after: (work: () => void) => void,
 ): { flightId: string; letterId: string; arrivesAt: number; owl: ChosenOwl } {
-  const owl = chooseOwl(ctx, senderId, owlRef, now);
+  const owl = chooseOwl(ctx, senderId, owlRef, now, { parchment });
   const guest = owl.guest;
   if (!guest || guest.flight.holder_id !== botId) throw new HttpError(400, 'owl_recipients');
   const arrivesAt = previewReturn(ctx, guest.flight, guest.index, now);

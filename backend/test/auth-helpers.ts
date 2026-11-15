@@ -1,4 +1,6 @@
 import path from 'node:path';
+import { cargoCovers, cargoOf } from '@posteulen/shared/game/owls.ts';
+import type { Cargo } from '@posteulen/shared/species.ts';
 import { solveChallenge, type Challenge } from 'altcha-lib';
 import { deriveKey } from 'altcha-lib/algorithms/sha';
 import type { FastifyInstance, LightMyRequestResponse } from 'fastify';
@@ -299,13 +301,18 @@ export function advanceTo(app: TestApp, at: number): number {
   return app.ctx.queue.runDue();
 }
 
-/** Borrows a loan owl of today's offer (one per species, at most three, SPEC 9.6). */
-export async function borrowOwl(who: Person): Promise<string> {
+/**
+ * Borrows a loan owl of today's offer (one per species, at most three, SPEC 9.6). v0.10: with
+ * `cargo`, one that can carry it (e.g. 'gold' for a transfer) – the offer of the test day has one.
+ */
+export async function borrowOwl(who: Person, cargo?: Cargo): Promise<string> {
   const menagerie = await who.agent.json<{ offer: { species: string; loaned: boolean }[] }>(
     'GET',
     '/api/menagerie',
   );
-  const free = menagerie.body.offer.find((item) => !item.loaned);
+  const free = menagerie.body.offer.find(
+    (item) => !item.loaned && (cargo === undefined || cargoCovers(cargoOf(item.species), cargo)),
+  );
   if (!free) throw new Error('no free loan species');
   const loaned = await who.agent.json<{ owl: { id: string } }>('POST', '/api/menagerie/loan', {
     species: free.species,

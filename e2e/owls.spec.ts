@@ -1,7 +1,7 @@
 import type { Browser, Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
-import { borrowViaUi, registerViaUi } from './account-helpers.ts';
-import { setGold } from './db-helpers.ts';
+import { registerViaUi } from './account-helpers.ts';
+import { setGold, setOwlEnergy } from './db-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
   await page.goto('/app/adressbuch');
@@ -50,6 +50,9 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     const card = page.getByTestId('owl-card');
     await expect(card).toContainText('Waldkauz');
     await expect(card).toContainText(/Energie \d+ von 540/);
+    // v0.10: full energy – biscuit and snack still once a day each, then the owl is full.
+    setOwlEnergy(me.name, 1);
+    await page.reload();
 
     await card.getByRole('button', { name: 'Streicheln' }).click();
     const overlay = page.getByTestId('owl-overlay');
@@ -63,7 +66,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(overlay).toHaveAttribute('data-kind', 'feeding');
     await overlay.getByRole('button', { name: 'Bild schließen' }).click();
     await expect(overlay).toBeHidden();
-    await expect(card.getByRole('button', { name: 'Heute schon gefüttert' })).toBeDisabled();
+    await expect(card.getByRole('button', { name: 'Satt – heute schon gefüttert' })).toBeDisabled();
     await expect(page.locator('.gold')).toContainText('3,9 Gold');
 
     // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
@@ -76,12 +79,19 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await card.getByRole('button', { name: 'Haselnüsse geben (0,2 Gold)' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'snack');
     await page.keyboard.press('Escape');
-    await expect(card.getByRole('button', { name: 'Heute schon genascht' })).toBeDisabled();
+    await expect(card.getByRole('button', { name: 'Satt – heute schon genascht' })).toBeDisabled();
     await expect(page.locator('.gold')).toContainText('3,7 Gold');
+    // v0.10: hungry again (e.g. after a flight) – another biscuit, paid again.
+    setOwlEnergy(me.name, 0.5);
+    await page.reload();
+    await card.getByRole('button', { name: 'Eulenkeks (0,1 Gold)' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.gold')).toContainText('3,6 Gold');
 
-    await page.goto('/app/finanzen');
+    await page.goto('/app/einstellungen');
     await expect(page.getByRole('cell', { name: 'Eulenkauf' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: 'Futter' })).toBeVisible();
+    // v0.10: two biscuits – each one paid.
+    await expect(page.getByRole('cell', { name: 'Futter' })).toHaveCount(2);
   });
 
   test('v0.5.1: Nickerchen bei Tag zu Hause, nicht nach dem Streicheln', async ({ page }) => {
@@ -127,24 +137,34 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(overlay).toBeHidden({ timeout: 10_000 });
   });
 
-  test('Gold per Eule: Abflugbild, Ankunftsbild im Systemchat, Buchungen', async ({
+  test('Gold per Eule: Knopf an der Eule, Abflugbild, Ankunftsbild im Systemchat, Buchungen', async ({
     browser,
     page,
   }) => {
     const { anna, other, otherContext } = await pair(browser, page);
     // Ben is not in the app while the owl lands (help page: no live connection).
     await other.goto('/hilfe');
-    const owl = await borrowViaUi(page);
-    await page.goto('/app/finanzen');
-    await expect(page.getByText('Dein Gold: 29,9 Gold')).toBeVisible();
-    await page.getByLabel('An').selectOption({ index: 1 });
-    await page.getByLabel('Betrag in Gold (z. B. 1,5)').fill('1,5');
-    await page.getByRole('button', { name: 'Eule wählen' }).click();
-    await expect(page.getByRole('radio', { name: new RegExp(owl) })).toBeChecked();
-    await page.getByRole('button', { name: 'Gold losschicken' }).click();
+    // v0.10: only species that carry gold get the button – a tawny owl does not.
+    setGold(anna.name, 300);
+    await buyAndName(page, 'Waldkauz', 'Waldi');
+    await buyAndName(page, 'Bartkauz', 'Bruno');
+    const owl = 'Bruno';
+    const waldi = page.getByTestId('owl-card').filter({ hasText: 'Waldi' });
+    await expect(waldi).toContainText('Trägt kurzes und langes Pergament');
+    await expect(waldi.getByRole('button', { name: 'Gold verschicken' })).toHaveCount(0);
+    const bruno = page.getByTestId('owl-card').filter({ hasText: owl });
+    await expect(bruno).toContainText('Trägt kurzes und langes Pergament sowie Gold');
+    await bruno.getByRole('button', { name: 'Gold verschicken' }).click();
+    const dialog = page.getByTestId('gold-dialog');
+    await dialog.getByLabel('An').selectOption({ index: 1 });
+    await dialog.getByLabel('Betrag in Gold (z. B. 1,5)').fill('1,5');
+    await dialog.getByRole('button', { name: 'Ankunft berechnen' }).click();
+    await dialog.getByRole('button', { name: 'Gold losschicken' }).click();
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'departure');
-    await expect(page.getByText(new RegExp(`${owl} bringt 1,5 Gold`))).toBeVisible();
-    await expect(page.getByText('Dein Gold: 28,4 Gold')).toBeVisible();
+    await expect(page.getByTestId('owl-overlay')).toContainText(`${owl} bringt 1,5 Gold`);
+    await page.keyboard.press('Escape');
+    await page.goto('/app/einstellungen');
+    await expect(page.getByText('Dein Gold: 10,5 Gold')).toBeVisible();
 
     // Ben opens the system chat: the arrival image is shown once (SPEC 9.2.6).
     await other.goto('/app/briefe/system');
@@ -160,7 +180,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await other.reload();
     await expect(other.getByText(/hat dir 1,5 Gold geschickt/)).toBeVisible();
     await expect(overlay).toBeHidden();
-    await other.goto('/app/finanzen');
+    await other.goto('/app/einstellungen');
     await expect(other.getByText('Dein Gold: 4,5 Gold')).toBeVisible();
     await expect(other.getByRole('cell', { name: 'Überweisung erhalten' })).toBeVisible();
     await expect(other.getByRole('cell', { name: anna.name })).toBeVisible();

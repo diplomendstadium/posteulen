@@ -1,5 +1,6 @@
 /** Owls, flights, gold and the map – thin wrappers around the API (SPEC 8.5–8.9). */
 import type { Segment } from '@posteulen/shared/game/flight.ts';
+import type { Cargo } from '@posteulen/shared/species.ts';
 import { api } from './api.ts';
 import { sealFor, type PreparedLetters } from './letters.ts';
 
@@ -18,6 +19,11 @@ export interface Owl {
   /** v0.5 */
   readonly wateredToday: boolean;
   readonly snackedToday: boolean;
+  /** v0.10: biscuit and snack possible right now (once a day, again while not full). */
+  readonly feedable: boolean;
+  readonly snackable: boolean;
+  /** v0.10: what the owl can carry. */
+  readonly cargo: Cargo;
   /** v0.5: motivation in tenths (8–12). */
   readonly motivation: number;
   /** v0.5.1: time of the last interaction. */
@@ -62,6 +68,9 @@ export interface GuestOwl {
   readonly pettedToday: boolean;
   readonly wateredToday: boolean;
   readonly snackedToday: boolean;
+  /** v0.10: biscuit and snack possible right now. */
+  readonly feedable: boolean;
+  readonly snackable: boolean;
   readonly caredAt: number | null;
   readonly holderId: string;
   readonly holderName: string | null;
@@ -88,6 +97,10 @@ export interface OwlChoice {
   readonly restUntil?: number | null;
   /** v0.8.5: the visiting owl still has letters for others – the reply comes after them. */
   readonly moreStops?: boolean;
+  /** v0.10: what the owl can carry (owls of bots: everything). */
+  readonly cargo: Cargo;
+  /** v0.10: price of a loan offer in tenths. */
+  readonly price?: number;
 }
 
 export interface Clutch {
@@ -116,7 +129,15 @@ export interface Offer {
   readonly day: string;
   readonly maxLoans: number;
   readonly loans: number;
-  readonly offer: readonly { species: string; name: string; sex: 'f' | 'm'; loaned: boolean }[];
+  readonly offer: readonly {
+    species: string;
+    name: string;
+    sex: 'f' | 'm';
+    loaned: boolean;
+    /** v0.10: price in tenths and carrying capacity of the species. */
+    price: number;
+    cargo: Cargo;
+  }[];
 }
 
 export function menagerie(): Promise<Offer> {

@@ -15,21 +15,23 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     expect(SPECIES).toHaveLength(19);
     expect(new Set(SPECIES.map((s) => s.id)).size).toBe(19);
     expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(19);
-    // v0.8.4: the Virginiauhu – a special species bots may use, never for sale.
-    expect(SPECIES.find((s) => s.id === 'virginiauhu')).toMatchObject({
-      price: 80,
+    // v0.10: the Virginiauhu is an ordinary species for 60 gold (v0.8.4: 80, not for sale).
+    const virginiauhu = SPECIES.find((s) => s.id === 'virginiauhu');
+    expect(virginiauhu).toMatchObject({
+      price: 60,
       maxEnergy: 1300,
       speedFactor: 3.4,
       recoveryFactor: 2,
-      mythical: true,
-      notForSale: true,
-      forBots: true,
+      cargo: 'gold',
     });
-    const phoenix = SPECIES.filter((s) => s.mythical && !s.forBots);
+    expect(virginiauhu?.mythical).toBeUndefined();
+    expect(virginiauhu?.notForSale).toBeUndefined();
+    // Only the phoenix is mythical; v0.10 for 150 gold (before 100).
+    const phoenix = SPECIES.filter((s) => s.mythical);
     expect(phoenix).toEqual([
       expect.objectContaining({
         id: 'phoenix',
-        price: 100,
+        price: 150,
         maxEnergy: 2000,
         speedFactor: 4,
         recoveryFactor: 2,
@@ -38,7 +40,10 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('keeps all values inside the ranges of SPEC 9.2.1', () => {
-    for (const s of SPECIES.filter((species) => !species.mythical)) {
+    // The Virginiauhu (v0.8.4, for sale since v0.10) stays above the usual ranges on purpose.
+    for (const s of SPECIES.filter(
+      (species) => !species.mythical && species.id !== 'virginiauhu',
+    )) {
       expect(s.price).toBeGreaterThanOrEqual(6);
       expect(s.price).toBeLessThanOrEqual(50);
       expect(s.maxEnergy).toBeGreaterThanOrEqual(100);
@@ -48,6 +53,39 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       expect(s.recoveryFactor).toBeGreaterThanOrEqual(0.5);
       expect(s.recoveryFactor).toBeLessThanOrEqual(2);
     }
+  });
+
+  it('v0.10: what each species carries (SPEC 9.2.1)', () => {
+    const by = (cargo: string) =>
+      SPECIES.filter((s) => s.cargo === cargo)
+        .map((s) => s.id)
+        .sort();
+    expect(by('short')).toEqual(['elfenkauz', 'kanincheneule']);
+    expect(by('long')).toEqual(
+      [
+        'haubenkauz',
+        'maehnenkauz',
+        'maskeneule',
+        'schleiereule',
+        'suedliche-weissgesichtseule',
+        'sumpfohreule',
+        'waldkauz',
+        'waldohreule',
+      ].sort(),
+    );
+    expect(by('gold')).toEqual(
+      [
+        'bartkauz',
+        'brillenkauz',
+        'milchuhu',
+        'phoenix',
+        'riesenfischuhu',
+        'riesenkauz',
+        'schneeeule',
+        'sperbereule',
+        'virginiauhu',
+      ].sort(),
+    );
   });
 
   it('v0.5.1: Sumpfohreule 7 gold, Bartkauz 12 gold', () => {

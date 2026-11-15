@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, OWL, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { utcDay } from '../src/security/ids.ts';
+import { loanPrice } from '@posteulen/shared/game/owls.ts';
 import { loanIdentitiesFor } from '../src/owls/lifecycle.ts';
 import { sendBroadcast } from '../src/admin/operations.ts';
 import { setInactivityDays } from '../src/admin/settings.ts';
@@ -89,8 +90,9 @@ function owlRow(id: string) {
     pending_sickness: number;
     owned_since: string;
     adult_at: number | null;
+    species: string;
   }>(
-    'SELECT owner_id, state, is_chick, pending_sickness, owned_since, adult_at FROM owls WHERE id = ?',
+    'SELECT owner_id, state, is_chick, pending_sickness, owned_since, adult_at, species FROM owls WHERE id = ?',
     id,
   );
 }
@@ -136,7 +138,8 @@ describe('loan owls (SPEC 9.6)', () => {
     expect((await ben.agent.json('GET', '/api/menagerie')).body).toEqual(forBen.body);
 
     const first = await borrowOwl(anna);
-    expect(gold(anna)).toBe(GOLD.START - GOLD.LOAN_PRICE);
+    // v0.10: 0.2 gold for species that carry gold, otherwise 0.1.
+    expect(gold(anna)).toBe(GOLD.START - loanPrice(owlRow(first)!.species));
     const list = await owls(anna);
     expect(list.owls[0]).toMatchObject({
       id: first,
@@ -193,9 +196,10 @@ describe('loan owls (SPEC 9.6)', () => {
 
   it('expires after 24 hours without refund', async () => {
     const id = await borrowOwl(anna);
+    const price = loanPrice(owlRow(id)!.species);
     advanceTo(app, app.clock.now + 24 * TIME.HOUR);
     expect(owlRow(id)).toBeUndefined();
-    expect(gold(anna)).toBe(GOLD.START - GOLD.LOAN_PRICE);
+    expect(gold(anna)).toBe(GOLD.START - price);
     expect(await systemTypes(anna)).toContain('loan_expired');
   });
 
@@ -221,6 +225,7 @@ describe('loan owls (SPEC 9.6)', () => {
 describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
   interface Choice {
     id: string;
+    species: string;
     kind: string;
     offer: boolean;
     name: string;
@@ -260,7 +265,7 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     );
     expect(sent.body.owl.name).toBe(chosen.name);
     expect(sent.body.arrivesAt).toBe(chosen.arrivals[0]!.at);
-    expect(gold(anna)).toBe(200 - 5 - GOLD.LOAN_PRICE);
+    expect(gold(anna)).toBe(200 - 5 - loanPrice(chosen.species));
     const loan = app.db.get<{ energy: number; kind: string }>(
       "SELECT energy, kind FROM owls WHERE owner_id = ? AND kind = 'loan'",
       anna.id,
@@ -349,7 +354,8 @@ describe('menagerie (SPEC 9.7)', () => {
 describe('sickness (SPEC 9.8, 17.2)', () => {
   async function owlAged(days: number, sex: 'f' | 'm' = 'm'): Promise<string> {
     setGold(app, anna, 500);
-    const id = await buyOwl(app, anna);
+    // v0.10: a species that carries gold (some of these tests send gold).
+    const id = await buyOwl(app, anna, 'bartkauz');
     app.db.run(
       'UPDATE owls SET owned_since = ?, sex = ? WHERE id = ?',
       utcDay(app.clock.now - days * TIME.DAY),
@@ -738,13 +744,15 @@ describe('account deletion (SPEC 7.5, 7.7)', () => {
   });
 
   it('final deletion: owls to the account turn back, own deliveries arrive, then all data goes', async () => {
-    setGold(app, anna, 300);
-    setGold(app, ben, 300);
+    // v0.10: the great grey owls cost 12 gold; more than 10 gold must remain after a transfer.
+    setGold(app, anna, 400);
+    setGold(app, ben, 400);
     // Ben lives in Lisbon: both flights take days, longer than the 24-hour grace period.
     app.db.run('UPDATE users SET home_lat = 3872, home_lon = -914 WHERE id = ?', ben.id);
     // Ben's owl flies to Anna; Anna's owl flies to Ben.
-    const benOwl = await buyOwl(app, ben, 'waldkauz', 'Benno');
-    const annaOwl = await buyOwl(app, anna, 'waldkauz', 'Annika');
+    // v0.10: owls that carry gold.
+    const benOwl = await buyOwl(app, ben, 'bartkauz', 'Benno');
+    const annaOwl = await buyOwl(app, anna, 'bartkauz', 'Annika');
     app.db.run('UPDATE owls SET energy = 540');
     for (const [from, to, owl] of [
       [ben, anna, benOwl],
@@ -779,7 +787,7 @@ describe('account deletion (SPEC 7.5, 7.7)', () => {
     ).not.toBe(200);
     advanceTo(app, app.clock.now + 15 * TIME.DAY);
     // Anna's gold arrived at Ben, her owl vanished, then everything of hers was deleted.
-    expect(gold(ben)).toBe(300 - 60 - 10 + 10 + 10);
+    expect(gold(ben)).toBe(400 - 120 - 10 + 10 + 10);
     expect(app.db.get('SELECT 1 FROM users WHERE id = ?', anna.id)).toBeUndefined();
     expect(app.db.get('SELECT 1 FROM owls WHERE id = ?', annaOwl)).toBeUndefined();
     expect(owlRow(benOwl)).toMatchObject({ owner_id: ben.id, state: 'home' });

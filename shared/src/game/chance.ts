@@ -48,7 +48,7 @@ export function randomOwlName(random: number, names: readonly string[] = OWL_NAM
 /**
  * Four different species for the daily offer (9.6); `random` is called once per pick.
  * v0.7: species of the two previous days' offers (`recent`) are not offered again – there are
- * always enough others (16 non-mythical species, at most 8 recent ones).
+ * always enough others (18 non-mythical species since v0.10, at most 8 recent ones).
  */
 export function pickOffer(random: () => number, recent: readonly string[] = []): string[] {
   // v0.5: mythical species (the phoenix) are never offered.

@@ -12,6 +12,8 @@
   import { maxChars, sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
   import ErrorText from './ErrorText.svelte';
   import OwlChoice from './OwlChoice.svelte';
+  import { cargoCovers } from '@posteulen/shared/game/owls.ts';
+  import type { Cargo } from '@posteulen/shared/species.ts';
   import { KeyMismatchError, prepare, sendPrepared, sendToBot } from '../lib/letters.ts';
   import { shortestOrder } from '@posteulen/shared/game/route.ts';
   import { mapInfo, previewFlights, type MapInfo, type OwlChoice as Choice } from '../lib/owls.ts';
@@ -81,6 +83,16 @@
   const rest = $derived(restFor(chosen));
   const count = $derived(countCodePoints(text));
   const max = $derived(maxChars(parchment));
+  /** v0.10: what the chosen parchment needs from the owl (SPEC 9.2.1). */
+  const need = $derived<Cargo>(parchment === 'large' ? 'long' : 'short');
+  const carries = (choice: Choice): boolean => cargoCovers(choice.cargo, need);
+  // v0.10: switching to the long parchment lets go of an owl that cannot carry it.
+  $effect(() => {
+    const current = prepared?.find((choice) => choice.id === owlId);
+    if (current && !cargoCovers(current.cargo, need)) {
+      owlId = prepared?.find((choice) => !choice.offer && carries(choice))?.id ?? null;
+    }
+  });
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ??
     live.bots.find((b) => b.userId === id)?.name ??
@@ -183,8 +195,8 @@
       preparedAt = Date.now();
       // Keep the chosen owl if it can still fly; otherwise a visiting owl of the recipient
       // first (v0.7), then the first ready owl – never a loan offer (it costs gold).
-      if (!list.some((choice) => choice.id === owlId)) {
-        owlId = list.find((choice) => !choice.offer)?.id ?? null;
+      if (!list.some((choice) => choice.id === owlId && carries(choice))) {
+        owlId = list.find((choice) => !choice.offer && carries(choice))?.id ?? null;
       }
     } catch (caught) {
       if (request === choiceRequest) error = errorMessage(caught);
@@ -329,7 +341,7 @@
     </p>{/if}
   <ErrorText message={error} />
   {#if prepared}
-    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" />
+    <OwlChoice choices={prepared} bind:selected={owlId} name="letter-owl" {need} />
   {:else if loading}
     <p class="hint" role="status">{t.letters.choicesLoading}</p>
   {:else}

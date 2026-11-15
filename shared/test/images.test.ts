@@ -14,7 +14,10 @@ describe('owl images (SPEC 9.2.6, Anhang B)', () => {
       ),
       ...SCENE_IMAGES.map((scene) => scene.file),
     ];
-    expect(expected.filter((file) => !files.has(file))).toEqual([]);
-    expect(files.size).toBe(expected.length);
+    // v0.10: the Virginiauhu lays eggs now; its brooding and chick pictures are still to come
+    // (the build uses placeholders until then, SPEC Anhang B).
+    const pending = ['Virginiauhu-Brueten.png', 'Virginiauhu-Kueken.png'];
+    expect(expected.filter((file) => !files.has(file)).sort()).toEqual(pending.sort());
+    expect(files.size).toBe(expected.length - pending.length);
   });
 });

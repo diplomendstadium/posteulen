@@ -13,7 +13,10 @@ import {
   speciesById,
   type OwlKind,
   type OwlState,
+  canFeedAgain,
+  cargoOf,
 } from '@posteulen/shared/game/owls.ts';
+import type { Cargo } from '@posteulen/shared/species.ts';
 import type { Context } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
@@ -130,6 +133,11 @@ export interface OwlView {
   /** v0.5: water and favourite snack today; motivation in tenths (8–12). */
   readonly wateredToday: boolean;
   readonly snackedToday: boolean;
+  /** v0.10: biscuit and snack possible right now (once a day, again while not full). */
+  readonly feedable: boolean;
+  readonly snackable: boolean;
+  /** v0.10: what the owl can carry (SPEC 9.2.1). */
+  readonly cargo: Cargo;
   readonly motivation: number;
   /** v0.5.1: time of the last interaction (nap picture only ten minutes after it). */
   readonly caredAt: number | null;
@@ -174,6 +182,9 @@ export interface GuestView {
   readonly pettedToday: boolean;
   readonly wateredToday: boolean;
   readonly snackedToday: boolean;
+  /** v0.10: biscuit and snack possible right now (bot owls: once a day, free). */
+  readonly feedable: boolean;
+  readonly snackable: boolean;
   readonly caredAt: number | null;
   /** Whose owl it is: their user ID and current name (null if no longer a contact). */
   readonly holderId: string;
@@ -192,19 +203,23 @@ export function guestView(
 ): GuestView {
   const today = utcDay(now);
   const stop = routeOf(flight)[index];
+  const energy = displayEnergy(currentEnergy(ctx, owl, now));
+  const maxEnergy = speciesById(owl.species)?.maxEnergy ?? 0;
   return {
     id: owl.id,
     name: owl.name ?? flight.owl_name,
     species: owl.species,
     sex: owl.sex,
     loan: owl.kind === 'loan',
-    energy: displayEnergy(currentEnergy(ctx, owl, now)),
-    maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
+    energy,
+    maxEnergy,
     motivation: owl.motivation,
     fedToday: owl.fed_on === today,
     pettedToday: owl.petted_on === today,
     wateredToday: owl.watered_on === today,
     snackedToday: owl.snacked_on === today,
+    feedable: canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
+    snackable: canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
     caredAt: owl.cared_at,
     holderId: flight.holder_id,
     holderName: stop
@@ -258,6 +273,9 @@ export function botGuestView(
     pettedToday: care.has('pet'),
     wateredToday: care.has('water'),
     snackedToday: care.has('snack'),
+    // Bot owls stay at once a day (free, SPEC 10.7).
+    feedable: !care.has('feed'),
+    snackable: !care.has('snack'),
     caredAt: null,
     holderId: flight.holder_id,
     holderName: bot?.name ?? null,
@@ -300,6 +318,8 @@ export function owlView(
     }
   }
   const ownFacts = facts(owl);
+  const energy = displayEnergy(currentEnergy(ctx, owl, now));
+  const maxEnergy = species?.maxEnergy ?? 0;
   return {
     id: owl.id,
     name: owl.name,
@@ -308,12 +328,15 @@ export function owlView(
     kind: owl.kind,
     state: owl.state,
     isChick: owl.is_chick === 1,
-    energy: displayEnergy(currentEnergy(ctx, owl, now)),
-    maxEnergy: species?.maxEnergy ?? 0,
+    energy,
+    maxEnergy,
     fedToday: owl.fed_on === today,
     pettedToday: owl.petted_on === today,
     wateredToday: owl.watered_on === today,
     snackedToday: owl.snacked_on === today,
+    feedable: canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
+    snackable: canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
+    cargo: cargoOf(owl.species),
     motivation: owl.motivation,
     caredAt: owl.cared_at,
     ready: isReady(owl),

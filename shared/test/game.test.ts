@@ -38,6 +38,7 @@ import { isDay, sunAltitude } from '../src/game/sun.ts';
 import { SPECIES, type Species } from '../src/species.ts';
 
 const fast: Species = {
+  cargo: 'long',
   id: 'test',
   name: 'Test',
   nameEn: 'Test',

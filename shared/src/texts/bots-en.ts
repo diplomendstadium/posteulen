@@ -13,7 +13,7 @@ export const BOT_LETTERS_EN: BotLetters = {
 
 I am the Explainer Bear, and over the next few days I will send you a few short letters.
 
-At the bottom you will find the most important places: Letters, Owls, Address book and Map. You start with 3 gold. Your own owl costs 6 gold or more, but during your first 30 days you get 3 gold every day, and 2 gold after that. Until then, borrow a loan owl for 0.1 gold – in the Menagerie or right when you write a letter.
+At the bottom you will find the most important places: Letters, Owls, Address book and Map. You start with 3 gold. Your own owl costs 6 gold or more, but during your first 30 days you get 3 gold every day, and 2 gold after that. Until then, borrow a loan owl – at the post office or right when you write a letter.
 
 Important: all letters are deleted automatically and for good one year after delivery at the latest, this one too. In the settings you can have them deleted even sooner.
 
@@ -31,9 +31,9 @@ After that an owl lives on your home screen, and notifications work too. With ot
 Your Explainer Bear`,
     day2: `Hello, today is all about gold!
 
-Your finances show how much gold you have and your latest bookings. You can send gold to your contacts by owl.
+You see your gold at the top right and your bookings in the settings. Owls that can carry gold have the button “Send gold” in your owl overview.
 
-In the Menagerie you buy your own owls or borrow one. Every day there are four new loan owls, rolled just for you, and you can borrow each of them once that day. If you have an owl to spare, you can lend it to the Menagerie for 7 days and get 10 % of its price afterwards.
+In the Menagerie you buy owls; at the post office you borrow one of four every day, rolled just for you. Small owls carry short parchment only, only strong ones also carry gold. An owl you have to spare can be lent to the Menagerie for 7 days, and you get 10 % of its price afterwards.
 
 By the way: the little flag in the top right corner switches PostEulen to German and back. Something not working, or an idea? At the very bottom of the settings you can send the admin a short message.
 
