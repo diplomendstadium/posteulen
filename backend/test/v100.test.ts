@@ -333,6 +333,9 @@ describe('server scripts (v1.0, SPEC 16.3)', () => {
         expect(line, line).toContain('runuser -u "$PE_USER"');
       }
     }
+    // Commands run as the service need a working directory it may enter (found by the VM test).
+    expect(backup).toMatch(/^cd \/$/m);
+    expect(update).toMatch(/^cd \/$/m);
     const code = backup
       .split('\n')
       .filter((line) => !line.trimStart().startsWith('#'))

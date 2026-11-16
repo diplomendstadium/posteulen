@@ -20,6 +20,9 @@ done
 [[ $reason =~ ^(taeglich|update|manuell)$ ]] || die "Ungültiger Grund: $reason"
 
 require_root
+# v1.0: Befehle als Dienstbenutzer brauchen ein Arbeitsverzeichnis, das er betreten darf (find
+# bricht sonst ab, z. B. wenn der Aufruf aus dem Home-Verzeichnis eines anderen Benutzers kommt).
+cd /
 [[ -f $PE_BACKUP_PUB ]] || die "Öffentlicher Backup-Schlüssel fehlt: $PE_BACKUP_PUB" "install.sh erneut ausführen."
 [[ -f $PE_DATA/posteulen.sqlite ]] || die "Keine Datenbank gefunden." "Ist PostEulen installiert?"
 
