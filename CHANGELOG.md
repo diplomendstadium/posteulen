@@ -3,6 +3,33 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.0.0 – Die große Turmprüfung
+
+Wartungsversion mit Schwerpunkt Sicherheit: keine neuen Funktionen (SPEC Anhang F, D-354 bis D-364).
+
+**Geschlossene Lücken** (jede mit einem Test, der ohne die Korrektur fehlschlägt, `backend/test/v100.test.ts`):
+
+- **Versteckte Lesebestätigung:** Die API verriet dem Absender über `arrivalSeen`, ob der Empfänger die Ankunft eines Briefs schon gesehen hatte. Jetzt erfährt das nur der Empfänger.
+- **Passwortwechsel:** Ein Login, der vor einem Passwortwechsel begonnen hatte, ließ sich bis zu einer Minute danach noch mit dem alten Passwort abschließen (Konten, Adminpanel, Kontrollzentrum). Login-Versuche sind jetzt an den Passwort-Datensatz gebunden.
+- **Fehlerprotokoll:** Jedes Konto konnte mit erfundenen Meldungen „Brief nicht lesbar“ Einträge im Fehlerprotokoll erzeugen. Protokolliert wird nur noch, was einen echten ungelesenen Brief betrifft.
+- **Tor-Zugang:** Eine einzelne Person konnte alle Tor-Nutzer vom Anmelden und Schreiben aussperren. Jetzt verlangt jeder Login über Tor das Captcha (statt einer gemeinsamen Wartezeit), Anmelde-Anfragen haben ein eigenes Budget, und teure Aktionen angemeldeter Konten zählen je Konto. Die Registrierung bleibt bei 5 je Stunde für alle Tor-Nutzer zusammen.
+- **Update-Skript:** `posteulen-update` spielte auch eine ältere, echt signierte Version ein. Jetzt nur noch mit `--allow-downgrade`; der Weg zurück bleibt `--rollback`.
+- **Sicherung und Rückfall:** Die Skripte arbeiteten als root im Datenverzeichnis des Dienstes; ein gekaperter Dienst hätte sich darüber fremde Verzeichnisse übereignen lassen können. Jetzt arbeiten sie dort als Dienstbenutzer.
+
+**Außerdem:**
+
+- Direkte Abhängigkeiten aktualisiert (`@fastify/cookie` 11.1.5, `altcha-lib` 2.8.0, `svelte` 5.57.3, Entwicklungswerkzeuge); `npm audit`: Laufzeit 0 Funde.
+- Alle deutschen und englischen Texte Korrektur gelesen: Leiheulen kehren „ins Eulenpostamt“ zurück, Hilfe und Erklärbär ohne Versionsgeschichte, einheitliche Prozentangaben im Englischen, kleinere Unstimmigkeiten.
+- SPEC und PROMPT beschreiben nur noch den aktuellen Stand (Änderungsanhänge älterer Versionen und überholte Entscheidungen gestrichen); Widersprüche zum Code behoben (Zahl der Listener, Bots bei der Registrierung, Sprache der Panels, Konstanten in Anhang A).
+- Update-Nachricht an alle Konten.
+
+### Hinweise für Betreiber
+
+- Keine Migration, keine neuen Pakete auf dem Server, keine neuen Dienste.
+- Geändert sind `deploy/backup.sh`, `deploy/update.sh`, `deploy/posteulen-update` und `deploy/lib.sh`. Das Update auf 1.0.0 läuft noch mit dem Update-Befehl der installierten Version; der Schutz vor älteren Versionen gilt ab dem Stand 1.0.0.
+- Über Tor löst die App jetzt bei jeder Anmeldung die Rechenaufgabe – das dauert einen Augenblick länger als im Clearnet.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v0.10.1 – Frisch gefegt im Postamt
 
 Kleinigkeiten aus 0.10.0 (SPEC Anhang AC, D-346 bis D-353).

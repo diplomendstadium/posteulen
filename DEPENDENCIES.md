@@ -1,7 +1,7 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 0.10.1 (2026-11-15; keine neuen Pakete gegenüber 0.9.0); keine neuen npm-Pakete gegenüber 0.6.1 – `sharp` ist seit 0.8 zusätzlich Laufzeitabhängigkeit des Backends; seit 0.9 kommt auf dem Server das Debian-Paket `tor` für den Onion-Dienst dazu; die Schriften Dancing Script und Playwrite DE Grund nutzt seit 0.8 auch das Bots-Kontrollzentrum (Vorschau). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
-> `npm audit` vom 2026-11-15: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
+> Stand: Version 1.0.0 (2026-11-16). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> `npm audit` vom 2026-11-16: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
@@ -10,7 +10,7 @@
 |---|---|---|---|
 | Node.js | 26.x LTS „Lithium“ (Entwicklung: 26.13.0) | MIT | Laufzeit; eingebaut genutzt: `node:sqlite`, `node:crypto`, WebCrypto, Type-Stripping |
 | `fastify` | 5.12.7 | MIT | HTTP-Server, Routing, Schema-Hooks |
-| `@fastify/cookie` | 11.1.3 | MIT | Cookies lesen und setzen |
+| `@fastify/cookie` | 11.1.5 | MIT | Cookies lesen und setzen |
 | `pino` | über Fastify | MIT | strukturiertes Logging mit Redaktion (keine eigene Abhängigkeit, kommt mit Fastify) |
 | `valibot` | 1.5.0 | MIT | Schema-Validierung, gemeinsam mit dem Browser (`shared/`, D-13) |
 | `@serenity-kit/opaque` | 1.1.0 | MIT | OPAQUE (RFC 9807; auf Basis von opaque-ke 4.0.0) |
@@ -19,7 +19,7 @@
 | `@hpke/dhkem-x25519` | 1.8.0 | MIT | HPKE-KEM DHKEM(X25519, HKDF-SHA256) |
 | `@hpke/chacha20poly1305` | 1.8.0 | MIT | HPKE-AEAD ChaCha20-Poly1305 |
 | `web-push` | 3.6.7 | MPL-2.0 | VAPID und Nutzlast-Verschlüsselung (RFC 8291/8292); der Versand läuft über einen eigenen HTTPS-Client (D-06) |
-| `altcha-lib` | 2.7.0 | MIT | ALTCHA-Challenges erzeugen und prüfen |
+| `altcha-lib` | 2.8.0 | MIT | ALTCHA-Challenges erzeugen und prüfen |
 | `suncalc` | 2.1.1 | BSD-2-Clause | Sonnenhöhe (Flug Tag/Nacht, Karte). Hinweis: Im npm-Paket fehlt das Feld `license`; die LICENSE-Datei im Repository ist BSD-2-Clause |
 
 Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino). Die vollständige Liste mit Lizenzen erzeugt `npm run deps:report` aus dem Lockfile.
@@ -28,9 +28,9 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 
 | Paket | Version | Lizenz | Zweck |
 |---|---|---|---|
-| `svelte` | 5.57.2 | MIT | UI-Framework (kompiliert, ohne SSR) |
+| `svelte` | 5.57.3 | MIT | UI-Framework (kompiliert, ohne SSR) |
 | `@serenity-kit/opaque`, `libsodium-wrappers-sumo`, `@hpke/*`, `valibot`, `suncalc` | wie oben | wie oben | Client-Kryptografie, Schemas, Kartenanzeige |
-| `altcha-lib` | 2.7.0 | MIT | Lösen der Proof-of-Work-Aufgabe im Browser; eigene kleine Oberfläche statt des ALTCHA-Widgets (strikte CSP) |
+| `altcha-lib` | 2.8.0 | MIT | Lösen der Proof-of-Work-Aufgabe im Browser; eigene kleine Oberfläche statt des ALTCHA-Widgets (strikte CSP) |
 | `@fontsource/atkinson-hyperlegible-next` | 5.3.0 | OFL-1.1 | Fließtext und alle Namen |
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
 | `@fontsource/dancing-script` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.3, D-112; veröffentlicht 2026-07-19) |
@@ -43,9 +43,9 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `vite` | 8.3.5 | MIT | Build von `web/` und `admin/` (Rolldown, vorkompilierte Binärdateien) |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | MIT | Svelte in Vite |
 | `typescript` | 6.0.3 | Apache-2.0 | Typprüfung (`tsc --noEmit`). Nicht 7.x, weil typescript-eslint dafür noch keine Unterstützung hat (D-11) |
-| `svelte-check` | 4.7.7 | MIT | Typprüfung der Svelte-Komponenten |
-| `eslint` | 10.13.0 | MIT | Lint |
-| `typescript-eslint` | 8.72.0 | MIT | Lint-Regeln für TypeScript |
+| `svelte-check` | 4.7.8 | MIT | Typprüfung der Svelte-Komponenten |
+| `eslint` | 10.14.0 | MIT | Lint |
+| `typescript-eslint` | 8.72.1 | MIT | Lint-Regeln für TypeScript |
 | `eslint-plugin-svelte` | 3.23.1 | MIT | Lint für Svelte, u. a. `no-at-html-tags` als Fehler |
 | `prettier` | 3.9.10 | MIT | Formatierung |
 | `prettier-plugin-svelte` | 4.1.1 | MIT | Formatierung von Svelte |
@@ -54,10 +54,10 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `fast-check` | 4.10.2 | MIT | Property-based Tests |
 | `@playwright/test` | 1.64.1 | Apache-2.0 | Ende-zu-Ende-Tests, Screenshots (Browser werden nur auf dem Entwicklungsrechner geladen, nie auf dem Server) |
 | `@axe-core/playwright` (mit `axe-core` 4.14.0) | 4.14.0 | MPL-2.0 | Automatische Prüfung der Barrierefreiheit (WCAG 2.2 AA) in den E2E-Tests (D-93) |
-| `@types/node` | 26.6.5 | MIT | Typen für Node.js |
+| `@types/node` | 26.6.6 | MIT | Typen für Node.js |
 | `@types/web-push` | 3.6.4 | MIT | Typen für web-push |
 | `@eslint/js` | 10.0.1 | MIT | Grundregeln für ESLint |
-| `globals` | 17.13.0 | MIT | Liste globaler Bezeichner für ESLint |
+| `globals` | 17.14.0 | MIT | Liste globaler Bezeichner für ESLint |
 | `sharp` | 0.35.5 | Apache-2.0 (libvips: LGPL-3.0) | Eulenbilder → WebP beim Build; seit v0.8 auch zur Laufzeit im Backend: Bilder der Bots normalisieren (WebP, ohne Metadaten, SPEC 10.11, D-240); vorkompilierte Binärdatei für amd64 und arm64, nichts wird auf dem Server kompiliert (D-16) |
 
 ## Werkzeug Kartendaten (`tools/map/`, nur Entwicklungsrechner)

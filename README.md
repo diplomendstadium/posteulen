@@ -16,7 +16,7 @@ Weißt du noch, wie schön es war, einen richtigen Brief im Kasten zu haben? Pos
 
 Du kaufst Eulen in der Menagerie oder leihst sie dir im Eulenpostamt, gibst ihnen Namen, gibst ihnen Wasser, streichelst sie und verwöhnst sie mit Eulenkeksen oder ihrem Lieblingsleckerli – hungrige Eulen auch mehrmals am Tag, bis sie satt sind. Achtzehn Arten wohnen in der Menagerie, vom winzigen Elfenkauz bis zum mächtigen Virginiauhu – und ein Phönix, der eines Morgens einfach auf der Fensterbank saß. Jede erzählt dort ein bisschen über ihren Charakter. Nicht jede trägt alles: Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen tragen außerdem Gold. Gepflegte Eulen sind motiviert und fliegen die nächste Strecke schneller und weiter – vernachlässigte schauen grummelig drein; gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier. Ist eine Eule unterwegs, siehst du sie in der Übersicht fliegen – im Sonnenschein oder unter Sternen – und auf der Karte als kleinen Punkt über Land und Meer. Rastet sie gerade bei einem Empfänger, steht in der Übersicht ihre leere Stange. Macht sie unterwegs ein Nickerchen, siehst du sie schlafen, und kommt sie heim, sitzt sie auf dem Fensterbrett und wartet auf dich – bei Tageslicht oder bei Kerzenschein, sobald du die App das nächste Mal öffnest. Tagsüber döst sie dort auch gern mal, Eulen sind eben Nachtvögel.
 
-Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und Brieffreunde sind auch mit von der Partie: ein geduldiger **Erklärbär**, der dir alles erklärt, und – seit Version 0.8 – weitere Figuren, die der Betreiber deiner Instanz ins Leben ruft. Sie wohnen irgendwo auf der Welt, schreiben allen zu besonderen Momenten, legen manchmal Bilder oder ein kleines Geschenk bei und gehen in ihrem nächsten Brief persönlich auf deine Antwort ein. Ihre Eulen fliegen dafür auch mal übers Meer und warten dann eine Weile bei dir, damit du sie (kostenlos) verwöhnen und ihnen eine Antwort mitgeben kannst.
+Gold gibt es jeden Tag (in den ersten 30 Tagen 3 Goldstücke, danach 2), und Brieffreunde sind auch mit von der Partie: ein geduldiger **Erklärbär**, der dir alles erklärt, und weitere Figuren, die der Betreiber deiner Instanz ins Leben ruft. Sie wohnen irgendwo auf der Welt, schreiben allen zu besonderen Momenten, legen manchmal Bilder oder ein kleines Geschenk bei und gehen in ihrem nächsten Brief persönlich auf deine Antwort ein. Ihre Eulen fliegen dafür auch mal übers Meer und warten dann eine Weile bei dir, damit du sie (kostenlos) verwöhnen und ihnen eine Antwort mitgeben kannst.
 
 ### Spiel? Messenger? Beides – und zwar ernsthaft sicher.
 
@@ -32,7 +32,7 @@ PostEulen bewegt sich bewusst im Grenzbereich zwischen Spiel und Messenger. Die 
 
 **Datensparsam von Anfang an:** Du brauchst weder einen Klarnamen noch eine E-Mail-Adresse oder Telefonnummer. Du kannst unter einem Pseudonym spielen und einen fiktiven Wohnort wählen. Auch eine Nutzung über VPN, das Tor-Netz oder den Tor-Browser ist möglich – im Tor-Browser auf der Sicherheitsstufe „Standard“ (die strengeren Stufen schalten WebAssembly ab, das die Anmeldung braucht) und ohne Benachrichtigungen.
 
-**Seit Version 0.9 wohnen die Eulen auch im Tor-Netz:** PostEulen ist zusätzlich als Onion-Dienst erreichbar – ein verborgener Eulenturm mit eigenem Eingang. Den Link „Tor-Netz“ findest du ganz unten auf der Startseite; öffnest du PostEulen im Tor Browser, schlägt er dir die Onion-Adresse sogar von selbst vor („.onion verfügbar“). Dort ist alles wie gewohnt: dasselbe Konto, dieselben Briefe, dieselben Eulen. Du kannst nach Belieben wechseln – angemeldet bist du aber immer nur an einer Stelle zugleich. Über Tor erfährt der Server nicht einmal deine IP-Adresse; dafür teilen sich alle Tor-Nutzer die Schutzgrenzen gegen Überlastung, als wären sie ein einziger Besucher. Wird es dort eng, hilft kurzes Warten. Und das **Adminpanel**, mit dem der Spieleserver verwaltet wird, bietet keine Ansichten für Spielernamen, Kontaktbeziehungen oder Briefinhalte. Im Klartext zeigt es nur das Feedback zur Software, das Nutzer freiwillig in den Einstellungen einsenden.
+**Die Eulen wohnen auch im Tor-Netz:** PostEulen ist zusätzlich als Onion-Dienst erreichbar – ein verborgener Eulenturm mit eigenem Eingang. Den Link „Tor-Netz“ findest du ganz unten auf der Startseite; öffnest du PostEulen im Tor Browser, schlägt er dir die Onion-Adresse sogar von selbst vor („.onion verfügbar“). Dort ist alles wie gewohnt: dasselbe Konto, dieselben Briefe, dieselben Eulen. Du kannst nach Belieben wechseln – angemeldet bist du aber immer nur an einer Stelle zugleich. Über Tor erfährt der Server nicht einmal deine IP-Adresse; dafür teilen sich alle Tor-Nutzer die Schutzgrenzen gegen Überlastung, als wären sie ein einziger Besucher. Wird es dort eng, hilft kurzes Warten. Und das **Adminpanel**, mit dem der Spieleserver verwaltet wird, bietet keine Ansichten für Spielernamen, Kontaktbeziehungen oder Briefinhalte. Im Klartext zeigt es nur das Feedback zur Software, das Nutzer freiwillig in den Einstellungen einsenden.
 
 PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nicht auf Minuten ankommt. Was es nicht verbergen kann: *wer* wem *wann* schreibt. Und wer dein entsperrtes Handy in der Hand hält, kann natürlich mitlesen. Das liegt nicht an der Eule.
 
@@ -92,7 +92,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 0.10.1**.
+Stand: **Version 1.0.0** – nach einer gründlichen Sicherheitsprüfung von Anmeldung, Verschlüsselung, Tor-Zugang und Server-Skripten (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -111,8 +111,8 @@ Stand: **Version 0.10.1**.
   ```
   posteulen.de        →  IP des Servers
   admin.posteulen.de  →  IP des Servers
-  bots.posteulen.de   →  IP des Servers   (seit 0.8: Bots-Kontrollzentrum)
-  www.posteulen.de    →  IP des Servers   (optional, seit 0.9: leitet auf posteulen.de um)
+  bots.posteulen.de   →  IP des Servers   (Bots-Kontrollzentrum)
+  www.posteulen.de    →  IP des Servers   (optional: leitet auf posteulen.de um)
   ```
 
   Ohne diese Einträge kann Caddy keine HTTPS-Zertifikate von Let's Encrypt bekommen. Hat der Server IPv4 **und** IPv6, gehören zu jedem Namen ein A- **und** ein AAAA-Eintrag – sonst meldet das Skript es deutlich. Für das Tor-Netz braucht es keinen DNS-Eintrag und keinen offenen Port: Die Onion-Adresse richtet das Skript selbst ein.
@@ -132,9 +132,9 @@ sudo ./posteulen/deploy/install.sh --domain posteulen.de
 Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter beantworten (Übersicht: `sudo ./posteulen/deploy/install.sh --help`). Es macht Folgendes:
 
 1. Es prüft das System: Debian 13, root-Rechte, Architektur, Arbeitsspeicher, freien Speicher, ob die Ports 80 und 443 frei sind und ob die DNS-Einträge auf diesen Server zeigen (bei Abweichung nur eine Warnung).
-2. Es richtet zwei Paketquellen mit geprüften Signaturschlüsseln ein: Node.js 26 (NodeSource) und Caddy (offizielle Caddy-Quelle). So kommen auch deren Sicherheitsupdates über apt. Tor kommt seit 0.9 direkt aus Debian (mit den normalen Debian-Sicherheitsupdates). Die Fingerabdrücke der Schlüssel stehen fest im Skript (`deploy/lib.sh`); passt einer nicht, bricht das Skript ab.
+2. Es richtet zwei Paketquellen mit geprüften Signaturschlüsseln ein: Node.js 26 (NodeSource) und Caddy (offizielle Caddy-Quelle). So kommen auch deren Sicherheitsupdates über apt. Tor kommt direkt aus Debian (mit den normalen Debian-Sicherheitsupdates). Die Fingerabdrücke der Schlüssel stehen fest im Skript (`deploy/lib.sh`); passt einer nicht, bricht das Skript ab.
 3. Grundabsicherung:
-   - Firewall (ufw): nur 22/tcp (SSH), 80/tcp, 443/tcp und 443/udp (HTTP/3) sind offen – für IPv4 und IPv6 (seit 0.8.2 bei jeder Installation und jedem Update abgeglichen).
+   - Firewall (ufw): nur 22/tcp (SSH), 80/tcp, 443/tcp und 443/udp (HTTP/3) sind offen – für IPv4 und IPv6 (bei jeder Installation und jedem Update abgeglichen).
    - Automatische Sicherheitsupdates (unattended-upgrades), auch für Node.js und Caddy; betroffene Dienste werden danach automatisch neu gestartet (needrestart).
    - SSH nur noch mit Schlüssel: nur nach Rückfrage und nur, wenn für den angemeldeten Benutzer bereits ein Schlüssel hinterlegt ist (Schutz vor Aussperren).
 4. Es legt den Systembenutzer `posteulen` und diese Verzeichnisse an:
@@ -148,12 +148,12 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    | `/var/backups/posteulen` | verschlüsselte Sicherungen |
    | `/etc/posteulen` | Konfiguration und Geheimnis-Datei |
    | `/etc/posteulen/local` | eigene Anpassungen (werden nie überschrieben) |
-   | `/etc/posteulen/onion` | seit 0.9: Schlüssel der Onion-Adresse (werden nie überschrieben) |
+   | `/etc/posteulen/onion` | Schlüssel der Onion-Adresse (werden nie überschrieben) |
 
    Vor dem Bauen prüft es die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
 
-   Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an, richtet den Onion-Dienst ein (siehe [Abschnitt 3b](#3b-das-tor-netz-seit-09)) und schreibt die Caddyfile (seit 0.9 mit `www.posteulen.de` als Weiterleitung, wenn `www` im DNS auf den Server zeigt), den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
-5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren. Seit 0.8.2 prüft es außerdem jeden Hostnamen über **jede** IPv4- und IPv6-Adresse des Servers mit gültigem Zertifikat und vergleicht die A- und AAAA-Einträge mit den Adressen des Servers. Fehlt ein Zertifikat (etwa nach einem neu angelegten AAAA-Eintrag), stößt es Caddy an, es zu holen; was dann noch fehlt, meldet es als Warnung. Hast du dem Server später eine IPv6-Adresse und die passenden AAAA-Einträge gegeben, genügt also das nächste Update oder ein erneuter Lauf von `install.sh`. Seit 0.9 prüft es auch `www.posteulen.de` (falls im DNS) und meldet, wenn einem Namen der A- oder AAAA-Eintrag fehlt, obwohl der Server eine öffentliche IPv4- bzw. IPv6-Adresse hat. Danach prüft es die Onion-Adresse lokal und einmal über das Tor-Netz.
+   Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an, richtet den Onion-Dienst ein (siehe [Abschnitt 3b](#3b-das-tor-netz)) und schreibt die Caddyfile (mit `www.posteulen.de` als Weiterleitung, wenn `www` im DNS auf den Server zeigt), den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
+5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren. Es prüft außerdem jeden Hostnamen über **jede** IPv4- und IPv6-Adresse des Servers mit gültigem Zertifikat und vergleicht die A- und AAAA-Einträge mit den Adressen des Servers. Fehlt ein Zertifikat (etwa nach einem neu angelegten AAAA-Eintrag), stößt es Caddy an, es zu holen; was dann noch fehlt, meldet es als Warnung. Hast du dem Server später eine IPv6-Adresse und die passenden AAAA-Einträge gegeben, genügt also das nächste Update oder ein erneuter Lauf von `install.sh`. Es prüft auch `www.posteulen.de` (falls im DNS) und meldet, wenn einem Namen der A- oder AAAA-Eintrag fehlt, obwohl der Server eine öffentliche IPv4- bzw. IPv6-Adresse hat. Danach prüft es die Onion-Adresse lokal und einmal über das Tor-Netz.
 6. Am Ende zeigt es eine Zusammenfassung (mit der Onion-Adresse) und einen großen Hinweis zur Sicherung. **Alles, was nicht stimmt, aber den Betrieb nicht verhindert** (DNS, IPv4/IPv6, www, Tor), steht zum Schluss noch einmal gesammelt in einem gelben Kasten „ACHTUNG – bitte prüfen“. Die Installation läuft trotzdem zu Ende. Wer `www` erst später im DNS einträgt: danach `sudo /opt/posteulen/current/deploy/configure.sh` ausführen.
 
 > [!CAUTION]
@@ -172,20 +172,20 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 ### 3. Erster Login im Adminpanel
 
 - Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das Admin-Erstpasswort. Damit unter `https://admin.posteulen.de` anmelden.
-- Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes. Nach 10 Minuten ohne Aktivität meldet das Adminpanel dich ab (seit 0.7).
+- Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes. Nach 10 Minuten ohne Aktivität meldet das Adminpanel dich ab.
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
 - Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kann ein Gerät einen Brief nicht öffnen, steht hier die konkrete technische Ursache (die Nutzer sehen nur, dass der Brief verloren bzw. nass geworden ist). Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
-- Nachrichten der Nutzer (seit 0.7.1, ganz unten): Nutzer können aus den Einstellungen einmal am Tag eine kurze Nachricht (300 Zeichen) an den Admin schicken – für Probleme und Ideen. Sie sind nicht verschlüsselt, kommen ohne Absender an und werden nach 90 Tagen gelöscht.
-- Gutscheine (seit 0.7): für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
+- Nachrichten der Nutzer (ganz unten): Nutzer können aus den Einstellungen einmal am Tag eine kurze Nachricht (300 Zeichen) an den Admin schicken – für Probleme und Ideen. Sie sind nicht verschlüsselt, kommen ohne Absender an und werden nach 90 Tagen gelöscht.
+- Gutscheine: für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
 - Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
-- Banner (seit 0.8.2): ein kurzer Hinweis mit Beginn und Ende (höchstens 90 Tage), Deutsch und optional Englisch, erscheint oben in der App bei allen Konten – auch bei Konten, die erst danach entstehen. Nutzer können ihn mit ✕ ausblenden.
+- Banner: ein kurzer Hinweis mit Beginn und Ende (höchstens 90 Tage), Deutsch und optional Englisch, erscheint oben in der App bei allen Konten – auch bei Konten, die erst danach entstehen. Nutzer können ihn mit ✕ ausblenden.
 - OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), zwei Tageslimits (Erklärbär, Standard 200 Aufrufe; alle anderen Bots zusammen, Standard 500), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
 - Adminpasswort vergessen? Auf dem Server erzeugt `sudo posteulen-cli admin-reset` ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben unberührt.
-- Oben rechts schaltet ein Knopf das Adminpanel auf Englisch um (seit 0.8).
+- Oben rechts schaltet ein Knopf das Adminpanel auf Englisch um.
 
-### 3a. Das Bots-Kontrollzentrum (seit 0.8)
+### 3a. Das Bots-Kontrollzentrum
 
 Unter `https://bots.posteulen.de` legst du Brieffiguren für alle Spieler an. Es ist vom Adminpanel völlig getrennt: eigene Adresse, eigenes Passwort, eigene Sitzungen.
 
@@ -193,19 +193,19 @@ Unter `https://bots.posteulen.de` legst du Brieffiguren für alle Spieler an. Es
 - **Abmeldung** nach 12 Stunden ohne Aktivität. Auch das Kontrollzentrum lässt sich auf Englisch umschalten.
 - **Ein Bot entsteht als leerer Entwurf:** Name (3 bis 30 Zeichen, eindeutig, auch gegenüber Spielern), Charakter und Hintergrund (bekommt die KI), Wohnort irgendwo auf Land in der Welt, Eule (eine eigene – jeder Spieler bekommt eine eigene Ausgabe davon – oder zufällige Leiheulen), Motivation der Eulen (0,5 bis 20; mit 20 schaffen sie auch andere Kontinente), Rast beim Spieler und ob Spieler auch mit eigenen Eulen schreiben dürfen. Erst nach dem ausdrücklichen Aktivieren macht er mit; Pausieren stoppt neue Briefe.
 - **Geplante Events:** ein Zeitpunkt, dazu ein Umzug und/oder ein Brief an alle (vier Fassungen: Erstkontakt und Folgebrief, je Deutsch und Englisch; bis zu zwei Bilder, je bis 5 MB) und/oder ein Geschenk (Gold oder eine Eule). Vor dem Speichern gibt es eine Vorschau und einen Test der KI-Anpassung mit einem ausgedachten Spielerbrief (verschickt nichts; er nimmt wie im echten Betrieb den Folgebrief und den Brief des vorigen Events als Verlauf). Zu jedem Event steht, wann der erste und wann der letzte Spieler die Eule bekommt – vorher geschätzt („ca.“), danach die echten Zeiten. Schreibt ein Spieler zurück, passt die KI den nächsten geplanten Brief (den Folgebrief) für ihn an und kennt dabei die letzten 15 Briefe eures Briefwechsels (ältere als Zusammenfassung); nur wenn vier Wochen lang nichts geplant ist, antwortet der Bot nach zwei Stunden direkt. Fällt die KI aus, geht der geplante Brief trotzdem unverändert.
-- **Vergangene Events** stehen im Archiv mit Zahlen (abgeschickt, zugestellt, gelesen, Antworten). Die Übersicht zeigt diese Zahlen je Bot (insgesamt und 30 Tage) und eine Weltkarte mit allen Bot-Eulen unterwegs – ohne Namen von Spielern, aber eine rastende Eule sitzt natürlich am (fiktiven) Wohnort eines Spielers. Die Karte bedient sich wie die im Spiel (ziehen, Mausrad, zwei Finger, Knöpfe), passt seit 0.8.5 ins Fenster (ganz herausgezoomt scrollt das Mausrad die Seite weiter), hat eine Legende (blauer Kreis: fliegt hin, grünes Quadrat: rastet, orangefarbenes Dreieck: fliegt zurück, Raute: Wohnort) und wird alle 5 Minuten aktualisiert. Verschickte Events werden 36 Monate nach dem Versand mit ihren Zustellungen und nicht mehr genutzten Bildern endgültig gelöscht (die Statistik je Bot bleibt). Alle Uhrzeiten im Kontrollzentrum und im Adminpanel stehen in der Zeitzone deines Geräts.
+- **Vergangene Events** stehen im Archiv mit Zahlen (abgeschickt, zugestellt, gelesen, Antworten). Die Übersicht zeigt diese Zahlen je Bot (insgesamt und 30 Tage) und eine Weltkarte mit allen Bot-Eulen unterwegs – ohne Namen von Spielern, aber eine rastende Eule sitzt natürlich am (fiktiven) Wohnort eines Spielers. Die Karte bedient sich wie die im Spiel (ziehen, Mausrad, zwei Finger, Knöpfe), passt ins Fenster (ganz herausgezoomt scrollt das Mausrad die Seite weiter), hat eine Legende (blauer Kreis: fliegt hin, grünes Quadrat: rastet, orangefarbenes Dreieck: fliegt zurück, Raute: Wohnort) und wird alle 5 Minuten aktualisiert. Verschickte Events werden 36 Monate nach dem Versand mit ihren Zustellungen und nicht mehr genutzten Bildern endgültig gelöscht (die Statistik je Bot bleibt). Alle Uhrzeiten im Kontrollzentrum und im Adminpanel stehen in der Zeitzone deines Geräts.
 - **Export und Import** als ZIP-Datei (ganze Bots oder einzelne Events, mit Bildern, ohne Spielerbriefe). Ein Import ergänzt nur – er zeigt vorher Konflikte und schickt nie Vergangenes noch einmal los. Das Format steht in der `SPEC.md`, Anhang S.
 - **Löschen** ist endgültig und will den Namen des Bots eingetippt haben. Spieler, die mit ihm Kontakt hatten, bekommen eine Systemnachricht.
 - Wer das Passwort hat, kann im Namen der Bots allen schreiben und Gold verschenken – also gut hüten. Wie beim Adminpanel lässt sich der Zugang per `/etc/posteulen/local/bots-*.caddy` zusätzlich auf IP-Bereiche beschränken.
 
-### 3b. Das Tor-Netz (seit 0.9)
+### 3b. Das Tor-Netz
 
 PostEulen ist parallel zur Domain als **Onion-Dienst** erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Eingerichtet wird das automatisch bei jeder Installation und jedem Update, auch nachträglich auf älteren Installationen:
 
 - **Tor** kommt als Paket aus Debian und läuft als eigene Instanz `tor@posteulen` (Konfiguration `/etc/tor/instances/posteulen/torrc`, wird bei jedem Update neu geschrieben). Hat PostEulen Tor selbst installiert, schaltet es den sonst mitlaufenden Tor-Client (`tor@default`) ab.
 - **Die Onion-Adresse ändert sich nie.** Ihre Schlüssel liegen maßgeblich in `/etc/posteulen/onion` und gehören zu jeder Sicherung (`posteulen-onion-…tar.age`). Erneute Installation, Updates und Rückfälle lassen sie unangetastet; ein neuer Server bekommt mit den zurückgelegten Schlüsseln dieselbe Adresse ([Abschnitt 5](#5-sicherungen-backups-und-wiederherstellung)).
 - **Kein HTTPS über Tor – mit Absicht:** Tor verschlüsselt und authentifiziert die Verbindung selbst. Die Onion-Seite spricht deshalb `http://…onion` mit einem Caddy-Listener, der nur auf `127.0.0.1:3005` lauscht; dessen API-Anfragen gehen an einen eigenen, ebenfalls nur lokalen Eingang des Backends (`127.0.0.1:3004`). Es muss kein Port geöffnet werden.
-- **Strenge Limits:** Über Tor sieht der Server keine einzelnen Besucher. Alle Tor-Nutzer zählen deshalb zusammen wie eine einzige IP-Adresse (z. B. höchstens 5 Registrierungen pro Stunde für alle zusammen). Dazu kommen die Schutzmechanismen von Tor selbst (Rechenaufgabe bei Andrang, Begrenzung je Verbindung).
+- **Limits ohne Aussperren:** Über Tor sieht der Server keine einzelnen Besucher. Damit trotzdem niemand alle anderen aussperren kann, verlangt jede Anmeldung über Tor die kleine Rechenaufgabe (das Gerät löst sie von selbst) statt einer gemeinsamen Wartezeit; teure Aktionen angemeldeter Konten zählen je Konto. Nur bei der Registrierung zählen alle Tor-Nutzer zusammen wie eine einzige IP-Adresse (höchstens 5 neue Konten pro Stunde für alle zusammen). Der Schutz vor Passwort-Raten (Wartezeit je Name) ist derselbe wie im Clearnet. Dazu kommen die Schutzmechanismen von Tor selbst (Rechenaufgabe bei Andrang, Begrenzung je Verbindung).
 - **Eine Sitzung je Konto** gilt für die ganze Instanz: Wer sich über Tor anmeldet, ist im Clearnet abgemeldet und umgekehrt.
 - Auf der Startseite erscheint der Link **„Tor-Netz“**, sobald alles läuft. Die normale Seite sendet dem Tor Browser den Hinweis `Onion-Location`, damit er die Onion-Adresse von selbst anbietet.
 - **Abschalten:** Im Adminpanel unter „Tor-Netz (Onion-Dienst)“. Der Schalter stoppt Tor auf dem Server innerhalb weniger Sekunden (auch nach einem Neustart bleibt es aus), entfernt den Link und den Hinweis; die normale Seite läuft weiter. Einschalten stellt alles mit derselben Adresse wieder her.
@@ -237,11 +237,11 @@ Bots-Kontrollzentrum: anmelden, einen Bot anlegen, Wohnort und Eule einstellen, 
 
   Auch dort höchstens 7 Tage aufbewahren (`rsync --delete` erledigt das).
 - Geheimnis-Datei und privaten Backup-Schlüssel einmalig separat und sicher aufbewahren.
-- **Seit 0.9** legt jede Sicherung zusätzlich `posteulen-onion-…tar.age` ab: die Schlüssel der Onion-Adresse, mit demselben Backup-Schlüssel verschlüsselt. Damit behält ein wiederhergestellter Server seine Onion-Adresse.
+- Jede Sicherung legt zusätzlich `posteulen-onion-…tar.age` ab: die Schlüssel der Onion-Adresse, mit demselben Backup-Schlüssel verschlüsselt. Damit behält ein wiederhergestellter Server seine Onion-Adresse.
 
 **Wiederherstellung A – auf demselben Server** (z. B. nach einem Bedienfehler): weiter mit Schritt 2 unten. Die Geheimnis-Datei ist ja noch da.
 
-**Wiederherstellung B – nach einem Totalausfall auf einem neuen Server:** Gebraucht werden die drei Dinge, die außerhalb des Servers gesichert sein sollten: `posteulen-secrets.json`, `posteulen-backup-schluessel.txt` und eine Sicherung (`posteulen-…-taeglich.sqlite.age`, seit 0.9 dazu die gleichzeitige `posteulen-onion-…-taeglich.tar.age`). Alles per scp auf den neuen Server kopieren, z. B. nach `/root`.
+**Wiederherstellung B – nach einem Totalausfall auf einem neuen Server:** Gebraucht werden die drei Dinge, die außerhalb des Servers gesichert sein sollten: `posteulen-secrets.json`, `posteulen-backup-schluessel.txt` und eine Sicherung (`posteulen-…-taeglich.sqlite.age`, dazu die gleichzeitige `posteulen-onion-…-taeglich.tar.age`). Alles per scp auf den neuen Server kopieren, z. B. nach `/root`.
 
 1. **Vor** der Installation die Geheimnis-Datei zurücklegen. Das Skript übernimmt sie dann (es überschreibt sie nie) und setzt die richtigen Rechte:
 
@@ -250,7 +250,7 @@ Bots-Kontrollzentrum: anmelden, einen Bot anlegen, Wohnort und Eule einstellen, 
    sudo install -m 0600 posteulen-secrets.json /etc/posteulen/secrets.json
    ```
 
-   Seit 0.9 ebenso die Onion-Schlüssel, damit der neue Server dieselbe Onion-Adresse bekommt:
+   Ebenso die Onion-Schlüssel, damit der neue Server dieselbe Onion-Adresse bekommt:
 
    ```bash
    sudo age --decrypt --identity posteulen-backup-schluessel.txt posteulen-onion-JJJJMMTTTHHMMSSZ-taeglich.tar.age \
@@ -291,7 +291,7 @@ Alles, was nach der verwendeten Sicherung geschah, ist verloren. Nutzer müssen 
 
 Beide Wege (A und B) werden bei jeder Version automatisch in einer Debian-13-VM durchgespielt (`npm run test:vm`).
 
-**Die Bots (seit 0.8):** Die tägliche Sicherung legt zusätzlich alle Bots als ZIP-Datei in `/var/backups/posteulen/` ab (`posteulen-bots-…-taeglich.zip`, unverschlüsselt, nur für root lesbar, 7 Tage). Sie enthält nur Einstellungen, Events und Bilder der Bots, keine Briefe von Spielern. Nach einer Wiederherstellung aus der Datenbank-Sicherung sind die Bots ohnehin wieder da. Sollen sie auf einen anderen Server: die Datei im Kontrollzentrum unter „Export und Import“ hochladen oder auf dem Server
+**Die Bots:** Die tägliche Sicherung legt zusätzlich alle Bots als ZIP-Datei in `/var/backups/posteulen/` ab (`posteulen-bots-…-taeglich.zip`, unverschlüsselt, nur für root lesbar, 7 Tage). Sie enthält nur Einstellungen, Events und Bilder der Bots, keine Briefe von Spielern. Nach einer Wiederherstellung aus der Datenbank-Sicherung sind die Bots ohnehin wieder da. Sollen sie auf einen anderen Server: die Datei im Kontrollzentrum unter „Export und Import“ hochladen oder auf dem Server
 
 ```bash
 sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip
@@ -305,7 +305,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v0.3.0      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.0.0      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.
@@ -314,7 +314,7 @@ Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal 
 
 Außerdem bekommt jedes Konto alle fünf Wochen nach der Registrierung eine freundliche Bitte um eine freiwillige Spende an das Projekt ([ko-fi.com/posteulen](https://ko-fi.com/posteulen)), drei Texte reihum. Das gehört zum Projekt und ist auf jeder Instanz gleich.
 
-**Signaturprüfung:** Jede Version ist ein vom Projektverantwortlichen signiertes Git-Tag. Seit Version 0.6.1 prüfen `install.sh` und `posteulen-update` diese Signatur **immer** gegen die Schlüssel in `deploy/allowed_signers` (beim Update die Datei der installierten Version) und auch, dass der im Tag eingetragene Name stimmt. Ist die Signatur ungültig oder fehlt sie, bricht das Skript ab, bevor irgendetwas gebaut wird. Der Fingerabdruck des Schlüssels für die offiziellen Versionen lautet:
+**Signaturprüfung:** Jede Version ist ein vom Projektverantwortlichen signiertes Git-Tag. `install.sh` und `posteulen-update` prüfen diese Signatur **immer** gegen die Schlüssel in `deploy/allowed_signers` (beim Update die Datei der installierten Version) und auch, dass der im Tag eingetragene Name stimmt. Ist die Signatur ungültig oder fehlt sie, bricht das Skript ab, bevor irgendetwas gebaut wird. Der Fingerabdruck des Schlüssels für die offiziellen Versionen lautet:
 
 ```text
 SHA256:DVR9kntFOoln4Oiqhwn13rEa/wpVDo5gvbV4C6uR900
@@ -322,8 +322,7 @@ SHA256:DVR9kntFOoln4Oiqhwn13rEa/wpVDo5gvbV4C6uR900
 
 Nur für eigene, bewusst unsignierte Stände (z. B. ein Fork mit eigenen Tags) lässt sich die Prüfung mit `--no-verify-tags` abschalten; wer selbst signiert, trägt stattdessen den eigenen öffentlichen Schlüssel in `deploy/allowed_signers` ein.
 
-> [!NOTE]
-> Das Update **von 0.6.0 auf 0.6.1** läuft noch mit dem Update-Befehl von 0.6.0, der die Signatur nur auf Wunsch prüft. Deshalb dieses eine Mal: `sudo posteulen-update --verify-tags`. Ab 0.6.1 ist die Prüfung Standard.
+**Kein Rückschritt:** `posteulen-update` spielt keine Version ein, die älter ist als die installierte – auch dann nicht, wenn sie echt signiert ist. Ein altes Tag enthält inzwischen behobene Lücken; wer das Repository manipuliert, könnte es sonst als „neueste Version“ unterschieben. Der Weg zurück ist `--rollback` (siehe unten); nur wer es wirklich will, erzwingt eine ältere Version mit `--allow-downgrade`.
 
 Wenn ein Update schiefgeht: Das Skript kehrt automatisch zur vorherigen Version zurück und spielt die unmittelbar davor gemachte Momentaufnahme der Datenbank ein. Es erklärt, was passiert ist. Den Fehler bitte mit der Ausgabe von `journalctl -u posteulen -n 100` melden.
 
@@ -333,7 +332,7 @@ Nachträglich zurück zur vorigen Version (alles, was seit dem Update entstanden
 sudo posteulen-update --rollback
 ```
 
-Rückfälle lassen die Onion-Adresse unangetastet. Geht es auf eine Version vor 0.9 zurück, ruht Tor nur, bis das nächste Update ihn mit derselben Adresse wieder startet.
+Rückfälle lassen die Onion-Adresse unangetastet. Geht es auf eine Version ohne Onion-Dienst zurück, ruht Tor nur, bis das nächste Update ihn mit derselben Adresse wieder startet.
 
 Für den automatischen Rückfall bleibt vor jedem Update zusätzlich eine unverschlüsselte Momentaufnahme in `/var/lib/posteulen/snapshots` (gleich geschützt wie die Datenbank selbst); auch sie wird nach 7 Tagen gelöscht.
 
@@ -342,7 +341,7 @@ Für den automatischen Rückfall bleibt vor jedem Update zusätzlich eine unvers
 ```bash
 journalctl -u posteulen -n 100    # Backend
 journalctl -u caddy -n 100        # Webserver/HTTPS
-journalctl -u tor@posteulen -n 50 # Tor (Onion-Dienst, seit 0.9)
+journalctl -u tor@posteulen -n 50 # Tor (Onion-Dienst)
 systemctl status posteulen
 ```
 
@@ -356,10 +355,10 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte. Die
 - Benachrichtigungen kommen nicht an: In der App unter Einstellungen eine Test-Benachrichtigung schicken. Die Hilfe der App erklärt iPhone und Android ohne Google-Dienste. Der Server muss Push-Dienste über Port 443 erreichen können.
 - Nutzer sehen „Bitte neu laden“: Nach einem Update lädt die App selbst neu; ältere Tabs bekommen diese Aufforderung statt eines Fehlers.
 - Die App zeigt „Keine Verbindung“: Ist der Dienst gestartet (`systemctl status posteulen`) und Caddy erreichbar (`systemctl status caddy`)?
-- Alte Briefe sind weg: Das ist Absicht. Briefe und Systemnachrichten werden ein Jahr nach der Zustellung gelöscht, auf Wunsch der Nutzer auch früher – seit 0.8.5 einmal pro Woche, montags um 04:00 UTC (ein ausgefallener Lauf wird erst am nächsten Montag nachgeholt). Betroffene bekommen seit 0.7 eine Systemnachricht, wie viele Briefe aus welchen Chats gelöscht wurden.
+- Alte Briefe sind weg: Das ist Absicht. Briefe und Systemnachrichten werden ein Jahr nach der Zustellung gelöscht, auf Wunsch der Nutzer auch früher – einmal pro Woche, montags um 04:00 UTC (ein ausgefallener Lauf wird erst am nächsten Montag nachgeholt). Betroffene bekommen eine Systemnachricht, wie viele Briefe aus welchen Chats gelöscht wurden.
 - Link „Tor-Netz“ fehlt auf der Startseite: Ist Tor im Adminpanel eingeschaltet? Steht im Fehlerprotokoll etwas zu „Tor“? `systemctl status tor@posteulen` zeigt, ob der Dienst läuft; `sudo posteulen-update` (oder ein erneuter Lauf von `install.sh`) richtet ihn neu ein – mit derselben Adresse. Direkt nach der ersten Einrichtung kann es ein paar Minuten dauern, bis die Adresse im Tor-Netz erreichbar ist.
-- Tor-Nutzer bekommen „Die Eulen kommen nicht hinterher“: Alle Tor-Nutzer teilen sich die Limits einer IP-Adresse – das ist Absicht und gibt sich nach kurzer Zeit.
-- „Fontconfig error: Cannot load default config file“ beim Build: harmlos (die Bildbibliothek sucht beim Umrechnen des Logos eine Schrift-Konfiguration, die ein frisches Debian nicht hat). Seit 0.7 bringt PostEulen für den Build eine eigene, minimale Konfiguration mit, und die Meldung erscheint nicht mehr.
+- Tor-Nutzer bekommen „Die Eulen kommen nicht hinterher“: Für Registrierung und Anfragen ohne Anmeldung teilen sich alle Tor-Nutzer ein Budget – das ist Absicht und gibt sich nach kurzer Zeit.
+- „Fontconfig error: Cannot load default config file“ beim Build: harmlos (die Bildbibliothek sucht beim Umrechnen des Logos eine Schrift-Konfiguration, die ein frisches Debian nicht hat). Posteulen bringt für den Build eine eigene, minimale Konfiguration mit, und die Meldung erscheint nicht mehr.
 
 ### 8. Optional
 
@@ -372,7 +371,7 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte. Die
 
   danach: `sudo systemctl reload caddy`
 - Eigener ntfy-Server als UnifiedPush-Server: Wer Android ohne Google-Dienste nutzt und keinen fremden Push-Server möchte, kann ntfy selbst betreiben (<https://docs.ntfy.sh/install/>) und in der ntfy-App auf dem Handy als Server eintragen. PostEulen braucht dafür keine Einstellung: Es sendet an jede Push-Adresse, die der Browser meldet (nur HTTPS, keine privaten Adressen).
-- Ausgehende Verbindungen: Der Server muss Push-Dienste per HTTPS (Port 443) erreichen können (Mozilla, Google, Apple, UnifiedPush-Server). Seit 0.9 baut der Tor-Dienst außerdem Verbindungen ins Tor-Netz auf (eingehend braucht Tor keinen offenen Port).
+- Ausgehende Verbindungen: Der Server muss Push-Dienste per HTTPS (Port 443) erreichen können (Mozilla, Google, Apple, UnifiedPush-Server). Der Tor-Dienst baut außerdem Verbindungen ins Tor-Netz auf (eingehend braucht Tor keinen offenen Port).
 
 ### 9. Datenschutzerklärung und Impressum
 
