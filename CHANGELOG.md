@@ -14,6 +14,7 @@ Wartungsversion mit Schwerpunkt Sicherheit: keine neuen Funktionen (SPEC Anhang 
 - **Fehlerprotokoll:** Jedes Konto konnte mit erfundenen Meldungen „Brief nicht lesbar“ Einträge im Fehlerprotokoll erzeugen. Protokolliert wird nur noch, was einen echten ungelesenen Brief betrifft.
 - **Tor-Zugang:** Eine einzelne Person konnte alle Tor-Nutzer vom Anmelden und Schreiben aussperren. Jetzt verlangt jeder Login über Tor das Captcha (statt einer gemeinsamen Wartezeit), Anmelde-Anfragen haben ein eigenes Budget, und teure Aktionen angemeldeter Konten zählen je Konto. Die Registrierung bleibt bei 5 je Stunde für alle Tor-Nutzer zusammen.
 - **Update-Skript:** `posteulen-update` spielte auch eine ältere, echt signierte Version ein. Jetzt nur noch mit `--allow-downgrade`; der Weg zurück bleibt `--rollback`.
+- **Update und Tor-Helfer:** Lief gerade der Tor-Helfer (nach dem Umschalten im Adminpanel oder direkt nach der Installation), brach `posteulen-update` mit „Es läuft bereits ein Update“ ab. Jetzt wartet es bis zu 10 Minuten auf die Sperre.
 - **Sicherung und Rückfall:** Die Skripte arbeiteten als root im Datenverzeichnis des Dienstes; ein gekaperter Dienst hätte sich darüber fremde Verzeichnisse übereignen lassen können. Jetzt arbeiten sie dort als Dienstbenutzer.
 
 **Außerdem:**

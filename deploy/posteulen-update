@@ -39,7 +39,12 @@ done
 export PE_ASSUME_YES
 
 exec 9>/run/posteulen-update.lock
-flock -n 9 || die "Es läuft bereits ein Update." "Warten, bis es fertig ist."
+# v1.0: Hält der Tor-Helfer die Sperre gerade (er wendet den Schalter aus dem Adminpanel an und
+# prüft danach die Onion-Adresse, das dauert höchstens einige Minuten), wird kurz gewartet.
+if ! flock -n 9; then
+  info "Ein anderer Lauf (Update oder Tor-Helfer) ist noch nicht fertig – warte bis zu 10 Minuten …"
+  flock -w 600 9 || die "Es läuft bereits ein Update." "Warten, bis es fertig ist."
+fi
 
 current_release=$(readlink -f "$PE_CURRENT")
 current_version=$(release_version "$current_release")

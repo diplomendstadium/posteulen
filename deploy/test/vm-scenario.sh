@@ -144,6 +144,9 @@ if [[ -n $previous ]]; then
   # allowed_signers (Schlüssel des Auftraggebers). Die Test-Tags trägt der Testschlüssel: Ihm
   # vertraut die Vorversion hier zusätzlich – das steht für die echte Signatur des Auftraggebers.
   git -C /root/posteulen show "$v1:deploy/allowed_signers" >>/opt/posteulen/current/deploy/allowed_signers
+  # Vorversionen brechen ab, solange der Tor-Helfer (Pfad-Unit nach der Installation) die
+  # Update-Sperre hält – darauf warten (seit 1.0 wartet posteulen-update selbst).
+  flock -w 900 /run/posteulen-update.lock true || true
   check "posteulen-update $v1 (von $previous)" posteulen-update "$v1" --yes
   check "Version $v1 antwortet" test "$(api_version)" = "${v1#v}"
   check "Daten der vorigen Stufe erhalten" has_previous_marker
