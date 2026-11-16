@@ -31,3 +31,18 @@ export const TOR_CLIENT_KEY = 'tor';
 export function clientKey(request: { readonly ip: string; readonly viaTor?: boolean }): string {
   return request.viaTor === true ? TOR_CLIENT_KEY : ipKey(request.ip);
 }
+
+/**
+ * Key for the limit of expensive actions of a signed-in account (SPEC 5.10). In the clearnet the
+ * address counts as everywhere else. Over Tor every visitor shares one key, so a single person
+ * could use up the budget of everybody – there the account counts instead (v1.0).
+ */
+export function accountClientKey(
+  request: { readonly ip: string; readonly viaTor?: boolean },
+  userId: string,
+): string {
+  return request.viaTor === true ? `${TOR_CLIENT_KEY}:${userId}` : ipKey(request.ip);
+}
+
+/** Key of the shared budget for sign-in requests of all Tor visitors (v1.0, SPEC 5.10). */
+export const TOR_LOGIN_KEY = 'tor-login';

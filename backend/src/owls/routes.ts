@@ -53,7 +53,7 @@ import {
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { balance, debit } from '../gold/ledger.ts';
 import {
@@ -313,7 +313,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
 
   /** Owls ready for a transport with the server-computed preview (8.4 step 4, 9.4.3). */
   app.post('/api/flights/preview', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(FlightPreview, request.body);
     const me = userOf(request).id;
@@ -405,7 +405,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
 
   /** Give an owl away, optionally with a cover letter (9.2.7). */
   app.post('/api/owls/:id/gift/prepare', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const id = owlIdParam(request.params);
     const body = parse(GiftPrepare, request.body);
@@ -563,7 +563,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
 
   /** The holder gives one chick of a clutch away, optionally with a cover letter (9.9). */
   app.post('/api/clutches/:id/gift/prepare', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const clutchId = owlIdParam(request.params);
     const body = parse(ChickGiftPrepare, request.body);

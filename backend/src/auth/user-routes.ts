@@ -27,7 +27,7 @@ import { addSystemMessage } from '../messages/system.ts';
 import { cancelDeletion } from '../accounts/lifecycle.ts';
 import { createBots } from '../bots/service.ts';
 import { scheduleDonations } from '../messages/periodic.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey, clientKey, TOR_CLIENT_KEY, TOR_LOGIN_KEY } from '../security/ip.ts';
 import { footerOnionLink } from '../ops/tor.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
@@ -50,10 +50,24 @@ function limit(
   request: FastifyRequest,
 ): string {
   const ip = clientKey(request);
-  const wait = ctx.limits[limiter].hit(ip, ctx.now());
+  // v1.0: over Tor all visitors share one key. With the tight budget for expensive requests a
+  // single person could keep everybody from signing in – so sign-in requests over Tor have a
+  // budget of their own, as generous as the general one; every Tor login needs the captcha.
+  const wait =
+    limiter === 'expensive' && request.viaTor
+      ? ctx.limits.general.hit(TOR_LOGIN_KEY, ctx.now())
+      : ctx.limits[limiter].hit(ip, ctx.now());
   if (wait > 0)
     throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
   return ip;
+}
+
+/** Expensive requests of a signed-in account: per address, over Tor per account (v1.0). */
+function accountLimit(ctx: Context, request: FastifyRequest): string {
+  const wait = ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now());
+  if (wait > 0)
+    throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
+  return clientKey(request);
 }
 
 /** Deterministic credential ID for unknown names, in the format of real user IDs (SPEC 5.3). */
@@ -78,6 +92,10 @@ interface Throttle {
 /**
  * Same rules for every name, known or not (SPEC 5.10). The caller counts the attempt right
  * after this returns, without awaiting anything in between.
+ *
+ * v1.0: over Tor all visitors share one address key. Its waiting time would let a single person
+ * lock everybody out, so there the shared key never waits – instead every login over Tor needs
+ * the captcha. The waiting time per name protects against guessing as before.
  */
 async function loginThrottle(
   ctx: Context,
@@ -90,16 +108,22 @@ async function loginThrottle(
     : keys.admin
       ? ctx.guards.admin
       : ctx.guards.names;
+  const tor = keys.ip === TOR_CLIENT_KEY;
   const waiting = (): Throttle | null => {
     const now = ctx.now();
-    const wait = Math.max(nameGuard.waitMs(keys.name, now), ctx.guards.ips.waitMs(keys.ip, now));
+    const wait = Math.max(
+      nameGuard.waitMs(keys.name, now),
+      tor ? 0 : ctx.guards.ips.waitMs(keys.ip, now),
+    );
     return wait > 0 ? { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) } : null;
   };
   const before = waiting();
   if (before) return before;
   const now = ctx.now();
   const needsCaptcha =
-    nameGuard.captchaRequired(keys.name, now) || ctx.guards.ips.captchaRequired(keys.ip, now);
+    tor ||
+    nameGuard.captchaRequired(keys.name, now) ||
+    ctx.guards.ips.captchaRequired(keys.ip, now);
   if (!needsCaptcha) return null;
   if (!(altcha && (await ctx.altcha.verify(altcha, now)))) return { status: 'captcha_required' };
   // v0.6.1: requests sent at the same time may have counted failures while the solution was
@@ -272,7 +296,14 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
-      { kind: 'user', userId: user?.id ?? null, nameKey, ipKey: ip, serverLoginState },
+      {
+        kind: 'user',
+        userId: user?.id ?? null,
+        nameKey,
+        ipKey: ip,
+        serverLoginState,
+        record: user?.opaque_record ?? null,
+      },
       ATTEMPT_TTL,
       now,
     );
@@ -298,8 +329,14 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     ctx.guards.names.reset(attempt.nameKey);
     ctx.guards.ips.succeed(attempt.ipKey);
     const result = ctx.db.transaction(() => {
-      const user = ctx.db.get<{ state: string }>('SELECT state FROM users WHERE id = ?', userId);
+      const user = ctx.db.get<{ state: string; opaque_record: string }>(
+        'SELECT state, opaque_record FROM users WHERE id = ?',
+        userId,
+      );
       if (!user || user.state === 'deleting') throw new HttpError(401, 'login_failed');
+      // v1.0: a login that started before a password change must not finish after it – the old
+      // password would otherwise still open a session for up to a minute.
+      if (user.opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
       // Only one session: a login ends all others, including their push subscription (SPEC 5.3).
       ctx.db.run('DELETE FROM sessions WHERE user_id = ?', userId);
       ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', userId);
@@ -358,7 +395,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     '/api/reauth/start',
     { preHandler: authenticated },
     async (request): Promise<LoginStartResponse> => {
-      const ip = limit(ctx, 'expensive', request);
+      const ip = accountLimit(ctx, request);
       const body = parse(ReauthStart, request.body);
       const userId = userOf(request).id;
       const user = ctx.db.get<{ name_key: string; opaque_record: string }>(
@@ -389,6 +426,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
           ipKey: ip,
           serverLoginState,
           purpose: body.purpose,
+          record: user.opaque_record,
         },
         ATTEMPT_TTL,
         now,
@@ -398,13 +436,18 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   );
 
   app.post('/api/reauth/finish', { preHandler: authenticated }, async (request) => {
-    limit(ctx, 'expensive', request);
+    accountLimit(ctx, request);
     const body = parse(LoginFinish, request.body);
     const now = ctx.now();
     const attempt = ctx.attempts.take(body.attemptId, now);
     if (!attempt || attempt.kind !== 'reauth' || attempt.userId !== userOf(request).id) {
       throw new HttpError(401, 'login_failed');
     }
+    const current = ctx.db.get<{ opaque_record: string }>(
+      'SELECT opaque_record FROM users WHERE id = ?',
+      attempt.userId,
+    );
+    if (current?.opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
     try {
       opaque.server.finishLogin({
         serverLoginState: attempt.serverLoginState,
@@ -427,7 +470,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
 
   // ── Passwortwechsel (SPEC 5.6) ──
   app.post('/api/password/start', { preHandler: authenticated }, async (request) => {
-    limit(ctx, 'expensive', request);
+    accountLimit(ctx, request);
     const body = parse(PasswordStart, request.body);
     const userId = userOf(request).id;
     const token = ctx.reauthTokens.get(body.token, ctx.now());
@@ -445,7 +488,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   app.post('/api/password/finish', { preHandler: authenticated }, async (request, reply) => {
-    limit(ctx, 'expensive', request);
+    accountLimit(ctx, request);
     const body = parse(PasswordFinish, request.body);
     const userId = userOf(request).id;
     const now = ctx.now();

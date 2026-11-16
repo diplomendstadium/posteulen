@@ -6,10 +6,14 @@
 #   sudo posteulen-update --check      nur anzeigen, was installiert und verfügbar ist
 #   sudo posteulen-update --rollback   zurück zur vorigen Version (seitdem entstandene Daten gehen verloren)
 #   --no-verify-tags                   Tag-Signatur NICHT prüfen (nur bewusst, z. B. für eigene Builds)
+#   --allow-downgrade                  eine ältere Version als die installierte einspielen (nur bewusst)
 #   --yes                              keine Rückfragen
 #
 # Seit v0.6.1 prüft jedes Update die Signatur des Tags gegen deploy/allowed_signers der
 # installierten Version (--verify-tags ist damit Standard und wird nur noch angenommen).
+# Seit v1.0 lehnt es ältere Versionen als die installierte ab: Ein altes Tag ist zwar echt
+# signiert, enthält aber inzwischen behobene Lücken – wer das Repository manipuliert, könnte es
+# sonst als „neueste Version“ unterschieben. Der Weg zurück ist --rollback.
 # Dieser Befehl holt die neue Version und übergibt dann an deren eigenes Update-Skript, damit
 # neue Versionen eigene Schritte mitbringen können.
 set -euo pipefail
@@ -17,7 +21,7 @@ set -euo pipefail
 source /opt/posteulen/current/deploy/lib.sh
 require_root
 
-target='' check=0 rollback=0 verify=1
+target='' check=0 rollback=0 verify=1 downgrade=0
 PE_ASSUME_YES=0
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -25,8 +29,9 @@ while [[ $# -gt 0 ]]; do
     --rollback) rollback=1; shift ;;
     --verify-tags) verify=1; shift ;;
     --no-verify-tags) verify=0; shift ;;
+    --allow-downgrade) downgrade=1; shift ;;
     --yes) PE_ASSUME_YES=1; shift ;;
-    -h | --help) sed -n '2,15p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,19p' "$0"; exit 0 ;;
     -*) die "Unbekannter Parameter: $1" "Hilfe mit „posteulen-update --help“." ;;
     *) target=$1; shift ;;
   esac
@@ -67,6 +72,14 @@ if [[ $verify -eq 1 ]]; then
   ok "Signatur von $target geprüft: $signature"
 else
   warn "Die Signatur von $target wird NICHT geprüft (--no-verify-tags). Nur für eigene, vertrauenswürdige Stände verwenden."
+fi
+
+# v1.0: keine ältere Version als die installierte (Schutz vor untergeschobenen alten Tags).
+target_version=$(git -C "$PE_REPO" show "$commit:shared/src/version.ts" 2>/dev/null | sed -n "s/^export const VERSION = '\(.*\)';$/\1/p")
+[[ -n $target_version ]] || die "Die Versionsnummer von „$target“ ließ sich nicht lesen." "Ist „$target“ eine Version von PostEulen?"
+if [[ $downgrade -eq 0 ]] && version_older "$target_version" "$current_version"; then
+  die "Version $target_version ist älter als die installierte Version $current_version." \
+    "Zurück zum Stand vor dem letzten Update geht mit „posteulen-update --rollback“. Nur bewusst: --allow-downgrade."
 fi
 
 release="$PE_RELEASES/$(tr -c 'A-Za-z0-9._-' '_' <<<"$target" | sed 's/_$//')-$commit"

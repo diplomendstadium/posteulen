@@ -5,7 +5,6 @@
  * site in the Caddyfile, and the owl statistics of the admin panel.
  */
 import fs from 'node:fs';
-import type { LightMyRequestResponse } from 'fastify';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { listenTor } from '../src/http/server.ts';
@@ -29,54 +28,13 @@ import {
   register,
   setGold,
   testApp,
+  ONION,
+  TOR_ORIGIN,
+  TorAgent,
   USER_ORIGIN,
   type SentPush,
   type TestApp,
 } from './auth-helpers.ts';
-
-const ONION = `${'abcdefghijklmnopqrstuvwxyz234567'.repeat(2).slice(0, 56)}.onion`;
-const TOR_ORIGIN = `http://${ONION}`;
-
-/**
- * A client of the onion site: real HTTP requests to the Tor listener of the user API (like
- * Caddy's onion site forwards them), with the onion origin and its own cookie.
- */
-class TorAgent extends Agent {
-  readonly port: number;
-
-  constructor(app: TestApp, port: number) {
-    super(app.userApi, TOR_ORIGIN, '127.0.0.1');
-    this.port = port;
-  }
-
-  override async request(
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-    url: string,
-    body?: unknown,
-    extra: Record<string, string> = {},
-  ): Promise<LightMyRequestResponse> {
-    const headers: Record<string, string> = { origin: this.origin, 'x-posteulen': '1', ...extra };
-    if (this.cookie) headers['cookie'] = this.cookie;
-    if (body !== undefined) headers['content-type'] = 'application/json';
-    const response = await fetch(`http://127.0.0.1:${this.port}${url}`, {
-      method,
-      headers,
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    });
-    const text = await response.text();
-    const cookies = response.headers.getSetCookie();
-    for (const value of cookies) {
-      const pair = value.split(';')[0] ?? '';
-      this.cookie = pair.endsWith('=') ? undefined : pair;
-    }
-    return {
-      statusCode: response.status,
-      headers: { ...Object.fromEntries(response.headers), 'set-cookie': cookies },
-      body: text,
-      json: () => JSON.parse(text) as unknown,
-    } as unknown as LightMyRequestResponse;
-  }
-}
 
 let app: TestApp & { pushes: SentPush[] };
 let torPort: number;
@@ -128,7 +86,8 @@ describe('Tor-Listener (SPEC 16.5)', () => {
     // Logging in over Tor: same account, cookie without __Host-/Secure (plain http onion site).
     const tor = new TorAgent(app, torPort);
     await client.ready();
-    const result = await login(tor, 'Anna', password);
+    // v1.0: every login over Tor needs the captcha (SPEC 5.10).
+    const result = await login(tor, 'Anna', password, true);
     expect(result.status).toBe(200);
     expect(result.body['userId']).toBeDefined();
     expect(tor.cookie?.startsWith('pe_session=')).toBe(true);
@@ -151,7 +110,7 @@ describe('Tor-Listener (SPEC 16.5)', () => {
     const first = await tor.json<{ attemptId: string; loginResponse: string }>(
       'POST',
       '/api/login/start',
-      { name: 'Ben', startLoginRequest: start.request },
+      { name: 'Ben', startLoginRequest: start.request, altcha: await tor.altcha() },
     );
     const finish = client.finishLogin(password, start.state, first.body.loginResponse)!;
     const response = await tor.request('POST', '/api/login/finish', {

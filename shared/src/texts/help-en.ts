@@ -23,7 +23,7 @@ import { en } from './en.ts';
 import type { Help, HelpQuestion, HelpSection } from './help.ts';
 
 const gold = (tenths: number): string => `${formatGold(tenths, '.')} gold`;
-const percent = (share: number): string => `${Math.round(share * 100)} %`;
+const percent = (share: number): string => `${Math.round(share * 100)}%`;
 /** One decimal, rounded half up (v0.5). */
 const decimalEn = (value: number): string => (Math.round(value * 10 + 1e-9) / 10).toFixed(1);
 const hh = (hour: number): string => String(hour).padStart(2, '0');
@@ -85,7 +85,7 @@ const SECTIONS: readonly HelpSection[] = [
         'It is the same app: the same account, the same letters, owls and the same gold. You can switch between the normal address and the Tor network as you like.',
         'But you are only ever signed in in one place at a time. Signing in over Tor ends the session at the normal address – and the other way round. Each address remembers your sign-in on its own.',
         'Use the Tor Browser at the security level “Standard”: the stricter levels switch off a technique the login needs. There are no notifications in the Tor Browser.',
-        'Over Tor the server cannot tell visitors apart. That is why all Tor users together count as one single visitor when it comes to protection against overload. If you are told that the owls cannot keep up, wait a moment and try again.',
+        'Over Tor the server cannot tell visitors apart. To protect it against overload, your device therefore works out a small sum every time you sign in over Tor (all by itself), and when new accounts are created all Tor users together count as one single visitor. If you are told that the owls cannot keep up, wait a moment and try again.',
         'The operator can switch off access through the Tor network for a while. The link on the start page then disappears, and you simply use the normal address.',
       ],
     ],
@@ -106,7 +106,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'The app at a glance',
     blocks: [
       'After signing in you see the overview with tiles for all parts: Letters, Owls, Post office, Menagerie, Address book, Map, Settings and Help. You always see your gold at the top right; bookings and the daily gold are in the settings. On the phone you also reach the most important parts with the bar at the bottom.',
-      'In the brown bar at the top you see how much gold you have. When new post is there, “New post!” hops up and down there – tapping it takes you to your letters. On the overview, the version of the app is shown in small print next to the lettering. If notifications are not set up, a note below takes you to the settings. If it bothers you, hide it with “Hide until the next sign-in”.',
+      'When new post is there, “New post!” hops up and down in the brown bar at the top – tapping it takes you to your letters. On the overview, the version of the app is shown in small print next to the lettering. If notifications are not set up, a note below takes you to the settings. If it bothers you, hide it with “Hide until the next sign-in”.',
       'Whatever you have read counts as read straight away – the counters on the overview and in the bar go down without reloading.',
       'Under “News” the overview shows everything that did not reach you by notification – for example because your phone was off.',
       'Below, PostEulen greets you by name – to suit the time of day at your fictional home, that is, by the time that applies there right now (with summer time). If you drop by late in the evening or at night, you are greeted as a night owl. All other times in the app – arrivals, homecomings, rests, deadlines – are shown in this local time at your home, too.',
@@ -267,7 +267,7 @@ const SECTIONS: readonly HelpSection[] = [
       'When you open it, the map zooms in just far enough that your home, your contacts and your owls are visible (the bots do not count for this). For orientation it shows cities: zoomed far out those with more than a million inhabitants, zoomed in closer all with more than 200,000. If there is no room for a city name, or it would cover your places or owls, it stays hidden until you zoom in closer. England, Scotland, Wales and Northern Ireland are drawn as countries of their own.',
       `The dark area is the night. Your device recalculates positions and the night boundary every ${MAP.CLIENT_REFRESH_MINUTES} minutes without asking the server.`,
       'The map is always square and as large as fits into the window. You can zoom with two fingers or the mouse wheel, move it and control it with the keyboard (arrow keys, plus and minus). Zoomed all the way out, the whole world fits into the square. The button below plus and minus (“Reset view”) goes back to the view the map opened with.',
-      'You can only live in Western Europe: when you sign up and when you move, the map therefore stays within the familiar Western Europe section.',
+      'You can only live in Western Europe: when you create your account and when you move, the map therefore shows only the Western Europe section.',
     ],
   },
   {
@@ -284,7 +284,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'menagerie',
     title: 'Menagerie: buying owls',
     blocks: [
-      'At the top you see the Menagerie in its old stone walls – by day or at night, depending on what it is like at your home right now. Below are all owls for sale, sorted by price, the cheapest first. A short description of each tells you where it comes from and what kind of character it is; the values also say what it can carry. Since version 0.10 loan owls are at the owl post office.',
+      'At the top you see the Menagerie in its old stone walls – by day or at night, depending on what it is like at your home right now. Below are all owls for sale, sorted by price, the cheapest first. A short description of each tells you where it comes from and what kind of character it is; the values also say what it can carry. Loan owls are at the owl post office.',
       `Buying: all ${SPECIES.length} species are always available. After buying, you give your owl a name – its randomly rolled sex is already shown then; its energy starts between ${percent(OWL.START_ENERGY_MIN_SHARE)} and ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
     ],
   },
@@ -305,10 +305,10 @@ const SECTIONS: readonly HelpSection[] = [
       'Price in gold, maximum energy, speed, recovery per hour (with motivation 100%) and what the owl can carry:',
       SPECIES.map(
         (species) =>
-          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % per hour – ${en.owls[`cargo_${species.cargo}`]}`,
+          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)}% per hour – ${en.owls[`cargo_${species.cargo}`]}`,
       ),
       `The phoenix is no ordinary owl: it costs ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 150} gold, flies four times as fast as an owl with factor 1, is never lent out, does not help out in the Menagerie and lays no eggs.`,
-      `The Great Horned Owl (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} gold, 1,300 energy, 85 km/h, 20 % recovery per hour) has been an ordinary species since version 0.10: you can buy it, borrow it and lend it to the Menagerie, and it lays eggs.`,
+      `The Great Horned Owl (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} gold, 1,300 energy, 85 km/h, 20% recovery per hour) is an ordinary species: you can buy it, borrow it and lend it to the Menagerie, and it lays eggs.`,
     ],
   },
   {
@@ -336,7 +336,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'verleih',
     title: 'Lending owls to the Menagerie',
     blocks: [
-      `Healthy adult owls that are at home can be lent to the Menagerie for ${OWL.MENAGERIE_DAYS} days (not the phoenix; the Great Horned Owl since version 0.10). Afterwards you get ${percent(GOLD.MENAGERIE_WAGE_SHARE)} of the species price as a wage, and the owl comes back with full energy. Meanwhile it is not available and does not fall ill.`,
+      `Healthy adult owls that are at home can be lent to the Menagerie for ${OWL.MENAGERIE_DAYS} days (only the phoenix cannot). Afterwards you get ${percent(GOLD.MENAGERIE_WAGE_SHARE)} of the species price as a wage, and the owl comes back with full energy. Meanwhile it is not available and does not fall ill.`,
     ],
   },
   {
@@ -372,7 +372,7 @@ const SECTIONS: readonly HelpSection[] = [
       ],
       'You can write one letter a calendar day to every bot (the day changes at midnight UTC); the app shows from when again. That also applies to the Explainer Bear.',
       `How other bots reply: usually they take up your lines in their next planned letter – the letter stays the same but gets a personal part for you. If they have nothing planned for the next four weeks, they reply to you directly after about ${BOTS.REPLY_AFTER_HOURS} hours.`,
-      'Bots have owls of their own or send loan owls. A bot’s owl often waits with you for a while (“Visiting you” under “Owls”). While it is there, you can hand it a reply – then it takes off at once. Whether you can also write to a bot with your own owls or loan owls is up to the bot; the chat tells you. You can give a bot owl water, pet it and feed it like every visiting owl – for a bot owl it costs nothing, not even the owl biscuit and the snack. That gives it energy for the way home and perks it up, up to 120 % motivation at most; you do not see the motivation of bot owls.',
+      'Bots have owls of their own or send loan owls. A bot’s owl often waits with you for a while (“Visiting you” under “Owls”). While it is there, you can hand it a reply – then it takes off at once. Whether you can also write to a bot with your own owls or loan owls is up to the bot; the chat tells you. You can give a bot owl water, pet it and feed it like every visiting owl – for a bot owl it costs nothing, not even the owl biscuit and the snack. That gives it energy for the way home and perks it up, up to 120% motivation at most; you do not see the motivation of bot owls.',
       'The bots write to you in the language of your account. Letters that have already arrived stay in the language they were written in.',
       en.bots.notice,
       'Only the texts go to OpenAI, no names and no identifiers. Every bot remembers a short summary of your letters – only yours; it disappears when you delete the chat.',
@@ -402,7 +402,7 @@ const SECTIONS: readonly HelpSection[] = [
     blocks: [
       [
         'Sign out (at the very top): removes all keys from this device, and PostEulen forgets everything about your account that it remembered in this window.',
-        `Gold and bookings: your gold, when and how much daily gold you get, and the last ${GOLD.TRANSACTIONS_KEPT} bookings (since version 0.10 here instead of under “Finances”).`,
+        `Gold and bookings: your gold, when and how much daily gold you get, and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
         `Change user name: once per calendar year. Your current name is shown right there. Your contacts are told by system message; the old name is locked for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
         `Change home: up to ${ACCOUNT.HOME_CHANGES_PER_MONTH} times per calendar month, however close together. Owls on their way change course.`,
         'Change password: old password once, new one twice. All letters stay readable.',

@@ -313,9 +313,9 @@ export const en: Texts = {
     owl_home_letters:
       '{owl} is back home, already sitting on the window sill – with {count} replies on board.',
     loan_back_one:
-      'The loan owl {owl} has brought you a reply and is now flying back to the Menagerie.',
+      'The loan owl {owl} has brought you a reply and is now flying back to the owl post office.',
     loan_back:
-      'The loan owl {owl} has brought you {count} replies and is now flying back to the Menagerie.',
+      'The loan owl {owl} has brought you {count} replies and is now flying back to the owl post office.',
     gold_arrived: '{name} has sent you {amount} – the owl has landed.',
     owl_gift_received: '{name} has given you the owl {owl}. It lives with you from now on.',
     bot_owl_gift:
@@ -337,7 +337,7 @@ export const en: Texts = {
     clutch_lot: 'The lot has decided: the chick {owl} is flying to {name}.',
     clutch_kept: 'You have no active contacts – all chicks stay with you.',
     chick_adult: '{owl} is grown up.',
-    loan_expired: 'The loan owl {owl} did not take off and has returned to the Menagerie.',
+    loan_expired: 'The loan owl {owl} did not take off and has returned to the owl post office.',
     menagerie_done: '{owl} is back from the Menagerie. Wage: {amount}.',
     deletion_warning:
       'Your account will be deleted in 30 days if you do not sign in. Any use of the app prevents this.',
@@ -438,7 +438,7 @@ export const en: Texts = {
     type_explainer: 'explains PostEulen to you',
     type_central: 'pen friend',
     botOwlOnly:
-      'You can only reply to this bot while its owl is resting with you (under “Owls”: “Hand … a reply”).',
+      'You can only reply to this bot while its owl is resting with you (under “Owls”: “Give it a reply …”).',
     pictureAlt: 'Picture {n} with the letter from {name}',
     pictureOpen: 'Enlarge picture',
     pictureClose: 'Tap, click or press Escape to close the picture.',
@@ -464,7 +464,7 @@ export const en: Texts = {
     energy: 'Energy {energy} of {max}',
     motivation: 'Motivation {value}%',
     speed: 'Speed {speed} km/h',
-    recovery: 'Recovery {recovery} %/h',
+    recovery: 'Recovery {recovery}%/h',
     motivationHint:
       'Motivation (80% to 120%) drops by 10 percentage points every night. Water, petting, an owl biscuit and the favourite snack each raise it by 10 percentage points once a day. It counts for the next leg – at take-off from home and anew whenever the owl flies on from a recipient: energy, speed and recovery on the way change by the share shown. Two different kinds of care on one day also protect against illness.',
     stateHome: 'at home',
@@ -587,13 +587,13 @@ export const en: Texts = {
   },
   menagerie: {
     intro:
-      'The Menagerie: here you can buy owls and lend your own owls. Loan owls are now at the owl post office.',
+      'The Menagerie: here you can buy owls and lend your own owls. Loan owls are at the owl post office.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'The Menagerie in old stone walls, by day',
     pictureNight: 'The Menagerie in old stone walls, at night',
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
-    stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery} %/h',
+    stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery}%/h',
     mythical: 'A phoenix is never lent out, lays no eggs and does not help out in the Menagerie.',
     buy: 'Buy {species}',
     buyConfirm: 'Really buy the {species} for {price}?',
@@ -781,7 +781,7 @@ export const en: Texts = {
     statsOwlsTotal: 'Total',
     torTitle: 'Tor network (onion service)',
     torIntro:
-      'PostEulen can also be reached as an onion service in the Tor network – the same app with the same accounts, letters and game states. The address never changes; its keys are part of every backup. Over Tor all visitors together count as one single IP address (strict rate limits).',
+      'PostEulen can also be reached as an onion service in the Tor network – the same app with the same accounts, letters and game states. The address never changes; its keys are part of every backup. Over Tor the server sees no IP addresses: every sign-in there needs the proof-of-work puzzle, expensive actions count per account, and for registration all Tor visitors together count as one single IP address.',
     torAddress: 'Onion address',
     torNoAddress: 'none yet',
     torState: 'State',

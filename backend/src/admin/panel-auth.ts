@@ -129,7 +129,14 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
-      { kind: panel.attemptKind, userId: null, nameKey: panel.key, ipKey: ip, serverLoginState },
+      {
+        kind: panel.attemptKind,
+        userId: null,
+        nameKey: panel.key,
+        ipKey: ip,
+        serverLoginState,
+        record: admin.opaque_record,
+      },
       TIME.MINUTE,
       now,
     );
@@ -149,6 +156,8 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     } catch {
       throw new HttpError(401, 'login_failed');
     }
+    // v1.0: a login that started before a password change must not finish after it.
+    if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
     guard.reset(panel.key);
     ctx.guards.ips.succeed(attempt.ipKey);
     const token = randomToken();
@@ -215,7 +224,14 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     const attemptId = randomId();
     ctx.attempts.set(
       attemptId,
-      { kind: panel.reauthKind, userId: null, nameKey: panel.key, ipKey: ip, serverLoginState },
+      {
+        kind: panel.reauthKind,
+        userId: null,
+        nameKey: panel.key,
+        ipKey: ip,
+        serverLoginState,
+        record: admin.opaque_record,
+      },
       TIME.MINUTE,
       now,
     );
@@ -235,6 +251,8 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     } catch {
       throw new HttpError(401, 'login_failed');
     }
+    // v1.0: a login that started before a password change must not finish after it.
+    if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
     guard.reset(panel.key);
     const token = randomId();
     ctx.reauthTokens.set(

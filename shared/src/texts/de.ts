@@ -323,9 +323,9 @@ export const de = {
     owl_home_letters:
       '{owl} ist wieder zu Hause, sitzt schon auf dem Fensterbrett und hat {count} Antwortbriefe dabei.',
     loan_back_one:
-      'Die Leiheule {owl} hat dir einen Antwortbrief gebracht und fliegt jetzt zurück in die Menagerie.',
+      'Die Leiheule {owl} hat dir einen Antwortbrief gebracht und fliegt jetzt zurück ins Eulenpostamt.',
     loan_back:
-      'Die Leiheule {owl} hat dir {count} Antwortbriefe gebracht und fliegt jetzt zurück in die Menagerie.',
+      'Die Leiheule {owl} hat dir {count} Antwortbriefe gebracht und fliegt jetzt zurück ins Eulenpostamt.',
     gold_arrived: '{name} hat dir {amount} geschickt – die Eule ist gelandet.',
     owl_gift_received: '{name} hat dir die Eule {owl} geschenkt. Sie wohnt ab jetzt bei dir.',
     /** v0.8: gifts and deletion of control-centre bots. */
@@ -349,7 +349,7 @@ export const de = {
     clutch_lot: 'Das Los hat entschieden: Das Küken {owl} fliegt zu {name}.',
     clutch_kept: 'Du hast keine aktiven Kontakte – alle Küken bleiben bei dir.',
     chick_adult: '{owl} ist erwachsen.',
-    loan_expired: 'Die Leiheule {owl} ist nicht losgeflogen und in die Menagerie zurückgekehrt.',
+    loan_expired: 'Die Leiheule {owl} ist nicht losgeflogen und ins Eulenpostamt zurückgekehrt.',
     menagerie_done: '{owl} ist aus der Menagerie zurück. Lohn: {amount}.',
     deletion_warning:
       'Dein Konto wird in 30 Tagen gelöscht, wenn du dich nicht anmeldest. Jede Nutzung der App verhindert das.',
@@ -610,7 +610,7 @@ export const de = {
   },
   menagerie: {
     intro:
-      'Die Menagerie: Hier kannst du Eulen kaufen und eigene Eulen verleihen. Leiheulen gibt es jetzt im Eulenpostamt.',
+      'Die Menagerie: Hier kannst du Eulen kaufen und eigene Eulen verleihen. Leiheulen gibt es im Eulenpostamt.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'Die Menagerie in einem alten Gemäuer, bei Tag',
     pictureNight: 'Die Menagerie in einem alten Gemäuer, bei Nacht',
@@ -809,7 +809,7 @@ export const de = {
     statsOwlsTotal: 'Zusammen',
     torTitle: 'Tor-Netz (Onion-Dienst)',
     torIntro:
-      'PostEulen ist parallel als Onion-Dienst im Tor-Netz erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Die Adresse ändert sich nie; ihre Schlüssel sind Teil jeder Sicherung. Über Tor zählen alle Besucher zusammen wie eine einzige IP-Adresse (strenge Rate-Limits).',
+      'PostEulen ist parallel als Onion-Dienst im Tor-Netz erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Die Adresse ändert sich nie; ihre Schlüssel sind Teil jeder Sicherung. Über Tor sieht der Server keine IP-Adressen: Jede Anmeldung braucht dort die Rechenaufgabe, teure Aktionen zählen je Konto, und bei der Registrierung zählen alle Tor-Besucher zusammen wie eine einzige IP-Adresse.',
     torAddress: 'Onion-Adresse',
     torNoAddress: 'noch keine',
     torState: 'Zustand',
@@ -1148,9 +1148,9 @@ export const de = {
       'Diesem Bot kannst du nur mit seiner eigenen Eule antworten, solange sie bei dir rastet.',
     bot_incomplete: 'Der Bot ist noch nicht vollständig: Name, Wohnort und Eule fehlen.',
     home_not_land: 'Dieser Ort liegt im Wasser. Bitte einen Ort an Land wählen.',
-    event_empty: 'Ein Ereignis braucht einen Umzug, einen Brief oder ein Geschenk.',
+    event_empty: 'Ein Event braucht einen Umzug, einen Brief oder ein Geschenk.',
     event_in_past: 'Der Zeitpunkt liegt in der Vergangenheit.',
-    event_started: 'Dieses Ereignis läuft schon und lässt sich nicht mehr ändern.',
+    event_started: 'Dieses Event läuft schon und lässt sich nicht mehr ändern.',
     event_texts: 'Bitte alle vier Fassungen des Briefs ausfüllen (ohne Emojis).',
     media_invalid: 'Das Bild lässt sich nicht lesen. Erlaubt sind JPEG, PNG und WebP.',
     media_too_large: 'Das Bild ist zu groß (höchstens 5 MB).',

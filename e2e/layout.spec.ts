@@ -9,7 +9,14 @@ import { borrowViaUi, registerViaUi, uniqueName } from './account-helpers.ts';
 import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
 // v0.7.1: four widths – smallest phone, usual phone, tablet, desktop.
-const WIDTHS = [320, 390, 768, 1440] as const;
+const DEFAULT_WIDTHS = [320, 390, 768, 1440];
+/** For a wider check before a release: POSTEULEN_LAYOUT_WIDTHS=320,360,414,1024,1920 (v1.0). */
+const WIDTHS: readonly number[] = process.env['POSTEULEN_LAYOUT_WIDTHS']
+  ? process.env['POSTEULEN_LAYOUT_WIDTHS']
+      .split(',')
+      .map(Number)
+      .filter((width) => Number.isInteger(width) && width >= 280 && width <= 3840)
+  : DEFAULT_WIDTHS;
 
 const PUBLIC_PAGES = ['/', '/konto-erstellen', '/hilfe', '/datenschutz', '/impressum'] as const;
 const APP_PAGES = [

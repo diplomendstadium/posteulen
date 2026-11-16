@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.0.0',
+    title: 'Die große Turmprüfung: Version 1.0.0',
+    paragraphs: [
+      'Eins-Punkt-Null! Zur Feier hat der Turmwächter jedes Schloss, jedes Siegel und jede Fensterluke im Eulenturm geprüft. Neue Kunststücke gibt es diesmal keine – dafür sitzt alles fester:',
+      '• Ob und wann du dir die Ankunft eines Briefs angesehen hast, bleibt jetzt in jedem Fall dein Geheimnis.',
+      '• Wer sein Passwort ändert, verriegelt den Turm sofort: Eine Anmeldung, die gerade noch mit dem alten Passwort unterwegs war, kommt nicht mehr hinein.',
+      '• Im Tor-Netz kann niemand mehr allen anderen die Tür zuhalten. Dafür löst dein Gerät dort bei jeder Anmeldung von selbst ein kleines Rechenrätsel.',
+      '• Auch die Werkzeuge des Turmwächters haben neue Riegel bekommen.',
+      'Außerdem haben wir Hilfe und Texte gründlich entstaubt. Für dich ändert sich sonst nichts – deine Eulen fliegen wie gewohnt.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '0.10.1',
     title: 'Frisch gefegt im Postamt: Version 0.10.1',
     paragraphs: [
@@ -340,6 +353,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.0.0',
+    title: 'The great tower inspection: version 1.0.0',
+    paragraphs: [
+      'One point zero! To celebrate, the keeper of the tower has checked every lock, every seal and every window hatch in the owl tower. There are no new tricks this time – but everything sits more firmly:',
+      '• Whether and when you looked at the arrival of a letter now stays your secret in every case.',
+      '• Changing your password bolts the tower at once: a sign-in that was still on its way with the old password no longer gets in.',
+      '• In the Tor network nobody can hold the door shut for everybody else any more. In return, your device works out a small sum by itself every time you sign in there.',
+      '• The tools of the keeper of the tower have been given new bolts, too.',
+      'We have also given the help and the texts a thorough dusting. Nothing else changes for you – your owls fly as usual.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '0.10.1',
     title: 'A good sweep at the post office: version 0.10.1',

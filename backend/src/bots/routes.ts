@@ -11,7 +11,7 @@ import { letterTextError } from '@posteulen/shared/text-rules.ts';
 import type { Context } from '../context.ts';
 import { HttpError, emptyBody, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { debit } from '../gold/ledger.ts';
 import { checkRecipients, depart, departWithBotReply, guestRefOwl } from '../flights/transport.ts';
@@ -42,7 +42,7 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
     '/api/bot-letters/send',
     { preHandler: authenticated, bodyLimit: SECURITY.MAX_BOT_LETTER_REQUEST_BYTES },
     async (request) => {
-      if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+      if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');
       const body = parse(BotLetterSend, request.body);
       const me = userOf(request).id;

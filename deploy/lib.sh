@@ -334,6 +334,20 @@ newest_tag() {
   git -C "$1" -c versionsort.suffix=- tag --list 'v*' --sort=-v:refname | head -n1
 }
 
+# v1.0: Ist Version $1 älter als Version $2? Nach Semantic Versioning: Zahlen zählen als Zahlen,
+# und eine Vorabversion (1.0.0-stufe.6) ist älter als die fertige Version (1.0.0).
+version_older() {
+  local a=$1 b=$2 first
+  [[ $a == "$b" ]] && return 1
+  if [[ ${a%%-*} == "${b%%-*}" ]]; then
+    # Gleiche Hauptnummer: Die Version ohne Zusatz ist die neuere; sonst entscheiden die Zusätze.
+    [[ $a != *-* ]] && return 1
+    [[ $b != *-* ]] && return 0
+  fi
+  first=$(printf '%s\n%s\n' "$a" "$b" | sort -V | head -n1)
+  [[ $first == "$a" ]]
+}
+
 # Prüft die Signatur eines Release-Tags (SPEC 16.3, seit v0.6.1 Standard).
 # $1 = Repository, $2 = Tag-Name, $3 = allowed_signers-Datei. Erfolg nur für ein annotiertes,
 # gültig signiertes Tag, dessen eingetragener Name zum Ref passt (sonst ließe sich ein altes,

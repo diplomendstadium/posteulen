@@ -26,8 +26,9 @@ restore() {
   systemctl stop posteulen.service || true
   if [[ -n $snapshot ]]; then
     [[ -f $snapshot ]] || die "Momentaufnahme $snapshot fehlt – automatischer Rückfall unmöglich." "Ein Backup nach README.md (Abschnitt Wiederherstellung) einspielen."
-    rm -f "$PE_DATA/posteulen.sqlite-wal" "$PE_DATA/posteulen.sqlite-shm"
-    install -m 0600 -o "$PE_USER" -g "$PE_USER" "$snapshot" "$PE_DATA/posteulen.sqlite"
+    # v1.0: als Dienstbenutzer – root folgt im Datenverzeichnis des Dienstes keinen Links.
+    runuser -u "$PE_USER" -- rm -f "$PE_DATA/posteulen.sqlite-wal" "$PE_DATA/posteulen.sqlite-shm"
+    runuser -u "$PE_USER" -- install -m 0600 "$snapshot" "$PE_DATA/posteulen.sqlite"
   fi
   switch_symlink "$release" "$PE_CURRENT"
   # v0.9: Eine Version vor 0.9 kennt keinen Onion-Dienst – Tor ruht dann (Schlüssel bleiben

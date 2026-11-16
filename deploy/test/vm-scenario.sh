@@ -251,6 +251,8 @@ has_tor_support && tor_checks "Update"
 echo "── 3a. Nur signierte Tags (v0.6.1)"
 if posteulen-update "$unsigned" --yes; then check "unsigniertes Tag abgelehnt" false; else check "unsigniertes Tag abgelehnt" true; fi
 if posteulen-update "$renamed" --yes; then check "umbenanntes signiertes Tag abgelehnt" false; else check "umbenanntes signiertes Tag abgelehnt" true; fi
+# v1.0: Ein älteres, echt signiertes Tag wird nicht als Update eingespielt (nur mit --allow-downgrade).
+if posteulen-update "$v1" --yes; then check "ältere signierte Version abgelehnt" false; else check "ältere signierte Version abgelehnt" true; fi
 check "Version $v2 läuft unverändert" test "$(api_version)" = "${v2#v}"
 
 echo "── 4. Kaputtes Update $v2 → $v3 wird zurückgerollt"

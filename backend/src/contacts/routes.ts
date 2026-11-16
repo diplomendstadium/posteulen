@@ -15,7 +15,7 @@ import { ContactRequest, VaultPut } from '@posteulen/shared/schemas/letters.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey } from '../security/ip.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
@@ -35,7 +35,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
   const targetHmac = (nameKey: string): Buffer => hmac(requestKey, nameKey);
 
   app.post('/api/contacts/requests', { preHandler: authenticated }, async (request) => {
-    const wait = ctx.limits.expensive.hit(clientKey(request), ctx.now());
+    const wait = ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now());
     if (wait > 0) throw new HttpError(429, 'rate_limited');
     const body = parse(ContactRequest, request.body);
     const me = userOf(request).id;

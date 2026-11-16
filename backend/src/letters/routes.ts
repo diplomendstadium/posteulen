@@ -19,7 +19,7 @@ import { logError } from '../ops/error-log.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { playerBot } from '../bots/registry.ts';
@@ -120,7 +120,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   }
 
   app.post('/api/letters/prepare', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(LetterPrepare, request.body);
     const me = userOf(request).id;
@@ -158,7 +158,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     '/api/letters/send',
     { preHandler: authenticated, bodyLimit: SECURITY.MAX_LETTER_REQUEST_BYTES },
     async (request) => {
-      if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+      if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
         throw new HttpError(429, 'rate_limited');
       const body = parse(LetterSend, request.body);
       const me = userOf(request).id;
@@ -287,7 +287,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           read: mine ? false : row.read === 1,
           // v0.5: the recipient could not verify the letter (instead of "read" for the sender).
           unreadable: row.unreadable === 1,
-          arrivalSeen: row.arrival_seen === 1,
+          // v1.0: only the recipient learns this – for the sender it would be a read receipt.
+          arrivalSeen: mine ? true : row.arrival_seen === 1,
           owl: {
             name: row.owl_name,
             species: row.owl_species,
@@ -322,7 +323,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
    * Read receipts: only yes/no, no time (SPEC 8.4). v0.5: a letter the recipient's device could
    * not verify is reported as unreadable instead – the sender sees that rather than "read".
    */
-  const markRead = (me: string, ids: readonly string[], unreadable: boolean): void => {
+  const markRead = (me: string, ids: readonly string[], unreadable: boolean): number => {
+    let marked = 0;
     const senders = new Set<string>();
     ctx.db.transaction(() => {
       for (const id of ids) {
@@ -341,6 +343,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         if (ctx.db.get('SELECT 1 FROM central_bots WHERE id = ?', letter.sender_id))
           countStat(ctx, letter.sender_id, 'read', ctx.now(), letter.bot_event_id);
         senders.add(letter.sender_id);
+        marked++;
       }
       for (const sender of senders) {
         ctx.db.run(
@@ -357,6 +360,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     // v0.8.2: reading tells the sender nothing (not even through a live hint); only a letter the
     // owl "lost" is shown to the sender.
     if (unreadable) for (const sender of senders) ctx.hub.notify(sender, 'chats');
+    return marked;
   };
 
   app.post('/api/letters/read', { preHandler: authenticated }, async (request) => {
@@ -366,7 +370,9 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.post('/api/letters/unreadable', { preHandler: authenticated }, async (request) => {
     const body = parse(UnreadableReport, request.body);
-    markRead(userOf(request).id, body.ids, true);
+    // v1.0: only a letter that really was unread and addressed to this account leaves a trace –
+    // otherwise any account could fill the admin's error log with made-up reports.
+    if (markRead(userOf(request).id, body.ids, true) === 0) return { ok: true };
     // v0.8.2: players only read that the owl lost the letter / it got wet; the admin gets the
     // technical reason (without names, IDs or contents).
     logError(

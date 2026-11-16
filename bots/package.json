@@ -11,6 +11,6 @@
     "@fontsource/cinzel-decorative": "5.3.0",
     "@fontsource/dancing-script": "5.3.0",
     "@fontsource/playwrite-de-grund": "5.3.0",
-    "svelte": "5.57.2"
+    "svelte": "5.57.3"
   }
 }

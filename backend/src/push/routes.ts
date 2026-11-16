@@ -4,7 +4,7 @@ import { IdList, PushAck, PushSubscriptionInput } from '@posteulen/shared/schema
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey, clientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { checkEndpointUrl, EndpointError } from './transport.ts';
 
@@ -27,7 +27,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
 
   /** One subscription per account, bound to the last device (SPEC 11.3); starts the test. */
   app.put('/api/push/subscription', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     pushLimit(userOf(request).id);
     const body = parse(PushSubscriptionInput, request.body);
@@ -68,7 +68,7 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
   );
 
   app.post('/api/push/test', { preHandler: [authenticated, emptyBody] }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const me = userOf(request).id;
     pushLimit(me);

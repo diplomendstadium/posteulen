@@ -104,7 +104,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Es ist dieselbe App: dasselbe Konto, dieselben Briefe, Eulen und dasselbe Gold. Du kannst nach Belieben zwischen der normalen Adresse und dem Tor-Netz wechseln.',
         'Angemeldet bist du aber immer nur an einer Stelle zugleich. Meldest du dich über Tor an, endet die Sitzung unter der normalen Adresse – und umgekehrt. Jede Adresse merkt sich deine Anmeldung für sich.',
         'Nutze den Tor Browser auf der Sicherheitsstufe „Standard“: Auf den strengeren Stufen fehlt eine Technik, die die Anmeldung braucht. Benachrichtigungen gibt es im Tor Browser nicht.',
-        'Über Tor sieht der Server keine einzelnen Besucher. Deshalb zählen alle Tor-Nutzer zusammen wie ein einziger Besucher, wenn es um Schutz vor Überlastung geht. Kommt die Meldung, dass die Eulen nicht hinterherkommen, warte kurz und versuch es noch einmal.',
+        'Über Tor sieht der Server keine einzelnen Besucher. Zum Schutz vor Überlastung löst dein Gerät deshalb bei jeder Anmeldung über Tor ein kleines Rechenrätsel (ganz von selbst), und beim Erstellen neuer Konten zählen alle Tor-Nutzer zusammen wie ein einziger Besucher. Kommt die Meldung, dass die Eulen nicht hinterherkommen, warte kurz und versuch es noch einmal.',
         'Der Betreiber kann den Zugang über das Tor-Netz vorübergehend abschalten. Dann verschwindet der Link auf der Startseite, und du nutzt einfach die normale Adresse.',
       ],
     ],
@@ -125,7 +125,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Die App im Überblick',
     blocks: [
       'Nach der Anmeldung siehst du die Übersicht mit Kacheln für alle Bereiche: Briefwechsel, Eulen, Postamt, Menagerie, Adressbuch, Karte, Einstellungen und Hilfe. Deinen Goldstand siehst du immer oben rechts; Buchungen und das tägliche Gold stehen in den Einstellungen. Auf dem Handy erreichst du die wichtigsten Bereiche auch über die Leiste am unteren Rand.',
-      'Oben in der braunen Leiste siehst du deinen Goldstand. Ist neue Post da, hüpft dort „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
+      'Ist neue Post da, hüpft oben in der braunen Leiste „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
       'Was du schon gelesen hast, gilt sofort als gelesen – die Zähler in der Übersicht und in der Leiste gehen ohne Neuladen zurück.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
       'Darunter begrüßt dich PostEulen mit deinem Namen – passend zur Tageszeit an deinem fiktiven Wohnort, also nach der Uhrzeit, die dort gerade gilt (mit Sommerzeit). Wer spät abends oder nachts vorbeischaut, wird als Nachteule begrüßt. Auch alle anderen Uhrzeiten in der App – Ankunft, Heimkehr, Rast, Fristen – stehen in dieser Ortszeit deines Wohnorts.',
@@ -286,7 +286,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch dein Wohnort, deine Kontakte und deine Eulen zu sehen sind (die Bots zählen dafür nicht). Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       `Die dunkle Fläche ist die Nacht. Positionen und Nachtgrenze rechnet dein Gerät alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu aus, ohne den Server zu fragen.`,
       'Die Karte ist immer quadratisch und so groß, dass sie ganz ins Fenster passt. Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus). Ganz herausgezoomt passt die ganze Welt ins Quadrat. Der Knopf unter Plus und Minus („Ansicht zurücksetzen“) springt zurück zur Ansicht beim Öffnen der Karte.',
-      'Wohnen kannst du nur in Westeuropa: Bei der Anmeldung und beim Umzug bleibt die Karte deshalb im bisherigen Westeuropa-Ausschnitt.',
+      'Wohnen kannst du nur in Westeuropa: Beim Erstellen deines Kontos und beim Umzug zeigt die Karte deshalb nur den Westeuropa-Ausschnitt.',
     ],
   },
   {
@@ -303,7 +303,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'menagerie',
     title: 'Menagerie: Eulen kaufen',
     blocks: [
-      'Oben siehst du die Menagerie in ihrem alten Gemäuer – bei Tag oder bei Nacht, je nachdem, wie es gerade an deinem Wohnort ist. Darunter stehen alle Eulen zum Kaufen, nach Preis sortiert, die günstigste zuerst. Zu jeder erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist; bei den Werten steht auch, was sie tragen kann. Leiheulen gibt es seit Version 0.10 im Eulenpostamt.',
+      'Oben siehst du die Menagerie in ihrem alten Gemäuer – bei Tag oder bei Nacht, je nachdem, wie es gerade an deinem Wohnort ist. Darunter stehen alle Eulen zum Kaufen, nach Preis sortiert, die günstigste zuerst. Zu jeder erzählt eine kleine Beschreibung, woher sie stammt und was für ein Charakter sie ist; bei den Werten steht auch, was sie tragen kann. Leiheulen gibt es im Eulenpostamt.',
       `Kaufen: Alle ${SPECIES.length} Arten sind immer zu haben. Nach dem Kauf gibst du deiner Eule einen Namen – ihr zufällig gewürfeltes Geschlecht steht dabei schon da. Ihre Energie liegt zu Beginn zwischen ${percent(OWL.START_ENERGY_MIN_SHARE)} und ${percent(OWL.START_ENERGY_MAX_SHARE)}.`,
     ],
   },
@@ -327,7 +327,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
           `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde – ${de.owls[`cargo_${species.cargo}`]}`,
       ),
       `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 150} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
-      `Der Virginiauhu (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} Gold, 1 300 Energie, 85 km/h, 20 % Erholung pro Stunde) ist seit Version 0.10 eine ganz normale Art: Du kannst ihn kaufen, leihen und an die Menagerie verleihen, und er legt Eier.`,
+      `Der Virginiauhu (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} Gold, 1 300 Energie, 85 km/h, 20 % Erholung pro Stunde) ist eine ganz normale Art: Du kannst ihn kaufen, leihen und an die Menagerie verleihen, und er legt Eier.`,
     ],
   },
   {
@@ -355,7 +355,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'verleih',
     title: 'Eulen an die Menagerie verleihen',
     blocks: [
-      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen (den Phönix nicht, den Virginiauhu seit Version 0.10 schon). Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
+      `Gesunde erwachsene Eulen, die zu Hause sind, kannst du für ${OWL.MENAGERIE_DAYS} Tage an die Menagerie verleihen (nur den Phönix nicht). Danach bekommst du ${percent(GOLD.MENAGERIE_WAGE_SHARE)} des Artpreises als Lohn, und die Eule kommt mit voller Energie zurück. Währenddessen ist sie nicht verfügbar und wird nicht krank.`,
     ],
   },
   {
@@ -419,7 +419,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     blocks: [
       [
         'Abmelden (ganz oben): entfernt alle Schlüssel von diesem Gerät, und PostEulen vergisst alles über dein Konto, was es sich in diesem Fenster gemerkt hat.',
-        `Gold und Buchungen: dein Goldstand, wann und wie viel tägliches Gold du bekommst, und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen (seit Version 0.10 hier statt unter „Finanzen“).`,
+        `Gold und Buchungen: dein Goldstand, wann und wie viel tägliches Gold du bekommst, und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
         `Nutzername ändern: einmal pro Kalenderjahr. Dein aktueller Name steht gleich dabei. Deine Kontakte erfahren es per Systemnachricht; der alte Name ist ${ACCOUNT.NAME_LOCK_DAYS} Tage gesperrt.`,
         `Wohnort ändern: bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat, egal wie kurz hintereinander. Eulen unterwegs passen ihren Kurs an.`,
         'Passwort ändern: altes Passwort einmal, neues zweimal. Alle Briefe bleiben lesbar.',

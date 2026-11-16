@@ -28,6 +28,11 @@ export interface LoginAttempt {
   readonly ipKey: string;
   readonly serverLoginState: string;
   readonly purpose?: string;
+  /**
+   * v1.0: the password record the login started with (null: unknown name). The login only
+   * finishes while the account still has exactly this record – not after a password change.
+   */
+  readonly record: string | null;
 }
 
 export interface Reservation {

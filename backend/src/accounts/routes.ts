@@ -19,7 +19,7 @@ import { rerouteForMove } from '../flights/service.ts';
 import { contactIdsOf, lockName, requestDeletion } from './lifecycle.ts';
 import { sendFeedback } from '../admin/feedback.ts';
 import { FeedbackSend } from '@posteulen/shared/schemas/feedback.ts';
-import { clientKey } from '../security/ip.ts';
+import { accountClientKey } from '../security/ip.ts';
 
 export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void {
   const spec = userCookieSpec(ctx.config);
@@ -27,7 +27,7 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
 
   /** v0.7.1: a short, unencrypted message to the admin, once per calendar day (8.10). */
   app.post('/api/feedback', { preHandler: authenticated }, async (request) => {
-    if (ctx.limits.expensive.hit(clientKey(request), ctx.now()) > 0)
+    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     const body = parse(FeedbackSend, request.body);
     const me = userOf(request).id;

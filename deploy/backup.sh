@@ -24,11 +24,14 @@ require_root
 [[ -f $PE_DATA/posteulen.sqlite ]] || die "Keine Datenbank gefunden." "Ist PostEulen installiert?"
 
 install -d -m 0700 -o root -g root "$PE_BACKUPS"
-install -d -m 0700 -o "$PE_USER" -g "$PE_USER" "$PE_DATA/tmp" "$PE_SNAPSHOTS"
+# v1.0: Alles unterhalb des Datenverzeichnisses legt, verschiebt und löscht der Dienstbenutzer
+# selbst. Als root würden install, chown und rm einem Link folgen, den ein gekaperter Dienst dort
+# ablegt – und ihm so fremde Verzeichnisse oder Dateien übereignen.
+runuser -u "$PE_USER" -- install -d -m 0700 "$PE_DATA/tmp" "$PE_SNAPSHOTS"
 
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 tmp=$(runuser -u "$PE_USER" -- mktemp -d "$PE_DATA/tmp/backup.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT
+trap 'runuser -u "$PE_USER" -- rm -rf "$tmp"' EXIT
 plain="$tmp/posteulen.sqlite"
 
 # Als Dienstbenutzer, damit keine root-eigenen WAL-Dateien entstehen.
@@ -41,9 +44,8 @@ mv "$target.part" "$target"
 
 if [[ $reason == update ]]; then
   snapshot="$PE_SNAPSHOTS/vor-update-$stamp.sqlite"
-  mv "$plain" "$snapshot"
-  chown "$PE_USER:$PE_USER" "$snapshot"
-  chmod 0600 "$snapshot"
+  runuser -u "$PE_USER" -- mv -T "$plain" "$snapshot"
+  runuser -u "$PE_USER" -- chmod 0600 "$snapshot"
   install -d -m 0755 "$PE_STATE"
   printf '%s\n' "$snapshot" >"$PE_STATE/last-snapshot"
 fi
@@ -74,6 +76,6 @@ fi
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-*.sqlite.age' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-bots-*.zip' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 find "$PE_BACKUPS" -maxdepth 1 -name 'posteulen-onion-*.tar.age' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
-find "$PE_SNAPSHOTS" -maxdepth 1 -name 'vor-update-*.sqlite' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
+runuser -u "$PE_USER" -- find "$PE_SNAPSHOTS" -maxdepth 1 -name 'vor-update-*.sqlite' -mmin +$((PE_BACKUP_DAYS * 24 * 60)) -delete
 
 ok "Sicherung erstellt: $target"

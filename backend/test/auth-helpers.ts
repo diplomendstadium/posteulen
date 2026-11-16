@@ -145,6 +145,50 @@ export class Agent {
   }
 }
 
+export const ONION = `${'abcdefghijklmnopqrstuvwxyz234567'.repeat(2).slice(0, 56)}.onion`;
+export const TOR_ORIGIN = `http://${ONION}`;
+
+/**
+ * A client of the onion site: real HTTP requests to the Tor listener of the user API (like
+ * Caddy's onion site forwards them), with the onion origin and its own cookie.
+ */
+export class TorAgent extends Agent {
+  readonly port: number;
+
+  constructor(app: TestApp, port: number) {
+    super(app.userApi, TOR_ORIGIN, '127.0.0.1');
+    this.port = port;
+  }
+
+  override async request(
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    url: string,
+    body?: unknown,
+    extra: Record<string, string> = {},
+  ): Promise<LightMyRequestResponse> {
+    const headers: Record<string, string> = { origin: this.origin, 'x-posteulen': '1', ...extra };
+    if (this.cookie) headers['cookie'] = this.cookie;
+    if (body !== undefined) headers['content-type'] = 'application/json';
+    const response = await fetch(`http://127.0.0.1:${this.port}${url}`, {
+      method,
+      headers,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    const text = await response.text();
+    const cookies = response.headers.getSetCookie();
+    for (const value of cookies) {
+      const pair = value.split(';')[0] ?? '';
+      this.cookie = pair.endsWith('=') ? undefined : pair;
+    }
+    return {
+      statusCode: response.status,
+      headers: { ...Object.fromEntries(response.headers), 'set-cookie': cookies },
+      body: text,
+      json: () => JSON.parse(text) as unknown,
+    } as unknown as LightMyRequestResponse;
+  }
+}
+
 export interface Registered {
   readonly userId: string;
   readonly keyPackage: KeyPackage;
