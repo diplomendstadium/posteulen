@@ -14,7 +14,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
     id: 'gespeichert',
     title: 'What is stored',
     blocks: [
-      'PostEulen asks neither for an e-mail address nor for your real name or phone number. Only what the app needs to work is stored:',
+      'PostEulen asks neither for an email address nor for your real name or phone number. Only what the app needs to work is stored:',
       [
         'Account: user name, fictional home (rounded to about 1 km), day of registration, day of your last activity (only the day, no time, no history) and the language of the app you have chosen.',
         'Sign-in: an OPAQUE record. Your password cannot be derived from it; the password itself never leaves your device.',
@@ -28,7 +28,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
         'Notifications: the address of your push subscription and notifications not yet confirmed (without content).',
         `Name locks: for deleted or old names only a non-reversible check value, for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
       ],
-      'The admin only sees totals (for example the number of accounts and letters per day) an error log without personal data and the messages users voluntarily send them (without the sender; what is in them is up to you). The admin has no list of users, no access to letters and cannot change anything in accounts. The database itself, however, necessarily contains the data listed above in readable form.',
+      'The admin only sees totals (for example the number of accounts and letters per day), an error log without personal data and the messages users voluntarily send them (without the sender; what is in them is up to you). The admin has no list of users, no access to letters and cannot change anything in accounts. The database itself, however, necessarily contains the data listed above in readable form.',
     ],
   },
   {
@@ -45,7 +45,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
     title: 'Bots and OpenAI',
     blocks: [
       en.bots.notice,
-      'To reply, the server sends the bot’s role text, a short summary of your letters, the last 6 letters and your new letter to OpenAI (OpenAI, L.L.C., USA or OpenAI Ireland Ltd.). Names, user IDs or other identifiers are not transmitted, and storage at OpenAI is switched off as far as the interface allows (store: false). OpenAI may still keep requests for a limited time to detect abuse. So do not write anything personal to bots.',
+      'To reply, the server sends the bot’s role text, a short summary of your letters, the last 6 letters (for bots from the control centre the last 15) and your new letter to OpenAI (OpenAI, L.L.C., USA or OpenAI Ireland Ltd.). Names, user IDs or other identifiers are not transmitted, and storage at OpenAI is switched off as far as the interface allows (store: false). OpenAI may still keep requests for a limited time to detect abuse. So do not write anything personal to bots.',
       'The summary is stored in plain text with the bot chat. It is deleted when you delete the chat, remove the bot or your account is deleted.',
       'Besides the Explainer Bear there are bots that the operator creates in the bots control centre. Their planned letters go to all accounts that have not removed bots; if you have written to such a bot, the AI adapts its next letter to you. In the control centre the operator only sees totals (letters sent, delivered, read, replies) and, on a map, where bot owls are flying or resting right now – without names, but a resting owl sits at your fictional home. The daily backup of the bots only contains their settings, planned letters and pictures, no letters of players. Sent events of a bot are deleted for good 36 months after sending, together with their deliveries to players.',
       'If you do not want this, simply do not write to the bots or remove them in their chat – or all of them, future ones included, in the settings.',

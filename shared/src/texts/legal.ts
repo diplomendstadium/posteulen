@@ -34,7 +34,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
         'Benachrichtigungen: die Adresse deines Push-Abos und noch nicht bestätigte Benachrichtigungen (ohne Inhalte).',
         `Namenssperren: für gelöschte oder alte Namen nur ein nicht umkehrbarer Prüfwert, ${ACCOUNT.NAME_LOCK_DAYS} Tage lang.`,
       ],
-      'Der Admin sieht nur zusammengezählte Statistiken (zum Beispiel Anzahl der Konten und Briefe pro Tag) ein Fehlerprotokoll ohne personenbezogene Daten und die Nachrichten, die Nutzer ihm freiwillig schicken (ohne Absender; was darin steht, entscheidest du). Er hat keine Nutzerliste, keinen Zugriff auf Briefe und kann nichts an Konten ändern. Die Datenbank selbst enthält die oben genannten Daten aber zwangsläufig lesbar.',
+      'Der Admin sieht nur zusammengezählte Statistiken (zum Beispiel Anzahl der Konten und Briefe pro Tag), ein Fehlerprotokoll ohne personenbezogene Daten und die Nachrichten, die Nutzer ihm freiwillig schicken (ohne Absender; was darin steht, entscheidest du). Er hat keine Nutzerliste, keinen Zugriff auf Briefe und kann nichts an Konten ändern. Die Datenbank selbst enthält die oben genannten Daten aber zwangsläufig lesbar.',
     ],
   },
   {
@@ -51,7 +51,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
     title: 'Bots und OpenAI',
     blocks: [
       de.bots.notice,
-      'Zum Beantworten schickt der Server den Rollentext des Bots, eine kurze Zusammenfassung eures Briefwechsels, die letzten 6 Briefe und deinen neuen Brief an OpenAI (OpenAI, L.L.C., USA bzw. OpenAI Ireland Ltd.). Namen, Nutzer-IDs oder andere Kennungen werden nicht übermittelt, und die Speicherung bei OpenAI ist abgeschaltet, soweit die Schnittstelle das erlaubt (store: false). OpenAI kann Anfragen trotzdem für eine begrenzte Zeit zur Missbrauchserkennung aufbewahren. Schreib Bots deshalb nichts Persönliches.',
+      'Zum Beantworten schickt der Server den Rollentext des Bots, eine kurze Zusammenfassung eures Briefwechsels, die letzten 6 Briefe (bei Bots aus dem Kontrollzentrum die letzten 15) und deinen neuen Brief an OpenAI (OpenAI, L.L.C., USA bzw. OpenAI Ireland Ltd.). Namen, Nutzer-IDs oder andere Kennungen werden nicht übermittelt, und die Speicherung bei OpenAI ist abgeschaltet, soweit die Schnittstelle das erlaubt (store: false). OpenAI kann Anfragen trotzdem für eine begrenzte Zeit zur Missbrauchserkennung aufbewahren. Schreib Bots deshalb nichts Persönliches.',
       'Die Zusammenfassung liegt im Klartext beim Bot-Chat. Sie wird gelöscht, wenn du den Chat löschst, den Bot entfernst oder dein Konto gelöscht wird.',
       'Neben dem Erklärbär gibt es Bots, die der Betreiber im Bots-Kontrollzentrum anlegt. Ihre geplanten Briefe gehen an alle Konten, die Bots nicht entfernt haben; hast du einem solchen Bot geschrieben, passt die KI seinen nächsten Brief an dich an. Im Kontrollzentrum sieht der Betreiber nur zusammengezählte Zahlen (Briefe abgeschickt, zugestellt, gelesen, Antworten) und auf einer Karte, wo Bot-Eulen gerade fliegen oder rasten – ohne Namen, aber eine rastende Eule steht an deinem fiktiven Wohnort. Die tägliche Sicherung der Bots enthält nur ihre Einstellungen, geplanten Briefe und Bilder, keine Briefe von Spielern. Verschickte Events eines Bots werden 36 Monate nach dem Versand samt ihren Zustellungen an die Spieler endgültig gelöscht.',
       'Möchtest du das nicht, schreib den Bots einfach nicht oder entferne sie in ihrem Chat – oder alle, auch künftige, in den Einstellungen.',
