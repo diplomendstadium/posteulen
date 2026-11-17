@@ -23,7 +23,7 @@ export const SPECIES_DESCRIPTIONS: Readonly<Record<string, string>> = {
   phoenix:
     'Wo unser Phönix herkommt, ist ein Mysterium. Eines Tages saß er bei uns auf der Fensterbank und ist anscheinend auf der Suche nach einem menschlichen Seelenverwandten. Bis dahin unterstützt er uns bei unseren Botenflügen. Er ist etwa so groß wie ein Pfau, unglaublich schnell und meistert extrem lange Distanzen. Allerdings macht er sich bislang nur auf den Weg, wenn er überzeugt ist, dass ein Brief sehr wichtig und eilig ist. Am liebsten frisst er Silberblatt, auch wenn er zu Eulenkeksen und Feuersalamandern nicht nein sagt.',
   virginiauhu:
-    'Der Virginiauhu ist in den Wäldern, Prärien und Wüsten Amerikas zu Hause, wird gut 55 cm groß und etwa 1,5 kg schwer und ist an seinen kecken Federohren leicht zu erkennen. Er ist ausdauernd, sehr schnell und erholt sich rasch. Auch schwere Fracht wie Gold trägt er mühelos. Sein Lieblingsessen sind Präriehuhn-Häppchen.',
+    'Der Virginiauhu ist in den Wäldern, Prärien und Wüsten Amerikas zu Hause, wird gut 55 cm groß und etwa 1,5 kg schwer und ist an seinen kecken Federohren leicht zu erkennen. Er ist ausdauernd, sehr schnell und erholt sich rasch. Auch schwere Fracht wie Gold trägt er mühelos. Sein Lieblingsessen sind Speckmäuse.',
   riesenfischuhu:
     'Unser Riesenfischuhu ist etwa 65 cm lang und wiegt um die 3 kg. Er stammt aus den Flusswäldern Ostasiens, wo er vor allem Fische und auch Flusskrebse fängt. Als Posteule ist er stark und ausgesprochen ausdauernd. Lange Strecken über Wasser fliegt er auch mit langen, schweren Briefen, ohne zu ermüden, und mit ruhigen Flügelschlägen, aber bei einem Platschen schaut er sofort nach, ob da nicht auch ein Fisch zu holen ist. Seine Lieblingsleckerei, den Räucherfisch, trägt er erst zur Wasserschale und tunkt ihn einmal ein.',
   riesenkauz:
@@ -36,6 +36,11 @@ export const SPECIES_DESCRIPTIONS: Readonly<Record<string, string>> = {
     'Unsere Sperbereule ist etwa 40 cm lang, wiegt etwa 350 g und jagt in nördlichen Wäldern und auf Lichtungen kleine Säuger und gelegentlich Vögel. Sie ist forsch, ungeduldig und liebt kurze, schnelle Zustellungen. Wer beim Binden der Briefschnur trödelt, bekommt einen aufmunternden Schnabelklopfer auf den Tisch. Beim Klappern einer Dose mit Wachtelstücken ist sie genauso schnell zur Stelle. Aber Vorsicht, bekommt sie nicht genug Streicheleinheiten, drückt sie ihre Unzufriedenheit gerne auch mit einem kleinen Schnabelhieb aus.',
   'suedliche-weissgesichtseule':
     'Die Südliche Weißgesichtseule aus den Savannen und lichten Gehölzen des südlichen Afrikas ist rund 24 cm lang, wiegt um die 200 g und jagt unter anderem große Insekten und kleine Nagetiere. Sie ist wachsam und leicht zu beeindrucken, gibt sich bei Überraschungen aber gern besonders groß. Kurze Etappen mit vertrauten Zwischenstopps liegen ihr. Bei einer besonders großen Knusperheuschrecke plustert sie sich auf, selbst wenn die anderen Eulen längst satt sind. Sie lässt sich gern und ausdauernd streicheln und genießt die Zuwendung von Menschen.',
+  // v1.1: texts of the client, lightly revised.
+  ostkreischeule:
+    'Mit ihren Federohren und dem rostroten Gefieder verschmilzt unsere kleine Ostkreischeule tagsüber im Sonnenlicht nahezu mit der Rinde mancher Bäume. In der Dämmerung ist es mit der Ruhe vorbei: Ihr durchdringendes Trillern klingt manchmal wie ein Wiehern und hat schon so manchen Camper wachgehalten. Wer dem alten Aberglauben traut, wirft ein Hufeisen ins Lagerfeuer oder stülpt die Hosentaschen nach außen, um ein wenig Ruhe zu haben. Eine kleine Schlange dürfte ihr als Leckerli lieber sein. Sie ist zutraulich und anhänglich. Doch Achtung: An ihrem Nest versteht sie keinen Spaß. Wer ihm in der Brutzeit auf etwa dreißig Meter nahe kommt, bekommt es mit beiden Eltern zu tun – selbst auf Menschen und große Tiere stoßen sie herab und gehen dabei jedes Risiko ein. Als Posteule kommt sie mit bis zu fünf Flügelschlägen pro Sekunde rasch auf Tempo, fliegt wendig zwischen den Ästen und kann auch segeln und gleiten. Kurze Briefe für die Nachbarschaft sind bei ihr bestens aufgehoben. Mit einem kleinen Schlangensnack lässt sie sich aber auch zu längeren Touren überreden.',
+  zypernzwergohreule:
+    'Unsere Zypern-Zwergohreule ist gerade einmal 19 Zentimeter groß und wiegt rund 100 Gramm. Mit ihren kleinen Federohren und dem bräunlich-grauen Gefieder ist sie auf einem Ast leicht zu übersehen; meist verraten sie erst ihre leuchtend gelben Augen. Sie eignet sich besonders für kurze Briefe, die nach Einbruch der Dunkelheit zugestellt werden sollen. Fremde faucht sie schon mal an. Wer ihr ein wenig Zeit lässt, dem klettert sie von selbst auf den Ärmel. Ist ihr zweisilbiger Ruf zu hören, wartet sie vermutlich aufs Abendessen. Für einen zusätzlichen Botengang lässt sie sich leicht mit einer Erdnuss gewinnen.',
   sumpfohreule:
     'Unsere Sumpfohreule ist etwa 40 cm lang und wiegt grob 300 g. In Mooren und offenem Grasland jagt sie vor allem kleine Nagetiere. Im Postdienst ist sie abenteuerlustig und ausdauernd. Einen unbekannten Weg über die Wiesen probiert sie gern aus, selbst wenn sie dafür einen Umweg fliegen muss. Nach der Rückkehr freut sie sich besonders über süß-saure Cranberrys.',
   waldkauz:
@@ -65,7 +70,7 @@ export const SPECIES_DESCRIPTIONS_EN: Readonly<Record<string, string>> = {
   phoenix:
     'Where our phoenix comes from is a mystery. One day it was simply sitting on our window sill, apparently looking for a human soulmate. Until it finds one, it helps us with our deliveries. It is about the size of a peacock, incredibly fast and masters extremely long distances. So far, however, it only sets off when it is convinced that a letter is very important and urgent. Its favourite food is silver leaf, though it will not say no to owl biscuits and fire salamanders either.',
   virginiauhu:
-    'The Great Horned Owl is at home in the forests, prairies and deserts of the Americas. It grows to a good 55 cm, weighs about 1.5 kg and is easy to spot by its jaunty ear tufts. It has great stamina, is very fast and recovers quickly. It carries even heavy cargo such as gold with ease. Its favourite food is prairie chicken titbits.',
+    'The Great Horned Owl is at home in the forests, prairies and deserts of the Americas. It grows to a good 55 cm, weighs about 1.5 kg and is easy to spot by its jaunty ear tufts. It has great stamina, is very fast and recovers quickly. It carries even heavy cargo such as gold with ease. Its favourite treat is marshmallow mice.',
   riesenfischuhu:
     'Our Blakiston’s Fish Owl is about 65 cm long and weighs around 3 kg. It comes from the riverside forests of East Asia, where it mainly catches fish and crayfish too. As a post owl it is strong and has remarkable stamina. It flies long distances over water even with long, heavy letters without tiring, with calm wingbeats – but at the sound of a splash it immediately checks whether there might be a fish to catch. It first carries its favourite treat, smoked fish, to the water bowl and dips it in once.',
   riesenkauz:
@@ -78,6 +83,11 @@ export const SPECIES_DESCRIPTIONS_EN: Readonly<Record<string, string>> = {
     'Our Northern Hawk Owl is about 40 cm long, weighs about 350 g and hunts small mammals and occasionally birds in northern forests and clearings. It is brisk, impatient and loves short, quick deliveries. Anyone who dawdles while tying the letter string gets an encouraging peck on the table. When a tin of quail pieces rattles, it is just as quick to turn up. But beware: if it does not get enough cuddles, it likes to show its displeasure with a little peck too.',
   'suedliche-weissgesichtseule':
     'The Southern White-faced Owl from the savannahs and open woodland of southern Africa is around 24 cm long, weighs about 200 g and hunts large insects and small rodents, among other things. It is watchful and easily impressed, but when surprised it likes to make itself look particularly big. Short stages with familiar stopovers suit it. For an especially large crunchy grasshopper it puffs itself up, even when the other owls have long had enough. It enjoys being petted for a long time and loves attention from people.',
+  // v1.1
+  ostkreischeule:
+    'With its ear tufts and rust-red plumage, our little Eastern Screech Owl all but melts into the bark of some trees in the sunlight by day. At dusk the peace is over: its piercing trill sometimes sounds like a whinny and has kept many a camper awake. Those who trust the old superstition throw a horseshoe into the campfire or turn their trouser pockets inside out to get a little quiet. A small snake would probably please it more as a treat. It is trusting and affectionate. But beware: it takes no jokes about its nest. Anyone who comes within about thirty metres of it in the breeding season has both parents to deal with – they swoop down even on people and large animals and take every risk doing so. As a post owl it gets up to speed quickly with up to five wingbeats a second, flies nimbly between the branches and can soar and glide as well. Short letters around the neighbourhood are in the best hands with it. With a little snake snack, though, it can be talked into longer rounds too.',
+  zypernzwergohreule:
+    'Our Cyprus Scops Owl is a mere 19 centimetres tall and weighs about 100 grams. With its small ear tufts and brownish-grey plumage it is easy to overlook on a branch; usually only its bright yellow eyes give it away. It is particularly suited to short letters that are to be delivered after dark. It may hiss at strangers. Give it a little time, and it will climb onto your sleeve of its own accord. When its two-note call can be heard, it is probably waiting for its dinner. For an extra errand it is easily won over with a peanut.',
   sumpfohreule:
     'Our Short-eared Owl is about 40 cm long and weighs roughly 300 g. In moors and open grassland it mainly hunts small rodents. In the postal service it is adventurous and has stamina. It likes to try out an unknown way across the meadows, even if that means a detour. After coming back it is especially pleased with sweet-and-sour cranberries.',
   waldkauz:
@@ -97,7 +107,7 @@ export const SPECIES_SNACKS: Readonly<Record<string, string>> = {
   maskeneule: 'Guavenstückchen',
   milchuhu: 'Feigenstücke',
   phoenix: 'Silberblatt',
-  virginiauhu: 'Präriehuhn-Häppchen',
+  virginiauhu: 'Speckmäuse',
   riesenfischuhu: 'Räucherfisch',
   riesenkauz: 'Wachtelflügel',
   schleiereule: 'Apfelchips',
@@ -106,6 +116,8 @@ export const SPECIES_SNACKS: Readonly<Record<string, string>> = {
   'suedliche-weissgesichtseule': 'Knusperheuschrecken',
   sumpfohreule: 'Cranberrys',
   waldkauz: 'Haselnüsse',
+  ostkreischeule: 'Schlangensnacks',
+  zypernzwergohreule: 'Erdnüsse',
   waldohreule: 'geröstete Grillen',
 };
 
@@ -119,7 +131,7 @@ export const SPECIES_SNACKS_EN: Readonly<Record<string, string>> = {
   maskeneule: 'guava pieces',
   milchuhu: 'pieces of fig',
   phoenix: 'silver leaf',
-  virginiauhu: 'prairie chicken titbits',
+  virginiauhu: 'marshmallow mice',
   riesenfischuhu: 'smoked fish',
   riesenkauz: 'quail wings',
   schleiereule: 'apple crisps',
@@ -128,6 +140,8 @@ export const SPECIES_SNACKS_EN: Readonly<Record<string, string>> = {
   'suedliche-weissgesichtseule': 'crunchy grasshoppers',
   sumpfohreule: 'cranberries',
   waldkauz: 'hazelnuts',
+  ostkreischeule: 'snake snacks',
+  zypernzwergohreule: 'peanuts',
   waldohreule: 'roasted crickets',
 };
 

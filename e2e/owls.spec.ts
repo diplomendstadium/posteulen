@@ -190,6 +190,8 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
   test('Eule verschenken mit Begleitbrief', async ({ browser, page }) => {
     const { anna, other, otherContext } = await pair(browser, page);
     await buyAndName(page, 'Waldohreule', 'Ohrchen');
+    // v1.1: Ben has closed the app; the landing waits for his next visit.
+    await other.goto('about:blank');
     await page.getByRole('button', { name: 'Verschenken' }).click();
     await page.getByLabel('An').selectOption({ index: 1 });
     await page.getByLabel('Begleitbrief mitgeben (kurzes Pergament, kostenlos)').check();
@@ -198,11 +200,16 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'departure');
     await expect(page.getByTestId('owl-card')).toHaveCount(0, { timeout: 10_000 });
 
+    // v1.1: the landing appears as soon as Ben opens the app, not only in the chat.
+    await expect(page.getByTestId('owl-card')).toHaveCount(0);
+    await other.goto('/app');
+    await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'arrival', {
+      timeout: 60_000,
+    });
     await other.goto('/app/briefe');
     await other.getByRole('link', { name: new RegExp(anna.name) }).click({ timeout: 30_000 });
     await expect(other.getByText('Begleitbrief zur Eule Ohrchen')).toBeVisible({ timeout: 30_000 });
     await expect(other.getByText('Pass gut auf Ohrchen auf!')).toBeVisible();
-    await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'arrival');
     await other.goto('/app/eulen');
     await expect(other.getByRole('heading', { name: 'Ohrchen', exact: true })).toBeVisible();
     await otherContext.close();

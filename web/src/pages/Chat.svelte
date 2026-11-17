@@ -1,10 +1,3 @@
-<script module lang="ts">
-  /** v0.8.4: letters whose arrival image was already queued in this visit (see load()). */
-  // Bookkeeping only, never rendered.
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  const arrivalsShown = new Set<string>();
-</script>
-
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { t, fill, speciesName, goldText } from '../lib/i18n.svelte.ts';
@@ -18,7 +11,7 @@
   import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { vault } from '../lib/vault.svelte.ts';
-  import { queueOwlImage, showSceneImage } from '../lib/overlay.svelte.ts';
+  import { showSceneImage } from '../lib/overlay.svelte.ts';
   import { deckleClass } from '../lib/deckle.ts';
   import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
   import { clearReplyWith, clearWriteWith, replyWith, writeWith } from '../lib/reply.svelte.ts';
@@ -26,6 +19,8 @@
   let { peerId }: { peerId: string } = $props();
 
   let letters = $state<ShownLetter[]>([]);
+  /** v1.1: the Christmas parchment pair of this chat (1–4), the same for both sides. */
+  let christmasPaper = $state(1);
   /** v0.8.5: a bot picture shown full screen. */
   let enlarged = $state<{ src: string; alt: string } | null>(null);
   let loading = $state(true);
@@ -55,7 +50,9 @@
 
   async function load(): Promise<void> {
     try {
-      letters = await loadConversation(peerId);
+      const conversation = await loadConversation(peerId);
+      letters = conversation.letters;
+      christmasPaper = conversation.christmasPaper;
       loading = false;
       if (jump !== null && letters.length > 0) {
         const smooth = jump === 'smooth';
@@ -91,28 +88,8 @@
         }
         markChatRead(peerId);
       }
-      // v0.8.4: each arrival image only once – loads overlap when a chat opens (mount, live
-      // update, read receipt), all before the server has confirmed "seen".
-      const unseen = letters.filter(
-        (l) =>
-          l.role === 'recipient' &&
-          l.status === 'delivered' &&
-          !l.arrivalSeen &&
-          !arrivalsShown.has(l.id),
-      );
-      for (const letter of unseen) arrivalsShown.add(letter.id);
-      if (unseen.length > 0) {
-        // v0.8.2: the arrival image of every owl that brought a new letter, one after another in
-        // the order they landed (SPEC 9.2.6); before, only the last one.
-        for (const letter of [...unseen].sort((a, b) => a.arrivesAt - b.arrivesAt)) {
-          queueOwlImage(() => ({
-            species: letter.owl.species,
-            kind: letter.kind === 'cover_chick' ? 'chick' : 'arrival',
-            caption: fill(t.owls.arrives, { name: letter.owl.name }),
-          }));
-        }
-        await api('POST', '/api/letters/arrival-seen', { ids: unseen.map((l) => l.id) });
-      }
+      // v1.1: the arrival images no longer wait for the chat – the app shows them at the first
+      // opportunity (live.svelte.ts, showArrivals).
     } catch {
       // Offline or navigated away: the next update (SSE or return to the app) loads again.
     }
@@ -151,6 +128,16 @@
     observer.observe(sheet);
     update();
     return { destroy: () => observer.disconnect() };
+  }
+
+  /**
+   * v1.1: the parchment of a letter – Christmas parchment of this chat's pair for letters
+   * written in the Christmas season (A own, B the other side's), otherwise as before.
+   */
+  function paperClass(letter: ShownLetter): string {
+    const own = letter.role === 'sender';
+    if (letter.christmas) return `christmas-${christmasPaper}${own ? 'A' : 'B'}`;
+    return own ? 'parchment-own' : 'parchment-other';
   }
 
   function statusText(letter: ShownLetter): string {
@@ -236,7 +223,11 @@
 <ol class="letters" class:print aria-live="polite" bind:this={list}>
   {#each letters as letter (letter.id)}
     <li class="letter" class:mine={letter.role === 'sender'} data-letter-id={letter.id}>
-      <article class={`sheet ${deckleClass(letter.id)}`} use:tilt>
+      <article
+        class={`sheet ${deckleClass(letter.id)} ${paperClass(letter)}`}
+        data-christmas={letter.christmas ? christmasPaper : undefined}
+        use:tilt
+      >
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         <p class="meta">
           <!-- v0.10.1: received letters say when they arrived, never when they were written. -->
@@ -292,6 +283,7 @@
 {#if contact && contact.active && !contact.keyWarning}
   <Compose
     {peerId}
+    {christmasPaper}
     guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
     presetOwl={writeWith.peerId === peerId ? writeWith.owlId : null}
     presetRecipients={writeWith.peerId === peerId ? writeWith.recipients : null}
@@ -315,6 +307,7 @@
     {/if}
     <Compose
       {peerId}
+      {christmasPaper}
       bot
       guestOnly={bot.type === 'central' && !bot.playerOwls}
       guestOwl={replyWith.peerId === peerId ? replyWith.owlId : null}
@@ -408,28 +401,27 @@
     position: relative;
     width: min(100%, 36rem);
     filter: drop-shadow(0 2px 3px rgb(43 29 14 / 0.3));
+    /* v1.1: the Christmas parchment places its continuation by the sheet width (cqw). */
+    container-type: inline-size;
   }
 
   .letter.mine {
     margin-left: auto;
   }
 
+  /* Parchment and ink: global classes in base.css (also used by the writing field, v1.1). */
   .sheet {
     padding: 1.5rem clamp(1rem, 4vw, 2rem) 2.1rem;
-    color: var(--ink-other);
     font-family: var(--font-hand-other);
-    font-size: 1.05rem;
-    line-height: 1.9;
-    background: url('../../assets/parchment-light.webp') center / 450px repeat #f3dcb0;
+    font-size: 1rem;
+    line-height: 2;
     transform: rotate(-0.4deg);
   }
 
   .mine .sheet {
-    color: var(--ink-own);
     font-family: var(--font-hand-own);
     font-size: 1.5rem;
     line-height: 1.4;
-    background: url('../../assets/parchment-dark.webp') center / 450px repeat #d4b47c;
     transform: rotate(0.4deg);
   }
 
@@ -446,6 +438,13 @@
   .mine .meta,
   .mine .status {
     color: var(--ink);
+  }
+
+  /* v1.1: on Christmas parchment the small print, cover note and status take its ink. */
+  .sheet[data-christmas] .meta,
+  .sheet[data-christmas] .status,
+  .sheet[data-christmas] .cover {
+    color: inherit;
   }
 
   .print .sheet,

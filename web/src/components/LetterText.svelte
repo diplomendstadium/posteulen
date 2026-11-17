@@ -41,8 +41,13 @@
     font-size: 1rem;
   }
 
+  /* v1.1: on dark Christmas parchment in the ink of the paper. */
+  .text a {
+    color: var(--letter-link, var(--seal));
+  }
+
   .link-warning {
-    color: var(--seal);
+    color: var(--letter-link, var(--seal));
     font-weight: 700;
   }
 </style>

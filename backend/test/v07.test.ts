@@ -412,14 +412,13 @@ describe('vouchers (v0.7, SPEC 8.10, 13)', () => {
 });
 
 describe('loan owls are locked for two days (v0.7, SPEC 9.6)', () => {
-  it('offers no species of the two days before', () => {
+  it('v1.1: never offers the team of the day before', () => {
     let at = app.clock.now;
     const previous: string[][] = [];
     for (let day = 0; day < 20; day++) {
       // v0.8.5: per account.
       const offer = offerOf(app.ctx, anna.id, utcDay(at));
-      for (const before of previous.slice(-2))
-        for (const s of offer) expect(before).not.toContain(s);
+      if (previous.length > 0) expect(offer).not.toEqual(previous.at(-1));
       previous.push(offer);
       at += TIME.DAY;
     }

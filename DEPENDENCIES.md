@@ -34,7 +34,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `@fontsource/atkinson-hyperlegible-next` | 5.3.0 | OFL-1.1 | Fließtext und alle Namen |
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
 | `@fontsource/dancing-script` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.3, D-112; veröffentlicht 2026-07-19) |
-| `@fontsource/playwrite-de-grund` | 5.3.0 | OFL-1.1 | Handschrift für Briefe des Gegenübers (v0.3, D-112; veröffentlicht 2026-07-19) |
+| `@fontsource/playwrite-de-va` | 5.3.0 | OFL-1.1 | Handschrift für Briefe des Gegenübers (Vereinfachte Ausgangsschrift, D-367; veröffentlicht 2026-07-19) |
 
 ## Entwicklung, Build, Tests
 

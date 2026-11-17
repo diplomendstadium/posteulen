@@ -35,9 +35,10 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
   test('Leiheule: im Angebot leihen, sie wartet 24 Stunden', async ({ page }) => {
     await registerViaUi(page);
     await page.goto('/app/postamt');
-    await expect(page.getByTestId('loan-offer')).toHaveCount(4);
+    // v1.1: a whole team of the post office (five species).
+    await expect(page.getByTestId('loan-offer')).toHaveCount(5);
     const name = await borrowViaUi(page);
-    await expect(page.getByText(/^Heute geliehen: 1 von 4\./)).toBeVisible();
+    await expect(page.getByText(/^Heute geliehen: 1 von 5\./)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Schon geliehen' })).toBeDisabled();
     await page.goto('/app/eulen');
     const card = page.getByTestId('owl-card');
@@ -84,6 +85,8 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
       'src',
       /chick/,
     );
+    // v1.1: Ben has closed the app; the landing waits for his next visit.
+    await other.goto('about:blank');
     await page.getByLabel('Welches Küken?').selectOption({ label: 'Daune' });
     await page.getByLabel('An').selectOption({ label: ben.name });
     await page.getByLabel('Begleitbrief mitgeben (kurzes Pergament, kostenlos)').check();
@@ -92,10 +95,14 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick');
     await expect(page.getByRole('heading', { name: 'Ein Küken verschenken' })).toHaveCount(0);
 
+    // v1.1: the chick's landing appears as soon as Ben opens the app.
+    await other.goto('/app');
+    await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick', {
+      timeout: 60_000,
+    });
     await other.goto('/app/briefe');
     await other.getByRole('link', { name: new RegExp(anna.name) }).click({ timeout: 30_000 });
     await expect(other.getByText('Begleitbrief zum Küken Daune')).toBeVisible({ timeout: 30_000 });
-    await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick');
     await other.goto('/app/eulen');
     await expect(other.getByRole('heading', { name: 'Daune', exact: true })).toBeVisible();
     await expect(other.getByText(/Küken – erwachsen ab/)).toBeVisible();

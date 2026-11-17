@@ -3,7 +3,11 @@
   import Link from '../components/Link.svelte';
   import { dateTime } from '../lib/format.ts';
   import { live } from '../lib/live.svelte.ts';
+  import PlaceImage from '../components/PlaceImage.svelte';
 </script>
+
+<!-- v1.1: a picture on top, as in the post office and the Menagerie. -->
+<PlaceImage place="letters" />
 
 <ul class="chats">
   <li>

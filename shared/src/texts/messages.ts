@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.1.0',
+    title: 'Der Eulenturm wird weihnachtlich: Version 1.1.0',
+    paragraphs: [
+      'Draußen wird es früher dunkel, drinnen duftet es nach Bratäpfeln – und im Eulenturm wird geschmückt:',
+      '• Briefe, die zwischen dem ersten Advent und dem zweiten Weihnachtsfeiertag geschrieben werden, liegen auf Weihnachtspergament – und behalten es für immer. Welches der vier Briefpapiere eure Briefe bekommen, haben die Eulen für jeden Briefwechsel fest ausgelost.',
+      '• Im Advent tragen Postamt, Menagerie, Gruppenbild und deine Eulen Weihnachtsschmuck. Und wenn es bei dir dunkel ist, siehst du die Eulen hellwach bei Nacht – Eulen schlafen nachts ja nicht.',
+      '• Landet eine Eule mit Post, siehst du sie sofort beim Öffnen der App – nicht erst im Briefwechsel.',
+      '• Im Postamt hat jeden Tag eines von vier Eulenteams Dienst, und du kannst alle seine Eulen leihen. Neu im Turm: die Ostkreischeule und die Zypern-Zwergohreule.',
+      '• Deine Eulen zeigen sich jetzt in voller Größe, und unterwegs verraten sie dir ihren nächsten Halt mit Uhrzeit.',
+      '• Eulen können jetzt auch 6 oder 12 Stunden rasten. Dein Schreibfeld sieht aus wie dein Brief, und Briefe an dich stehen in einer neuen Handschrift.',
+      '• Der Virginiauhu kostet jetzt 68 Gold – und hat Speckmäuse als neue Leibspeise entdeckt.',
+      'Eine gemütliche Adventszeit und gute Flüge!',
+    ],
+  },
+  {
     version: '1.0.0',
     title: 'Die große Turmprüfung: Version 1.0.0',
     paragraphs: [
@@ -353,6 +368,21 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.1.0',
+    title: 'Christmas comes to the owl tower: version 1.1.0',
+    paragraphs: [
+      'Outside it gets dark earlier, inside it smells of baked apples – and the owl tower is being decorated:',
+      '• Letters written between the first Sunday of Advent and Boxing Day lie on Christmas parchment – and keep it for good. Which of the four papers your letters get, the owls have drawn once for every correspondence.',
+      '• In Advent the post office, the Menagerie, the group picture and your owls wear Christmas decorations. And when it is dark where you live, you see the owls wide awake at night – owls do not sleep at night, after all.',
+      '• When an owl lands with post, you see it as soon as you open the app – not only in your letters.',
+      '• At the post office one of four owl teams is on duty every day, and you can borrow all of its owls. New in the tower: the Eastern Screech Owl and the Cyprus Scops Owl.',
+      '• Your owls now show themselves in full size, and on the way they tell you their next stop with the time.',
+      '• Owls can now also rest for 6 or 12 hours. Your writing field looks like your letter, and letters to you come in a new handwriting.',
+      '• The Great Horned Owl now costs 68 gold – and has discovered marshmallow mice as its new favourite treat.',
+      'A cosy Advent and happy flying!',
+    ],
+  },
   {
     version: '1.0.0',
     title: 'The great tower inspection: version 1.0.0',

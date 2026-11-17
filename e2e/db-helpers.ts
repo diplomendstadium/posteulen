@@ -129,3 +129,15 @@ export function setOwlEnergy(
     }
   }, instance);
 }
+
+/** v1.1: marks every letter an account has written as written in the Christmas season. */
+export function markChristmas(name: string): void {
+  withDb((db) => {
+    const result = db
+      .prepare(
+        'UPDATE letters SET christmas = 1 WHERE sender_id = (SELECT id FROM users WHERE name_display = ?)',
+      )
+      .run(name);
+    if (result.changes === 0) throw new Error(`no letters of ${name}`);
+  });
+}

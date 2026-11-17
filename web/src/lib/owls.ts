@@ -51,6 +51,8 @@ export interface Owl {
     readonly sleeping: boolean;
     /** v0.7: resting at a recipient right now (name null: no contact) until `until`. */
     readonly resting?: { readonly name: string | null; readonly until: number } | null;
+    /** v1.1: the next recipient and the expected arrival there (as on the map). */
+    readonly nextStop?: { readonly name: string | null; readonly arrivesAt: number } | null;
   } | null;
 }
 

@@ -10,6 +10,8 @@ export interface ApiLetter {
   readonly recipientId: string;
   readonly kind: 'letter' | 'cover_gold' | 'cover_owl' | 'cover_chick';
   readonly parchment: Parchment;
+  /** v1.1: written in the Christmas season at the sender's home – Christmas parchment. */
+  readonly christmas?: boolean;
   readonly sentAt: number;
   readonly arrivesAt: number;
   readonly status: 'in_flight' | 'delivered' | 'returned';
@@ -143,21 +145,30 @@ export async function sendPrepared(
 }
 
 /** Loads and verifies a conversation; invalid letters show no content (SPEC 5.8). */
-export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
+/** v1.1: the letters of a chat and its Christmas parchment pair (1–4, both sides alike). */
+export interface Conversation {
+  readonly letters: ShownLetter[];
+  readonly christmasPaper: number;
+}
+
+export async function loadConversation(peerId: string): Promise<Conversation> {
   const own = account.keys;
   const me = account.profile?.id;
-  if (!own || !me) return [];
+  if (!own || !me) return { letters: [], christmasPaper: 1 };
   const [{ openLetter }, { fromBase64Url }] = await Promise.all([
     import('@posteulen/shared/crypto/letter.ts'),
     import('@posteulen/shared/crypto/encoding.ts'),
   ]);
-  const { letters } = await api<{ letters: ApiLetter[] }>('GET', `/api/chats/${peerId}/letters`);
+  const { letters, christmasPaper } = await api<{
+    letters: ApiLetter[];
+    christmasPaper?: number;
+  }>('GET', `/api/chats/${peerId}/letters`);
   // SPEC 5.7: when showing received letters, the server's keys are compared with the vault.
   void checkKeysOnDisplay(peerId);
   const peerKeys = (vault.entries[peerId]?.entry.keySets ?? []).map((set) =>
     fromBase64Url(set.ed25519),
   );
-  return Promise.all(
+  const shown = await Promise.all(
     letters.map(async (letter): Promise<ShownLetter> => {
       // v0.6.1: only letters between me and this peer belong here.
       const between =
@@ -196,6 +207,7 @@ export async function loadConversation(peerId: string): Promise<ShownLetter[]> {
       };
     }),
   );
+  return { letters: shown, christmasPaper: christmasPaper ?? 1 };
 }
 
 /** A plain-text letter to one's own bot (SPEC 10.1). */

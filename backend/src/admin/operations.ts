@@ -42,6 +42,8 @@ export function adminStats(ctx: Context, now: number) {
     accounts: {
       created: count("SELECT value AS n FROM stats_counters WHERE key = 'accounts_created_total'"),
       current: count('SELECT COUNT(*) AS n FROM users'),
+      // v1.1: of the current accounts, those created through the onion service.
+      viaOnion: count('SELECT COUNT(*) AS n FROM users WHERE via_onion = 1'),
       active30: count(
         'SELECT COUNT(*) AS n FROM users WHERE last_active_date >= ?',
         utcDay(now - ACCOUNT.ADMIN_ACTIVE_WINDOW_DAYS * TIME.DAY),

@@ -2,6 +2,7 @@
  * Common steps of every transport (letter, gold, gift): choosing the owl, preparing letter
  * IDs and keys, checking the encrypted letters, and the departure itself.
  */
+import { christmasAt } from '../letters/season.ts';
 import { LETTER, TIME } from '@posteulen/shared/constants.ts';
 import { isBotId, lastLetterDay, playerBot } from '../bots/registry.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
@@ -361,8 +362,8 @@ export function depart(
     );
     ctx.db.run(
       `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, ciphertext,
-                            wrap_recipient, wrap_sender, status, owl_name, owl_species, flight_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+                            wrap_recipient, wrap_sender, status, owl_name, owl_species, flight_id, christmas)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?)`,
       letter.letterId,
       token.senderId,
       letter.recipientId,
@@ -376,6 +377,7 @@ export function depart(
       owl.name,
       owl.species,
       id,
+      christmasAt(ctx, token.senderId, now),
     );
     ctx.db.run(
       `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at)
@@ -409,8 +411,8 @@ function departWithReply(
   const returnsAt = previewReturn(ctx, guest.flight, guest.index, now);
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, ciphertext,
-                          wrap_recipient, wrap_sender, status, owl_name, owl_species, flight_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+                          wrap_recipient, wrap_sender, status, owl_name, owl_species, flight_id, christmas)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?)`,
     letter.letterId,
     token.senderId,
     letter.recipientId,
@@ -424,6 +426,7 @@ function departWithReply(
     guest.flight.owl_name,
     guest.flight.owl_species,
     guest.flight.id,
+    christmasAt(ctx, token.senderId, now),
   );
   ctx.db.run(
     `INSERT INTO chats (owner_id, peer_id, peer_kind, last_activity_at) VALUES (?, ?, 'user', ?)
@@ -458,8 +461,8 @@ export function departWithBotReply(
   const letterId = randomId();
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
-                          status, owl_name, owl_species, flight_id)
-     VALUES (?, ?, ?, 'letter', ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+                          status, owl_name, owl_species, flight_id, christmas)
+     VALUES (?, ?, ?, 'letter', ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?)`,
     letterId,
     senderId,
     botId,
@@ -470,6 +473,7 @@ export function departWithBotReply(
     guest.flight.owl_name,
     guest.flight.owl_species,
     guest.flight.id,
+    christmasAt(ctx, senderId, now),
   );
   endRest(ctx, guest.flight, guest.index, now, after);
   return { flightId: guest.flight.id, letterId, arrivesAt, owl };

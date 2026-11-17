@@ -3,7 +3,7 @@
  * flight preview for choosing an owl (8.4 step 4).
  */
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { GOLD, MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { GOLD, OWL, TIME } from '@posteulen/shared/constants.ts';
 import {
   displayEnergy,
   energyAfterFeeding,
@@ -49,6 +49,7 @@ import {
   loanProblem,
   loanStillHere,
   offerOf,
+  offerTeamOf,
 } from './lifecycle.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
@@ -534,7 +535,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const identities = loanIdentitiesFor(ctx, me, day);
     return {
       day,
-      maxLoans: MENAGERIE.LOANS_PER_DAY,
+      // v1.1: one whole team a day, every species once (offers from before: four species).
+      maxLoans: offerOf(ctx, me, day).length,
+      team: offerTeamOf(ctx, me, day),
       loans: loaned.length,
       // v0.8.5: a loan of this offer day that is over (vanished after the last stop, back with
       // replies, or expired unused) hides its offer until the next day; it still counts.

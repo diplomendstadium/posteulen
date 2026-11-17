@@ -123,18 +123,18 @@ async function reauthToken(who: Person, purpose: 'delete' | 'password'): Promise
 }
 
 describe('loan owls (SPEC 9.6)', () => {
-  it('four species a day (v0.5) with stable names; 0.1 gold; one per species, at most four', async () => {
+  it('a whole team a day (v1.1: five species) with stable names; one per species, at most five', async () => {
     const menagerie = await anna.agent.json<{
       offer: { species: string; name: string; sex: string; loaned: boolean }[];
       maxLoans: number;
     }>('GET', '/api/menagerie');
-    expect(menagerie.body.offer).toHaveLength(4);
-    expect(new Set(menagerie.body.offer.map((o) => o.species)).size).toBe(4);
+    expect(menagerie.body.offer).toHaveLength(5);
+    expect(new Set(menagerie.body.offer.map((o) => o.species)).size).toBe(5);
     expect(menagerie.body.offer.map((o) => o.species)).not.toContain('phoenix');
     expect((await anna.agent.json('GET', '/api/menagerie')).body).toEqual(menagerie.body);
-    // v0.8.5: Ben has his own four species (rolled for his account), stable for the day.
+    // v0.8.5: Ben has his own offer (v1.1: team, drawn for his account), stable for the day.
     const forBen = await ben.agent.json<{ offer: { species: string }[] }>('GET', '/api/menagerie');
-    expect(forBen.body.offer).toHaveLength(4);
+    expect(forBen.body.offer).toHaveLength(5);
     expect((await ben.agent.json('GET', '/api/menagerie')).body).toEqual(forBen.body);
 
     const first = await borrowOwl(anna);
@@ -157,6 +157,7 @@ describe('loan owls (SPEC 9.6)', () => {
     await borrowOwl(anna);
     await borrowOwl(anna);
     await borrowOwl(anna);
+    await borrowOwl(anna);
     const notOffered = ['waldkauz', 'bartkauz', 'elfenkauz', 'schleiereule', 'milchuhu'].find(
       (id) => !menagerie.body.offer.some((o) => o.species === id),
     )!;
@@ -173,14 +174,14 @@ describe('loan owls (SPEC 9.6)', () => {
     expect((await anna.agent.json('POST', `/api/owls/${first}/menagerie`, {})).status).toBe(400);
   });
 
-  it('v0.3.2: all of a day (v0.5: four) – the next offer can all be borrowed, whatever still waits', async () => {
-    for (let i = 0; i < 4; i++) await borrowOwl(anna);
+  it('v0.3.2: all of a day (v1.1: the five of the team) – the next offer can all be borrowed, whatever still waits', async () => {
+    for (let i = 0; i < 5; i++) await borrowOwl(anna);
     const today = await anna.agent.json<{ loans: number; maxLoans: number }>(
       'GET',
       '/api/menagerie',
     );
-    expect(today.body).toMatchObject({ loans: 4, maxLoans: 4 });
-    // Half past midnight UTC: yesterday's four still wait, the new offer is free to borrow.
+    expect(today.body).toMatchObject({ loans: 5, maxLoans: 5 });
+    // Half past midnight UTC: yesterday's five still wait, the new offer is free to borrow.
     const midnight = Date.UTC(2026, 10, 6, 0, 30);
     advanceTo(app, midnight);
     const tomorrow = await anna.agent.json<{ loans: number; offer: { loaned: boolean }[] }>(
@@ -189,9 +190,9 @@ describe('loan owls (SPEC 9.6)', () => {
     );
     expect(tomorrow.body.loans).toBe(0);
     expect(tomorrow.body.offer.every((o) => !o.loaned)).toBe(true);
-    for (let i = 0; i < 4; i++) await borrowOwl(anna);
+    for (let i = 0; i < 5; i++) await borrowOwl(anna);
     const waiting = (await owls(anna)).owls.filter((owl) => owl.kind === 'loan');
-    expect(waiting).toHaveLength(8);
+    expect(waiting).toHaveLength(10);
   });
 
   it('expires after 24 hours without refund', async () => {
@@ -231,6 +232,7 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     name: string;
     energy: number;
     arrivals: { at: number }[];
+    cargo: string;
   }
   const preview = async (who: Person, recipients: string[]) =>
     (await who.agent.json<{ owls: Choice[] }>('POST', '/api/flights/preview', { recipients })).body
@@ -251,7 +253,8 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     expect(gold(anna)).toBe(200);
     expect(await preview(anna, [ben.id])).toEqual(offers);
 
-    const chosen = offers[1]!;
+    // v1.1: a whole team is offered – one of them carries gold.
+    const chosen = offers.find((o) => o.cargo === 'gold')!;
     const prepared = await anna.agent.json<{ token: string; arrivesAt: number }>(
       'POST',
       '/api/gold/prepare',
@@ -280,14 +283,14 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     await couple(anna, carla);
     setGold(app, anna, 200);
     const several = await preview(anna, [ben.id, carla.id]);
-    expect(several).toHaveLength(4);
+    expect(several).toHaveLength(5);
     expect(several.every((choice) => choice.offer)).toBe(true);
     setGold(app, anna, 0);
     expect(await preview(anna, [ben.id])).toEqual([]);
     setGold(app, anna, 200);
     await buyOwl(app, anna);
     const choices = await preview(anna, [ben.id]);
-    expect(choices).toHaveLength(5);
+    expect(choices).toHaveLength(6);
     expect(choices[0]?.offer).toBe(false);
     expect(choices.slice(1).every((choice) => choice.offer)).toBe(true);
   });
@@ -316,12 +319,12 @@ describe('loan owls in the owl choice (v0.2, SPEC 8.4 step 4, 9.6)', () => {
     });
   });
 
-  it('the four loan owls of a day never share a name; motivation 0.8–1.0 (v0.5)', () => {
+  it('the loan owls of a day never share a name; motivation 0.8–1.0 (v0.5)', () => {
     // v0.8.5: offers belong to real accounts – many days of one account instead of many users.
     for (let i = 0; i < 2000; i++) {
       const day = utcDay(app.clock.now + i * TIME.DAY);
       const identities = [...loanIdentitiesFor(app.ctx, anna.id, day).values()];
-      expect(new Set(identities.map((o) => o.name)).size).toBe(4);
+      expect(new Set(identities.map((o) => o.name)).size).toBe(identities.length);
       for (const identity of identities) expect([8, 9, 10]).toContain(identity.motivation);
     }
   });

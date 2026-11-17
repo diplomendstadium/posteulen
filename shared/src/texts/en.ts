@@ -37,6 +37,13 @@ export const en: Texts = {
       'Here you write letters that are delivered by owls – securely encrypted and with a little patience.',
     groupAlt:
       'Seventeen post owls of different species sit side by side on three wooden perches in front of a stone wall.',
+    /** v1.1 */
+    groupAltNight:
+      'Seventeen post owls of different species sit wide awake at night, side by side on three wooden perches in front of a stone wall.',
+    groupAltChristmasDay:
+      'Seventeen post owls of different species sit on three wooden perches decorated for Christmas in front of a stone wall.',
+    groupAltChristmasNight:
+      'Seventeen post owls of different species sit wide awake at night on three wooden perches decorated for Christmas in front of a stone wall.',
     loginHeading: 'Sign in',
     userName: 'User name',
     password: 'Password',
@@ -207,6 +214,9 @@ export const en: Texts = {
   },
   letters: {
     title: 'Letters',
+    /** v1.1 */
+    picture:
+      'Sealed letters, parchment scrolls, a quill and an inkwell on a wooden table, in the middle a sheet saying “Meine Briefe” (my letters)',
     none: 'No letters yet. Add a contact in the address book and write the first letter.',
     system: 'System messages',
     owlRestingHere: 'An owl of {name} is resting with you right now',
@@ -492,7 +502,9 @@ export const en: Texts = {
       'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
     clutchChick: 'Which chick?',
     clutchNameFirst: 'Please give the chick a name first.',
-    backIn: 'Expected back in {duration}.',
+    /** v1.1 */
+    nextStop: 'Next stop: {name} at about {time}.',
+    backAt: 'Expected back in {duration} (about {time}).',
     and: ' and ',
     pet: 'Pet',
     water: 'Give water',
@@ -576,6 +588,8 @@ export const en: Texts = {
     overlayClose: 'Close picture',
     departs: '{name} takes off',
     arrives: '{name} has landed',
+    /** v1.1 */
+    arrivesFrom: '{name} has landed and brings you post from {from}.',
     backHome: '{name} is back home',
     backHomeLetter: '{name} is back home – with a reply',
     backHomeLetters: '{name} is back home – with {count} replies',
@@ -591,6 +605,9 @@ export const en: Texts = {
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'The Menagerie in old stone walls, by day',
     pictureNight: 'The Menagerie in old stone walls, at night',
+    /** v1.1 */
+    pictureChristmasDay: 'The snowy Menagerie decorated for Christmas, by day',
+    pictureChristmasNight: 'The snowy Menagerie decorated for Christmas with its lights, at night',
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery}%/h',
@@ -605,6 +622,10 @@ export const en: Texts = {
       'The owl post office: here you borrow owls for a letter or for gold – different ones every day. You can also look after your borrowed owls and send them off right here.',
     pictureDay: 'The owl post office by day',
     pictureNight: 'The owl post office at night',
+    /** v1.1 */
+    pictureChristmasDay: 'The snowy owl post office decorated for Christmas, by day',
+    pictureChristmasNight:
+      'The snowy owl post office decorated for Christmas with its lights, at night',
     loanTitle: 'Borrow owls',
     loanIntro:
       'On offer today – for 0.1 gold, owls that also carry gold for 0.2 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back (no refund). Once a loan is over, its offer disappears until tomorrow.',
@@ -771,6 +792,8 @@ export const en: Texts = {
     statsTitle: 'Statistics',
     statsCreated: 'Accounts created in total: {count}',
     statsCurrent: 'Accounts existing: {count}',
+    /** v1.1 */
+    statsOnion: 'of which created via the onion address: {count} (counted since version 1.1.0)',
     statsActive: 'Active in the last 30 days: {count}',
     statsLetters: 'Letters between people: {total} in total, {last7} in the last 7 days',
     statsOwlsTitle: 'Owls owned by players',

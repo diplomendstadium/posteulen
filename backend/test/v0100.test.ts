@@ -155,14 +155,14 @@ describe('feeding while not full (v0.10, SPEC 9.3)', () => {
 });
 
 describe('prices and the Virginiauhu (v0.10)', () => {
-  it('the phoenix costs 150 gold, the Virginiauhu 60 and helps in the Menagerie', async () => {
+  it('the phoenix costs 150 gold, the Virginiauhu 68 (v1.1) and helps in the Menagerie', async () => {
     setGold(app, anna, 3000);
     expect((await anna.agent.json('POST', '/api/owls/buy', { species: 'phoenix' })).status).toBe(
       200,
     );
     expect(gold(anna)).toBe(3000 - 1500);
     const id = await buyOwl(app, anna, 'virginiauhu', 'Ahoi');
-    expect(gold(anna)).toBe(3000 - 1500 - 600);
+    expect(gold(anna)).toBe(3000 - 1500 - 680);
     const list = await anna.agent.json<{ owls: OwlView[] }>('GET', '/api/owls');
     expect(list.body.owls.find((owl) => owl.id === id)?.actions.menagerie).toBe(true);
     expect((await anna.agent.json('POST', `/api/owls/${id}/menagerie`, {})).status).toBe(200);

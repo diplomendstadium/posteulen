@@ -4,6 +4,7 @@
  * answered with its owl while it rests at the player; with own or loan owls only if the bot
  * allows it (SPEC 10.7).
  */
+import { christmasAt } from '../letters/season.ts';
 import type { FastifyInstance } from 'fastify';
 import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { BotLetterSend } from '@posteulen/shared/schemas/letters.ts';
@@ -103,8 +104,8 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
           const id = randomId();
           ctx.db.run(
             `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
-                                  status, owl_name, owl_species, flight_id)
-             VALUES (?, ?, ?, 'letter', ?, ?, ?, ?, 'in_flight', ?, ?, ?)`,
+                                  status, owl_name, owl_species, flight_id, christmas)
+             VALUES (?, ?, ?, 'letter', ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?)`,
             id,
             me,
             body.botId,
@@ -115,6 +116,7 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
             chosen.name,
             chosen.species,
             flightId,
+            christmasAt(ctx, me, now),
           );
           letter = { id, arrivesAt };
           owl = { name: chosen.name, species: chosen.species };

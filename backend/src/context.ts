@@ -58,6 +58,8 @@ export interface Context {
     /** v0.7 */
     readonly voucher: Uint8Array;
     readonly loanName: Uint8Array;
+    /** v1.1 */
+    readonly christmasPaper: Uint8Array;
   };
   readonly landMask: Uint8Array;
   /** v0.8: coarse land/water mask of the whole world (bots live anywhere on land). */
@@ -170,6 +172,7 @@ export async function createContext(
       invite: await deriveServerKey(secrets, SERVER_CONTEXTS.INVITE),
       voucher: await deriveServerKey(secrets, SERVER_CONTEXTS.VOUCHER),
       loanName: await deriveServerKey(secrets, SERVER_CONTEXTS.LOAN_NAME),
+      christmasPaper: await deriveServerKey(secrets, SERVER_CONTEXTS.CHRISTMAS_PAPER),
     },
     landMask,
     worldMask,

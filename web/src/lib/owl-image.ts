@@ -6,20 +6,46 @@ import {
 } from '../generated/owl-images/manifest.ts';
 import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
 
+/**
+ * v1.1: pictures that may be missing for a species fall back to their ordinary counterpart
+ * (Christmas nap → nap at home, Christmas by day/night → night → normal) instead of the
+ * placeholder.
+ */
+const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
+  xmasNap: 'napHome',
+  xmasDay: 'normal',
+  xmasNight: 'night',
+  night: 'normal',
+};
+
 export function owlImage(
   speciesId: string,
   kind: OwlImageKind,
 ): { files: OwlImageFiles; placeholder: boolean } {
-  const files = OWL_IMAGES[speciesId]?.[kind];
-  return files ? { files, placeholder: false } : { files: OWL_PLACEHOLDER, placeholder: true };
+  for (let current: OwlImageKind | undefined = kind; current; current = FALLBACK[current]) {
+    const files = OWL_IMAGES[speciesId]?.[current];
+    if (files) return { files, placeholder: false };
+  }
+  return { files: OWL_PLACEHOLDER, placeholder: true };
 }
+
+const SCENE_FALLBACK: Partial<Record<SceneId, SceneId>> = {
+  groupNight: 'group',
+  groupXmasDay: 'group',
+  groupXmasNight: 'groupNight',
+  menagerieXmasDay: 'menagerieDay',
+  menagerieXmasNight: 'menagerieNight',
+  postXmasDay: 'postDay',
+  postXmasNight: 'postNight',
+};
 
 /** Pictures without a species (empty perch, group picture); the placeholder if missing. */
 export function sceneImage(id: SceneId): {
   files: Readonly<Record<string, string>>;
   placeholder: boolean;
 } {
-  const files = SCENES[id];
+  // v1.1: a missing season or night picture falls back to the ordinary one.
+  const files = SCENES[id] ?? SCENES[SCENE_FALLBACK[id] ?? id];
   return files
     ? { files, placeholder: false }
     : { files: { s160: OWL_PLACEHOLDER.s160, s480: OWL_PLACEHOLDER.s480 }, placeholder: true };

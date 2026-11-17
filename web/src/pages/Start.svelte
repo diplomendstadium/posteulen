@@ -10,11 +10,23 @@
   import { status } from '../lib/status.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { sceneImage } from '../lib/owl-image.ts';
+  import { groupScene, homeLight } from '../lib/season.ts';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.ts';
 
   /** The whole menagerie on its perches, next to the login (v0.3.1: instead of the tawny owl). */
-  const group = sceneImage('group');
+  // v1.1: by day or night and in the Christmas season at home (Berlin when signed out).
+  const light = homeLight();
+  const group = sceneImage(groupScene(light));
+  const groupAlt = $derived(
+    light.christmas
+      ? light.day
+        ? t.start.groupAltChristmasDay
+        : t.start.groupAltChristmasNight
+      : light.day
+        ? t.start.groupAlt
+        : t.start.groupAltNight,
+  );
 
   let name = $state('');
   let password = $state('');
@@ -101,14 +113,14 @@
     </section>
 
     {#if !group.placeholder}
-      <figure class="group">
+      <figure class="group" data-scene={groupScene(light)}>
         <img
           src={group.files['s960']}
           srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
           sizes="(min-width: 48rem) 28rem, 100vw"
           width="960"
           height="960"
-          alt={t.start.groupAlt}
+          alt={groupAlt}
           decoding="async"
         />
       </figure>

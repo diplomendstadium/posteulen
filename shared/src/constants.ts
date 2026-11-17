@@ -56,9 +56,9 @@ export const LETTER = {
   RETENTION_WEEKDAY_UTC: 1,
   /**
    * v0.7: how long (hours) the owl rests at each recipient before flying on; the recipient may
-   * hand it a reply to the sender meanwhile. 0 = no rest.
+   * hand it a reply to the sender meanwhile. 0 = no rest. v1.1: also 6 and 12 hours.
    */
-  REST_HOURS_CHOICES: [0, 1, 2, 24, 48],
+  REST_HOURS_CHOICES: [0, 1, 2, 6, 12, 24, 48],
   /**
    * v0.8.5: preselected when writing a letter to people – 2 hours with an own owl, 24 hours
    * with a loan owl (until the writer picks a rest by hand; before: 1 hour for all).
@@ -145,11 +145,16 @@ export const OWL_NAP_SHARE = 0.5;
 /** v0.5.1: no nap picture within ten minutes after the last interaction. */
 export const OWL_NAP_AFTER_CARE_MS = 10 * TIME.MINUTE;
 
+/** v1.1: the Christmas season (SPEC 9.11): first Sunday of Advent to the end of 26 December. */
+export const CHRISTMAS = {
+  LAST_MONTH: 12,
+  LAST_DAY: 26,
+  /** Pairs of Christmas parchment (own and other side), one rolled per conversation. */
+  PAPERS: 4,
+} as const;
+
 export const MENAGERIE = {
-  OFFER_SPECIES_COUNT: 4,
   OFFER_HOUR_UTC: 0,
-  /** Loan owls per offer day (00:00 UTC), one per offered species (v0.3.2; 4 since v0.5). */
-  LOANS_PER_DAY: 4,
   MAX_LOANS_PER_SPECIES: 1,
   LOAN_EXPIRY_HOURS: 24,
 } as const;

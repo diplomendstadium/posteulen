@@ -484,7 +484,7 @@ describe('gold transfers (SPEC 9.1.4)', () => {
       {
         recipient: ben.id,
         amount: 1,
-        owlId: await borrowOwl(anna),
+        owlId: await borrowOwl(anna, 'gold'),
         withCover: true,
       },
     );

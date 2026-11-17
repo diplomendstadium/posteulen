@@ -36,13 +36,14 @@ test.describe('Version 0.2', () => {
     const offers = page
       .getByRole('group', { name: 'Welche Eule soll fliegen?' })
       .getByRole('radio');
-    await expect(offers).toHaveCount(4);
+    // v1.1: a whole team of the post office (five species).
+    await expect(offers).toHaveCount(5);
     // Nothing is preselected – borrowing costs gold.
     for (const offer of await offers.all()) await expect(offer).not.toBeChecked();
     // v0.10: 0.1 gold, or 0.2 for species that carry gold.
     await expect(
       page.getByText(/^Leiheule des Tages: 0,[12] Gold, erst beim Abschicken\.$/),
-    ).toHaveCount(4);
+    ).toHaveCount(5);
     await offers.first().check();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
@@ -58,7 +59,7 @@ test.describe('Version 0.2', () => {
     const sheet = other.locator('li.letter').filter({ hasText: 'Leiheule' });
     await expect(sheet).toBeVisible({ timeout: 30_000 });
     expect(await sheet.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(
-      /Playwrite DE Grund/,
+      /Playwrite DE VA/,
     );
     await expect(other.getByText(/ein Jahr nach der Zustellung beim wöchentlichen/)).toBeVisible();
     expect(ben.name).not.toBe(anna.name);

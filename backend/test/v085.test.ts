@@ -14,6 +14,7 @@ import { MENAGERIE, OWL, TIME } from '@posteulen/shared/constants.ts';
 import { releaseAllowed } from '@posteulen/shared/game/owls.ts';
 import { utcDay } from '../src/security/ids.ts';
 import { offerOf } from '../src/owls/lifecycle.ts';
+import { LOAN_TEAMS } from '@posteulen/shared/species.ts';
 import { isRetentionDay } from '../src/letters/retention.ts';
 import { eventCutoff, pruneOldEvents } from '../src/central/retention.ts';
 import {
@@ -131,15 +132,16 @@ const menagerie = async (who: Person) =>
   (await who.agent.json<Menagerie>('GET', '/api/menagerie')).body;
 
 describe('loan offers per account (v0.8.5, SPEC 9.6)', () => {
-  it('rolls four species per account and day, stable until the next day, without the two days before', () => {
+  it('rolls a team per account and day (v1.1), stable until the next day, never the one of the day before', () => {
     let at = app.clock.now;
     const history: string[][] = [];
     for (let day = 0; day < 15; day++) {
       const offer = offerOf(app.ctx, anna.id, utcDay(at));
-      expect(offer).toHaveLength(MENAGERIE.OFFER_SPECIES_COUNT);
+      expect(Object.values(LOAN_TEAMS).map((team) => JSON.stringify(team))).toContain(
+        JSON.stringify(offer),
+      );
       expect(offerOf(app.ctx, anna.id, utcDay(at))).toEqual(offer);
-      for (const before of history.slice(-2))
-        for (const s of offer) expect(before).not.toContain(s);
+      if (history.length > 0) expect(offer).not.toEqual(history.at(-1));
       history.push(offer);
       at += TIME.DAY;
     }
@@ -173,25 +175,25 @@ describe('loan offers per account (v0.8.5, SPEC 9.6)', () => {
     // The loan from before the update is over (no owl any more): its offer is hidden.
     expect(offer.offer.map((o) => o.species)).toEqual(['bartkauz', 'haubenkauz', 'kanincheneule']);
     expect((await menagerie(ben)).offer.map((o) => o.species)).toEqual(shared);
-    // The next day: an own offer without the species of the shared one.
+    // The next day: an own offer (v1.1: one of the teams).
     app.clock.now += TIME.DAY;
     const tomorrow = await menagerie(anna);
     expect(tomorrow.loans).toBe(0);
-    for (const item of tomorrow.offer) expect(shared).not.toContain(item.species);
+    expect(tomorrow.offer).toHaveLength(5);
   });
 
   it('keeps a loan visible while it lasts, hides it when it is over, and still counts it', async () => {
     setGold(app, anna, 500);
     const loanId = await borrowOwl(anna);
     const during = await menagerie(anna);
-    expect(during.offer).toHaveLength(4);
+    expect(during.offer).toHaveLength(5);
     expect(during.offer.filter((o) => o.loaned)).toHaveLength(1);
     // The loan owl delivers to Ben and vanishes (no rest, no reply).
     const sent = await send(anna, [ben], loanId);
     advanceTo(app, sent.letters[0]!.arrivesAt + TIME.MINUTE);
     expect(app.db.get('SELECT 1 FROM owls WHERE id = ?', loanId)).toBeUndefined();
     const after = await menagerie(anna);
-    expect(after.offer).toHaveLength(3);
+    expect(after.offer).toHaveLength(4);
     expect(after.offer.every((o) => !o.loaned)).toBe(true);
     expect(after.loans).toBe(1);
     // An unused loan that expires is hidden as well.

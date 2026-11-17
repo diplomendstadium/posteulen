@@ -21,18 +21,10 @@ const OUT_DIR = path.join(ROOT, 'web/src/generated/owl-images');
 const ICON_DIR = path.join(ROOT, 'web/public/icons');
 const LOGO = path.join(ROOT, 'web/assets/logo.svg');
 
-/** Overlay kinds get an additional large variant (SPEC 9.2.6). */
-const OVERLAY_KINDS = new Set([
-  'departure',
-  'arrival',
-  'feeding',
-  'petting',
-  'chick',
-  'homeDay',
-  'homeNight',
-  'drinking',
-  'snack',
-]);
+/**
+ * Every kind gets the large variant too (SPEC 9.2.6): the overlays always had it, and since v1.1
+ * the owl cards show their pictures across the whole card.
+ */
 const SIZES = [160, 480] as const;
 const LARGE = 960;
 
@@ -114,7 +106,7 @@ async function buildOwlImages(): Promise<void> {
       const base = `owl-${species.imageName}-${kind}`;
       const key = `${species.id}/${kind}`;
       const fingerprint = fingerprintOf(sourcePath);
-      const large = OVERLAY_KINDS.has(kind);
+      const large = true;
       const outputs = large ? [...SIZES, LARGE] : [...SIZES];
       const upToDate =
         cache[key]?.fingerprint === fingerprint &&

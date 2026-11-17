@@ -8,14 +8,15 @@ import {
   menagerieWage,
   pastGracePeriod,
   loanNamesOn,
-  pickOffer,
+  pickTeam,
+  teamSpecies,
   randomOwlName,
   rollsSick,
   sicknessProbability,
   speciesPrice,
 } from '../src/game/chance.ts';
 import { OWL_NAMES } from '../src/names-data.ts';
-import { SPECIES } from '../src/species.ts';
+import { LOAN_TEAMS, SPECIES } from '../src/species.ts';
 
 /** Fixed seed (SPEC 17.2). */
 function seeded(seed: number): () => number {
@@ -69,15 +70,27 @@ describe('protection period (SPEC 9.8)', () => {
 });
 
 describe('menagerie (SPEC 9.6, 9.7)', () => {
-  it('offers four different species, never the phoenix (v0.5)', () => {
+  it('offers one whole team, never the phoenix (v1.1)', () => {
     for (let seed = 1; seed < 200; seed++) {
-      const offer = pickOffer(seeded(seed));
-      expect(offer).toHaveLength(4);
-      expect(new Set(offer).size).toBe(4);
+      const offer = teamSpecies(pickTeam(seeded(seed)));
+      expect(offer).toHaveLength(5);
+      expect(new Set(offer).size).toBe(5);
       expect(offer).not.toContain('phoenix');
       for (const id of offer) expect(SPECIES.some((species) => species.id === id)).toBe(true);
     }
-    expect(pickOffer(() => 0.9999999)).toHaveLength(4);
+    expect(pickTeam(() => 0.9999999)).toBe('D');
+    expect(pickTeam(() => 0)).toBe('A');
+  });
+
+  it('has four teams with every species but the phoenix exactly once (v1.1)', () => {
+    const all = Object.values(LOAN_TEAMS).flat();
+    expect(Object.keys(LOAN_TEAMS)).toEqual(['A', 'B', 'C', 'D']);
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual(
+      SPECIES.filter((species) => !species.mythical)
+        .map((species) => species.id)
+        .sort(),
+    );
   });
 
   it('derives name and sex of loan owls from HMAC bytes', () => {
@@ -121,20 +134,14 @@ describe('loan identities of a day (v0.2)', () => {
 });
 
 describe('locks for loan owls (v0.7, SPEC 9.6)', () => {
-  it('leaves out the species of the two days before', () => {
-    const recent = ['waldkauz', 'schleiereule', 'bartkauz', 'elfenkauz', 'milchuhu'];
-    for (let seed = 1; seed < 30; seed++) {
-      const offer = pickOffer(seeded(seed), recent);
-      expect(offer).toHaveLength(4);
-      for (const species of offer) expect(recent).not.toContain(species);
+  it('never offers the team of the day before (v1.1)', () => {
+    for (const previous of ['A', 'B', 'C', 'D'] as const) {
+      const seen = new Set<string>();
+      const random = seeded(11);
+      for (let draw = 0; draw < 60; draw++) seen.add(pickTeam(random, previous));
+      expect(seen.has(previous)).toBe(false);
+      expect(seen.size).toBe(3);
     }
-    // With (impossibly) too many recent species, any species may come again.
-    expect(
-      pickOffer(
-        seeded(1),
-        SPECIES.map((s) => s.id),
-      ),
-    ).toHaveLength(4);
   });
 
   it('rotates the names in three groups by day', () => {

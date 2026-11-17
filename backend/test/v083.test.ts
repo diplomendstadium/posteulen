@@ -162,14 +162,14 @@ describe('names and pictures (v0.8.3)', () => {
 });
 
 describe('the Virginiauhu (v0.8.4)', () => {
-  it('v0.10 for sale for 60 gold; bots may fly it', async () => {
+  it('v0.10 for sale (v1.1: 68 gold); bots may fly it', async () => {
     const anna = await person(app, 'Anna', BERLIN);
     app.db.run('UPDATE users SET gold = 2000 WHERE id = ?', anna.id);
     expect(
       (await anna.agent.json('POST', '/api/owls/buy', { species: 'virginiauhu' })).status,
     ).toBe(200);
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      2000 - 600,
+      2000 - 680,
     );
     await newBot('Kapitän Ahoi', { owlSpecies: 'virginiauhu' });
     expect(

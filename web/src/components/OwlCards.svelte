@@ -300,9 +300,19 @@
               { names },
             );
     const doing = resting ?? what;
-    if (absence.returnsAt === null) return doing;
-    // v0.7.2: under an hour in minutes.
-    return `${doing} ${fill(t.owls.backIn, { duration: duration(absence.returnsAt - Date.now()) })}`;
+    // v1.1: the next stop with its time, as on the map ("Deine Eulen unterwegs").
+    const next = absence.nextStop
+      ? ` ${fill(t.owls.nextStop, {
+          name: absence.nextStop.name ?? t.letters.unknown,
+          time: dateTime(absence.nextStop.arrivesAt),
+        })}`
+      : '';
+    if (absence.returnsAt === null) return `${doing}${next}`;
+    // v0.7.2: under an hour in minutes; v1.1 with the time.
+    return `${doing}${next} ${fill(t.owls.backAt, {
+      duration: duration(absence.returnsAt - Date.now()),
+      time: dateTime(absence.returnsAt),
+    })}`;
   }
 </script>
 
@@ -317,6 +327,7 @@
     <li class="card owl" data-testid="owl-card">
       <div class="picture">
         <OwlPicture
+          wide
           speciesId={owl.species}
           kind={pictureKind(owl)}
           perch={owl.state === 'menagerie' || restingAway(owl)}
@@ -532,6 +543,10 @@
 {/if}
 
 <style>
+  /*
+   * v1.1: the pictures are the focus – across the whole card, values and buttons below. On
+   * phones one card per row, from 48 rem two side by side.
+   */
   .owls {
     list-style: none;
     padding: 0;
@@ -539,21 +554,17 @@
     gap: 1rem;
   }
 
-  .owl {
-    display: grid;
-    grid-template-columns: minmax(6rem, 10rem) 1fr;
-    gap: 1rem;
-    align-items: start;
+  @media (min-width: 48rem) {
+    .owls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
   }
 
-  @media (max-width: 30rem) {
-    .owl {
-      grid-template-columns: 1fr;
-    }
-
-    .picture {
-      --owl-size: 12rem;
-    }
+  .owl {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
   }
 
   .name {

@@ -4,6 +4,7 @@
  * they travel with his owls (not shown on the map) and always arrive, also at inactive accounts.
  * Until v0.7.2 there were also an aunt and an uncle per account; they are gone (relatives.ts).
  */
+import { christmasAt } from '../letters/season.ts';
 import { BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { simulate, type FlightProfile } from '@posteulen/shared/game/flight.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
@@ -122,8 +123,8 @@ export function dispatchBotLetter(
   const letterId = randomId();
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
-                          status, owl_name, owl_species)
-     VALUES (?, ?, ?, ?, 'small', ?, ?, ?, 'in_flight', ?, ?)`,
+                          status, owl_name, owl_species, christmas)
+     VALUES (?, ?, ?, ?, 'small', ?, ?, ?, 'in_flight', ?, ?, ?)`,
     letterId,
     bot.id,
     bot.owner_id,
@@ -133,6 +134,7 @@ export function dispatchBotLetter(
     text,
     owlName,
     species,
+    christmasAt(ctx, bot.id, now),
   );
   const shipment = randomId();
   ctx.db.run(
@@ -190,8 +192,8 @@ export function createBots(ctx: Context, userId: string, now: number): void {
   // Day 0: already in the letter box, "brought" by an owl of the Erklärbär (SPEC 10.2).
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
-                          status, owl_name, owl_species)
-     VALUES (?, ?, ?, 'letter', 'small', ?, ?, ?, 'delivered', ?, ?)`,
+                          status, owl_name, owl_species, christmas)
+     VALUES (?, ?, ?, 'letter', 'small', ?, ?, ?, 'delivered', ?, ?, ?)`,
     randomId(),
     id,
     userId,
@@ -200,6 +202,7 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     letters.explainer.day0,
     pick(ctx, owlNames(language)),
     pick(ctx, BOT_OWL_SPECIES).id,
+    christmasAt(ctx, id, now),
   );
   upsertBotChat(ctx, userId, id, now, 1);
   for (const day of BOTS.EXPLAINER_LETTER_DAYS.filter((day) => day > 0)) {

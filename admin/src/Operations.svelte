@@ -7,7 +7,7 @@
   import { message } from './lib/messages.ts';
 
   interface Stats {
-    accounts: { created: number; current: number; active30: number };
+    accounts: { created: number; current: number; viaOnion?: number; active30: number };
     letters: { total: number; last7: number };
     /** v0.9: owls owned by players per species (no loan or bot owls). */
     owls: { species: string; count: number; chicks: number }[];
@@ -88,6 +88,7 @@
     <ul class="plain" data-testid="admin-stats">
       <li>{fill(t.admin.statsCreated, { count: stats.accounts.created })}</li>
       <li>{fill(t.admin.statsCurrent, { count: stats.accounts.current })}</li>
+      <li>{fill(t.admin.statsOnion, { count: stats.accounts.viaOnion ?? 0 })}</li>
       <li>{fill(t.admin.statsActive, { count: stats.accounts.active30 })}</li>
       <li>
         {fill(t.admin.statsLetters, { total: stats.letters.total, last7: stats.letters.last7 })}

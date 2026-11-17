@@ -232,8 +232,8 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(own[0]?.opened).toMatchObject({ ok: true, text: 'Hallo Ben, wie geht es dir?' });
     expect(own[0]?.letter.status).toBe('in_flight');
 
-    // Berlin → Hamburg (about 255 km) with a loan owl: some hours.
-    expect(arrival(sent) - app.clock.now).toBeGreaterThan(8 * TIME.HOUR);
+    // Berlin → Hamburg (about 255 km) with a loan owl: some hours (v1.1: also the fast teams).
+    expect(arrival(sent) - app.clock.now).toBeGreaterThan(2 * TIME.HOUR);
     app.clock.now = arrival(sent) - 1;
     expect(app.ctx.queue.runDue()).toBe(0);
     expect(advanceTo(app, arrival(sent))).toBe(1);
@@ -411,7 +411,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
         })
       ).body,
     ).toMatchObject({ code: 'recipient_invalid' });
-    expect((await stranger.agent.json(`GET`, `/api/chats/${ben.id}/letters`)).body).toEqual({
+    expect((await stranger.agent.json(`GET`, `/api/chats/${ben.id}/letters`)).body).toMatchObject({
       letters: [],
     });
   });

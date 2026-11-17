@@ -50,8 +50,11 @@ export const SPECIES: readonly Species[] = [
   { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65, cargo: 'long' },
   { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25, cargo: 'long' },
   { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 150, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true, cargo: 'gold' },
-  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 60, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, cargo: 'gold' },
+  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 68, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, cargo: 'gold' },
   { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45, cargo: 'long' },
+  // v1.1: 47 km/h, 30 %/h; 36 km/h, 19 %/h (25 km/h and 10 %/h × factor).
+  { id: 'ostkreischeule', name: 'Ostkreischeule', nameEn: 'Eastern Screech Owl', imageName: 'Ostkreischeule', price: 47, maxEnergy: 299, speedFactor: 1.88, recoveryFactor: 3.0, cargo: 'long' },
+  { id: 'zypernzwergohreule', name: 'Zypern-Zwergohreule', nameEn: 'Cyprus Scops Owl', imageName: 'Zypernzwergohreule', price: 15, maxEnergy: 130, speedFactor: 1.44, recoveryFactor: 1.9, cargo: 'short' },
 ];
 
 /** The cheapest species to buy (tip in the help, v0.6). */
@@ -63,6 +66,8 @@ export const CHEAPEST_SPECIES: Species = SPECIES.reduce((a, b) => (b.price < a.p
  * v0.5: drinking water and the favourite treat (13 kinds; the phoenix has no chick picture).
  * v0.5.1: asleep on the way at night / by day, and a nap at home by day (16 kinds).
  * v0.7: brooding on its eggs (17 kinds; the phoenix lays no eggs and has 15).
+ * v1.1: awake at night (shown instead of the normal picture while it is dark at the viewer's
+ * home) and the three Christmas pictures by day, by night and napping (21 kinds; phoenix 19).
  */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
@@ -82,6 +87,10 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'sleepDay', suffix: 'Tagschlaf-Unterwegs' },
   { kind: 'napHome', suffix: 'Tagschlaf-Zuhause' },
   { kind: 'brooding', suffix: 'Brueten' },
+  { kind: 'night', suffix: 'Nacht' },
+  { kind: 'xmasDay', suffix: 'Weihnachten-Tag' },
+  { kind: 'xmasNight', suffix: 'Weihnachten-Nacht' },
+  { kind: 'xmasNap', suffix: 'Weihnachten-Schlaf' },
 ] as const;
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */
@@ -98,7 +107,7 @@ type OwlImageKindEntry = (typeof OWL_IMAGE_KINDS)[number];
  * letters burning in the fireplace.
  */
 export const SCENE_IMAGES = [
-  { id: 'perch', file: 'Leere-Stange.png', sizes: [160, 480] },
+  { id: 'perch', file: 'Leere-Stange.png', sizes: [160, 480, 960] },
   { id: 'group', file: 'Gruppenbild.png', sizes: [480, 960] },
   { id: 'burn', file: 'Verbrennen.png', sizes: [480, 960] },
   // v0.10: pictures of the places on top of Menagerie and post office, by day and by night.
@@ -106,7 +115,31 @@ export const SCENE_IMAGES = [
   { id: 'menagerieNight', file: 'Menagerie-Nacht.png', sizes: [480, 960] },
   { id: 'postDay', file: 'Postamt-Tag.png', sizes: [480, 960] },
   { id: 'postNight', file: 'Postamt-Nacht.png', sizes: [480, 960] },
+  // v1.1: the group picture by night, Christmas pictures of the group and the places (SPEC
+  // 9.2.6) and the picture on top of the letters page.
+  { id: 'groupNight', file: 'Gruppenbild-Nacht.png', sizes: [480, 960] },
+  { id: 'groupXmasDay', file: 'Gruppenbild-Weihnachten-Tag.png', sizes: [480, 960] },
+  { id: 'groupXmasNight', file: 'Gruppenbild-Weihnachten-Nacht.png', sizes: [480, 960] },
+  { id: 'menagerieXmasDay', file: 'Menagerie-Weihnachten-Tag.png', sizes: [480, 960] },
+  { id: 'menagerieXmasNight', file: 'Menagerie-Weihnachten-Nacht.png', sizes: [480, 960] },
+  { id: 'postXmasDay', file: 'Postamt-Weihnachten-Tag.png', sizes: [480, 960] },
+  { id: 'postXmasNight', file: 'Postamt-Weihnachten-Nacht.png', sizes: [480, 960] },
+  { id: 'letters', file: 'Briefwechsel.png', sizes: [480, 960] },
 ] as const;
+
+/**
+ * v1.1: the four teams of the post office (SPEC 9.6). Each account gets one whole team as its
+ * loan offer of a day, never the team of its day before. A new species joins the smallest team
+ * (drawn by lot between equally small ones) unless the client decides otherwise.
+ */
+export const LOAN_TEAMS: Readonly<Record<'A' | 'B' | 'C' | 'D', readonly string[]>> = {
+  A: ['sperbereule', 'ostkreischeule', 'waldkauz', 'suedliche-weissgesichtseule', 'riesenfischuhu'],
+  B: ['schneeeule', 'maehnenkauz', 'sumpfohreule', 'brillenkauz', 'zypernzwergohreule'],
+  C: ['riesenkauz', 'kanincheneule', 'schleiereule', 'milchuhu', 'maskeneule'],
+  D: ['virginiauhu', 'elfenkauz', 'waldohreule', 'bartkauz', 'haubenkauz'],
+};
+
+export type LoanTeam = keyof typeof LOAN_TEAMS;
 
 export type SceneId = (typeof SCENE_IMAGES)[number]['id'];
 

@@ -97,7 +97,7 @@ test.describe('Version 0.3', () => {
     ).toContain('parchment-light');
     expect(
       await letter.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily),
-    ).toMatch(/Playwrite DE Grund/);
+    ).toMatch(/Playwrite DE VA/);
     // The old hint about the bot's reply time is gone (v0.3).
     await expect(page.getByText(/Der Bot antwortet etwa zwei Stunden/)).toHaveCount(0);
     // Back via the bottom bar: the counter is gone at once, without a reload.

@@ -14,8 +14,10 @@ describe('owl images (SPEC 9.2.6, Anhang B)', () => {
       ),
       ...SCENE_IMAGES.map((scene) => scene.file),
     ];
-    // v0.10.1: complete again – the Virginiauhu has its brooding and chick pictures.
-    expect(expected.filter((file) => !files.has(file))).toEqual([]);
-    expect(files.size).toBe(expected.length);
+    // v1.1: still to come from the client – until then the app shows the nap at home
+    // (fallback in web/src/lib/owl-image.ts).
+    const pending = ['Zypernzwergohreule-Weihnachten-Schlaf.png'];
+    expect(expected.filter((file) => !files.has(file))).toEqual(pending);
+    expect(files.size).toBe(expected.length - pending.length);
   });
 });

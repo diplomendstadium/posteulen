@@ -4,6 +4,7 @@
  * Since stage 3 letters travel with real owls (flights/service.ts). The `deliver` handler is
  * kept for letters that were already on the way with the stage-2 placeholder owl.
  */
+import { christmasPaperOf } from './season.ts';
 import type { FastifyInstance } from 'fastify';
 import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
@@ -259,6 +260,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       flight_owl_kind: string | null;
       flight_holder: string | null;
       media: string | null;
+      christmas: number;
     }>(
       `SELECT l.*, f.gold AS cover_gold, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
@@ -272,6 +274,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       me,
     );
     return {
+      // v1.1: the Christmas parchment pair of this conversation, the same for both sides.
+      christmasPaper: christmasPaperOf(ctx, me, peer),
       letters: rows.map((row) => {
         const mine = row.sender_id === me;
         return {
@@ -280,6 +284,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           recipientId: row.recipient_id,
           kind: row.kind,
           parchment: row.parchment,
+          // v1.1: written in the Christmas season (sender's local time), for good.
+          christmas: row.christmas === 1,
           sentAt: row.sent_at,
           arrivesAt: row.arrives_at,
           status: row.status,
@@ -388,6 +394,41 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.now(),
     );
     return { ok: true };
+  });
+
+  /**
+   * v1.1: owls that brought letters the user has not seen arrive yet (SPEC 9.2.6) – the app
+   * shows their landing at the first opportunity (open app, start, sign-in, return), not only in
+   * the chat. Oldest landing first; the sender's current name only while connected.
+   */
+  app.get('/api/arrivals', { preHandler: authenticated }, async (request) => {
+    const me = userOf(request).id;
+    const rows = ctx.db.all<{
+      id: string;
+      sender_id: string;
+      kind: string;
+      owl_name: string;
+      owl_species: string;
+      arrives_at: number;
+    }>(
+      `SELECT id, sender_id, kind, owl_name, owl_species, arrives_at FROM letters
+        WHERE recipient_id = ? AND recipient_has = 1 AND status = 'delivered' AND arrival_seen = 0
+        ORDER BY arrives_at, id LIMIT 50`,
+      me,
+    );
+    return {
+      arrivals: rows.map((row) => ({
+        id: row.id,
+        owl: row.owl_name,
+        species: row.owl_species,
+        kind: row.kind,
+        from:
+          findContact(ctx.db, me, row.sender_id) || playerBot(ctx, me, row.sender_id)
+            ? (displayName(ctx.db, row.sender_id) ?? null)
+            : null,
+        arrivesAt: row.arrives_at,
+      })),
+    };
   });
 
   app.post('/api/letters/arrival-seen', { preHandler: authenticated }, async (request) => {

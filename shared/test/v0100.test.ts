@@ -51,9 +51,9 @@ describe('feeding (v0.10, SPEC 9.3)', () => {
 
 describe('the Virginiauhu (v0.10)', () => {
   it('can be offered as a loan owl like every species but the phoenix', async () => {
-    const { pickOffer } = await import('../src/game/chance.ts');
-    // Always the last species of the pool: the Virginiauhu stands near the end of the list.
-    expect(pickOffer(() => 0.999)).toContain('virginiauhu');
-    expect(pickOffer(() => 0.999)).not.toContain('phoenix');
+    // v1.1: in team D of the post office.
+    const { pickTeam, teamSpecies } = await import('../src/game/chance.ts');
+    expect(teamSpecies(pickTeam(() => 0.999))).toContain('virginiauhu');
+    expect(teamSpecies(pickTeam(() => 0.999))).not.toContain('phoenix');
   });
 });

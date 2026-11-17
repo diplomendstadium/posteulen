@@ -70,7 +70,7 @@ test.describe('Version 0.10', () => {
     await expect(elf).toContainText('Trägt kurzes Pergament');
     await expect(elf).not.toContainText('langes');
     const great = page.locator('ul.for-sale > li').filter({ hasText: 'Virginiauhu' });
-    await expect(great).toContainText('Preis: 60,0 Gold');
+    await expect(great).toContainText('Preis: 68,0 Gold');
     await expect(great).toContainText('Trägt kurzes und langes Pergament sowie Gold');
   });
 

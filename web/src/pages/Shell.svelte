@@ -7,6 +7,7 @@
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
   import { sceneImage } from '../lib/owl-image.ts';
+  import { groupScene, homeLight } from '../lib/season.ts';
   import { account, setPushHintHidden } from '../lib/auth.svelte.ts';
   import { live, startLive, stopLive } from '../lib/live.svelte.ts';
   import { api } from '../lib/api.ts';
@@ -81,7 +82,22 @@
   });
 
   /** The whole menagerie, next to the tiles on wide screens (v0.3.2). */
-  const group = sceneImage('group');
+  // v1.1: by day or night and in the Christmas season at home (Berlin when signed out).
+  // Decided anew whenever a page is opened (the shell itself stays).
+  const light = $derived.by(() => {
+    void route.path;
+    return homeLight();
+  });
+  const group = $derived(sceneImage(groupScene(light)));
+  const groupAlt = $derived(
+    light.christmas
+      ? light.day
+        ? t.start.groupAltChristmasDay
+        : t.start.groupAltChristmasNight
+      : light.day
+        ? t.start.groupAlt
+        : t.start.groupAltNight,
+  );
 </script>
 
 <div class="shell">
@@ -182,14 +198,14 @@
         </ul>
         <!-- v0.3.2: on wide screens the whole menagerie keeps the tiles company. -->
         {#if !group.placeholder}
-          <figure class="group">
+          <figure class="group" data-scene={groupScene(light)}>
             <img
               src={group.files['s480']}
               srcset={`${group.files['s480']} 480w, ${group.files['s960']} 960w`}
               sizes="30rem"
               width="960"
               height="960"
-              alt={t.start.groupAlt}
+              alt={groupAlt}
               loading="lazy"
               decoding="async"
             />

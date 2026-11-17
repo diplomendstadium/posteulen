@@ -236,8 +236,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run(
         `INSERT INTO users (id, name_display, name_key, created_on, opaque_record, ed25519_pub, x25519_pub,
                             key_format, wrapped_master_key, private_keys, home_lat, home_lon,
-                            home_changed_on, gold, last_active_date, language)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            home_changed_on, gold, last_active_date, language, via_onion)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         reservation.userId,
         reservation.display,
         reservation.key,
@@ -254,6 +254,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
         GOLD.START,
         today,
         body.language ?? DEFAULT_LANGUAGE,
+        // v1.1: created through the onion service (admin statistics only, SPEC 13).
+        request.viaTor === true ? 1 : 0,
       );
       ctx.db.run(
         "UPDATE stats_counters SET value = value + 1 WHERE key = 'accounts_created_total'",

@@ -13,11 +13,13 @@ import {
   type LoanIdentity,
   menagerieWage,
   pastGracePeriod,
-  pickOffer,
+  pickTeam,
   randomOwlName,
   rollsSick,
   speciesPrice,
+  teamSpecies,
 } from '@posteulen/shared/game/chance.ts';
+import { LOAN_TEAMS, type LoanTeam } from '@posteulen/shared/species.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
 import { isMythical, loanPrice, randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
@@ -52,44 +54,53 @@ function sharedOffer(ctx: Context, day: string): string[] | null {
   return row ? (JSON.parse(row.species) as string[]) : null;
 }
 
-function storedOffer(ctx: Context, userId: string, day: string): string[] | null {
-  const row = ctx.db.get<{ species: string }>(
-    'SELECT species FROM menagerie_user_offers WHERE user_id = ? AND day = ?',
+function storedOffer(
+  ctx: Context,
+  userId: string,
+  day: string,
+): { species: string[]; team: LoanTeam | null } | null {
+  const row = ctx.db.get<{ species: string; team: string | null }>(
+    'SELECT species, team FROM menagerie_user_offers WHERE user_id = ? AND day = ?',
     userId,
     day,
   );
-  return row ? (JSON.parse(row.species) as string[]) : null;
+  if (!row) return null;
+  const team = row.team !== null && row.team in LOAN_TEAMS ? (row.team as LoanTeam) : null;
+  return { species: JSON.parse(row.species) as string[], team };
 }
 
 /**
- * v0.8.5: the four species offered to this account on an offer day (9.6). Rolled for each
- * account on its first request of the day and kept until the next change of day; the species
- * of the account's two days before are left out (whatever was borrowed). On the day of the
- * update the shared offer of that day still counts, together with the loans already made.
- * Until v0.8.4 one offer was rolled at 00:00 for all players.
+ * v1.1: the species offered to this account on an offer day (9.6) – one whole team, rolled on
+ * the account's first request of the day and kept until the next change of day; the team of
+ * the day before is left out. Offers from before the update (four single species, v0.8.5) and
+ * the shared offer of the update day to v0.8.5 still count for their day.
  */
 export function offerOf(ctx: Context, userId: string, day: string): string[] {
-  const stored = storedOffer(ctx, userId, day) ?? sharedOffer(ctx, day);
+  const stored = storedOffer(ctx, userId, day)?.species ?? sharedOffer(ctx, day);
   if (stored) return stored;
   const start = Date.parse(`${day}T00:00:00Z`);
-  const recent = [1, 2].flatMap((back) => {
-    const before = utcDay(start - back * TIME.DAY);
-    return storedOffer(ctx, userId, before) ?? sharedOffer(ctx, before) ?? [];
-  });
-  const species = pickOffer(ctx.random, recent);
+  const previous = storedOffer(ctx, userId, utcDay(start - TIME.DAY))?.team ?? null;
+  const team = pickTeam(ctx.random, previous);
   ctx.db.run(
-    'INSERT OR IGNORE INTO menagerie_user_offers (user_id, day, species) VALUES (?, ?, ?)',
+    'INSERT OR IGNORE INTO menagerie_user_offers (user_id, day, species, team) VALUES (?, ?, ?, ?)',
     userId,
     day,
-    JSON.stringify(species),
+    JSON.stringify(teamSpecies(team)),
+    team,
   );
-  // Only the two days before are needed for the exclusion.
+  // Only the day before is needed for the exclusion (two days are kept, as before).
   ctx.db.run(
     'DELETE FROM menagerie_user_offers WHERE user_id = ? AND day < ?',
     userId,
     utcDay(start - 2 * TIME.DAY),
   );
-  return storedOffer(ctx, userId, day) ?? species;
+  return storedOffer(ctx, userId, day)?.species ?? [...teamSpecies(team)];
+}
+
+/** v1.1: the team of this account's offer on a day (null for an offer from before v1.1). */
+export function offerTeamOf(ctx: Context, userId: string, day: string): LoanTeam | null {
+  offerOf(ctx, userId, day);
+  return storedOffer(ctx, userId, day)?.team ?? null;
 }
 
 /** v0.8.5: old shared offers and offers of accounts not seen for days (04:00 clean-up). */
@@ -134,13 +145,14 @@ export function loanedOn(ctx: Context, userId: string, day: string): string[] {
 
 /**
  * v0.3.2: per offer day (00:00 UTC) every offered species can be borrowed once – so up to
- * three a day, however many loan owls are still waiting from the day before.
+ * the size of the offer a day, however many loan owls are still waiting from the day before.
  */
 export function loanProblem(ctx: Context, userId: string, species: string, now: number) {
   const day = utcDay(now);
   if (!offerOf(ctx, userId, day).includes(species)) return 'loan_not_offered';
   const today = loanedOn(ctx, userId, day);
-  if (today.length >= MENAGERIE.LOANS_PER_DAY) return 'loan_limit';
+  // v1.1: as many as the offer has species (a whole team; four on offers from before).
+  if (today.length >= offerOf(ctx, userId, day).length) return 'loan_limit';
   if (today.includes(species)) return 'loan_species';
   return null;
 }

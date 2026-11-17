@@ -21,6 +21,8 @@
   import { errorMessage } from '../lib/messages.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
+  import { account } from '../lib/auth.svelte.ts';
+  import { isChristmas } from '@posteulen/shared/game/season.ts';
 
   let {
     peerId,
@@ -30,8 +32,11 @@
     guestOnly = false,
     presetOwl = null,
     presetRecipients = null,
+    christmasPaper = 1,
   }: {
     peerId: string;
+    /** v1.1: the Christmas parchment pair of the chat (the field looks like the sent letter). */
+    christmasPaper?: number;
     onsent: () => void;
     bot?: boolean;
     /** v0.8: a bot that only takes replies with its own owl resting here. */
@@ -51,6 +56,15 @@
   const REFRESH_MS = 5 * 60_000;
 
   let parchment = $state<Parchment>('small');
+  /**
+   * v1.1: the writing field looks like the letter will look to its writer – font and parchment,
+   * Christmas parchment while it is the Christmas season at the writer's home (decided anew when
+   * sending, by the server).
+   */
+  const home = account.profile?.home;
+  const christmasNow = home ? isChristmas(Date.now(), home.lat, home.lon) : false;
+  const paper = $derived(christmasNow ? `christmas-${christmasPaper}A` : 'parchment-own');
+  const printed = $derived(account.profile?.lettersPrint ?? false);
   /** v0.8.5: a rest picked by hand (hours); null = the preselection of the chosen owl's kind. */
   let restManual = $state<number | null>(null);
   let text = $state('');
@@ -283,8 +297,17 @@
   </fieldset>
 
   <label for="letter-text">{t.letters.text}</label>
-  <textarea id="letter-text" rows="6" value={text} oninput={input} aria-describedby="letter-count"
-  ></textarea>
+  <div class="field">
+    <textarea
+      id="letter-text"
+      rows="6"
+      class={paper}
+      class:printed
+      data-christmas={christmasNow ? christmasPaper : undefined}
+      value={text}
+      oninput={input}
+      aria-describedby="letter-count"></textarea>
+  </div>
   <p id="letter-count" class:over={count > max} class="counter">
     {fill(t.letters.counter, { count, max: max.toLocaleString(locale()) })}
   </p>
@@ -423,14 +446,29 @@
     accent-color: var(--wood);
   }
 
+  /* v1.1: the Christmas parchment places its continuation by the field width (cqw). */
+  .field {
+    container-type: inline-size;
+  }
+
+  /* v1.1: like the own letter in the chat – handwriting and parchment (classes in base.css). */
   textarea {
+    display: block;
     width: 100%;
-    font: inherit;
-    padding: 0.5rem 0.75rem;
+    min-height: 10rem;
+    padding: 0.75rem clamp(0.75rem, 3vw, 1.25rem);
     border: 2px solid var(--line);
     border-radius: 0.5rem;
-    background: var(--paper);
-    color: var(--ink);
+    font-family: var(--font-hand-own);
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+
+  /* "Briefe in Druckschrift anzeigen" (8.10): the field follows it, as the letters do. */
+  textarea.printed {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   .counter {

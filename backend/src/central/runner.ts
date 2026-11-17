@@ -14,6 +14,7 @@
  * - The bot's own owl: the next letter to a player waits until its instance is back home; loan
  *   owls are new owls each time.
  */
+import { christmasAt } from '../letters/season.ts';
 import { BOTS, LETTER, TIME } from '@posteulen/shared/constants.ts';
 import type { Language } from '@posteulen/shared/i18n.ts';
 import type { Context } from '../context.ts';
@@ -430,8 +431,8 @@ export class CentralRunner {
         const media = event ? mediaOf(event) : [];
         ctx.db.run(
           `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
-                                status, owl_name, owl_species, flight_id, media, bot_event_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?, ?)`,
+                                status, owl_name, owl_species, flight_id, media, bot_event_id, christmas)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'in_flight', ?, ?, ?, ?, ?, ?)`,
           letterId,
           bot.id,
           delivery.user_id,
@@ -445,6 +446,7 @@ export class CentralRunner {
           flight.flightId,
           media.length > 0 ? JSON.stringify(media) : null,
           event?.id ?? null,
+          christmasAt(ctx, bot.id, now),
         );
         // From now on the follow-up variant (letters already started count, SPEC 10.8).
         ctx.db.run(

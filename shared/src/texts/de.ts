@@ -37,6 +37,13 @@ export const de = {
       'Hier schreibst du Briefe, die von Eulen überbracht werden – sicher verschlüsselt und mit etwas Geduld.',
     groupAlt:
       'Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand.',
+    /** v1.1: the group picture by night and in the Christmas season. */
+    groupAltNight:
+      'Siebzehn Posteulen verschiedener Arten sitzen nachts hellwach nebeneinander auf drei Holzstangen vor einer Steinwand.',
+    groupAltChristmasDay:
+      'Siebzehn Posteulen verschiedener Arten sitzen auf drei weihnachtlich geschmückten Holzstangen vor einer Steinwand.',
+    groupAltChristmasNight:
+      'Siebzehn Posteulen verschiedener Arten sitzen nachts hellwach auf drei weihnachtlich geschmückten Holzstangen vor einer Steinwand.',
     loginHeading: 'Anmelden',
     userName: 'Nutzername',
     password: 'Passwort',
@@ -211,6 +218,9 @@ export const de = {
   },
   letters: {
     title: 'Briefwechsel',
+    /** v1.1: the picture on top of the letters page. */
+    picture:
+      'Versiegelte Briefe, Pergamentrollen, Federkiel und Tintenfass auf einem Holztisch, in der Mitte ein Bogen mit der Aufschrift „Meine Briefe“',
     none: 'Noch keine Briefe. Füge im Adressbuch einen Kontakt hinzu und schreib den ersten Brief.',
     system: 'Systemnachrichten',
     /** v0.8.5: behind the name in the chat list. */
@@ -509,7 +519,9 @@ export const de = {
       'Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken. Entscheidest du dich nicht bis {until}, wird gelost (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
     clutchChick: 'Welches Küken?',
     clutchNameFirst: 'Bitte gib dem Küken zuerst einen Namen.',
-    backIn: 'Voraussichtlich zurück in {duration}.',
+    /** v1.1: with the times of the journey, as on the map. */
+    nextStop: 'Nächster Halt: {name} um ca. {time}.',
+    backAt: 'Voraussichtlich zurück in {duration} (ca. {time}).',
     and: ' und ',
     pet: 'Streicheln',
     water: 'Wasser geben',
@@ -599,6 +611,8 @@ export const de = {
     overlayClose: 'Bild schließen',
     departs: '{name} fliegt los',
     arrives: '{name} ist gelandet',
+    /** v1.1: landing with a letter, shown at the first opportunity. */
+    arrivesFrom: '{name} ist gelandet und bringt dir Post von {from}.',
     backHome: '{name} ist wieder zu Hause',
     backHomeLetter: '{name} ist wieder zu Hause – mit einem Antwortbrief',
     backHomeLetters: '{name} ist wieder zu Hause – mit {count} Antwortbriefen',
@@ -614,6 +628,10 @@ export const de = {
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'Die Menagerie in einem alten Gemäuer, bei Tag',
     pictureNight: 'Die Menagerie in einem alten Gemäuer, bei Nacht',
+    /** v1.1 */
+    pictureChristmasDay: 'Die verschneite Menagerie mit Weihnachtsschmuck, bei Tag',
+    pictureChristmasNight:
+      'Die verschneite Menagerie mit Weihnachtsschmuck und Lichtern, bei Nacht',
     buyTitle: 'Eulen kaufen',
     price: 'Preis: {price}',
     stats: 'Energie {energy} · Geschwindigkeit {speed} km/h · Erholung {recovery} %/h',
@@ -629,6 +647,10 @@ export const de = {
       'Das Eulenpostamt: Hier leihst du Eulen für einen Brief oder für Gold – jeden Tag andere. Deine geliehenen Eulen kannst du auch gleich hier versorgen und losschicken.',
     pictureDay: 'Das Eulenpostamt bei Tag',
     pictureNight: 'Das Eulenpostamt bei Nacht',
+    /** v1.1 */
+    pictureChristmasDay: 'Das verschneite Eulenpostamt mit Weihnachtsschmuck, bei Tag',
+    pictureChristmasNight:
+      'Das verschneite Eulenpostamt mit Weihnachtsschmuck und Lichtern, bei Nacht',
     loanTitle: 'Eulen leihen',
     loanIntro:
       'Heute im Angebot – für 0,1 Gold, Eulen, die auch Gold tragen, für 0,2 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
@@ -799,6 +821,8 @@ export const de = {
     statsTitle: 'Statistik',
     statsCreated: 'Konten insgesamt erstellt: {count}',
     statsCurrent: 'Konten vorhanden: {count}',
+    /** v1.1 */
+    statsOnion: 'davon über die Onion-Adresse erstellt: {count} (gezählt seit Version 1.1.0)',
     statsActive: 'In den letzten 30 Tagen aktiv: {count}',
     statsLetters: 'Briefe zwischen Menschen: {total} insgesamt, {last7} in den letzten 7 Tagen',
     statsOwlsTitle: 'Eulen im Besitz der Spieler',

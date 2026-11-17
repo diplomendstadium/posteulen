@@ -3,6 +3,32 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.1.0 – Der Eulenturm wird weihnachtlich
+
+Vorbereitungen auf die Weihnachtszeit und Wünsche des Auftraggebers (SPEC Anhang F, D-365 bis D-378).
+
+**Neu:**
+
+- **Weihnachtspergament:** Briefe, die vom ersten Advent bis zum Ende des zweiten Weihnachtsfeiertags geschrieben werden (Ortszeit am Wohnort des Absenders), liegen dauerhaft auf einem von vier Briefpapier-Paaren (A eigene Briefe, B Gegenüber). Das Paar ist je Briefwechsel fest ausgelost und auf beiden Seiten gleich; dunkle Papiere bekommen helle Tinte.
+- **Schreibfeld wie der Brief:** Das Textfeld zeigt Handschrift und Pergament des eigenen Briefs, in der Weihnachtszeit das Weihnachtspergament.
+- **Neue Handschrift** für empfangene Briefe: Playwrite DE VA (Vereinfachte Ausgangsschrift) statt Playwrite DE Grund.
+- **Ankunftsbilder** erscheinen bei der ersten Gelegenheit (offene App, Start, Anmeldung) statt erst im Chat (`GET /api/arrivals`).
+- **Nacht- und Weihnachtsbilder:** Eulen hellwach bei Nacht, wenn es am Wohnort dunkel ist; in der Weihnachtszeit Weihnachtsbilder für Eulen, Postamt und Menagerie; Gruppenbild bei Tag, Nacht und Weihnachten (ohne Anmeldung: Berlin). Bild oben auf der Briefwechsel-Seite.
+- **Große Eulenbilder** über die ganze Kartenbreite (Eulen und geliehene Eulen im Postamt), am Desktop zwei Karten nebeneinander; unterwegs der **nächste Halt mit Uhrzeit** und die Rückkehrzeit.
+- **Postamt-Teams:** Jedes Konto bekommt täglich eines von vier Teams (A–D, je fünf Arten), nie dasselbe wie am Vortag; alle Eulen des Teams sind leihbar.
+- **Zwei neue Arten:** Ostkreischeule (47 Gold, Team A) und Zypern-Zwergohreule (15 Gold, Team B).
+- **Rast** auch 6 und 12 Stunden.
+- **Adminpanel:** Zahl der über die Onion-Adresse erstellten Konten (gezählt ab 1.1.0).
+- Virginiauhu 68 Gold, Lieblingsleckerli Speckmäuse.
+- Hilfe, Erklärbär, README, SPEC, PROMPT und Update-Nachricht auf Deutsch und Englisch aktualisiert.
+
+### Hinweise für Betreiber
+
+- Migration `0021_v110.sql` (Schema-Version 21): neue Spalten `letters.christmas`, `menagerie_user_offers.team`, `users.via_onion`. Sie läuft beim Update automatisch; vorhandene Briefe bleiben auf normalem Pergament, vorhandene Konten zählen als über die normale Domain erstellt.
+- Ein neuer Server-Schlüssel wird aus der vorhandenen Geheimnis-Datei abgeleitet (nichts zu tun).
+- Keine neuen Pakete auf dem Server, keine neuen Dienste. Die Web-App ist durch die zusätzlichen Bildgrößen größer (Bilder werden weiter nur bei Bedarf geladen).
+- Noch ausstehendes Bild des Auftraggebers: `Zypernzwergohreule-Weihnachten-Schlaf.png` (bis dahin erscheint das normale Nickerchen-Bild).
+
 ## v1.0.0 – Die große Turmprüfung
 
 Wartungsversion mit Schwerpunkt Sicherheit: keine neuen Funktionen (SPEC Anhang F, D-354 bis D-364).

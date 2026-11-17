@@ -165,6 +165,8 @@ export interface OwlView {
     readonly sleeping: boolean;
     /** v0.7: resting at a recipient right now – with whom (null: no contact) and until when. */
     readonly resting: { readonly name: string | null; readonly until: number } | null;
+    /** v1.1: the next recipient on the way and the expected arrival there (as on the map). */
+    readonly nextStop: { readonly name: string | null; readonly arrivesAt: number } | null;
   } | null;
 }
 
@@ -303,6 +305,7 @@ export function owlView(
       const info = flightPosition(flight, now);
       const position = info?.position;
       const resting = route.find((stop) => stop.status === 'resting');
+      const next = route.find((stop) => stop.status === 'pending');
       absence = {
         daylight: position ? isDay(now, position.lat, position.lon) : true,
         sleeping: info?.phase === 'sleep',
@@ -314,6 +317,10 @@ export function owlView(
           .filter((stop) => stop.type === 'deliver' && stop.status === 'pending')
           .map((stop) => displayName(ctx.db, stop.userId)),
         returnsAt: route.find((stop) => stop.type === 'home')?.arrivesAt ?? null,
+        nextStop:
+          next?.type === 'deliver'
+            ? { name: displayName(ctx.db, next.userId), arrivesAt: next.arrivesAt }
+            : null,
       };
     }
   }

@@ -99,6 +99,7 @@ onSignOut(() => {
   live.pushState = 'none';
   clearOwlImages();
   queuedHomecomings.clear();
+  queuedArrivals.clear();
 });
 
 type Topic =
@@ -148,6 +149,38 @@ async function showHomecomings(current: () => boolean): Promise<void> {
     });
   }
   await api('POST', '/api/homecomings/seen', { ids: fresh.map((item) => item.id) });
+}
+
+/** v1.1: letters whose arrival image is already queued in this tab (no double pictures). */
+// Plain Set on purpose: bookkeeping, not rendered state.
+// eslint-disable-next-line svelte/prefer-svelte-reactivity
+const queuedArrivals = new Set<string>();
+
+/**
+ * v1.1: the landing of every owl that brought a letter the user has not seen arrive yet – at
+ * the first opportunity (open app, start, sign-in, return), no longer only in the chat. Several
+ * appear one after another in the order they landed (SPEC 9.2.6).
+ */
+async function showArrivals(current: () => boolean): Promise<void> {
+  if (document.visibilityState !== 'visible') return;
+  const { arrivals } = await api<{
+    arrivals: { id: string; owl: string; species: string; kind: string; from: string | null }[];
+  }>('GET', '/api/arrivals');
+  if (!current()) return;
+  const fresh = arrivals.filter((item) => !queuedArrivals.has(item.id));
+  if (fresh.length === 0) return;
+  for (const item of fresh) {
+    queuedArrivals.add(item.id);
+    queueOwlImage(() => ({
+      species: item.species,
+      kind: item.kind === 'cover_chick' ? 'chick' : 'arrival',
+      caption: fill(t.owls.arrivesFrom, {
+        name: item.owl,
+        from: item.from ?? t.letters.unknown,
+      }),
+    }));
+  }
+  await api('POST', '/api/letters/arrival-seen', { ids: fresh.map((item) => item.id) });
 }
 
 export interface SystemMessage {
@@ -241,6 +274,8 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
     );
   }
   if (topics.includes('homecomings')) tasks.push(showHomecomings(current));
+  // v1.1: new letters can arrive with every change of the chats.
+  if (topics.includes('chats')) tasks.push(showArrivals(current));
   if (topics.includes('banners')) {
     tasks.push(
       api<{ banners: { id: string; text: string; endsAt: number }[] }>('GET', '/api/banners').then(

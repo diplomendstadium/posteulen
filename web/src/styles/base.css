@@ -22,7 +22,7 @@
   --font-display: 'Cinzel Decorative', Georgia, serif;
   /* Letters (v0.3): never for names or links, which stay in --font-body (SPEC 6, 7.1). */
   --font-hand-own: 'Dancing Script', 'Comic Sans MS', cursive;
-  --font-hand-other: 'Playwrite DE Grund', 'Comic Sans MS', cursive;
+  --font-hand-other: 'Playwrite DE VA', 'Comic Sans MS', cursive;
   /* Ink colours of the letters: sepia for own letters, blue-black for the other side's. */
   --ink-own: #3a2410;
   --ink-other: #1d2740;
@@ -1035,4 +1035,97 @@ input[type='password'] {
     3.5px 10%,
     3px 5%
   );
+}
+
+/*
+ * Letter parchment (SPEC 8.4). v1.1: shared by the chat and the writing field, which shows the
+ * letter as it will look to its writer. The rest of the year: light parchment for the other
+ * side, darker for one's own (textures of the client, tiled).
+ */
+.parchment-other {
+  color: var(--ink-other);
+  background: url('../../assets/parchment-light.webp') center / 450px repeat #f3dcb0;
+}
+
+.parchment-own {
+  color: var(--ink-own);
+  background: url('../../assets/parchment-dark.webp') center / 450px repeat #d4b47c;
+}
+
+/*
+ * v1.1: Christmas parchment (SPEC 8.4, 9.11), pairs 1–4, A for one's own letters and B for the
+ * other side's. The whole picture stands on top in the width of the sheet; below it the paper
+ * goes on as a mirrored strip of its lower part (no seam, no stretched motif). The offset of the
+ * strip is the sheet width (square pictures): the sheet's parent is a size container. The ink
+ * is chosen per paper for WCAG AA (light ink with a soft shadow on the dark papers 3A and 4A).
+ */
+.christmas-1A {
+  color: #3a2410;
+  background:
+    url('../../assets/christmas-1A.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-1A-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #f4dcbe;
+}
+
+.christmas-1B {
+  color: #2b1a08;
+  background:
+    url('../../assets/christmas-1B.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-1B-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #cb9b57;
+}
+
+.christmas-2A {
+  color: #3a2410;
+  background:
+    url('../../assets/christmas-2A.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-2A-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #f9e2bc;
+}
+
+.christmas-2B {
+  color: #1d2740;
+  background:
+    url('../../assets/christmas-2B.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-2B-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #a2b59f;
+}
+
+.christmas-3A {
+  color: #fff6e6;
+  background:
+    url('../../assets/christmas-3A.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-3A-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #87664c;
+}
+
+.christmas-3B {
+  color: #2b1a08;
+  background:
+    url('../../assets/christmas-3B.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-3B-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #c6955b;
+}
+
+.christmas-4A {
+  color: #fff6e6;
+  background:
+    url('../../assets/christmas-4A.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-4A-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #c8422b;
+}
+
+.christmas-4B {
+  color: #1d2740;
+  background:
+    url('../../assets/christmas-4B.webp') 0 0 / 100% auto no-repeat,
+    url('../../assets/christmas-4B-tile.webp') 0 100cqw / 100% auto repeat-y,
+    #fde1ab;
+}
+
+.christmas-3A,
+.christmas-4A {
+  text-shadow: 0 0 2px rgb(40 20 10 / 0.55);
+  /* Links and link warnings take the ink of the paper (red would vanish on 4A). */
+  --letter-link: currentColor;
 }

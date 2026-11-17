@@ -2,9 +2,9 @@
  * Random game events (SPEC 9.6–9.9): sickness, eggs, chicks, the daily menagerie offer and
  * loan owl names. Pure functions: the random numbers (in [0, 1)) or HMAC bytes are passed in.
  */
-import { MENAGERIE, MOTIVATION, OWL } from '../constants.ts';
+import { MOTIVATION, OWL } from '../constants.ts';
 import { OWL_NAMES } from '../names-data.ts';
-import { SPECIES } from '../species.ts';
+import { LOAN_TEAMS, SPECIES, type LoanTeam } from '../species.ts';
 import { daysBetween } from './energy.ts';
 
 /** Sickness roll at 03:00 UTC: 1/30, with care bonus × 0.3 (9.8). */
@@ -46,22 +46,17 @@ export function randomOwlName(random: number, names: readonly string[] = OWL_NAM
 }
 
 /**
- * Four different species for the daily offer (9.6); `random` is called once per pick.
- * v0.7: species of the two previous days' offers (`recent`) are not offered again – there are
- * always enough others (18 non-mythical species since v0.10, at most 8 recent ones).
+ * v1.1: the team of the daily loan offer (9.6) – one of the four teams, never the team of the
+ * day before (`previous`, null if unknown or none); `random` is called once.
  */
-export function pickOffer(random: () => number, recent: readonly string[] = []): string[] {
-  // v0.5: mythical species (the phoenix) are never offered.
-  const all = SPECIES.filter((species) => !species.mythical).map((species) => species.id);
-  const fresh = all.filter((id) => !recent.includes(id));
-  const pool = fresh.length >= MENAGERIE.OFFER_SPECIES_COUNT ? fresh : all;
-  const picked: string[] = [];
-  while (picked.length < MENAGERIE.OFFER_SPECIES_COUNT && pool.length > 0) {
-    const index = Math.min(pool.length - 1, Math.floor(random() * pool.length));
-    const [id] = pool.splice(index, 1);
-    if (id) picked.push(id);
-  }
-  return picked;
+export function pickTeam(random: () => number, previous: LoanTeam | null = null): LoanTeam {
+  const teams = (Object.keys(LOAN_TEAMS) as LoanTeam[]).filter((team) => team !== previous);
+  return teams[Math.min(teams.length - 1, Math.floor(random() * teams.length))] ?? 'A';
+}
+
+/** The species of a team, in the order of the team list. */
+export function teamSpecies(team: LoanTeam): readonly string[] {
+  return LOAN_TEAMS[team];
 }
 
 export interface LoanIdentity {

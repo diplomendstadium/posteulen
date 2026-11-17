@@ -11,14 +11,14 @@ import { OWL_NAMES } from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
-  it('has 19 species (v0.5 the phoenix, v0.8.4 the Virginiauhu) with unique ids and image names', () => {
-    expect(SPECIES).toHaveLength(19);
-    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(19);
-    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(19);
-    // v0.10: the Virginiauhu is an ordinary species for 60 gold (v0.8.4: 80, not for sale).
+  it('has 21 species (v0.5 the phoenix, v0.8.4 the Virginiauhu, v1.1 two more) with unique ids and image names', () => {
+    expect(SPECIES).toHaveLength(21);
+    expect(new Set(SPECIES.map((s) => s.id)).size).toBe(21);
+    expect(new Set(SPECIES.map((s) => s.imageName)).size).toBe(21);
+    // v0.10: the Virginiauhu is an ordinary species (v0.8.4: 80, not for sale; v1.1: 68 gold).
     const virginiauhu = SPECIES.find((s) => s.id === 'virginiauhu');
     expect(virginiauhu).toMatchObject({
-      price: 60,
+      price: 68,
       maxEnergy: 1300,
       speedFactor: 3.4,
       recoveryFactor: 2,
@@ -40,7 +40,8 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('keeps all values inside the ranges of SPEC 9.2.1', () => {
-    // The Virginiauhu (v0.8.4, for sale since v0.10) stays above the usual ranges on purpose.
+    // The Virginiauhu (v0.8.4, for sale since v0.10) stays above the usual ranges on purpose,
+    // and so does the recovery of the Ostkreischeule (v1.1, 30 % per hour, checked below).
     for (const s of SPECIES.filter(
       (species) => !species.mythical && species.id !== 'virginiauhu',
     )) {
@@ -51,7 +52,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       expect(s.speedFactor).toBeGreaterThanOrEqual(0.5);
       expect(s.speedFactor).toBeLessThanOrEqual(2);
       expect(s.recoveryFactor).toBeGreaterThanOrEqual(0.5);
-      expect(s.recoveryFactor).toBeLessThanOrEqual(2);
+      expect(s.recoveryFactor).toBeLessThanOrEqual(s.id === 'ostkreischeule' ? 3 : 2);
     }
   });
 
@@ -60,12 +61,13 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       SPECIES.filter((s) => s.cargo === cargo)
         .map((s) => s.id)
         .sort();
-    expect(by('short')).toEqual(['elfenkauz', 'kanincheneule']);
+    expect(by('short')).toEqual(['elfenkauz', 'kanincheneule', 'zypernzwergohreule']);
     expect(by('long')).toEqual(
       [
         'haubenkauz',
         'maehnenkauz',
         'maskeneule',
+        'ostkreischeule',
         'schleiereule',
         'suedliche-weissgesichtseule',
         'sumpfohreule',
@@ -98,7 +100,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(17);
+    expect(OWL_IMAGE_KINDS).toHaveLength(21);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -120,6 +122,10 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Tagschlaf-Unterwegs.png',
       'Schleiereule-Tagschlaf-Zuhause.png',
       'Schleiereule-Brueten.png',
+      'Schleiereule-Nacht.png',
+      'Schleiereule-Weihnachten-Tag.png',
+      'Schleiereule-Weihnachten-Nacht.png',
+      'Schleiereule-Weihnachten-Schlaf.png',
     ]);
   });
 
@@ -127,8 +133,8 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     const phoenix = SPECIES.find((s) => s.mythical);
     const owl = SPECIES.find((s) => !s.mythical);
     expect(phoenix && imageKindsOf(phoenix).map((k) => k.kind)).not.toContain('brooding');
-    expect(phoenix && imageKindsOf(phoenix)).toHaveLength(15);
-    expect(owl && imageKindsOf(owl)).toHaveLength(17);
+    expect(phoenix && imageKindsOf(phoenix)).toHaveLength(19);
+    expect(owl && imageKindsOf(owl)).toHaveLength(21);
     expect(SCENE_IMAGES.map((scene) => scene.file)).toContain('Verbrennen.png');
   });
 });
