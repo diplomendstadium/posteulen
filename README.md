@@ -43,8 +43,9 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Briefe sind vergänglich.** Alle Briefe werden **ein Jahr** nach der Zustellung automatisch und unwiderruflich gelöscht. Wer mag, stellt in den Einstellungen 30, 90 oder 180 Tage ein. Aufgeräumt wird einmal pro Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben. Was bleiben soll, schreibt man sich besser ab – wie früher.
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
 - **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
-- **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da – die Leiheulen des Tages bietet sie nur an, wenn keine deiner Eulen den Brief tragen kann. Im Briefwechsel steht bei jedem Brief, wann er angekommen ist bzw. wann du ihn abgeschickt hast; dein Schreibfeld sieht schon aus wie dein Brief. Landet eine Eule mit Post, siehst du sie gleich beim Öffnen der App.
-- **Jedem sein Team:** Im Eulenpostamt hat jeden Tag eines von vier Eulenteams Dienst – für jedes Konto eigens ausgelost, nie zweimal hintereinander dasselbe –, und du kannst alle seine Eulen leihen – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
+- **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da – die Leiheulen des Tages bietet sie nur an, wenn keine deiner Eulen den Brief tragen kann. Im Briefwechsel steht unter jedem Brief, wann er angekommen ist bzw. wann du ihn abgeschickt hast, auf welchem Pergament und mit welcher Eule; dein Schreibfeld sieht schon aus wie dein Brief. Landet eine Eule mit Post, siehst du sie gleich beim Öffnen der App.
+- **Jedem sein Team:** Vor dem Eulenpostamt stehst du erst einmal draußen – mit „Eulenpostamt betreten“ geht es hinein, und du siehst das Team des Tages bei der Arbeit (bei Tag, bei Nacht, im Advent geschmückt). Jeden Tag hat eines von vier Eulenteams Dienst – für jedes Konto eigens ausgelost, nie zweimal hintereinander dasselbe –, und du kannst alle seine Eulen leihen – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
+- **Eine Karte wie aus dem Atlas:** Die Karte sieht aus wie ein handgezeichneter historischer Atlas – Pergament, feine Küsten, schraffierte Gebirge, kleine Wälder, Flüsse und Seen. Je näher du heranzoomst, desto mehr Landschaften, Flüsse und Meere tragen ihren Namen; rund um Westeuropa bis hin zu Lüneburger Heide, Harz und Schwäbischer Alb.
 - **Gold mit der Eule:** Kann eine Eule Gold tragen und hast du genug, hat sie in der Eulenübersicht den Knopf „Gold verschicken“. Buchungen und tägliches Gold stehen in den Einstellungen.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
 - **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (gar nicht, 1, 2, 6, 12, 24 oder 48 Stunden; vorgewählt 2 Stunden mit eigenen Eulen, 24 mit Leiheulen). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort weiter. Beim Empfänger steht im Briefwechsel ein kleines Eulensymbol hinter deinem Namen; er kann sie auch ohne Brief früher weiterfliegen lassen.
@@ -79,7 +80,7 @@ Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fra
 <p align="center">
   <img src="docs/readme/briefe.png" alt="Ein Briefwechsel: Pergamentbögen mit ausgefranstem Rand in zwei Handschriften" width="260">
   &nbsp;
-  <img src="docs/readme/karte.png" alt="Die Karte mit Wohnort, Kontakten, Städten und einer fliegenden Eule samt bisheriger Flugspur" width="260">
+  <img src="docs/readme/karte.png" alt="Die Karte im Stil eines alten Atlas: Wohnort, Kontakte, Städte, Flüsse, Gebirge und Wälder" width="260">
   &nbsp;
   <img src="docs/readme/eulen.png" alt="Die Eulenübersicht: Leiheulen und eigene Eulen, eine davon im Flug" width="260">
 </p>
@@ -94,7 +95,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.1.0** – Weihnachtspergament, Nacht- und Weihnachtsbilder, Eulenteams im Postamt, zwei neue Eulenarten und vieles mehr (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.2.0** – die Karte als handgezeichneter Atlas mit Landschafts-, Fluss- und Meeresnamen, ein Eingang fürs Eulenpostamt mit dem Team des Tages drinnen, Briefangaben unter dem Pergament (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -307,7 +308,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.1.0      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.2.0      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.

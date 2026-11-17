@@ -1,6 +1,6 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 1.0.0 (2026-11-16). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> Stand: Version 1.2.0 (2026-11-17). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-16: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde, beide `deepmerge` über `@sveltejs/vite-plugin-svelte` (siehe unten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
@@ -35,6 +35,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
 | `@fontsource/dancing-script` | 5.3.0 | OFL-1.1 | Handschrift für eigene Briefe (v0.3, D-112; veröffentlicht 2026-07-19) |
 | `@fontsource/playwrite-de-va` | 5.3.0 | OFL-1.1 | Handschrift für Briefe des Gegenübers (Vereinfachte Ausgangsschrift, D-367; veröffentlicht 2026-07-19) |
+| `@fontsource/eb-garamond` | 5.3.0 | OFL-1.1 | Kartenschrift im Atlas-Stil, nur lateinische Zeichensätze (v1.2, D-380; veröffentlicht 2026-07-19) |
 
 ## Entwicklung, Build, Tests
 
@@ -66,6 +67,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 |---|---|---|---|
 | Natural Earth 1:10m / 1:50m (Länder, Land, Seen; ab v0.2 auch „Map Units“ für England/Schottland/Wales/Nordirland und besiedelte Orte) | 5.1.2 | gemeinfrei | Kartengeometrie, Land/Wasser-Maske, deutsche Länder- und Städtenamen (`NAME_DE`), Einwohnerzahlen (`POP_MAX`) |
 | Natural Earth 1:110m Land (ab v0.3) | 5.1.2 | gemeinfrei | Weltkarte im Seitenhintergrund (`tools/map/background.ts`) |
+| Natural Earth 1:10m Flüsse (weltweit und Europa), Seen (weltweit und Europa), Meere und Regionen; 1:50m Landesgrenzen (ab v1.2) | 5.1.2 | gemeinfrei | Atlas-Ebene der Karte (`tools/map/atlas.ts`): Flüsse, Seen, Grenzen, Gebirge, Wüsten, Landschafts- und Gewässernamen deutsch und englisch |
 Das Werkzeug kommt ohne npm-Abhängigkeiten aus (eigene Rasterung, Douglas–Peucker-Vereinfachung, Rechteck-Zuschnitt, LAEA-Projektion in `shared/src/map/`). Quell-Dateien sind mit SHA-256 in `tools/map/sources.json` festgeschrieben.
 
 ## Server (APT, Debian 13)

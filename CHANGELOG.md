@@ -3,6 +3,26 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.2.0 – Ein Atlas für die Eulen
+
+Die Karte bekommt das Aussehen eines handgezeichneten historischen Atlas, dazu Wünsche des Auftraggebers zu Postamt, Briefen und Bildern (SPEC Anhang F, D-379 bis D-386).
+
+**Neu:**
+
+- **Karte als historischer Atlas:** warmes Pergament mit Papierkörnung, feine Sepia-Küsten mit Wellenlinien im Wasser, gestrichelte Landesgrenzen, Gradnetz, gedämpft blaue Flüsse und Seen, schraffierte Gebirge, Mittelgebirge als Hügel, olivgrüne Baumgruppen, Heiden, Feuchtgebiete und Wüsten. Funktionen, Koordinaten, Marker, Tag/Nacht und alle Spiel-Ebenen bleiben unverändert.
+- **Namen nach Zoom:** Ozeane, Meere, Buchten, Flüsse, Seen, Gebirge, Wälder und Landschaften erscheinen je nach Zoomstufe, ohne sich zu überlappen – im Westeuropa-Ausschnitt deutlich dichter (z. B. Norddeutsches Tiefland, Lüneburger Heide, Mecklenburgische Seenplatte, Harz, Eifel, Thüringer Wald, Erzgebirge, Schwarzwald, Schwäbische Alb, Bayerischer Wald, Alpen, Rhein, Donau, Main, Elbe, Weser, Oder, Bodensee). Kartenschrift EB Garamond: Länder in gesperrten Großbuchstaben, Städte aufrecht, Natur und Gewässer kursiv. Deutsch und Englisch.
+- **Legende:** „Nacht“ ohne Erklärung in Klammern, „Reisende Eulen“ statt „Deine Eulen unterwegs“.
+- **Eulenpostamt mit Eingang:** Zuerst Ortsbild, Einleitung und der Knopf „Eulenpostamt betreten“; drinnen (`/app/postamt/innen`) das Innenbild des Eulenteams des Tages bei Tag, bei Nacht und in der Weihnachtszeit, darunter Leiheulen und Angebot.
+- **Briefe:** Zeit, Pergamentart, überbringende Eule und Status stehen unter dem Pergament statt darauf.
+- **Bilder:** Eulen schauen nachts im Dunkeln grummelig (alle 21 Arten), Weihnachtsschlaf der Zypern-Zwergohreule, 16 Innenbilder des Postamts. Es fehlen keine Bilder mehr.
+- Hilfe, Erklärbär, README, SPEC, PROMPT und Update-Nachricht auf Deutsch und Englisch aktualisiert.
+
+### Hinweise für Betreiber
+
+- Keine Migration (Schema-Version bleibt 21), keine neuen Dienste, keine neuen Pakete auf dem Server.
+- Neue Abhängigkeit im Web-Build: `@fontsource/eb-garamond` 5.3.0 (OFL). Die Web-App wird durch die Atlas-Daten (etwa 230 KiB komprimiert, geladen mit der Karte), die Kartenschrift und die neuen Bilder größer.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.1.0 – Der Eulenturm wird weihnachtlich
 
 Vorbereitungen auf die Weihnachtszeit und Wünsche des Auftraggebers (SPEC Anhang F, D-365 bis D-378).
@@ -27,7 +47,6 @@ Vorbereitungen auf die Weihnachtszeit und Wünsche des Auftraggebers (SPEC Anhan
 - Migration `0021_v110.sql` (Schema-Version 21): neue Spalten `letters.christmas`, `menagerie_user_offers.team`, `users.via_onion`. Sie läuft beim Update automatisch; vorhandene Briefe bleiben auf normalem Pergament, vorhandene Konten zählen als über die normale Domain erstellt.
 - Ein neuer Server-Schlüssel wird aus der vorhandenen Geheimnis-Datei abgeleitet (nichts zu tun).
 - Keine neuen Pakete auf dem Server, keine neuen Dienste. Die Web-App ist durch die zusätzlichen Bildgrößen größer (Bilder werden weiter nur bei Bedarf geladen).
-- Noch ausstehendes Bild des Auftraggebers: `Zypernzwergohreule-Weihnachten-Schlaf.png` (bis dahin erscheint das normale Nickerchen-Bild).
 
 ## v1.0.0 – Die große Turmprüfung
 
