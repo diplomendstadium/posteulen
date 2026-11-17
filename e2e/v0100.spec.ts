@@ -48,6 +48,9 @@ test.describe('Version 0.10', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Postamt');
     const picture = page.getByTestId('place-image');
     await expect(picture.locator('img')).toHaveAttribute('alt', /Eulenpostamt bei (Tag|Nacht)/);
+    // v1.2: the loan owls are inside.
+    await page.getByRole('link', { name: 'Eulenpostamt betreten' }).click();
+    await expect(picture.locator('img')).toHaveAttribute('alt', /^Im Eulenpostamt bei (Tag|Nacht)/);
     const offer = page.getByTestId('loan-offer').first();
     await expect(offer.getByTestId('loan-stats')).toContainText(/Energie .* · Trägt kurzes/);
     await expect(offer).toContainText(/Leihgebühr: 0,[12] Gold/);

@@ -229,12 +229,6 @@
         use:tilt
       >
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
-        <p class="meta">
-          <!-- v0.10.1: received letters say when they arrived, never when they were written. -->
-          {stamp(letter)} · {letter.parchment === 'large' ? t.letters.large : t.letters.small}
-          {#if letter.status !== 'returned'}
-            · {carrierText(letter)}{/if}
-        </p>
         {#if letter.text !== null}
           <LetterText text={letter.text} />
           {#if letter.media && letter.media.length > 0 && letter.role === 'recipient'}
@@ -261,6 +255,16 @@
             {letter.role === 'sender' ? t.letters.unreadable : t.letters.invalid}
           </p>
         {/if}
+      </article>
+      <!-- v1.2: time, parchment, carrier and status below the sheet, on a small plate; the
+           parchment holds only the letter. -->
+      <div class="under">
+        <p class="meta">
+          <!-- v0.10.1: received letters say when they arrived, never when they were written. -->
+          {stamp(letter)} · {letter.parchment === 'large' ? t.letters.large : t.letters.small}
+          {#if letter.status !== 'returned'}
+            · {carrierText(letter)}{/if}
+        </p>
         {#if letter.role === 'sender'}
           <p class="status">
             <span aria-hidden="true"
@@ -275,7 +279,7 @@
             {statusText(letter)}
           </p>
         {/if}
-      </article>
+      </div>
     </li>
   {/each}
 </ol>
@@ -434,17 +438,25 @@
     transform: none;
   }
 
-  /* On dark parchment the small print uses the darkest ink as well. */
-  .mine .meta,
-  .mine .status {
-    color: var(--ink);
-  }
-
-  /* v1.1: on Christmas parchment the small print, cover note and status take its ink. */
-  .sheet[data-christmas] .meta,
-  .sheet[data-christmas] .status,
+  /* v1.1: on Christmas parchment the cover note takes its ink. */
   .sheet[data-christmas] .cover {
     color: inherit;
+  }
+
+  /* v1.2: the small print below the sheet, on a plate (no text directly on the page). */
+  .under {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 0.6rem;
+    padding: 0.35rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .mine .under {
+    margin-left: auto;
   }
 
   .print .sheet,
@@ -476,13 +488,14 @@
 
   .meta,
   .status {
-    margin: 0 0 0.25rem;
+    margin: 0;
     font-size: 0.9rem;
+    line-height: 1.4;
     color: var(--ink-soft);
   }
 
   .status {
-    margin: 0.5rem 0 0;
+    margin-top: 0.25rem;
   }
 
   .invalid,

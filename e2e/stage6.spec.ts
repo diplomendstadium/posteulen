@@ -90,6 +90,7 @@ test.describe('Barrierefreiheit (SPEC 14)', () => {
       '/app/eulen',
       '/app/menagerie',
       '/app/postamt',
+      '/app/postamt/innen',
       '/app/adressbuch',
       '/app/karte',
       '/app/einstellungen',
@@ -139,7 +140,7 @@ test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async
   await page.getByTestId('owl-overlay').waitFor();
   expect(await inDisplayFont(page, 'Waldi'), 'Einblendung').toEqual([]);
   await page.keyboard.press('Escape');
-  await page.goto('/app/postamt');
+  await page.goto('/app/postamt/innen');
   await page.getByTestId('loan-offer').first().waitFor();
   const loanName = (await page.getByTestId('loan-offer').first().locator('h3').textContent()) ?? '';
   expect(loanName).not.toBe('');

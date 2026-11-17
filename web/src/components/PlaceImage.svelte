@@ -3,41 +3,53 @@
    * v0.10: the picture of a place on top of its page – the Menagerie or the owl post office, by
    * day or by night at the player's fictional home (sun more than 6° below the horizon = night,
    * as for the homecoming pictures). v1.1: in the Christmas season at home the snowy Christmas
-   * pictures, by day and by night (SPEC 9.2.6, 9.11).
+   * pictures, by day and by night (SPEC 9.2.6, 9.11). v1.2: inside the post office the picture of
+   * the team of the day (SPEC 8.6, 9.6).
    */
-  import type { SceneId } from '@posteulen/shared/species.ts';
+  import type { LoanTeam, SceneId } from '@posteulen/shared/species.ts';
   import { t } from '../lib/i18n.svelte.ts';
   import { sceneImage } from '../lib/owl-image.ts';
   import { homeLight } from '../lib/season.ts';
 
   /** v1.1: also the letters page – one picture for all times of day and the whole year. */
-  let { place }: { place: 'menagerie' | 'post' | 'letters' } = $props();
+  let {
+    place,
+    team = 'A',
+  }: { place: 'menagerie' | 'post' | 'postInside' | 'letters'; team?: LoanTeam } = $props();
 
   const { day, christmas } = homeLight();
   const scene = $derived<SceneId>(
     place === 'letters'
       ? 'letters'
-      : (`${place}${christmas ? 'Xmas' : ''}${day ? 'Day' : 'Night'}` as SceneId),
+      : (`${place}${place === 'postInside' ? team : ''}${christmas ? 'Xmas' : ''}${day ? 'Day' : 'Night'}` as SceneId),
   );
   const image = $derived(sceneImage(scene));
   const alt = $derived(
     place === 'letters'
       ? t.letters.picture
-      : place === 'menagerie'
+      : place === 'postInside'
         ? christmas
           ? day
-            ? t.menagerie.pictureChristmasDay
-            : t.menagerie.pictureChristmasNight
+            ? t.post.insideChristmasDay
+            : t.post.insideChristmasNight
           : day
-            ? t.menagerie.pictureDay
-            : t.menagerie.pictureNight
-        : christmas
-          ? day
-            ? t.post.pictureChristmasDay
-            : t.post.pictureChristmasNight
-          : day
-            ? t.post.pictureDay
-            : t.post.pictureNight,
+            ? t.post.insideDay
+            : t.post.insideNight
+        : place === 'menagerie'
+          ? christmas
+            ? day
+              ? t.menagerie.pictureChristmasDay
+              : t.menagerie.pictureChristmasNight
+            : day
+              ? t.menagerie.pictureDay
+              : t.menagerie.pictureNight
+          : christmas
+            ? day
+              ? t.post.pictureChristmasDay
+              : t.post.pictureChristmasNight
+            : day
+              ? t.post.pictureDay
+              : t.post.pictureNight,
   );
 </script>
 

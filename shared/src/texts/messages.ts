@@ -48,6 +48,18 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.2.0',
+    title: 'Ein Atlas für die Eulen: Version 1.2.0',
+    paragraphs: [
+      'Die Eulen haben in einer alten Truhe einen handgezeichneten Atlas gefunden – und ihn gleich für deine Karte abgepaust:',
+      '• Die Karte sieht jetzt aus wie aus einem historischen Atlas: warmes Pergament, feine Küstenlinien, schraffierte Gebirge, kleine Wälder, Flüsse und Seen. Je näher du heranzoomst, desto mehr Landschaften, Flüsse und Meere tragen ihren Namen – von den Ozeanen der Welt bis zur Lüneburger Heide.',
+      '• Das Eulenpostamt hat jetzt eine richtige Tür: Erst stehst du davor, dann trittst du ein und siehst das Eulenteam des Tages bei der Arbeit – bei Tag, bei Nacht und im Advent festlich geschmückt.',
+      '• Wann ein Brief kam, auf welchem Pergament und mit welcher Eule, steht jetzt unter dem Brief. Auf dem Pergament bleibt nur, was geschrieben wurde.',
+      '• Schlecht gelaunte Eulen grummeln nachts jetzt im Dunkeln – und die Zypern-Zwergohreule hat ihr Weihnachtsnickerchen bekommen.',
+      'Gute Flüge und viel Freude beim Entdecken!',
+    ],
+  },
+  {
     version: '1.1.0',
     title: 'Der Eulenturm wird weihnachtlich: Version 1.1.0',
     paragraphs: [
@@ -368,6 +380,18 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.2.0',
+    title: 'An atlas for the owls: version 1.2.0',
+    paragraphs: [
+      'In an old chest the owls found a hand-drawn atlas – and traced it straight onto your map:',
+      '• The map now looks like a page from a historical atlas: warm parchment, fine coastlines, hatched mountains, little forests, rivers and lakes. The closer you zoom in, the more landscapes, rivers and seas carry their names – from the oceans of the world down to the Black Forest.',
+      '• The owl post office now has a proper door: first you stand outside, then you step in and see the owl team of the day at work – by day, at night and festively decorated in Advent.',
+      '• When a letter came, on which parchment and with which owl now stands below the letter. Only what was written stays on the parchment.',
+      '• Grumpy owls now grumble in the dark at night – and the Cyprus Scops Owl has got its Christmas nap.',
+      'Happy flying and have fun exploring!',
+    ],
+  },
   {
     version: '1.1.0',
     title: 'Christmas comes to the owl tower: version 1.1.0',

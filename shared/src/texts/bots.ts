@@ -35,14 +35,14 @@ Dein Erklärbär`,
 
 Jede Eule hat Energie. Nachts braucht sie 1 Punkt pro Kilometer, tagsüber 1,5. Ist sie leer, schläft sie und erholt sich dabei wie zu Hause – aber nur so lange, bis die Kraft fürs nächste Ziel reicht. Über Wasser fliegt sie weiter, bis sie Land findet.
 
-Zu Hause erholt sie sich von selbst. Beim Schreiben wählst du, wie lange sie bei jedem Empfänger rastet – dann kann sie dir gleich eine Antwort mitbringen. Ist eine Eule bereit, schickst du sie in der Eulenübersicht auch direkt mit „Brief schreiben“ los. Unterwegs verrät dir jede Eule ihren nächsten Halt mit Uhrzeit, und auf der Karte siehst du, wo sie gerade ist.
+Zu Hause erholt sie sich von selbst. Beim Schreiben wählst du, wie lange sie bei jedem Empfänger rastet – dann kann sie dir gleich eine Antwort mitbringen. Ist eine Eule bereit, schickst du sie in der Eulenübersicht auch direkt mit „Brief schreiben“ los. Unterwegs verrät dir jede Eule ihren nächsten Halt mit Uhrzeit, und auf der Karte – sie sieht aus wie ein alter Atlas – siehst du, wo sie gerade ist.
 
 Bis bald, dein Erklärbär`,
   day2: `Hallo, heute geht es ums Gold!
 
 Dein Gold siehst du oben rechts, die Buchungen in den Einstellungen. Eulen, die Gold tragen können, haben in der Eulenübersicht den Knopf „Gold verschicken“.
 
-In der Menagerie kaufst du Eulen, im Postamt hat jeden Tag eines von vier Eulenteams Dienst, eigens für dich ausgelost – jede seiner Eulen kannst du leihen. Kleine Eulen tragen nur kurzes Pergament, nur kräftige auch Gold. Eine Eule, die du übrig hast, kannst du für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du Eulen, im Postamt hat jeden Tag eines von vier Eulenteams Dienst, eigens für dich ausgelost – tritt ein und leih dir seine Eulen. Kleine Eulen tragen nur kurzes Pergament, nur kräftige auch Gold. Eine Eule, die du übrig hast, kannst du für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
 
 Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück. Klemmt etwas, oder hast du eine Idee? Ganz unten in den Einstellungen schickst du dem Admin eine kurze Nachricht.
 

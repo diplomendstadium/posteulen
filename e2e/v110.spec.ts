@@ -104,7 +104,11 @@ test.describe('Version 1.1', () => {
     await expect(page.getByText(/Heute geliehen: 1 von 5/)).toBeVisible();
     // Full motivation: not the grumpy picture of 80 %.
     setOwlEnergy(account.name, 1, 10);
-    await expect(page.getByTestId('place-image')).toHaveAttribute('data-scene', 'postNight');
+    // v1.2: inside the post office the picture of the team of the day.
+    await expect(page.getByTestId('place-image')).toHaveAttribute(
+      'data-scene',
+      /^postInside[ABCD]Night$/,
+    );
     await page.goto('/app/eulen');
     const card = page.getByTestId('owl-card').filter({ hasText: owl });
     const picture = card.locator('img').first();

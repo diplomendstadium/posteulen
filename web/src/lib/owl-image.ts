@@ -16,6 +16,8 @@ const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
   xmasDay: 'normal',
   xmasNight: 'night',
   night: 'normal',
+  // v1.2: grumpy at night → the grumpy picture by day (the phoenix has none at night).
+  grumpyNight: 'grumpy',
 };
 
 export function owlImage(
@@ -37,6 +39,15 @@ const SCENE_FALLBACK: Partial<Record<SceneId, SceneId>> = {
   menagerieXmasNight: 'menagerieNight',
   postXmasDay: 'postDay',
   postXmasNight: 'postNight',
+  // v1.2: inside the post office – a missing Christmas picture falls back to the ordinary one.
+  postInsideAXmasDay: 'postInsideADay',
+  postInsideAXmasNight: 'postInsideANight',
+  postInsideBXmasDay: 'postInsideBDay',
+  postInsideBXmasNight: 'postInsideBNight',
+  postInsideCXmasDay: 'postInsideCDay',
+  postInsideCXmasNight: 'postInsideCNight',
+  postInsideDXmasDay: 'postInsideDDay',
+  postInsideDXmasNight: 'postInsideDNight',
 };
 
 /** Pictures without a species (empty perch, group picture); the placeholder if missing. */

@@ -129,6 +129,8 @@ export function lendToMenagerie(id: string): Promise<{ owl: Owl }> {
 
 export interface Offer {
   readonly day: string;
+  /** v1.1: the team of the day (null for an offer from before v1.1); v1.2: picture inside. */
+  readonly team: 'A' | 'B' | 'C' | 'D' | null;
   readonly maxLoans: number;
   readonly loans: number;
   readonly offer: readonly {

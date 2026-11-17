@@ -651,6 +651,16 @@ export const de = {
     pictureChristmasDay: 'Das verschneite Eulenpostamt mit Weihnachtsschmuck, bei Tag',
     pictureChristmasNight:
       'Das verschneite Eulenpostamt mit Weihnachtsschmuck und Lichtern, bei Nacht',
+    /** v1.2: the entrance leads inside, where the loan owls of the day are. */
+    enter: 'Eulenpostamt betreten',
+    insideDay:
+      'Im Eulenpostamt bei Tag: die Leiheulen von heute zwischen Schalter, Regalen und Paketen',
+    insideNight:
+      'Im Eulenpostamt bei Nacht: die Leiheulen von heute im Laternenlicht zwischen Schalter, Regalen und Paketen',
+    insideChristmasDay:
+      'Im weihnachtlich geschmückten Eulenpostamt bei Tag: die Leiheulen von heute zwischen Schalter, Regalen und Geschenken',
+    insideChristmasNight:
+      'Im weihnachtlich geschmückten Eulenpostamt bei Nacht: die Leiheulen von heute im Lichterglanz zwischen Schalter, Regalen und Geschenken',
     loanTitle: 'Eulen leihen',
     loanIntro:
       'Heute im Angebot – für 0,1 Gold, Eulen, die auch Gold tragen, für 0,2 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
@@ -706,8 +716,8 @@ export const de = {
     legendHome: 'Dein Wohnort',
     legendContact: 'Kontakte',
     legendBot: 'Bots',
-    legendOwl: 'Deine Eulen unterwegs',
-    legendNight: 'Nacht (Sonne 6° oder mehr unter dem Horizont)',
+    legendOwl: 'Reisende Eulen',
+    legendNight: 'Nacht',
     flightsTitle: 'Deine Eulen unterwegs',
     flightsNone: 'Gerade ist keine deiner Eulen unterwegs.',
     flightLine: '{owl}: {purpose} – {where}',

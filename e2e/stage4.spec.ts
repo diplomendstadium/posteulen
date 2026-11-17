@@ -34,7 +34,7 @@ async function buyAndName(page: Page, species: string, name: string): Promise<vo
 test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
   test('Leiheule: im Angebot leihen, sie wartet 24 Stunden', async ({ page }) => {
     await registerViaUi(page);
-    await page.goto('/app/postamt');
+    await page.goto('/app/postamt/innen');
     // v1.1: a whole team of the post office (five species).
     await expect(page.getByTestId('loan-offer')).toHaveCount(5);
     const name = await borrowViaUi(page);

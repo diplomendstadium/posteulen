@@ -71,6 +71,7 @@ test.describe('Version 0.3', () => {
       '/app/menagerie',
       '/app/karte',
       '/app/postamt',
+      '/app/postamt/innen',
       '/app/einstellungen',
     ]) {
       await page.goto(path);
@@ -176,7 +177,7 @@ test.describe('Version 0.3', () => {
   }) => {
     const { name } = await registerViaUi(page);
     setGold(name, 300);
-    await page.goto('/app/postamt');
+    await page.goto('/app/postamt/innen');
     await page.getByTestId('loan-offer').first().getByRole('button').click();
     await expect(page.getByText(/wartet jetzt hier und bei deinen Eulen/)).toBeVisible();
     await page.goto('/app/menagerie');

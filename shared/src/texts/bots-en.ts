@@ -33,7 +33,7 @@ Your Explainer Bear`,
 
 You see your gold at the top right and your bookings in the settings. Owls that can carry gold have the button “Send gold” in your owl overview.
 
-In the Menagerie you buy owls; at the post office one of four owl teams is on duty every day, drawn just for you – you can borrow each of its owls. Small owls carry short parchment only, only strong ones also carry gold. An owl you have to spare can be lent to the Menagerie for 7 days, and you get 10% of its price afterwards.
+In the Menagerie you buy owls; at the post office one of four owl teams is on duty every day, drawn just for you – step inside and borrow its owls. Small owls carry short parchment only, only strong ones also carry gold. An owl you have to spare can be lent to the Menagerie for 7 days, and you get 10% of its price afterwards.
 
 By the way: the little flag in the top right corner switches PostEulen to German and back. Something not working, or an idea? At the very bottom of the settings you can send the admin a short message.
 
@@ -42,7 +42,7 @@ Happy saving, your Explainer Bear`,
 
 Every owl has energy. At night it needs 1 point per kilometre, by day 1.5. When it is empty, it sleeps and recovers just as at home – but only until it has the strength for its next destination. Over water it keeps flying until it finds land.
 
-At home it recovers by itself. When writing, you choose how long it rests with each recipient – then it can bring you a reply straight away. Once an owl is ready, you can also send it off straight from the owl overview with “Write a letter”. On the way each owl tells you its next stop with the time, and the map shows where it is right now.
+At home it recovers by itself. When writing, you choose how long it rests with each recipient – then it can bring you a reply straight away. Once an owl is ready, you can also send it off straight from the owl overview with “Write a letter”. On the way each owl tells you its next stop with the time, and the map – it looks like an old atlas – shows where it is right now.
 
 See you soon, your Explainer Bear`,
     day4: `Hello, today is all about contacts!

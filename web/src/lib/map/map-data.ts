@@ -3,6 +3,7 @@
  * Both are loaded only when a map is shown, so they are not part of the main bundle.
  */
 import maskUrl from '../../../../shared/data/landmask.bin?url';
+import type { AtlasData } from '@posteulen/shared/map/atlas.ts';
 
 export interface Country {
   readonly id: string;
@@ -44,6 +45,14 @@ let data: Promise<MapData> | undefined;
 export function loadMapData(): Promise<MapData> {
   data ??= import('./world.json').then((module) => module.default as unknown as MapData);
   return data;
+}
+
+let atlas: Promise<AtlasData> | undefined;
+
+/** v1.2: the atlas layer (rivers, borders, symbols, names), loaded together with the map. */
+export function loadAtlasData(): Promise<AtlasData> {
+  atlas ??= import('./atlas.json').then((module) => module.default as unknown as AtlasData);
+  return atlas;
 }
 
 let mask: Promise<Uint8Array> | undefined;

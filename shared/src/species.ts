@@ -67,7 +67,9 @@ export const CHEAPEST_SPECIES: Species = SPECIES.reduce((a, b) => (b.price < a.p
  * v0.5.1: asleep on the way at night / by day, and a nap at home by day (16 kinds).
  * v0.7: brooding on its eggs (17 kinds; the phoenix lays no eggs and has 15).
  * v1.1: awake at night (shown instead of the normal picture while it is dark at the viewer's
- * home) and the three Christmas pictures by day, by night and napping (21 kinds; phoenix 19).
+ * home) and the three Christmas pictures by day, by night and napping.
+ * v1.2: grumpy at night (shown instead of the grumpy picture while it is dark at the viewer's
+ * home; 22 kinds, phoenix 20).
  */
 export const OWL_IMAGE_KINDS = [
   { kind: 'normal', suffix: '' },
@@ -91,6 +93,7 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'xmasDay', suffix: 'Weihnachten-Tag' },
   { kind: 'xmasNight', suffix: 'Weihnachten-Nacht' },
   { kind: 'xmasNap', suffix: 'Weihnachten-Schlaf' },
+  { kind: 'grumpyNight', suffix: 'Grummelig-Nacht' },
 ] as const;
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */
@@ -125,6 +128,25 @@ export const SCENE_IMAGES = [
   { id: 'postXmasDay', file: 'Postamt-Weihnachten-Tag.png', sizes: [480, 960] },
   { id: 'postXmasNight', file: 'Postamt-Weihnachten-Nacht.png', sizes: [480, 960] },
   { id: 'letters', file: 'Briefwechsel.png', sizes: [480, 960] },
+  // v1.2: inside the post office – one picture per team of the day, by day and by night, and in
+  // the Christmas season (SPEC 8.6, 9.6).
+  ...(['A', 'B', 'C', 'D'] as const).flatMap(
+    (team) =>
+      [
+        { id: `postInside${team}Day`, file: `Postamt-Team-${team}-Tag.png`, sizes: [480, 960] },
+        { id: `postInside${team}Night`, file: `Postamt-Team-${team}-Nacht.png`, sizes: [480, 960] },
+        {
+          id: `postInside${team}XmasDay`,
+          file: `Postamt-Team-${team}-Weihnachten-Tag.png`,
+          sizes: [480, 960],
+        },
+        {
+          id: `postInside${team}XmasNight`,
+          file: `Postamt-Team-${team}-Weihnachten-Nacht.png`,
+          sizes: [480, 960],
+        },
+      ] as const,
+  ),
 ] as const;
 
 /**

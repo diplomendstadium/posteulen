@@ -104,8 +104,10 @@ test.describe('Screenshots Eulen, Postamt, Gold, Karte (Stufe 3)', () => {
     await page.goto('/app/menagerie');
     await shoot(page, info, 'menagerie', true);
     await page.goto('/app/postamt');
-    await page.getByTestId('loan-offer').first().waitFor();
     await shoot(page, info, 'postamt', true);
+    await page.goto('/app/postamt/innen');
+    await page.getByTestId('loan-offer').first().waitFor();
+    await shoot(page, info, 'postamt-innen', true);
     await page.goto('/app/menagerie');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());

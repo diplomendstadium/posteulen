@@ -25,6 +25,7 @@ const APP_PAGES = [
   '/app/briefe',
   '/app/eulen',
   '/app/postamt',
+  '/app/postamt/innen',
   '/app/menagerie',
   '/app/adressbuch',
   '/app/karte',

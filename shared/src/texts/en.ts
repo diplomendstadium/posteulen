@@ -626,6 +626,16 @@ export const en: Texts = {
     pictureChristmasDay: 'The snowy owl post office decorated for Christmas, by day',
     pictureChristmasNight:
       'The snowy owl post office decorated for Christmas with its lights, at night',
+    /** v1.2: the entrance leads inside, where the loan owls of the day are. */
+    enter: 'Enter the owl post office',
+    insideDay:
+      "Inside the owl post office by day: today's loan owls among counter, shelves and parcels",
+    insideNight:
+      "Inside the owl post office at night: today's loan owls in lantern light among counter, shelves and parcels",
+    insideChristmasDay:
+      "Inside the owl post office decorated for Christmas, by day: today's loan owls among counter, shelves and presents",
+    insideChristmasNight:
+      "Inside the owl post office decorated for Christmas, at night: today's loan owls in the glow of the lights among counter, shelves and presents",
     loanTitle: 'Borrow owls',
     loanIntro:
       'On offer today – for 0.1 gold, owls that also carry gold for 0.2 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back (no refund). Once a loan is over, its offer disappears until tomorrow.',
@@ -681,8 +691,8 @@ export const en: Texts = {
     legendHome: 'Your home',
     legendContact: 'Contacts',
     legendBot: 'Bots',
-    legendOwl: 'Your owls on their way',
-    legendNight: 'Night (sun 6° or more below the horizon)',
+    legendOwl: 'Travelling owls',
+    legendNight: 'Night',
     flightsTitle: 'Your owls on their way',
     flightsNone: 'None of your owls is on its way right now.',
     flightLine: '{owl}: {purpose} – {where}',

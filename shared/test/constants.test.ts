@@ -100,7 +100,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(21);
+    expect(OWL_IMAGE_KINDS).toHaveLength(22);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -126,6 +126,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Weihnachten-Tag.png',
       'Schleiereule-Weihnachten-Nacht.png',
       'Schleiereule-Weihnachten-Schlaf.png',
+      'Schleiereule-Grummelig-Nacht.png',
     ]);
   });
 
@@ -133,8 +134,8 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     const phoenix = SPECIES.find((s) => s.mythical);
     const owl = SPECIES.find((s) => !s.mythical);
     expect(phoenix && imageKindsOf(phoenix).map((k) => k.kind)).not.toContain('brooding');
-    expect(phoenix && imageKindsOf(phoenix)).toHaveLength(19);
-    expect(owl && imageKindsOf(owl)).toHaveLength(21);
+    expect(phoenix && imageKindsOf(phoenix)).toHaveLength(20);
+    expect(owl && imageKindsOf(owl)).toHaveLength(22);
     expect(SCENE_IMAGES.map((scene) => scene.file)).toContain('Verbrennen.png');
   });
 });

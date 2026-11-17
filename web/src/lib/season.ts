@@ -24,7 +24,8 @@ export function homeLight(at: number = Date.now()): HomeLight {
 /**
  * The standard picture of an owl for the light at home: by night the awake owl in the dark, in
  * the Christmas season the Christmas pictures by day, by night and napping. Other kinds (flight,
- * sleep on the way, grumpy, chick, brooding …) stay as they are.
+ * sleep on the way, chick, brooding …) stay as they are. v1.2: a grumpy owl looks grumpy in the
+ * dark at night.
  */
 export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind {
   if (kind === 'normal') {
@@ -32,6 +33,7 @@ export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind
     return light.day ? 'normal' : 'night';
   }
   if (kind === 'napHome' && light.christmas) return 'xmasNap';
+  if (kind === 'grumpy' && !light.day) return 'grumpyNight';
   return kind;
 }
 

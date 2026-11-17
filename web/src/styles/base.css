@@ -23,6 +23,8 @@
   /* Letters (v0.3): never for names or links, which stay in --font-body (SPEC 6, 7.1). */
   --font-hand-own: 'Dancing Script', 'Comic Sans MS', cursive;
   --font-hand-other: 'Playwrite DE VA', 'Comic Sans MS', cursive;
+  /* v1.2: the names on the map, as in an old atlas. */
+  --font-atlas: 'EB Garamond', Georgia, serif;
   /* Ink colours of the letters: sepia for own letters, blue-black for the other side's. */
   --ink-own: #3a2410;
   --ink-other: #1d2740;

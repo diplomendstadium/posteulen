@@ -31,23 +31,23 @@ test.describe('Version 0.10.1', () => {
     page,
   }) => {
     await registerViaUi(page);
-    await page.goto('/app/postamt');
+    await page.goto('/app/postamt/innen');
     // Nothing borrowed yet: no section for it.
     await expect(page.getByRole('heading', { name: 'Deine Leiheulen' })).toHaveCount(0);
     const owl = await borrowViaUi(page);
     const borrowed = page.getByRole('heading', { name: 'Deine Leiheulen' });
     const offer = page.getByRole('heading', { name: 'Eulen leihen' });
-    const intro = page.getByText(/^Das Eulenpostamt: Hier leihst du Eulen/);
     await expect(borrowed).toBeVisible();
     await expect(page.getByTestId('owl-card').filter({ hasText: owl })).toBeVisible();
+    // v1.2: inside the picture of the team, the borrowed owls, the offer – the intro is outside.
+    await expect(page.getByText(/^Das Eulenpostamt: Hier leihst du Eulen/)).toHaveCount(0);
     const y = async (locator: typeof borrowed) => (await locator.boundingBox())!.y;
-    expect(await y(page.getByTestId('place-image'))).toBeLessThan(await y(intro));
-    expect(await y(intro)).toBeLessThan(await y(borrowed));
+    expect(await y(page.getByTestId('place-image'))).toBeLessThan(await y(borrowed));
     expect(await y(borrowed)).toBeLessThan(await y(offer));
 
     // Title, subheading and picture as wide as the contents; the headings centred.
     const width = async (locator: typeof borrowed) => (await locator.boundingBox())!.width;
-    const content = await width(intro);
+    const content = await width(page.locator('.section-head'));
     for (const element of [
       page.getByRole('heading', { level: 1 }),
       borrowed,
