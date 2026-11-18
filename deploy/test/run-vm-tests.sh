@@ -80,7 +80,7 @@ previous=$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/nu
 echo "Vorige Stufe: ${previous:-keine}"
 
 say "VM starten"
-qemu-img create -q -f qcow2 -b "$CACHE/$IMAGE" -F qcow2 "$run_dir/disk.qcow2" 12G
+qemu-img create -q -f qcow2 -b "$CACHE/$IMAGE" -F qcow2 "$run_dir/disk.qcow2" 20G
 mkdir -p "$run_dir/seed"
 cat >"$run_dir/seed/user-data" <<UD
 #cloud-config

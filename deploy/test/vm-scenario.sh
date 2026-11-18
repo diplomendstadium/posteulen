@@ -130,6 +130,8 @@ diag() {
 
 apt-get update -qq && apt-get install -y -qq git >/dev/null
 git clone --quiet --bare /var/tmp/posteulen.bundle /srv/posteulen.git
+# v1.2.1: Platz für den Test lassen (das Bundle mit allen Bildern ist gut 1,5 GB groß).
+rm -f /var/tmp/posteulen.bundle
 git -C /srv/posteulen.git config uploadpack.allowFilter true
 git clone --quiet /srv/posteulen.git /root/posteulen
 printf '127.0.0.1 %s admin.%s bots.%s www.%s\n' "$DOMAIN" "$DOMAIN" "$DOMAIN" "$DOMAIN" >>/etc/hosts
