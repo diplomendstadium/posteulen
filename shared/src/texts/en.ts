@@ -55,6 +55,8 @@ export const en: Texts = {
     wrong: 'Name or password is not correct.',
     wait: 'Too many attempts. Please wait {seconds} seconds.',
     deletionCancelled: 'Welcome back! The deletion of your account has been cancelled.',
+    /** v1.2.3: name of the info text box at the bottom of the start page (shared/texts/about.ts). */
+    about: 'About PostEulen',
   },
   register: {
     title: 'Create account',

@@ -11,6 +11,8 @@
   import { errorMessage } from '../lib/messages.ts';
   import { sceneImage } from '../lib/owl-image.ts';
   import { groupScene, homeLight } from '../lib/season.ts';
+  import { groupAlt as groupAltOf } from '../lib/places.ts';
+  import AboutText from '../components/AboutText.svelte';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.ts';
 
@@ -18,15 +20,7 @@
   // v1.1: by day or night and in the Christmas season at home (Berlin when signed out).
   const light = homeLight();
   const group = sceneImage(groupScene(light));
-  const groupAlt = $derived(
-    light.christmas
-      ? light.day
-        ? t.start.groupAltChristmasDay
-        : t.start.groupAltChristmasNight
-      : light.day
-        ? t.start.groupAlt
-        : t.start.groupAltNight,
-  );
+  const groupAlt = $derived(groupAltOf(light));
 
   let name = $state('');
   let password = $state('');
@@ -79,7 +73,7 @@
   </header>
 
   <div class="columns">
-    <section class="card" aria-labelledby="login-heading">
+    <section class="card login" aria-labelledby="login-heading">
       <h2 id="login-heading">{t.start.loginHeading}</h2>
       <form onsubmit={submit} novalidate>
         <div class="field">
@@ -143,6 +137,8 @@
       >
     {/if}
   </nav>
+
+  <AboutText />
 </div>
 
 <style>
@@ -215,6 +211,20 @@
     }
   }
 
+  /*
+   * v1.2.3: heading centred, "Anmelden" on the left and "Konto erstellen" on the right edge,
+   * the whole content centred vertically in the box (as much room above as below).
+   */
+  .login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .login h2 {
+    text-align: center;
+  }
+
   .field {
     margin-bottom: 1rem;
   }
@@ -222,19 +232,27 @@
   .actions {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
     gap: 0.75rem;
-    margin-bottom: 1rem;
   }
 
+  /* On a very narrow screen "Konto erstellen" wraps – and stays on the right edge. */
+  .actions > :global(:last-child) {
+    margin-left: auto;
+  }
+
+  .notice {
+    margin: 1rem 0 0;
+  }
+
+  /* v1.2.3: as wide as the other contents of the page, the links spread evenly. */
   .footer-links {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-evenly;
     gap: 0 1.5rem;
-    margin: 2rem auto 0;
+    margin: 1.5rem 0 0;
     padding: 0.25rem 1rem;
-    width: fit-content;
-    max-width: 100%;
   }
 
   .footer-links :global(a) {

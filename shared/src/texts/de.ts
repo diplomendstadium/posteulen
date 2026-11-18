@@ -55,6 +55,8 @@ export const de = {
     wrong: 'Name oder Passwort stimmen nicht.',
     wait: 'Zu viele Versuche. Bitte warte {seconds} Sekunden.',
     deletionCancelled: 'Willkommen zurück! Die Löschung deines Kontos wurde abgebrochen.',
+    /** v1.2.3: name of the info text box at the bottom of the start page (shared/texts/about.ts). */
+    about: 'Über PostEulen',
   },
   register: {
     title: 'Konto erstellen',

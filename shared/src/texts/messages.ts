@@ -48,6 +48,16 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.2.3',
+    title: 'Ein frisch gefegter Eingang: Version 1.2.3',
+    paragraphs: [
+      'Diesmal haben die Eulen vor der Tür aufgeräumt – auf der Startseite, die du vor dem Anmelden siehst:',
+      '• Unter den Links steht jetzt ein bebilderter Text über PostEulen: wie die Eulen fliegen, was sie mögen, warum PostEulen ein guter erster Messenger für Kinder ist, wie sicher deine Briefe sind und wie PostEulen ohne App-Store aufs Handy kommt. Ideal, um PostEulen Freunden zu zeigen.',
+      '• Das Anmeldefeld sitzt jetzt ordentlich in der Mitte seines Kastens, und die Linkleiste ist so breit wie der Rest der Seite.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '1.2.2',
     title: 'Trockene Füße im Atlas: Version 1.2.2',
     paragraphs: [
@@ -403,6 +413,16 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.2.3',
+    title: 'A freshly swept entrance: version 1.2.3',
+    paragraphs: [
+      'This time the owls have tidied up in front of the door – on the start page you see before signing in:',
+      '• Below the links there is now an illustrated text about PostEulen: how the owls fly, what they like, why PostEulen is a good first messenger for children, how secure your letters are and how PostEulen gets onto your phone without an app store. Ideal for showing PostEulen to your friends.',
+      '• The sign-in box now sits neatly in the middle of its frame, and the bar of links is as wide as the rest of the page.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '1.2.2',
     title: 'Dry feet in the atlas: version 1.2.2',

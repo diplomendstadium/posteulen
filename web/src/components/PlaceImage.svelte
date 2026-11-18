@@ -5,69 +5,27 @@
    * as for the homecoming pictures). v1.1: in the Christmas season at home the snowy Christmas
    * pictures, by day and by night (SPEC 9.2.6, 9.11). v1.2: inside the post office the picture of
    * the team of the day (SPEC 8.6, 9.6). v1.2.1: inside the Menagerie its own pictures (SPEC
-   * 8.7); on the letters page the desk of the season at home (SPEC 9.11).
+   * 8.7); on the letters page the desk of the season at home (SPEC 9.11). v1.2.3: scene and
+   * description come from lib/places.ts (also used by the info text on the start page).
    */
-  import type { LoanTeam, SceneId } from '@posteulen/shared/species.ts';
-  import { t, fill } from '../lib/i18n.svelte.ts';
+  import type { LoanTeam } from '@posteulen/shared/species.ts';
   import { sceneImage } from '../lib/owl-image.ts';
-  import { homeLight, lettersScene } from '../lib/season.ts';
+  import { homeLight } from '../lib/season.ts';
+  import { placeAlt, placeScene, type Place } from '../lib/places.ts';
 
   let {
     place,
     team = 'A',
   }: {
-    place: 'menagerie' | 'menagerieInside' | 'post' | 'postInside' | 'letters';
+    place: Place;
     team?: LoanTeam;
   } = $props();
 
   const light = homeLight();
-  const { day, christmas } = light;
-  const scene = $derived<SceneId>(
-    place === 'letters'
-      ? lettersScene(light)
-      : (`${place}${place === 'postInside' ? team : ''}${christmas ? 'Xmas' : ''}${day ? 'Day' : 'Night'}` as SceneId),
-  );
+  const { day } = light;
+  const scene = $derived(placeScene(place, light, team));
   const image = $derived(sceneImage(scene));
-  const deskView = $derived(
-    t.letters[
-      `desk_${light.season}_${day ? 'day' : 'night'}` as `desk_${typeof light.season}_${'day' | 'night'}`
-    ],
-  );
-  const alt = $derived(
-    place === 'letters'
-      ? fill(t.letters.picture, { view: deskView })
-      : place === 'menagerieInside'
-        ? christmas
-          ? day
-            ? t.menagerie.insideChristmasDay
-            : t.menagerie.insideChristmasNight
-          : day
-            ? t.menagerie.insideDay
-            : t.menagerie.insideNight
-        : place === 'postInside'
-          ? christmas
-            ? day
-              ? t.post.insideChristmasDay
-              : t.post.insideChristmasNight
-            : day
-              ? t.post.insideDay
-              : t.post.insideNight
-          : place === 'menagerie'
-            ? christmas
-              ? day
-                ? t.menagerie.pictureChristmasDay
-                : t.menagerie.pictureChristmasNight
-              : day
-                ? t.menagerie.pictureDay
-                : t.menagerie.pictureNight
-            : christmas
-              ? day
-                ? t.post.pictureChristmasDay
-                : t.post.pictureChristmasNight
-              : day
-                ? t.post.pictureDay
-                : t.post.pictureNight,
-  );
+  const alt = $derived(placeAlt(place, light));
 </script>
 
 {#if !image.placeholder}
