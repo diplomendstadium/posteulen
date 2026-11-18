@@ -339,8 +339,10 @@
       </div>
       <div class="facts">
         <h3 class="name">
-          {owl.name}{#if markLoans && owl.kind === 'loan'}
-            <span class="loan-mark">{t.owls.loanMark}</span>{/if}
+          <!-- v1.2.2: the space stands before the block – Svelte drops it at the start of one. -->
+          {owl.name}
+          {#if markLoans && owl.kind === 'loan'}<span class="loan-mark">{t.owls.loanMark}</span
+            >{/if}
         </h3>
         <p class="species">
           {speciesName(owl.species)} · {owl.sex === 'f' ? t.owls.female : t.owls.male}

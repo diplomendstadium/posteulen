@@ -4,7 +4,9 @@
  * kennt. Im Europa-Ausschnitt dicht, außerhalb nur die großen Wälder der Welt. Die Form ist
  * eine Ellipse (Mittelpunkt, Halbachsen in km, Drehung in Grad, im Uhrzeigersinn auf der Karte);
  * `z` ist die Zoomstufe (wie bei Webkarten), ab der der Name erscheint. Ohne `size` nur ein
- * Name (Landschaft, Tiefland, Seenplatte).
+ * Name (Landschaft, Tiefland, Seenplatte). v1.2.2: Symbole erscheinen nur auf Land – die Ellipse
+ * darf über Küsten und Seen reichen, tools/map/atlas.ts schneidet das Wasser heraus. Liegt die
+ * Mitte auf dem Wasser, steht der Name an `label`.
  */
 export type AtlasKind =
   'mountains' | 'hills' | 'forest' | 'forestHills' | 'heath' | 'wetland' | 'desert' | 'region';
@@ -17,6 +19,8 @@ export interface HandFeature {
   readonly size?: readonly [rxKm: number, ryKm: number];
   readonly rot?: number;
   readonly z: number;
+  /** v1.2.2: where the name stands, when the middle of the area is water (else `at`). */
+  readonly label?: readonly [lat: number, lon: number];
 }
 
 export const HAND_FEATURES: readonly HandFeature[] = [
@@ -465,6 +469,8 @@ export const HAND_FEATURES: readonly HandFeature[] = [
     en: 'Scandinavian Taiga',
     kind: 'forest',
     at: [64, 22],
+    // The middle is the Gulf of Bothnia: the name stands in Västerbotten.
+    label: [64.7, 18.4],
     size: [420, 300],
     rot: -30,
     z: 3.6,

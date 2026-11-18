@@ -85,6 +85,11 @@
 </section>
 
 <style>
+  /* v1.2.2: the same distance to the next card as all the others in the admin panel. */
+  section {
+    margin-bottom: 1.5rem;
+  }
+
   .gauges {
     list-style: none;
     margin: 1rem 0 0.5rem;

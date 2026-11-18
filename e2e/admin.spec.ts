@@ -63,6 +63,16 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     // v1.2.1: the server dashboard at the very top – without measurements only the disk.
     const dashboard = page.getByTestId('server-load');
     await expect(dashboard.getByRole('heading', { name: 'Server-Auslastung' })).toBeVisible();
+    // v1.2.2: the same distance to the next card (statistics) as between all other cards.
+    expect(await dashboard.evaluate((element) => getComputedStyle(element).marginBottom)).toBe(
+      await page
+        .getByTestId('server-load')
+        .locator('xpath=following-sibling::section[1]')
+        .evaluate((element) => getComputedStyle(element).marginBottom),
+    );
+    expect(
+      await dashboard.evaluate((element) => parseFloat(getComputedStyle(element).marginBottom)),
+    ).toBeGreaterThan(10);
     const cpu = page.getByRole('meter', { name: 'Prozessor (Ø 7 Tage)' });
     const ram = page.getByRole('meter', { name: 'Arbeitsspeicher (Ø 7 Tage)' });
     await expect(cpu).toHaveAttribute('aria-valuetext', 'noch keine Messwerte');

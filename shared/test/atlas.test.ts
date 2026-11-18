@@ -10,6 +10,7 @@ import {
   insideArea,
   insideRings,
   levelFor,
+  onLand,
   overlaps,
   placeAtlasLabels,
   spaced,
@@ -18,10 +19,16 @@ import {
   type AtlasData,
   type AtlasLabel,
 } from '../src/map/atlas.ts';
+import { isLandAnywhere } from '../src/map/landmask.ts';
+import { project, unproject } from '../src/map/projection.ts';
 
 const ATLAS = JSON.parse(
   fs.readFileSync(path.resolve(import.meta.dirname, '../../web/src/lib/map/atlas.json'), 'utf8'),
 ) as AtlasData;
+
+const MASKS = path.resolve(import.meta.dirname, '../data');
+const SECTION_MASK = new Uint8Array(fs.readFileSync(path.join(MASKS, 'landmask.bin')));
+const WORLD_MASK = new Uint8Array(fs.readFileSync(path.join(MASKS, 'worldmask.bin')));
 
 const VIEW = { left: -1000, top: -1000, right: 1000, bottom: 1000 };
 const ellipse = (k: AtlasArea['k'], extra: Partial<AtlasArea> = {}): AtlasArea => ({
@@ -206,6 +213,73 @@ describe('atlas names (SPEC 12.1, v1.2)', () => {
   });
 });
 
+describe('atlas symbols stay off the water (v1.2.2)', () => {
+  it('decodes the land/water mask of an area', () => {
+    // 4 columns; row 0: 1 land, 2 water, 1 land; row 1 repeats row 0; row 2: all land.
+    const area = ellipse('forest', { b: [0, 0, 40, 30], c: 10, m: [0, 0, 4, '1,2,1  4'] });
+    expect(onLand(area, 5, 5)).toBe(true);
+    expect(onLand(area, 15, 5)).toBe(false);
+    expect(onLand(area, 25, 15)).toBe(false);
+    expect(onLand(area, 35, 15)).toBe(true);
+    expect(onLand(area, 15, 25)).toBe(true);
+    // Outside the mask and without a mask: land.
+    expect(onLand(area, 500, 500)).toBe(true);
+    expect(onLand(ellipse('forest'), 0, 0)).toBe(true);
+    // No symbol stands with its foot or a side on the water.
+    const points = areaPoints({ ...area, e: [20, 15, 20, 15, 0] }, 0, 0);
+    for (let i = 0; i < points.length; i += 3)
+      expect(onLand(area, points[i]!, points[i + 1]!)).toBe(true);
+  });
+
+  it.each([
+    ['Bottnischer Meerbusen', 64.0, 22.0],
+    ['Onegasee', 61.7, 35.4],
+    ['Ladogasee', 60.9, 31.5],
+    ['Rybinsker Stausee', 58.4, 38.4],
+    ['Hudson Bay', 57.5, -87],
+    ['Vänern', 58.9, 13.2],
+    ['Baikalsee', 53.5, 108.0],
+    ['Oberer See', 47.7, -87.5],
+  ])('has no forest, mountains or hills on the %s', (_, lat, lon) => {
+    const p = project(lat, lon);
+    const covering = ATLAS.areas.filter((area) => insideArea(area, p.x, -p.y, 1));
+    for (const area of covering) expect(onLand(area, p.x, -p.y)).toBe(false);
+  });
+
+  it('covers the waters the client found (they lie inside forest areas)', () => {
+    for (const [lat, lon] of [
+      [64.0, 22.0],
+      [61.7, 35.4],
+      [58.4, 38.4],
+      [57.5, -87],
+    ] as const) {
+      const p = project(lat, lon);
+      expect(ATLAS.areas.some((area) => insideArea(area, p.x, -p.y, 1))).toBe(true);
+    }
+  });
+
+  it('puts the symbols of every area on land (checked against the land masks)', () => {
+    let total = 0;
+    let wet = 0;
+    for (const [index, area] of ATLAS.areas.entries()) {
+      // A level with a few hundred symbols at most.
+      let level = 0;
+      const cells = (l: number) =>
+        ((area.b[2] - area.b[0]) * (area.b[3] - area.b[1])) / (area.c * 2 ** l) ** 2;
+      while (cells(level) > 400) level++;
+      const points = areaPoints(area, index, level);
+      for (let i = 0; i < points.length; i += 3) {
+        const { lat, lon } = unproject(points[i]!, -points[i + 1]!);
+        total++;
+        if (!isLandAnywhere(SECTION_MASK, WORLD_MASK, lat, lon)) wet++;
+      }
+    }
+    expect(total).toBeGreaterThan(5000);
+    // The masks are coarser than the atlas (0.1° outside Europe): a few points on the coast.
+    expect(wet / total).toBeLessThan(0.002);
+  });
+});
+
 describe('atlas data (tools/map/atlas.ts)', () => {
   const names = new Set(ATLAS.labels.map((label) => label.de));
 
@@ -274,6 +348,14 @@ describe('atlas data (tools/map/atlas.ts)', () => {
       expect(area.b[0]).toBeLessThanOrEqual(area.b[2]);
       expect(area.b[1]).toBeLessThanOrEqual(area.b[3]);
       expect(Boolean(area.e) !== Boolean(area.p)).toBe(true);
+      if (area.m) {
+        const [, , cols, runs] = area.m;
+        for (const row of runs.split(' ')) {
+          if (row === '') continue;
+          const sum = row.split(',').reduce((a, value) => a + parseInt(value, 36), 0);
+          expect(sum).toBe(cols);
+        }
+      }
     }
   });
 });

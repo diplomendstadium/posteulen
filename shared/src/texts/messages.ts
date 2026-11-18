@@ -48,6 +48,17 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.2.2',
+    title: 'Trockene Füße im Atlas: Version 1.2.2',
+    paragraphs: [
+      'Ein kleines Update – die Eulen haben ihre Brillen geputzt und genauer hingeschaut:',
+      '• Auf der Karte wachsen keine Bäume mehr im Wasser, und kein Gebirge steht mehr im Meer. Wälder, Berge und Hügel enden jetzt an Küsten, Seen und Stauseen – vom Bottnischen Meerbusen bis zur Hudson Bay. Auch die Namen von Landschaften stehen auf festem Boden.',
+      '• Schickt dir ein Bot Gold mit einem Begleitbrief, steht über dem Brief jetzt der richtige Betrag statt „0,0 Gold“.',
+      '• In der Eulenübersicht steht zwischen dem Namen einer Leiheule und „(Leiheule)“ wieder ein Leerzeichen.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '1.2.1',
     title: 'Neue Türen, neue Fenster: Version 1.2.1',
     paragraphs: [
@@ -392,6 +403,17 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.2.2',
+    title: 'Dry feet in the atlas: version 1.2.2',
+    paragraphs: [
+      'A small update – the owls have polished their glasses and taken a closer look:',
+      '• On the map, no more trees grow in the water and no mountains stand in the sea. Forests, mountains and hills now end at coasts, lakes and reservoirs – from the Gulf of Bothnia to Hudson Bay. The names of landscapes stand on solid ground, too.',
+      '• When a bot sends you gold with a cover letter, the letter now shows the right amount instead of “0.0 gold”.',
+      '• In the owl overview there is a space again between the name of a loan owl and “(loan owl)”.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '1.2.1',
     title: 'New doors, new windows: version 1.2.1',

@@ -631,6 +631,12 @@ describe('bots of the control centre (SPEC 10.6–10.10)', () => {
       ),
     ).toEqual([{ species: 'schneeeule', name: null }]);
     expect(lettersOf(bot, anna.id)).toHaveLength(1);
+    // v1.2.2: the cover letter names the amount (it showed 0.0 gold – the bot's flight has none).
+    const shown = await anna.agent.json<{ letters: { kind: string; coverGold?: number }[] }>(
+      'GET',
+      `/api/chats/${bot}/letters`,
+    );
+    expect(shown.body.letters).toMatchObject([{ kind: 'cover_gold', coverGold: 25 }]);
     expect(
       app.db.all(
         "SELECT type FROM system_messages WHERE user_id = ? AND type IN ('gold_arrived', 'bot_owl_gift')",

@@ -197,7 +197,8 @@ test.describe('Version 0.3', () => {
     setOwl(name, { owlName: 'Federchen' }, { share: 0.2 });
     await page.reload();
     const names = page.getByTestId('owl-card').locator('h3');
-    await expect(names.first()).toContainText('(Leiheule)');
+    // v1.2.2: with a space between the name and the hint.
+    await expect(names.first()).toHaveText(/\S \(Leiheule\)$/);
     await expect(names.nth(1)).toHaveText('Federchen');
     setOwl(name, { loans: true }, { share: 0.1 });
     await page.reload();

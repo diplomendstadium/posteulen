@@ -12,7 +12,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { MAP } from '../../shared/src/constants.ts';
-import { projectRelative, relativeLongitude } from '../../shared/src/map/projection.ts';
+import { projectRelative, relativeLongitude, unproject } from '../../shared/src/map/projection.ts';
 import type {
   AreaKind,
   AtlasArea,
@@ -21,6 +21,7 @@ import type {
   AtlasRiver,
   LabelClass,
 } from '../../shared/src/map/atlas.ts';
+import { insideArea } from '../../shared/src/map/atlas.ts';
 import {
   HAND_FEATURES,
   NE_OVERRIDES,
@@ -658,16 +659,164 @@ for (const feature of HAND_FEATURES) {
     if (angle > 90) angle -= 180;
     if (angle < -90) angle += 180;
   }
+  const place = feature.label ? svg(...feature.label) : centre;
   addLabel({
     de: feature.de,
     en: feature.en ?? feature.de,
-    x: centre.x,
-    y: centre.y,
+    x: place.x,
+    y: place.y,
     s: scaleOfZoom(feature.z),
     c: classOfKind(feature.kind),
     r: feature.z <= 4.6 ? 0 : feature.z <= 6 ? 1 : 2,
     a: Math.round(angle),
   });
+}
+
+// ── Land und Wasser (v1.2.2) ─────────────────────────────────────────────────
+//
+// Keine Bäume, Berge oder Hügel auf dem Wasser: Ein Raster der ganzen Welt (0,02°) aus
+// Natural-Earth-Land ohne Seen und Stauseen; jede Fläche, die Wasser berührt, bekommt eine
+// Land/Wasser-Maske in ihrer eigenen Rasterweite (`m`, lauflängenkodiert). Ein Feld gilt nur als
+// Land, wenn Mitte und alle vier Ecken auf Land liegen – so bleiben die Symbole etwas von der Küste
+// weg. Der Client zeichnet ein Symbol nur, wenn sein Fuß und seine Seiten auf Land stehen.
+
+const GRID = 0.02;
+const GRID_W = Math.round(360 / GRID);
+const GRID_H = Math.round(180 / GRID);
+const landGrid = new Uint8Array(Math.ceil((GRID_W * GRID_H) / 8));
+
+/** Even-odd scanline fill of lon/lat rings into the world raster (set = land, else water). */
+function fillRings(rings: Position[][], set: boolean): void {
+  const rows = new Map<number, number[]>();
+  for (const ring of rings)
+    for (let i = 0; i + 1 < ring.length; i++) {
+      const [x1, y1] = ring[i]!;
+      const [x2, y2] = ring[i + 1]!;
+      if (y1 === y2) continue;
+      const yMin = Math.min(y1, y2);
+      const yMax = Math.max(y1, y2);
+      const rowStart = Math.max(0, Math.ceil((90 - yMax) / GRID - 0.5));
+      const rowEnd = Math.min(GRID_H - 1, Math.floor((90 - yMin) / GRID - 0.5));
+      for (let row = rowStart; row <= rowEnd; row++) {
+        const lat = 90 - (row + 0.5) * GRID;
+        if (lat < yMin || lat >= yMax) continue;
+        const list = rows.get(row) ?? [];
+        list.push(x1 + ((lat - y1) * (x2 - x1)) / (y2 - y1));
+        rows.set(row, list);
+      }
+    }
+  for (const [row, xs] of rows) {
+    xs.sort((a, b) => a - b);
+    for (let k = 0; k + 1 < xs.length; k += 2) {
+      const from = Math.max(0, Math.ceil((xs[k]! + 180) / GRID - 0.5));
+      const to = Math.min(GRID_W - 1, Math.floor((xs[k + 1]! + 180) / GRID - 0.5));
+      for (let col = from; col <= to; col++) {
+        const index = row * GRID_W + col;
+        if (set) landGrid[index >> 3]! |= 1 << (index & 7);
+        else landGrid[index >> 3]! &= ~(1 << (index & 7));
+      }
+    }
+  }
+}
+
+fillRings((await load('ne_10m_land')).flatMap(polygons).flat(), true);
+// Each lake on its own (the European supplement may overlap the world's lakes).
+for (const source of ['ne_10m_lakes', 'ne_10m_lakes_europe'])
+  for (const feature of await load(source))
+    for (const polygon of polygons(feature)) fillRings(polygon, false);
+
+function landAtLonLat(lat: number, lon: number): boolean {
+  const row = Math.min(GRID_H - 1, Math.max(0, Math.floor((90 - lat) / GRID)));
+  const wrapped = ((((lon + 180) % 360) + 360) % 360) - 180;
+  const col = Math.min(GRID_W - 1, Math.floor((wrapped + 180) / GRID));
+  const index = row * GRID_W + col;
+  return ((landGrid[index >> 3] ?? 0) & (1 << (index & 7))) !== 0;
+}
+
+/** Land at an SVG point (y downwards). */
+function landAt(x: number, y: number): boolean {
+  const { lat, lon } = unproject(x, -y);
+  return landAtLonLat(lat, lon);
+}
+
+/** The area with its land/water mask, or unchanged when no water is near it. */
+function withMask(area: AtlasArea): AtlasArea {
+  const c = area.c;
+  const x0 = Number((area.b[0] - 2 * c).toFixed(1));
+  const y0 = Number((area.b[1] - 2 * c).toFixed(1));
+  const cols = Math.ceil((area.b[2] + 2 * c - x0) / c);
+  const rows = Math.ceil((area.b[3] + 2 * c - y0) / c);
+  const corner = 0.45 * c;
+  const near = (x: number, y: number): boolean =>
+    [
+      [0, 0],
+      [-2, 0],
+      [2, 0],
+      [0, -2],
+      [0, 2],
+    ].some(([dx, dy]) => insideArea(area, x + dx! * c, y + dy! * c, 1));
+  let waterNear = false;
+  const lines: string[] = [];
+  let previous = '';
+  for (let row = 0; row < rows; row++) {
+    const cy = y0 + (row + 0.5) * c;
+    const runs: number[] = [];
+    let current = true;
+    let run = 0;
+    for (let col = 0; col < cols; col++) {
+      const cx = x0 + (col + 0.5) * c;
+      const land =
+        landAt(cx, cy) &&
+        landAt(cx - corner, cy - corner) &&
+        landAt(cx + corner, cy - corner) &&
+        landAt(cx - corner, cy + corner) &&
+        landAt(cx + corner, cy + corner);
+      if (!land && !waterNear && near(cx, cy)) waterNear = true;
+      if (land === current) run++;
+      else {
+        runs.push(run);
+        current = land;
+        run = 1;
+      }
+    }
+    runs.push(run);
+    // Runs alternate land, water, land, … (base 36); an empty row repeats the one above.
+    const line = runs.map((value) => value.toString(36)).join(',');
+    lines.push(line === previous ? '' : line);
+    previous = line;
+  }
+  if (!waterNear) return area;
+  return { ...area, m: [x0, y0, cols, lines.join(' ')] };
+}
+
+const maskedAreas = areas.map(withMask);
+const waterCount = maskedAreas.filter((area) => area.m).length;
+
+/**
+ * Names of mountains, forests and landscapes that would stand on water (a lake in the middle of a
+ * region) move to the nearest spot with land around it. Island groups keep their place on the
+ * sea between the islands.
+ */
+const LAND_CLASSES: readonly LabelClass[] = ['range', 'region', 'forest'];
+const dryAt = (x: number, y: number, r: number): boolean =>
+  landAt(x, y) && landAt(x - r, y) && landAt(x + r, y) && landAt(x, y - r) && landAt(x, y + r);
+for (const [index, label] of labels.entries()) {
+  if (!LAND_CLASSES.includes(label.c) || landAt(label.x, label.y)) continue;
+  const fine = label.s < 15;
+  const step = fine ? 2 : 10;
+  let moved: { x: number; y: number } | null = null;
+  for (let radius = step; radius <= (fine ? 80 : 400) && !moved; radius += step)
+    for (let k = 0; k < 24 && !moved; k++) {
+      const x = label.x + radius * Math.cos((k * Math.PI) / 12);
+      const y = label.y + radius * Math.sin((k * Math.PI) / 12);
+      if (dryAt(x, y, step * 2)) moved = { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)) };
+    }
+  if (!moved) {
+    console.warn(`Name auf dem Wasser ohne Land in der Nähe: ${label.de}`);
+    continue;
+  }
+  labels[index] = { ...label, ...moved };
+  console.warn(`Name vom Wasser aufs Land: ${label.de}`);
 }
 
 // ── Ausgabe ──────────────────────────────────────────────────────────────────
@@ -682,11 +831,11 @@ const output: AtlasData & { source: string } = {
   borders: borderParts.join(''),
   lakes: lakeParts.join(''),
   rivers,
-  areas,
+  areas: maskedAreas,
   labels,
 };
 const OUT = path.join(ROOT, 'web/src/lib/map/atlas.json');
 fs.writeFileSync(OUT, JSON.stringify(output));
 console.log(
-  `${path.relative(ROOT, OUT)}: ${fs.statSync(OUT).size} Bytes, ${areas.length} Flächen, ${labels.length} Namen, ${rivers.length} Flussgruppen`,
+  `${path.relative(ROOT, OUT)}: ${fs.statSync(OUT).size} Bytes, ${areas.length} Flächen (${waterCount} am Wasser), ${labels.length} Namen, ${rivers.length} Flussgruppen`,
 );

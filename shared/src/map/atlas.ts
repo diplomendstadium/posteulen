@@ -26,6 +26,12 @@ export interface AtlasArea {
   /** Ellipse: centre x, centre y, radius x, radius y, rotation (radians, clockwise). */
   readonly e?: readonly [number, number, number, number, number];
   readonly p?: readonly (readonly number[])[];
+  /**
+   * v1.2.2: land/water mask of an area near water – origin x, y, columns and the rows as runs
+   * (base 36, alternating land, water, land …; an empty row repeats the one above). The cells
+   * are `c` wide. Without it the whole area is land.
+   */
+  readonly m?: readonly [x0: number, y0: number, cols: number, runs: string];
 }
 
 export interface AtlasLabel {
@@ -150,6 +156,52 @@ export function insideArea(area: AtlasArea, x: number, y: number, wobble: number
   return area.p ? insideRings(area.p, x, y) : false;
 }
 
+const decodedMasks = new WeakMap<AtlasArea, Uint8Array>();
+
+/** The land/water mask of an area as one byte per cell (1 = land), decoded once. */
+function maskOf(area: AtlasArea, mask: NonNullable<AtlasArea['m']>): Uint8Array {
+  const cached = decodedMasks.get(area);
+  if (cached) return cached;
+  const [, , cols, runs] = mask;
+  const rows = runs.split(' ');
+  const cells = new Uint8Array(cols * rows.length);
+  let previous: number[] = [cols];
+  rows.forEach((row, index) => {
+    const lengths = row === '' ? previous : row.split(',').map((value) => parseInt(value, 36));
+    previous = lengths;
+    let col = 0;
+    lengths.forEach((length, run) => {
+      if (run % 2 === 0) cells.fill(1, index * cols + col, index * cols + col + length);
+      col += length;
+    });
+  });
+  decodedMasks.set(area, cells);
+  return cells;
+}
+
+/** v1.2.2: whether a point of an area lies on land (outside its mask: yes). */
+export function onLand(area: AtlasArea, x: number, y: number): boolean {
+  const mask = area.m;
+  if (!mask) return true;
+  const [x0, y0, cols] = mask;
+  const cells = maskOf(area, mask);
+  const col = Math.floor((x - x0) / area.c);
+  const row = Math.floor((y - y0) / area.c);
+  if (col < 0 || col >= cols || row < 0 || row * cols >= cells.length) return true;
+  return cells[row * cols + col] === 1;
+}
+
+/** v1.2.2: a symbol of `size` km stands on land with its foot, both sides and its top. */
+export function standsOnLand(area: AtlasArea, x: number, y: number, size: number): boolean {
+  if (!area.m) return true;
+  return (
+    onLand(area, x, y) &&
+    onLand(area, x - 0.45 * size, y) &&
+    onLand(area, x + 0.45 * size, y) &&
+    onLand(area, x, y - 0.7 * size)
+  );
+}
+
 /**
  * Symbol positions of an area at a level of the grid, with a variant value per symbol
  * (x, y, v, …). Each point belongs to the coarsest level whose grid contains it, so the symbols
@@ -172,6 +224,8 @@ export function areaPoints(
   // most JITTER_LEVEL) and is scattered by up to 0.42 of that level's cell. Walking the grid of
   // every level from `level` up finds each point however far it was scattered, so a point is the
   // same at every zoom.
+  // v1.2.2: the size of a symbol in km at this level, to keep its foot and sides off the water.
+  const glyph = (area.c * 2 ** level) / SPACING;
   const first = Math.min(level, JITTER_LEVEL);
   for (let own = first; own <= JITTER_LEVEL; own++) {
     const cell = area.c * 2 ** own;
@@ -188,7 +242,8 @@ export function areaPoints(
         const y = (fy + 0.5) * area.c + (hash01(fy, index, fx) * 2 - 1) * spread;
         if (x < left || x > right || y < top || y > bottom) continue;
         const variant = hash01(fx, fy, index + 7);
-        if (insideArea(area, x, y, variant)) out.push(x, y, variant);
+        if (insideArea(area, x, y, variant) && standsOnLand(area, x, y, glyph))
+          out.push(x, y, variant);
       }
     }
   }

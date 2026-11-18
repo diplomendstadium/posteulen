@@ -255,15 +255,16 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       arrival_seen: number;
       owl_name: string;
       owl_species: string;
-      cover_gold: number | null;
+      gold_amount: number | null;
       plaintext: string | null;
       flight_owl_kind: string | null;
       flight_holder: string | null;
       media: string | null;
       christmas: number;
     }>(
-      `SELECT l.*, f.gold AS cover_gold, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
+      `SELECT l.*, COALESCE(NULLIF(f.gold, 0), e.gift_gold) AS gold_amount, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
+         LEFT JOIN central_bot_events e ON e.id = l.bot_event_id
         WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
            OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
         ORDER BY CASE WHEN l.sender_id = ? THEN l.sent_at ELSE l.arrives_at END, l.sent_at, l.id`,
@@ -305,8 +306,10 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
                 : null,
             ),
           },
-          // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl.
-          ...(row.kind === 'cover_gold' ? { coverGold: row.cover_gold ?? 0 } : {}),
+          // What a cover letter belongs to (SPEC 8.4): amount of gold or the gifted owl. v1.2.2: the
+          // flight of a control-centre bot carries no gold – its gift is in the event, which can
+          // no longer be changed or deleted once it has started.
+          ...(row.kind === 'cover_gold' ? { coverGold: row.gold_amount ?? 0 } : {}),
           role: mine ? 'sender' : 'recipient',
           ciphertext: row.ciphertext ? toBase64Url(row.ciphertext) : null,
           // Letters to and from bots are plain text (SPEC 10.1).
