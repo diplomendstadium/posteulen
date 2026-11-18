@@ -36,7 +36,7 @@ PostEulen deliberately sits on the border between game and messenger. The owls a
 
 **Sparing with data from the start:** you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a fictional home. Using it via a VPN, the Tor network or Tor Browser works too – in Tor Browser at the security level “Standard” (the stricter levels switch off WebAssembly, which the login needs) and without notifications.
 
-**The owls also live in the Tor network:** PostEulen can additionally be reached as an onion service – a hidden owl tower with an entrance of its own. You will find the link “Tor network” at the very bottom of the start page; if you open PostEulen in the Tor Browser, it even suggests the onion address by itself (“.onion available”). Everything there is as usual: the same account, the same letters, the same owls. You can switch as you like – but you are only ever signed in in one place at a time. Over Tor the server does not even learn your IP address; in return, all Tor users share the limits that protect against overload, as if they were one single visitor. If it gets busy there, a short wait helps. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
+**The owls also live in the Tor network:** PostEulen can additionally be reached as an onion service – a hidden owl tower with an entrance of its own. You will find the link “Tor network” on the start page in the bar of links below the sign-in box; if you open PostEulen in the Tor Browser, it even suggests the onion address by itself (“.onion available”). Everything there is as usual: the same account, the same letters, the same owls. You can switch as you like – but you are only ever signed in in one place at a time. Over Tor the server does not even learn your IP address; in return, all Tor users share the limits that protect against overload, as if they were one single visitor. If it gets busy there, a short wait helps. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
 
 So PostEulen is quite suitable as a secure way of communicating – as long as minutes do not matter. What it cannot hide: *who* writes to *whom* and *when*. And anyone holding your unlocked phone can of course read along. That is not the owl’s fault.
 
@@ -102,7 +102,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.2.2** – a bug-fix release: on the map, forests, mountains and the names of landscapes now stay on land, cover letters for gold gifts from bots show the right amount, plus small touches in the owl overview and the admin panel. Version 1.2.1 brought the server dashboard in the admin panel, the Menagerie with an entrance and an inside, the owl overview ordered by readiness and the desk above your letters changing with the seasons (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
+Version: **1.2.3** – below its links the start page now has an illustrated text about PostEulen (in German and English, with pictures that change with day, night and the seasons), the sign-in box is tidied up and the bar of links is as wide as the rest of the page. Version 1.2.2 keeps forests, mountains and the names of landscapes on the map on land and makes cover letters for gold gifts from bots show the right amount (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
 
 **In short**
 
@@ -317,7 +317,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.2.2      # installs a particular version
+sudo posteulen-update v1.2.3      # installs a particular version
 ```
 
 Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.

@@ -80,7 +80,7 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'tor',
     title: 'PostEulen in the Tor network',
     blocks: [
-      'PostEulen can be reached not only at its normal address but also as an onion service in the Tor network. You will find the link “Tor network” at the very bottom of the start page; it opens in the Tor Browser. If you open the normal address in the Tor Browser, it shows “.onion available” in the address bar by itself.',
+      'PostEulen can be reached not only at its normal address but also as an onion service in the Tor network. You will find the link “Tor network” on the start page in the bar of links below the sign-in box; it opens in the Tor Browser. If you open the normal address in the Tor Browser, it shows “.onion available” in the address bar by itself.',
       [
         'Over Tor the server does not learn where you come from – not even your IP address. The Tor network itself encrypts the connection from your device to the server; that is why the onion address starts with “http://” and not “https://”. For onion services this is just right.',
         'It is the same app: the same account, the same letters, owls and the same gold. You can switch between the normal address and the Tor network as you like.',
@@ -453,7 +453,7 @@ const FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'What does PostEulen cost?',
-    answer: `Nothing. PostEulen is free, without adverts and without a paywall – and it will stay that way. Servers and development still cost money, though. That is why every five weeks we kindly ask for a voluntary donation via ${DONATION.URL.replace('https://', '')}; you also find the link at the bottom of the start page under “Donate”. Nobody has to give anything.`,
+    answer: `Nothing. PostEulen is free, without adverts and without a paywall – and it will stay that way. There are no in-app purchases and no other way of spending real money in PostEulen: everyone automatically gets gold, the in-game currency, every day. Servers and development still cost money, though. That is why every five weeks we kindly ask for a voluntary donation via ${DONATION.URL.replace('https://', '')}; you also find the link on the start page in the bar of links under “Donate” – a donation gives you nothing in the game. Nobody has to give anything.`,
   },
   {
     question: 'Can I use PostEulen over Tor?',

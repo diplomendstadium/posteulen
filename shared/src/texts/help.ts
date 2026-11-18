@@ -99,7 +99,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'tor',
     title: 'PostEulen im Tor-Netz',
     blocks: [
-      'PostEulen ist nicht nur unter seiner normalen Adresse erreichbar, sondern auch als Onion-Dienst im Tor-Netz. Den Link „Tor-Netz“ findest du ganz unten auf der Startseite; er öffnet sich im Tor Browser. Öffnest du die normale Adresse im Tor Browser, zeigt er dir in der Adresszeile von selbst „.onion verfügbar“ an.',
+      'PostEulen ist nicht nur unter seiner normalen Adresse erreichbar, sondern auch als Onion-Dienst im Tor-Netz. Den Link „Tor-Netz“ findest du auf der Startseite in der Linkleiste unter der Anmeldung; er öffnet sich im Tor Browser. Öffnest du die normale Adresse im Tor Browser, zeigt er dir in der Adresszeile von selbst „.onion verfügbar“ an.',
       [
         'Über Tor erfährt der Server nicht, von wo du kommst – nicht einmal deine IP-Adresse. Die Verbindung verschlüsselt das Tor-Netz selbst von deinem Gerät bis zum Server; deshalb beginnt die Onion-Adresse mit „http://“ und nicht mit „https://“. Das ist bei Onion-Diensten so richtig.',
         'Es ist dieselbe App: dasselbe Konto, dieselben Briefe, Eulen und dasselbe Gold. Du kannst nach Belieben zwischen der normalen Adresse und dem Tor-Netz wechseln.',
@@ -470,7 +470,7 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
   },
   {
     question: 'Was kostet PostEulen?',
-    answer: `Nichts. PostEulen ist kostenlos, ohne Werbung und ohne Bezahlschranke – und das bleibt so. Server und Entwicklung kosten trotzdem Geld. Deshalb bitten wir alle fünf Wochen freundlich um eine freiwillige Spende über ${DONATION.URL.replace('https://', '')}; den Link findest du auch unten auf der Startseite unter „Spenden“. Niemand muss etwas geben.`,
+    answer: `Nichts. PostEulen ist kostenlos, ohne Werbung und ohne Bezahlschranke – und das bleibt so. Es gibt keine In-App-Käufe und auch sonst keine Möglichkeit, in PostEulen echtes Geld auszugeben: Gold, die Spielwährung, bekommt jeder jeden Tag automatisch. Server und Entwicklung kosten trotzdem Geld. Deshalb bitten wir alle fünf Wochen freundlich um eine freiwillige Spende über ${DONATION.URL.replace('https://', '')}; den Link findest du auch auf der Startseite in der Linkleiste unter „Spenden“ – im Spiel bringt eine Spende nichts. Niemand muss etwas geben.`,
   },
   {
     question: 'Kann ich PostEulen über Tor benutzen?',

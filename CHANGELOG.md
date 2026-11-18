@@ -3,6 +3,32 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.2.3 – Ein frisch gefegter Eingang
+
+Wünsche des Auftraggebers zur Startseite und zum README (SPEC Anhang F, D-401 bis D-405).
+
+**Neu:**
+
+- **Infotext auf der Startseite:** Unter den Links steht in einer eigenen Box der Text „Über PostEulen“ (englisch „About PostEulen“) mit fünf Abschnitten – Eulen und Flug, ein guter erster Messenger für Kinder, Sicherheit, PostEulen ohne App-Store aufs Handy, Hilfe. Fünf Bilder in halber Textbreite, abwechselnd rechts und links: Schreibtisch nach Jahreszeit, Gruppenbild, Menagerie und Eulenpostamt (jeweils Tag, Nacht, Weihnachtszeit; ohne Anmeldung Berlin) und der fressende Elfenkauz. Auf dem Handy stehen die Bilder in voller Breite über ihrem Text. Die Installationsanleitung nennt die Adresse, unter der die Seite aufgerufen wurde.
+- **Markdown für feste Texte:** Der Infotext liegt als Markdown in `shared/src/texts/about.ts`; eine kleine, eigene Teilmenge (`shared/src/markdown.ts`) wird als Elemente gerendert, nie als HTML, Links nur auf Seiten der App.
+
+**Geändert:**
+
+- **Box „Anmelden“:** Überschrift mittig, „Anmelden“ links, „Konto erstellen“ rechts, der Inhalt senkrecht mittig in der Box.
+- **Linkbox** (Hilfe, Datenschutz, Impressum, Spenden, Quelltext, Tor-Netz) so breit wie die übrige Seite, Links gleichmäßig verteilt.
+- **README:** Im Kinderkapitel steht, dass es keine In-App-Käufe und keine andere Möglichkeit gibt, echtes Geld auszugeben, und dass jeder das Gold täglich automatisch bekommt; ebenso in Hilfe (FAQ „Was kostet PostEulen?“) und Erklärbär-Wissen.
+- Hilfe, README und Erklärbär nennen den Ort der Links „Tor-Netz“ und „Spenden“ neu (Linkleiste unter der Anmeldung statt „ganz unten“).
+- Szene und Bildbeschreibung der Orte gemeinsam in `web/src/lib/places.ts`.
+- Update-Nachricht, Hilfe, Erklärbär, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; die gelieferte Datei `Text Startseite.txt` ist eingepflegt und gelöscht.
+
+**Tests:** auf Wunsch nur das Betroffene – Lint, Typprüfung, Unit-Tests von `shared` und die Update-Nachrichten, Build, E2E der Startseite (neu `e2e/v123.spec.ts`), Layout in vielen Breiten, App-Hülle, Barrierefreiheit der öffentlichen Seiten und Ortsbilder in beiden Profilen. Kein vollständiger `npm test`, kein VM-Test.
+
+### Hinweise für Betreiber
+
+- Keine Migration (Schema-Version bleibt 21), keine neuen Dienste, keine neuen Pakete, keine neuen Abhängigkeiten, keine neuen Bilder.
+- Der Infotext nennt die Brieffreunde von posteulen.de (Erklärbär, Eulenforscher, entfernte Tante). Wer eine eigene Instanz mit anderen Bots betreibt, passt `shared/src/texts/about.ts` an.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.2.2 – Trockene Füße im Atlas
 
 Korrekturversion nach Hinweisen des Auftraggebers (SPEC Anhang F, D-396 bis D-400).
