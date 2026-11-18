@@ -4,52 +4,69 @@
    * day or by night at the player's fictional home (sun more than 6° below the horizon = night,
    * as for the homecoming pictures). v1.1: in the Christmas season at home the snowy Christmas
    * pictures, by day and by night (SPEC 9.2.6, 9.11). v1.2: inside the post office the picture of
-   * the team of the day (SPEC 8.6, 9.6).
+   * the team of the day (SPEC 8.6, 9.6). v1.2.1: inside the Menagerie its own pictures (SPEC
+   * 8.7); on the letters page the desk of the season at home (SPEC 9.11).
    */
   import type { LoanTeam, SceneId } from '@posteulen/shared/species.ts';
-  import { t } from '../lib/i18n.svelte.ts';
+  import { t, fill } from '../lib/i18n.svelte.ts';
   import { sceneImage } from '../lib/owl-image.ts';
-  import { homeLight } from '../lib/season.ts';
+  import { homeLight, lettersScene } from '../lib/season.ts';
 
-  /** v1.1: also the letters page – one picture for all times of day and the whole year. */
   let {
     place,
     team = 'A',
-  }: { place: 'menagerie' | 'post' | 'postInside' | 'letters'; team?: LoanTeam } = $props();
+  }: {
+    place: 'menagerie' | 'menagerieInside' | 'post' | 'postInside' | 'letters';
+    team?: LoanTeam;
+  } = $props();
 
-  const { day, christmas } = homeLight();
+  const light = homeLight();
+  const { day, christmas } = light;
   const scene = $derived<SceneId>(
     place === 'letters'
-      ? 'letters'
+      ? lettersScene(light)
       : (`${place}${place === 'postInside' ? team : ''}${christmas ? 'Xmas' : ''}${day ? 'Day' : 'Night'}` as SceneId),
   );
   const image = $derived(sceneImage(scene));
+  const deskView = $derived(
+    t.letters[
+      `desk_${light.season}_${day ? 'day' : 'night'}` as `desk_${typeof light.season}_${'day' | 'night'}`
+    ],
+  );
   const alt = $derived(
     place === 'letters'
-      ? t.letters.picture
-      : place === 'postInside'
+      ? fill(t.letters.picture, { view: deskView })
+      : place === 'menagerieInside'
         ? christmas
           ? day
-            ? t.post.insideChristmasDay
-            : t.post.insideChristmasNight
+            ? t.menagerie.insideChristmasDay
+            : t.menagerie.insideChristmasNight
           : day
-            ? t.post.insideDay
-            : t.post.insideNight
-        : place === 'menagerie'
+            ? t.menagerie.insideDay
+            : t.menagerie.insideNight
+        : place === 'postInside'
           ? christmas
             ? day
-              ? t.menagerie.pictureChristmasDay
-              : t.menagerie.pictureChristmasNight
+              ? t.post.insideChristmasDay
+              : t.post.insideChristmasNight
             : day
-              ? t.menagerie.pictureDay
-              : t.menagerie.pictureNight
-          : christmas
-            ? day
-              ? t.post.pictureChristmasDay
-              : t.post.pictureChristmasNight
-            : day
-              ? t.post.pictureDay
-              : t.post.pictureNight,
+              ? t.post.insideDay
+              : t.post.insideNight
+          : place === 'menagerie'
+            ? christmas
+              ? day
+                ? t.menagerie.pictureChristmasDay
+                : t.menagerie.pictureChristmasNight
+              : day
+                ? t.menagerie.pictureDay
+                : t.menagerie.pictureNight
+            : christmas
+              ? day
+                ? t.post.pictureChristmasDay
+                : t.post.pictureChristmasNight
+              : day
+                ? t.post.pictureDay
+                : t.post.pictureNight,
   );
 </script>
 

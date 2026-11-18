@@ -126,13 +126,13 @@ test.describe('Version 0.7', () => {
   }) => {
     const me = await registerViaUi(page);
     setGold(me.name, 300);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     page.once('dialog', (dialog) => {
       expect(dialog.message()).toContain('Waldkauz wirklich für 6,0 Gold kaufen?');
       void dialog.dismiss();
     });
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
-    await expect(page).toHaveURL(/\/app\/menagerie$/);
+    await expect(page).toHaveURL(/\/app\/menagerie\/innen$/);
 
     await page.goto('/app/einstellungen');
     const feedback = page.getByTestId('feedback');

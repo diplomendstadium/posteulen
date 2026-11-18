@@ -215,8 +215,25 @@ export const en: Texts = {
   letters: {
     title: 'Letters',
     /** v1.1 */
+    /**
+     * v1.2.1: the picture on top of the letters page – the desk of the season at home, by day or
+     * by night; `view` is one of the desk_… texts below.
+     */
     picture:
-      'Sealed letters, parchment scrolls, a quill and an inkwell on a wooden table, in the middle a sheet saying “Meine Briefe” (my letters)',
+      'A desk full of letters with a quill and an inkwell in front of tall arched windows, outside {view}',
+    desk_christmas_day: 'a snowy village in daylight, a sprig of mistletoe hanging in the window',
+    desk_christmas_night:
+      'a snowy village at night, candlelight and a decorated little tree in the room',
+    desk_winter_day: 'a snowy village in daylight',
+    desk_winter_night: 'a snowy village at night, candles burning on the desk',
+    desk_spring_day: 'trees in blossom in the spring light, a bunch of flowers on the desk',
+    desk_spring_night: 'trees in blossom on a spring night, candles burning on the desk',
+    desk_summer_day: 'lush green trees in the summer light',
+    desk_summer_night: 'lush green trees on a summer night, candles burning on the desk',
+    desk_autumn_day: 'colourful autumn leaves in daylight',
+    desk_autumn_night: 'colourful autumn leaves on an autumn night, candles burning on the desk',
+    desk_november_day: 'bare trees on a grey November day',
+    desk_november_night: 'bare trees on a November night, candles burning on the desk',
     none: 'No letters yet. Add a contact in the address book and write the first letter.',
     system: 'System messages',
     owlRestingHere: 'An owl of {name} is resting with you right now',
@@ -546,8 +563,11 @@ export const en: Texts = {
     feedFree: 'Owl biscuit (free)',
     snackFree: 'Give {snack} (free)',
     restingAt: 'Resting with {name} until {until}.',
-    loanGroup: 'Loan owls',
-    ownGroup: 'Your owls',
+    /** v1.2.1: owls ready for post on top (by energy), then the others (by return). */
+    readyGroup: 'Ready for post',
+    busyGroup: 'Out and about',
+    /** v1.2.1: behind the name of a loan owl in the owl overview. */
+    loanMark: '(loan owl)',
     flyingDayAlt: '{name} in flight by day',
     flyingNightAlt: '{name} in flight by night',
     sleepDayAlt: '{name} is asleep on the way by day',
@@ -608,6 +628,16 @@ export const en: Texts = {
     /** v1.1 */
     pictureChristmasDay: 'The snowy Menagerie decorated for Christmas, by day',
     pictureChristmasNight: 'The snowy Menagerie decorated for Christmas with its lights, at night',
+    /** v1.2.1: the entrance leads inside, where the owls for sale are. */
+    enter: 'Enter the Menagerie',
+    insideDay:
+      'Inside the Menagerie by day: owls in wall niches, on branches and along a spiral staircase, a keeper sweeping next to the counter with its till and the book “Owl Care A–Z”',
+    insideNight:
+      'Inside the Menagerie at night: owls in wall niches, on branches and along a spiral staircase in the lantern light, a keeper sweeping next to the counter',
+    insideChristmasDay:
+      'Inside the Menagerie decorated for Christmas, by day: owls among fir branches, wreaths and a Christmas tree, a keeper sweeping next to the counter',
+    insideChristmasNight:
+      'Inside the Menagerie decorated for Christmas, at night: owls in the glow of the lights among fir branches, wreaths and a Christmas tree, a keeper sweeping next to the counter',
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery}%/h',
@@ -750,6 +780,20 @@ export const en: Texts = {
     hide: 'Hide notice',
   },
   admin: {
+    /** v1.2.1: the server dashboard at the top of the panel (SPEC 13 item 13). */
+    serverTitle: 'Server load',
+    serverIntro:
+      'Rough figures for the server: processor (all cores together) and memory averaged over the last 7 days, plus how full the disk with the game data is. The fuller the ring, the higher the load – from green to red.',
+    serverCpu: 'Processor',
+    serverRam: 'Memory',
+    serverDisk: 'Disk',
+    serverAverage: 'Ø 7 days',
+    serverNow: 'now',
+    serverNone: 'no measurements yet',
+    serverMeasured: 'Last measurement: {time}.',
+    serverSince: 'Measurements only began on {since}; the average covers just that time.',
+    serverMissing:
+      'There are no measurements for processor and memory yet. The posteulen-stats timer measures every 10 minutes; the processor ring appears from the second measurement.',
     title: 'PostEulen – Administration',
     timeZoneNote: 'All times in the time zone of this device ({zone}).',
     loginHeading: 'Sign in to the administration',

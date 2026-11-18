@@ -53,8 +53,11 @@
     onchange,
     onreload,
     onremove,
+    markLoans = false,
   }: {
     owls: readonly Owl[];
+    /** v1.2.1: "(Leiheule)" behind the names of loan owls (owl overview). */
+    markLoans?: boolean;
     /** An owl came back changed from the server. */
     onchange: (owl: Owl) => void;
     /** The whole list should be fetched again (e.g. after a gift). */
@@ -335,7 +338,10 @@
         />
       </div>
       <div class="facts">
-        <h3 class="name">{owl.name}</h3>
+        <h3 class="name">
+          {owl.name}{#if markLoans && owl.kind === 'loan'}
+            <span class="loan-mark">{t.owls.loanMark}</span>{/if}
+        </h3>
         <p class="species">
           {speciesName(owl.species)} · {owl.sex === 'f' ? t.owls.female : t.owls.male}
         </p>
@@ -569,6 +575,13 @@
 
   .name {
     margin: 0;
+  }
+
+  /* v1.2.1: the hint behind the name of a loan owl, a little quieter than the name. */
+  .loan-mark {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: var(--ink-soft);
   }
 
   .species {

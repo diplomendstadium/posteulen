@@ -48,6 +48,18 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.2.1',
+    title: 'Neue Türen, neue Fenster: Version 1.2.1',
+    paragraphs: [
+      'Die Eulen haben aufgeräumt, umgebaut und frisch geputzt:',
+      '• Die Menagerie hat jetzt eine Tür wie das Postamt: Erst stehst du davor, dann trittst du ein – zwischen Mauernischen, Ästen und einer Wendeltreppe voller Eulen fegt die Pflegerin gerade den Boden.',
+      '• Über deinem Briefwechsel steht jetzt ein Schreibtisch am Fenster. Draußen ziehen die Jahreszeiten vorbei – Schnee, Blüten, Sommergrün, buntes Laub und Novembernebel –, und nachts brennen die Kerzen.',
+      '• Unter „Eulen“ stehen oben alle Eulen, die gleich losfliegen können, die munterste zuerst; darunter die, die gerade unterwegs oder beschäftigt sind, die nächste Heimkehrerin zuerst. Leiheulen verraten hinter ihrem Namen, dass sie nur geliehen sind.',
+      '• Der Virginiauhu lässt es ruhiger angehen und fliegt jetzt mit 65 km/h. Er und die Waldohreule haben sich außerdem für neue Flugbilder in Pose geworfen.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '1.2.0',
     title: 'Ein Atlas für die Eulen: Version 1.2.0',
     paragraphs: [
@@ -380,6 +392,18 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.2.1',
+    title: 'New doors, new windows: version 1.2.1',
+    paragraphs: [
+      'The owls have tidied up, rebuilt a little and given everything a good polish:',
+      '• The Menagerie now has a door like the post office: first you stand outside, then you step in – among wall niches, branches and a spiral staircase full of owls, the keeper is just sweeping the floor.',
+      '• Above your letters there is now a desk by the window. Outside, the seasons go by – snow, blossom, summer green, colourful leaves and November mist – and at night the candles are lit.',
+      '• Under “Owls”, all owls that can set off right away are at the top, the liveliest first; below are the ones that are travelling or busy, the next to come home first. Loan owls say after their name that they are only borrowed.',
+      '• The Great Horned Owl is taking things easier and now flies at 65 km/h. It and the Long-eared Owl have also struck a pose for new flight pictures.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '1.2.0',
     title: 'An atlas for the owls: version 1.2.0',

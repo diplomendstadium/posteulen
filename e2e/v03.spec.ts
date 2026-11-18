@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import { expect, test } from './fixtures.ts';
 import { loginViaUi, PASSWORD, registerViaUi } from './account-helpers.ts';
-import { addOwls, setGold } from './db-helpers.ts';
+import { addOwls, setGold, setOwl } from './db-helpers.ts';
 
 /**
  * v0.3: no text stands directly on the world-map background. Returns every visible text whose
@@ -69,6 +69,7 @@ test.describe('Version 0.3', () => {
       '/app/adressbuch',
       '/app/eulen',
       '/app/menagerie',
+      '/app/menagerie/innen',
       '/app/karte',
       '/app/postamt',
       '/app/postamt/innen',
@@ -142,7 +143,7 @@ test.describe('Version 0.3', () => {
     page,
   }) => {
     await registerViaUi(page);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     const picture = page.getByTestId('place-image');
     const buy = page.getByRole('heading', { name: 'Eulen kaufen' });
     await expect(buy).toBeVisible();
@@ -172,7 +173,7 @@ test.describe('Version 0.3', () => {
     expect(fits).toBe(true);
   });
 
-  test('Eulen: eigene über den Leiheulen (v0.10.1), Freilassen nur mit Namen und zweiter Bestätigung', async ({
+  test('Eulen: bereite über den beschäftigten, Leiheulen gekennzeichnet (v1.2.1), Freilassen nur mit Namen und zweiter Bestätigung', async ({
     page,
   }) => {
     const { name } = await registerViaUi(page);
@@ -180,18 +181,38 @@ test.describe('Version 0.3', () => {
     await page.goto('/app/postamt/innen');
     await page.getByTestId('loan-offer').first().getByRole('button').click();
     await expect(page.getByText(/wartet jetzt hier und bei deinen Eulen/)).toBeVisible();
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
     await expect(page).toHaveURL(/\/app\/eulen$/);
     await page.getByLabel('Name (2–20 Zeichen)').fill('Federchen');
     await page.getByRole('button', { name: 'Speichern' }).click();
-    const loans = page.getByRole('heading', { name: 'Leiheulen', level: 2 });
-    const own = page.getByRole('heading', { name: 'Deine Eulen', level: 2 });
-    await expect(own).toBeVisible();
-    // v0.10.1: own owls first (before: the loan owls on top).
-    expect((await own.boundingBox())!.y).toBeLessThan((await loans.boundingBox())!.y);
+    // v1.2.1: own and loan owls together – ready ones on top by energy in per cent, then the busy
+    // ones; a loan owl says so behind its name.
+    const ready = page.getByRole('heading', { name: 'Bereit für Post', level: 2 });
+    await expect(ready).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Leiheulen', level: 2 })).toHaveCount(0);
+    setOwl(name, { loans: true }, { share: 1 });
+    setOwl(name, { owlName: 'Federchen' }, { share: 0.2 });
+    await page.reload();
+    const names = page.getByTestId('owl-card').locator('h3');
+    await expect(names.first()).toContainText('(Leiheule)');
+    await expect(names.nth(1)).toHaveText('Federchen');
+    setOwl(name, { loans: true }, { share: 0.1 });
+    await page.reload();
+    await expect(names.first()).toHaveText('Federchen');
+    setOwl(
+      name,
+      { owlName: 'Federchen' },
+      { share: 0.2, state: 'menagerie', stateUntil: Date.now() + 86_400_000 },
+    );
+    await page.reload();
+    const busy = page.getByRole('heading', { name: 'Unterwegs und beschäftigt', level: 2 });
+    await expect(busy).toBeVisible();
+    expect((await ready.boundingBox())!.y).toBeLessThan((await busy.boundingBox())!.y);
+    setOwl(name, { owlName: 'Federchen' }, { share: 0.2, state: 'home' });
+    await page.reload();
 
     const card = page.getByTestId('owl-card').filter({ hasText: 'Federchen' });
     // v0.8.5: releasing only with more than 20 own owls.

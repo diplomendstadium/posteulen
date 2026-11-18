@@ -20,7 +20,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     expect(virginiauhu).toMatchObject({
       price: 68,
       maxEnergy: 1300,
-      speedFactor: 3.4,
+      speedFactor: 2.6,
       recoveryFactor: 2,
       cargo: 'gold',
     });

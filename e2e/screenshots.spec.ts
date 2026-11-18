@@ -103,12 +103,14 @@ test.describe('Screenshots Eulen, Postamt, Gold, Karte (Stufe 3)', () => {
     setGold(anna.name, 600);
     await page.goto('/app/menagerie');
     await shoot(page, info, 'menagerie', true);
+    await page.goto('/app/menagerie/innen');
+    await shoot(page, info, 'menagerie-innen', true);
     await page.goto('/app/postamt');
     await shoot(page, info, 'postamt', true);
     await page.goto('/app/postamt/innen');
     await page.getByTestId('loan-offer').first().waitFor();
     await shoot(page, info, 'postamt-innen', true);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Schneeeule kaufen' }).click();
@@ -116,7 +118,7 @@ test.describe('Screenshots Eulen, Postamt, Gold, Karte (Stufe 3)', () => {
     await shoot(page, info, 'eule-benennen');
     await page.getByLabel('Name (2–20 Zeichen)').fill('Wilma');
     await page.getByRole('button', { name: 'Speichern' }).click();
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Bartkauz kaufen' }).click();
@@ -176,7 +178,7 @@ test.describe('Screenshots Stufe 4', () => {
   test('kranke Eule, Küken, Einstellungen', async ({ page }, info) => {
     const me = await registerViaUi(page);
     setGold(me.name, 300);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Bartkauz kaufen' }).click();

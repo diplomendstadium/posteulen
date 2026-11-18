@@ -4,7 +4,8 @@
    * and motivation bars, speed and recovery of the species, water and favourite snack.
    * v0.10: the cards live in OwlCards (shared with the post office).
    */
-  import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
+  import { t, fill, speciesName, i18n } from '../lib/i18n.svelte.ts';
+  import { overviewOrder } from '@posteulen/shared/game/owls.ts';
   import { MAP, TIME } from '@posteulen/shared/constants.ts';
   import Link from '../components/Link.svelte';
   import OwlPicture from '../components/OwlPicture.svelte';
@@ -80,15 +81,18 @@
     }
   }
 
-  /** Loan owls above the own ones, each under its own heading (v0.3). */
+  /**
+   * v1.2.1: own and loan owls together – on top the owls ready for post (fullest energy first),
+   * below the ones on their way or busy (expected back soonest first).
+   */
   const named = $derived(owls.filter((owl) => owl.name !== null));
-  const groups = $derived(
-    [
-      // v0.10.1: own owls above the loan owls.
-      { id: 'own-owls', title: t.owls.ownGroup, list: named.filter((o) => o.kind !== 'loan') },
-      { id: 'loan-owls', title: t.owls.loanGroup, list: named.filter((o) => o.kind === 'loan') },
-    ].filter((group) => group.list.length > 0),
-  );
+  const groups = $derived.by(() => {
+    const { ready, busy } = overviewOrder(named, (a, b) => a.localeCompare(b, i18n.lang));
+    return [
+      { id: 'ready-owls', title: t.owls.readyGroup, list: ready },
+      { id: 'busy-owls', title: t.owls.busyGroup, list: busy },
+    ].filter((group) => group.list.length > 0);
+  });
 </script>
 
 <ErrorText message={error} />
@@ -159,6 +163,7 @@
     <h2 id={group.id} class="group plate">{group.title}</h2>
     <OwlCards
       owls={group.list}
+      markLoans
       onchange={replace}
       onreload={() => void load()}
       onremove={(id) => (owls = owls.filter((other) => other.id !== id))}

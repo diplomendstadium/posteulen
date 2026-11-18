@@ -50,7 +50,7 @@ export const SPECIES: readonly Species[] = [
   { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65, cargo: 'long' },
   { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25, cargo: 'long' },
   { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 150, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true, cargo: 'gold' },
-  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 68, maxEnergy: 1300, speedFactor: 3.4, recoveryFactor: 2, cargo: 'gold' },
+  { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 68, maxEnergy: 1300, speedFactor: 2.6, recoveryFactor: 2, cargo: 'gold' },
   { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45, cargo: 'long' },
   // v1.1: 47 km/h, 30 %/h; 36 km/h, 19 %/h (25 km/h and 10 %/h × factor).
   { id: 'ostkreischeule', name: 'Ostkreischeule', nameEn: 'Eastern Screech Owl', imageName: 'Ostkreischeule', price: 47, maxEnergy: 299, speedFactor: 1.88, recoveryFactor: 3.0, cargo: 'long' },
@@ -127,7 +127,6 @@ export const SCENE_IMAGES = [
   { id: 'menagerieXmasNight', file: 'Menagerie-Weihnachten-Nacht.png', sizes: [480, 960] },
   { id: 'postXmasDay', file: 'Postamt-Weihnachten-Tag.png', sizes: [480, 960] },
   { id: 'postXmasNight', file: 'Postamt-Weihnachten-Nacht.png', sizes: [480, 960] },
-  { id: 'letters', file: 'Briefwechsel.png', sizes: [480, 960] },
   // v1.2: inside the post office – one picture per team of the day, by day and by night, and in
   // the Christmas season (SPEC 8.6, 9.6).
   ...(['A', 'B', 'C', 'D'] as const).flatMap(
@@ -145,6 +144,33 @@ export const SCENE_IMAGES = [
           file: `Postamt-Team-${team}-Weihnachten-Nacht.png`,
           sizes: [480, 960],
         },
+      ] as const,
+  ),
+  // v1.2.1: inside the Menagerie, by day and by night and in the Christmas season (SPEC 8.7).
+  { id: 'menagerieInsideDay', file: 'Menagerie-Innen-Tag.png', sizes: [480, 960] },
+  { id: 'menagerieInsideNight', file: 'Menagerie-Innen-Nacht.png', sizes: [480, 960] },
+  { id: 'menagerieInsideXmasDay', file: 'Menagerie-Innen-Weihnachten-Tag.png', sizes: [480, 960] },
+  {
+    id: 'menagerieInsideXmasNight',
+    file: 'Menagerie-Innen-Weihnachten-Nacht.png',
+    sizes: [480, 960],
+  },
+  // v1.2.1: the desk on top of the letters page – one picture per season (DeskSeason), by day
+  // and by night (SPEC 9.11).
+  ...(
+    [
+      ['Christmas', 'Weihnachten'],
+      ['Winter', 'Winter'],
+      ['Spring', 'Fruehling'],
+      ['Summer', 'Sommer'],
+      ['Autumn', 'Herbst'],
+      ['November', 'November'],
+    ] as const
+  ).flatMap(
+    ([season, file]) =>
+      [
+        { id: `letters${season}Day`, file: `Schreibtisch-${file}-Tag.png`, sizes: [480, 960] },
+        { id: `letters${season}Night`, file: `Schreibtisch-${file}-Nacht.png`, sizes: [480, 960] },
       ] as const,
   ),
 ] as const;

@@ -218,9 +218,25 @@ export const de = {
   },
   letters: {
     title: 'Briefwechsel',
-    /** v1.1: the picture on top of the letters page. */
+    /**
+     * v1.2.1: the picture on top of the letters page – the desk of the season at home, by day or
+     * by night; `view` is one of the desk_… texts below.
+     */
     picture:
-      'Versiegelte Briefe, Pergamentrollen, Federkiel und Tintenfass auf einem Holztisch, in der Mitte ein Bogen mit der Aufschrift „Meine Briefe“',
+      'Ein Schreibtisch voller Briefe mit Federkiel und Tintenfass vor hohen Bogenfenstern, draußen {view}',
+    desk_christmas_day: 'ein verschneites Dorf im Tageslicht, am Fenster hängt ein Mistelzweig',
+    desk_christmas_night:
+      'ein verschneites Dorf bei Nacht, im Zimmer Kerzenschein und ein geschmücktes Bäumchen',
+    desk_winter_day: 'ein verschneites Dorf im Tageslicht',
+    desk_winter_night: 'ein verschneites Dorf bei Nacht, auf dem Tisch brennen Kerzen',
+    desk_spring_day: 'blühende Bäume im Frühlingslicht, auf dem Tisch ein Blumenstrauß',
+    desk_spring_night: 'blühende Bäume in einer Frühlingsnacht, auf dem Tisch brennen Kerzen',
+    desk_summer_day: 'sattgrüne Bäume im Sommerlicht',
+    desk_summer_night: 'sattgrüne Bäume in einer Sommernacht, auf dem Tisch brennen Kerzen',
+    desk_autumn_day: 'buntes Herbstlaub im Tageslicht',
+    desk_autumn_night: 'buntes Herbstlaub in einer Herbstnacht, auf dem Tisch brennen Kerzen',
+    desk_november_day: 'kahle Bäume an einem grauen Novembertag',
+    desk_november_night: 'kahle Bäume in einer Novembernacht, auf dem Tisch brennen Kerzen',
     none: 'Noch keine Briefe. Füge im Adressbuch einen Kontakt hinzu und schreib den ersten Brief.',
     system: 'Systemnachrichten',
     /** v0.8.5: behind the name in the chat list. */
@@ -549,7 +565,11 @@ export const de = {
       'Bist du ganz sicher? {name} fliegt für immer davon. Das lässt sich nicht rückgängig machen.',
     releaseFinal: 'Ja, {name} endgültig freilassen',
     releaseDone: '{name} ist in die Freiheit geflogen.',
-    loanGroup: 'Leiheulen',
+    /** v1.2.1: owls ready for post on top (by energy), then the others (by return). */
+    readyGroup: 'Bereit für Post',
+    busyGroup: 'Unterwegs und beschäftigt',
+    /** v1.2.1: behind the name of a loan owl in the owl overview. */
+    loanMark: '(Leiheule)',
     guestGroup: 'Zu Gast bei dir',
     guestBanner: 'Nur zur Rast hier!',
     guestUntil: 'Fliegt spätestens {time} weiter.',
@@ -568,7 +588,6 @@ export const de = {
     feedFree: 'Eulenkeks (kostenlos)',
     snackFree: '{snack} geben (kostenlos)',
     restingAt: 'Rastet bei {name} bis {until}.',
-    ownGroup: 'Deine Eulen',
     flyingDayAlt: '{name} im Flug bei Tag',
     flyingNightAlt: '{name} im Flug bei Nacht',
     sleepDayAlt: '{name} schläft unterwegs bei Tag',
@@ -632,6 +651,16 @@ export const de = {
     pictureChristmasDay: 'Die verschneite Menagerie mit Weihnachtsschmuck, bei Tag',
     pictureChristmasNight:
       'Die verschneite Menagerie mit Weihnachtsschmuck und Lichtern, bei Nacht',
+    /** v1.2.1: the entrance leads inside, where the owls for sale are. */
+    enter: 'Menagerie betreten',
+    insideDay:
+      'In der Menagerie bei Tag: Eulen in Mauernischen, auf Ästen und an einer Wendeltreppe, eine Pflegerin fegt neben der Ladentheke mit Kasse und dem Buch „Eulenpflege A–Z“',
+    insideNight:
+      'In der Menagerie bei Nacht: Eulen in Mauernischen, auf Ästen und an einer Wendeltreppe im Laternenlicht, eine Pflegerin fegt neben der Ladentheke',
+    insideChristmasDay:
+      'In der weihnachtlich geschmückten Menagerie bei Tag: Eulen zwischen Tannengrün, Kränzen und einem Christbaum, eine Pflegerin fegt neben der Ladentheke',
+    insideChristmasNight:
+      'In der weihnachtlich geschmückten Menagerie bei Nacht: Eulen im Lichterglanz zwischen Tannengrün, Kränzen und einem Christbaum, eine Pflegerin fegt neben der Ladentheke',
     buyTitle: 'Eulen kaufen',
     price: 'Preis: {price}',
     stats: 'Energie {energy} · Geschwindigkeit {speed} km/h · Erholung {recovery} %/h',
@@ -778,6 +807,20 @@ export const de = {
   },
   admin: {
     title: 'PostEulen – Verwaltung',
+    /** v1.2.1: the server dashboard at the top of the panel (SPEC 13 item 13). */
+    serverTitle: 'Server-Auslastung',
+    serverIntro:
+      'Grobe Werte des Servers: Prozessor (alle Kerne zusammen) und Arbeitsspeicher im Durchschnitt der letzten 7 Tage, dazu die Belegung der Festplatte mit den Spieldaten. Je voller der Ring, desto höher die Auslastung – von Grün bis Rot.',
+    serverCpu: 'Prozessor',
+    serverRam: 'Arbeits\u00ADspeicher',
+    serverDisk: 'Festplatte',
+    serverAverage: 'Ø 7 Tage',
+    serverNow: 'jetzt',
+    serverNone: 'noch keine Messwerte',
+    serverMeasured: 'Letzte Messung: {time}.',
+    serverSince: 'Gemessen wird erst seit {since}, der Durchschnitt umfasst nur diese Zeit.',
+    serverMissing:
+      'Für Prozessor und Arbeitsspeicher liegen noch keine Messwerte vor. Der Zeitgeber posteulen-stats misst alle 10 Minuten; den Prozessor zeigt der Ring ab der zweiten Messung.',
     /** v0.8.3: all times of the panels in the time zone of the device. */
     timeZoneNote: 'Alle Uhrzeiten in der Zeitzone dieses Geräts ({zone}).',
     loginHeading: 'Anmeldung für die Verwaltung',

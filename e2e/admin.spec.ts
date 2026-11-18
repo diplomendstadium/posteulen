@@ -60,6 +60,29 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
       timeout: 30_000,
     });
 
+    // v1.2.1: the server dashboard at the very top – without measurements only the disk.
+    const dashboard = page.getByTestId('server-load');
+    await expect(dashboard.getByRole('heading', { name: 'Server-Auslastung' })).toBeVisible();
+    const cpu = page.getByRole('meter', { name: 'Prozessor (Ø 7 Tage)' });
+    const ram = page.getByRole('meter', { name: 'Arbeitsspeicher (Ø 7 Tage)' });
+    await expect(cpu).toHaveAttribute('aria-valuetext', 'noch keine Messwerte');
+    await expect(page.getByRole('meter', { name: 'Festplatte (jetzt)' })).toHaveAttribute(
+      'aria-valuenow',
+      /^\d{1,3}$/,
+    );
+    const seconds = Math.floor(Date.now() / 1000);
+    fs.writeFileSync(
+      path.join(process.env['POSTEULEN_E2E_DIR'] ?? '', 'admin', 'server-load'),
+      `${seconds - 1200} 1000 750 2000 1000\n${seconds - 600} 2000 1500 2000 1000\n`,
+    );
+    await page.reload();
+    await expect(cpu).toHaveAttribute('aria-valuenow', '25');
+    await expect(ram).toHaveAttribute('aria-valuenow', '50');
+    await expect(cpu).toContainText('25 %');
+    const statistics = page.getByRole('heading', { name: 'Statistik' });
+    expect((await dashboard.boundingBox())!.y).toBeLessThan((await statistics.boundingBox())!.y);
+    await shoot(page, test.info(), 'verwaltung-server', true);
+
     await page.getByRole('combobox', { name: 'Registrierung' }).selectOption('invite');
     await expect(page.getByText('Gespeichert.')).toBeVisible();
     await page.getByRole('button', { name: 'Neuen Code erzeugen' }).click();

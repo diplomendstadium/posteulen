@@ -17,6 +17,7 @@ import { VoucherCreate } from '@posteulen/shared/schemas/vouchers.ts';
 import { registerAdminOperations } from './operations.ts';
 import { registerPanelAuth } from './panel-auth.ts';
 import { setTorEnabled, torOverview } from '../ops/tor.ts';
+import { serverLoad } from './server-load.ts';
 
 /** Error log IDs are positive integers in decimal notation (no `1e2`, no signs). */
 const ErrorLogId = v.pipe(v.string(), v.regex(/^[1-9][0-9]{0,14}$/));
@@ -34,6 +35,11 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   });
 
   registerAdminOperations(app, ctx, authenticated);
+
+  // ── Server-Dashboard (v1.2.1, SPEC 13 item 13): grobe Auslastung, keine Spielerdaten ──
+  app.get('/api/server-load', { preHandler: authenticated }, async () =>
+    serverLoad(ctx.config.serverLoadFile, ctx.config.dataDir, ctx.now()),
+  );
 
   // ── Registrierung und Einladungscodes (SPEC 13 item 3) ──
   app.get('/api/settings/registration', { preHandler: authenticated }, async () => ({

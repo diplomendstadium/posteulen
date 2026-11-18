@@ -69,7 +69,7 @@ test.describe('Version 0.10.1', () => {
     const { anna, ben, other, otherContext } = await pair(browser, page);
     // A burrowing owl only carries the short parchment.
     setGold(anna.name, 300);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Kanincheneule kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Elfi');

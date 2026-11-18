@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# PostEulen – Messwerte für das Server-Dashboard im Adminpanel (SPEC 13 Punkt 13). Läuft alle 10 Minuten
+# über posteulen-stats.timer als Dienstbenutzer und hängt eine Zeile an die Messwert-Datei an:
+#   <Unix-Zeit> <CPU-Zähler gesamt> <CPU-Zähler untätig> <RAM gesamt kB> <RAM verfügbar kB>
+# Die CPU-Zähler stammen aus /proc/stat (alle Kerne zusammen, seit dem Start des Systems); das
+# Backend errechnet daraus den Durchschnitt der letzten 7 Tage. Nur Shell-Bordmittel, keine
+# Unterprozesse außer beim gelegentlichen Kürzen der Datei.
+set -euo pipefail
+
+file=${1:-/var/lib/posteulen/server-load}
+# 144 Messungen am Tag: gut 7 Tage behalten, erst ab 1 100 Zeilen auf 7 Tage kürzen.
+readonly keep=1008 trim_from=1100
+
+read -r _ user nice system idle iowait irq softirq steal _ </proc/stat
+total=$((user + nice + system + idle + iowait + irq + softirq + steal))
+idle_all=$((idle + iowait))
+
+mem_total=0
+mem_available=0
+while read -r key value _; do
+  case $key in
+    MemTotal:) mem_total=$value ;;
+    MemAvailable:) mem_available=$value ;;
+  esac
+done </proc/meminfo
+
+printf -v now '%(%s)T' -1
+printf '%s %s %s %s %s\n' "$now" "$total" "$idle_all" "$mem_total" "$mem_available" >>"$file"
+
+lines=0
+while read -r _; do lines=$((lines + 1)); done <"$file"
+if ((lines > trim_from)); then
+  tail -n "$keep" "$file" >"$file.tmp"
+  mv "$file.tmp" "$file"
+fi

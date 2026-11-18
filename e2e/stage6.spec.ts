@@ -89,6 +89,7 @@ test.describe('Barrierefreiheit (SPEC 14)', () => {
       '/app/briefe/system',
       '/app/eulen',
       '/app/menagerie',
+      '/app/menagerie/innen',
       '/app/postamt',
       '/app/postamt/innen',
       '/app/adressbuch',
@@ -128,7 +129,7 @@ async function inDisplayFont(page: Page, needle: string, scope = 'body'): Promis
 test('Nutzer-, Bot- und Eulennamen nie in der Zierschrift (SPEC 7.1, 14)', async ({ page }) => {
   const me = await registerViaUi(page);
   setGold(me.name, 100);
-  await page.goto('/app/menagerie');
+  await page.goto('/app/menagerie/innen');
   // v0.7.1: a purchase is confirmed first.
   page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();

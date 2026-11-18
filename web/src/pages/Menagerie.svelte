@@ -1,9 +1,10 @@
 <script lang="ts">
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   /**
-   * Menagerie (SPEC 8.7): the picture of the place (v0.10, by day or night at home), then all
-   * species for sale by price, each with picture, values, carrying capacity (v0.10) and a
-   * description (v0.3). v0.10: the loan owls moved to the post office.
+   * Menagerie (SPEC 8.7). v1.2.1: at the entrance (`/app/menagerie`) only the picture of the
+   * place by day or night at home, the intro and a large button to go in, as at the post office;
+   * inside (`/app/menagerie/innen`) its own picture, then all species for sale by price, each
+   * with picture, values, carrying capacity (v0.10) and a description (v0.3).
    */
   import { t, fill, i18n, speciesName, locale, goldText, decimal } from '../lib/i18n.svelte.ts';
   import { SPECIES } from '@posteulen/shared/species.ts';
@@ -17,7 +18,12 @@
   import { OWL } from '@posteulen/shared/constants.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { refreshTopics } from '../lib/live.svelte.ts';
-  import { navigate } from '../lib/router.svelte.ts';
+  import { navigate, route } from '../lib/router.svelte.ts';
+  import PlaceDoor from '../components/PlaceDoor.svelte';
+
+  /** v1.2.1: the address of the inside of the Menagerie. */
+  const INSIDE = '/app/menagerie/innen';
+  const inside = $derived(route.path === INSIDE);
   import { status } from '../lib/status.svelte.ts';
 
   let error = $state<string | null>(null);
@@ -25,6 +31,7 @@
   let canBuy = $state(true);
 
   $effect(() => {
+    if (!inside) return;
     void listOwls()
       .then((result) => (canBuy = result.canBuy))
       .catch(() => undefined);
@@ -57,50 +64,55 @@
   }
 </script>
 
-<PlaceImage place="menagerie" />
+{#if !inside}
+  <!-- v1.2.1: the entrance – picture, intro and the door. -->
+  <PlaceImage place="menagerie" />
+  <p class="card intro">{t.menagerie.intro}</p>
+  <PlaceDoor href={INSIDE} label={t.menagerie.enter} icons={['🪶', '🦉']} />
+{:else}
+  <PlaceImage place="menagerieInside" />
+  <ErrorText message={error} />
+  {#if !canBuy}<p class="notice">
+      <span aria-hidden="true">ℹ</span><span>{t.menagerie.limit}</span>
+    </p>{/if}
 
-<p class="card intro">{t.menagerie.intro}</p>
-<ErrorText message={error} />
-{#if !canBuy}<p class="notice">
-    <span aria-hidden="true">ℹ</span><span>{t.menagerie.limit}</span>
-  </p>{/if}
-
-<section aria-labelledby="buy-title">
-  <h2 id="buy-title" class="plate">{t.menagerie.buyTitle}</h2>
-  <ul class="species for-sale">
-    {#each forSale as species (species.id)}
-      <li class="card">
-        <OwlPicture speciesId={species.id} alt={species.name} size={480} />
-        <h3>{species.name}</h3>
-        <p class="price">
-          {fill(t.menagerie.price, { price: goldText(priceTenths(species.price)) })}
-        </p>
-        <p class="stats">
-          {fill(t.menagerie.stats, {
-            energy: number(species.maxEnergy),
-            // v0.5: absolute values of the species instead of factors.
-            speed: decimal(owlSpeedKmh(species.speedFactor), 1),
-            recovery: decimal(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor, 1),
-          })} · {t.owls[`cargo_${species.cargo}`]}
-        </p>
-        {#if species.mythical}<p class="hint">{t.menagerie.mythical}</p>{/if}
-        {#if speciesDescription(species.id, i18n.lang)}<p class="description">
-            {speciesDescription(species.id, i18n.lang)}
-          </p>{/if}
-        <button
-          class="button"
-          type="button"
-          disabled={busy ||
-            !canBuy ||
-            !status.online ||
-            !canAfford(gold, priceTenths(species.price))}
-          onclick={() => void buy(species.id, species.name, priceTenths(species.price))}
-          >{fill(t.menagerie.buy, { species: species.name })}</button
-        >
-      </li>
-    {/each}
-  </ul>
-</section>
+  <section aria-labelledby="buy-title">
+    <h2 id="buy-title" class="plate">{t.menagerie.buyTitle}</h2>
+    <ul class="species for-sale">
+      {#each forSale as species (species.id)}
+        <li class="card">
+          <OwlPicture speciesId={species.id} alt={species.name} size={480} />
+          <h3>{species.name}</h3>
+          <p class="price">
+            {fill(t.menagerie.price, { price: goldText(priceTenths(species.price)) })}
+          </p>
+          <p class="stats">
+            {fill(t.menagerie.stats, {
+              energy: number(species.maxEnergy),
+              // v0.5: absolute values of the species instead of factors.
+              speed: decimal(owlSpeedKmh(species.speedFactor), 1),
+              recovery: decimal(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor, 1),
+            })} · {t.owls[`cargo_${species.cargo}`]}
+          </p>
+          {#if species.mythical}<p class="hint">{t.menagerie.mythical}</p>{/if}
+          {#if speciesDescription(species.id, i18n.lang)}<p class="description">
+              {speciesDescription(species.id, i18n.lang)}
+            </p>{/if}
+          <button
+            class="button"
+            type="button"
+            disabled={busy ||
+              !canBuy ||
+              !status.online ||
+              !canAfford(gold, priceTenths(species.price))}
+            onclick={() => void buy(species.id, species.name, priceTenths(species.price))}
+            >{fill(t.menagerie.buy, { species: species.name })}</button
+          >
+        </li>
+      {/each}
+    </ul>
+  </section>
+{/if}
 
 <style>
   .species {

@@ -141,3 +141,38 @@ export function markChristmas(name: string): void {
     if (result.changes === 0) throw new Error(`no letters of ${name}`);
   });
 }
+
+/**
+ * v1.2.1: energy (share of the maximum) and optionally the state of the owls of an account –
+ * all its loan owls or the own owl with the given name – for the order of the owl overview.
+ */
+export function setOwl(
+  account: string,
+  which: { loans: true } | { owlName: string },
+  values: { share: number; state?: 'home' | 'menagerie'; stateUntil?: number | null },
+): void {
+  withDb((db) => {
+    const owls = db
+      .prepare(
+        'loans' in which
+          ? "SELECT id, species FROM owls WHERE kind = 'loan' AND owner_id = (SELECT id FROM users WHERE name_display = ?)"
+          : "SELECT id, species FROM owls WHERE kind = 'own' AND owner_id = (SELECT id FROM users WHERE name_display = ?) AND name = ?",
+      )
+      .all(...('loans' in which ? [account] : [account, which.owlName])) as {
+      id: string;
+      species: string;
+    }[];
+    if (owls.length === 0) throw new Error(`no matching owl of ${account}`);
+    for (const owl of owls) {
+      db.prepare(
+        'UPDATE owls SET energy = ?, energy_at = ?, state = COALESCE(?, state), state_until = ? WHERE id = ?',
+      ).run(
+        values.share * (SPECIES.find((species) => species.id === owl.species)?.maxEnergy ?? 0),
+        Date.now(),
+        values.state ?? null,
+        values.stateUntil ?? null,
+        owl.id,
+      );
+    }
+  });
+}

@@ -11,6 +11,7 @@
   import Feedback from './Feedback.svelte';
   import Banners from './Banners.svelte';
   import Tor from './Tor.svelte';
+  import ServerLoad from './ServerLoad.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -97,6 +98,9 @@
 </script>
 
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
+
+<!-- v1.2.1: the server dashboard at the very top. -->
+<ServerLoad />
 
 <Operations />
 

@@ -35,7 +35,8 @@ install -d -m 0755 "$PE_LOCAL"
 ensure_firewall
 
 # systemd-Units
-for unit in posteulen.service posteulen-backup.service posteulen-backup.timer; do
+# v1.2.1: posteulen-stats sammelt die Messwerte für das Server-Dashboard im Adminpanel.
+for unit in posteulen.service posteulen-backup.service posteulen-backup.timer posteulen-stats.service posteulen-stats.timer; do
   install -m 0644 "$RELEASE/deploy/systemd/$unit" "/etc/systemd/system/$unit"
 done
 systemctl daemon-reload
@@ -43,6 +44,9 @@ systemctl daemon-reload
 # Befehle
 install -m 0755 "$RELEASE/deploy/posteulen-update" /usr/local/sbin/posteulen-update
 install -m 0755 "$RELEASE/deploy/posteulen-cli" /usr/local/sbin/posteulen-cli
+# v1.2.1: liegt außerhalb des Releases, damit der Timer auch nach einem Rückfall weiterläuft.
+install -m 0755 "$RELEASE/deploy/posteulen-server-load" /usr/local/sbin/posteulen-server-load
+systemctl enable --now --quiet posteulen-stats.timer
 
 # Caddyfile (eine fremde, vorhandene Caddyfile wird einmalig gesichert)
 caddyfile=/etc/caddy/Caddyfile

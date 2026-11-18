@@ -23,6 +23,12 @@ sql() {
 fingerprint() { sha256sum /etc/posteulen/secrets.json /etc/posteulen/backup.pub | sha256sum | cut -d' ' -f1; }
 has_marker() { [[ $(sql "SELECT value FROM settings WHERE key = 'vmtest-marker'") == *bleibt* ]]; }
 no_broken_table() { [[ $(sql "SELECT name FROM sqlite_master WHERE name = 'vmtest_broken'") == '[]' ]]; }
+# v1.2.1: ein Lauf von posteulen-stats.service hängt eine Zeile mit fünf Zahlen an.
+stats_written() {
+  systemctl start posteulen-stats.service &&
+    [[ $(stat -c %U /var/lib/posteulen/server-load) == posteulen ]] &&
+    grep -Eq '^[0-9]+ [0-9]+ [0-9]+ [0-9]+ [0-9]+$' /var/lib/posteulen/server-load
+}
 runs_as_service_user() {
   local pid
   pid=$(systemctl show --property MainPID --value posteulen.service)
@@ -196,6 +202,11 @@ grep -q 'address_check' /opt/posteulen/current/deploy/lib.sh 2>/dev/null &&
   check "Jeder Hostname über jede eigene Adresse" bash -c "source /opt/posteulen/current/deploy/lib.sh && address_check '$DOMAIN' 1 2>&1 | grep -q 'über alle ihre Adressen'"
 check "SSH nur mit Schlüssel" test -f /etc/ssh/sshd_config.d/50-posteulen.conf
 check "Backup-Timer aktiv" systemctl is-active --quiet posteulen-backup.timer
+# v1.2.1: Messwerte für das Server-Dashboard – eigener Zeitgeber als Dienstbenutzer.
+if [[ -f /etc/systemd/system/posteulen-stats.timer ]]; then
+  check "Messwert-Timer aktiv" systemctl is-active --quiet posteulen-stats.timer
+  check "Messwert-Skript schreibt als posteulen" stats_written
+fi
 check "systemd-Härtung (Bewertung ≤ 2,5)" hardening_score
 onion_before=''
 if has_tor_support; then

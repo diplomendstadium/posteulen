@@ -26,7 +26,7 @@ async function pair(browser: Browser, page: Page) {
 }
 
 async function buyAndName(page: Page, species: string, name: string): Promise<void> {
-  await page.goto('/app/menagerie');
+  await page.goto('/app/menagerie/innen');
   page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: `${species} kaufen` }).click();
   await page.getByLabel('Name (2–20 Zeichen)').fill(name);
@@ -63,10 +63,17 @@ test.describe('Version 0.10', () => {
     await expect(card.getByTestId('owl-cargo')).toContainText('Trägt kurzes');
 
     // The Menagerie is for buying only now – with its own picture and the carrying capacity.
+    // v1.2.1: outside the picture of the place, inside the picture of the inside.
     await page.goto('/app/menagerie');
     await expect(page.getByTestId('place-image').locator('img')).toHaveAttribute(
       'alt',
       /Menagerie .* bei (Tag|Nacht)/,
+    );
+    await page.getByRole('link', { name: 'Menagerie betreten' }).click();
+    await expect(page).toHaveURL(/\/app\/menagerie\/innen$/);
+    await expect(page.getByTestId('place-image').locator('img')).toHaveAttribute(
+      'alt',
+      /^In der .*Menagerie bei (Tag|Nacht):/,
     );
     await expect(page.getByTestId('loan-offer')).toHaveCount(0);
     const elf = page.locator('ul.for-sale > li').filter({ hasText: 'Elfenkauz' });

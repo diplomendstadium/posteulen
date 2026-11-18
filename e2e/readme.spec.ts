@@ -83,7 +83,7 @@ test('README-Bilder', async ({ browser, page }) => {
   // Anna: a loan owl waiting at home, and her own tawny owl, which will set off tired.
   await page.goto('/app/postamt/innen');
   await page.getByTestId('loan-offer').first().getByRole('button').click();
-  await page.goto('/app/menagerie');
+  await page.goto('/app/menagerie/innen');
   // v0.7.1: a purchase is confirmed first.
   page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: 'Waldkauz kaufen' }).click();
@@ -119,7 +119,7 @@ test('README-Bilder', async ({ browser, page }) => {
   await shot(page, 'karte.png');
 
   await page.goto('/app/eulen');
-  await expect(page.getByRole('heading', { name: 'Leiheulen', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bereit für Post', level: 2 })).toBeVisible();
   // A tall phone screen, so both groups fit (a full-page shot would repeat the fixed bars).
   await page.setViewportSize({ width: 412, height: 1500 });
   await shot(page, 'eulen.png');

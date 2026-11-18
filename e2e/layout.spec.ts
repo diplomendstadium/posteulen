@@ -27,6 +27,7 @@ const APP_PAGES = [
   '/app/postamt',
   '/app/postamt/innen',
   '/app/menagerie',
+  '/app/menagerie/innen',
   '/app/adressbuch',
   '/app/karte',
   '/app/einstellungen',
@@ -116,14 +117,14 @@ test.describe('Layout in vielen Breiten (v0.6, SPEC 14)', () => {
     const me = await registerViaUi(page, { name: uniqueName('Wilhelminaa') });
     setGold(me.name, 2000);
     await borrowViaUi(page);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Südliche Weißgesichtseule kaufen' }).click();
     await page.getByLabel('Name (2–20 Zeichen)').fill('Hermenegildisgunda');
     await page.getByRole('button', { name: 'Speichern' }).click();
     await expect(page.getByRole('heading', { name: 'Hermenegildisgunda' })).toBeVisible();
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // v0.7.1: a purchase is confirmed first.
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Riesenfischuhu kaufen' }).click();

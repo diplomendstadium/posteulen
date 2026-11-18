@@ -48,6 +48,9 @@ const SCENE_FALLBACK: Partial<Record<SceneId, SceneId>> = {
   postInsideCXmasNight: 'postInsideCNight',
   postInsideDXmasDay: 'postInsideDDay',
   postInsideDXmasNight: 'postInsideDNight',
+  // v1.2.1: inside the Menagerie likewise.
+  menagerieInsideXmasDay: 'menagerieInsideDay',
+  menagerieInsideXmasNight: 'menagerieInsideNight',
 };
 
 /** Pictures without a species (empty perch, group picture); the placeholder if missing. */

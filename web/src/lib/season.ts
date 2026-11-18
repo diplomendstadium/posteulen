@@ -4,7 +4,7 @@
  * account (start page) the fictional home Berlin counts.
  */
 import { isDay } from '@posteulen/shared/game/sun.ts';
-import { isChristmas } from '@posteulen/shared/game/season.ts';
+import { deskSeason, isChristmas, type DeskSeason } from '@posteulen/shared/game/season.ts';
 import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
 import { account } from './auth.svelte.ts';
 
@@ -14,11 +14,17 @@ export const BERLIN = { lat: 52.52, lon: 13.4 } as const;
 export interface HomeLight {
   readonly day: boolean;
   readonly christmas: boolean;
+  /** v1.2.1: the season of the desk pictures on the letters page. */
+  readonly season: DeskSeason;
 }
 
 export function homeLight(at: number = Date.now()): HomeLight {
   const home = account.profile?.home ?? BERLIN;
-  return { day: isDay(at, home.lat, home.lon), christmas: isChristmas(at, home.lat, home.lon) };
+  return {
+    day: isDay(at, home.lat, home.lon),
+    christmas: isChristmas(at, home.lat, home.lon),
+    season: deskSeason(at, home.lat, home.lon),
+  };
 }
 
 /**
@@ -41,4 +47,10 @@ export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind
 export function groupScene(light: HomeLight): SceneId {
   if (light.christmas) return light.day ? 'groupXmasDay' : 'groupXmasNight';
   return light.day ? 'group' : 'groupNight';
+}
+
+/** v1.2.1: the desk picture on top of the letters page for the season and light at home. */
+export function lettersScene(light: HomeLight): SceneId {
+  const season = light.season.charAt(0).toUpperCase() + light.season.slice(1);
+  return `letters${season}${light.day ? 'Day' : 'Night'}` as SceneId;
 }

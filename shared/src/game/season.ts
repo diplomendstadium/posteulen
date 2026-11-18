@@ -3,7 +3,7 @@
  * the end of 26 December, by the local time at a (fictional) home. The time zone comes from the
  * same grid as the greeting (8.3); the rules including summer time from Intl.
  */
-import { CHRISTMAS } from '../constants.ts';
+import { CHRISTMAS, DESK_SEASONS } from '../constants.ts';
 import { zoneAt } from '../map/timezone.ts';
 
 export interface LocalDate {
@@ -56,6 +56,33 @@ export function isChristmasDate(date: LocalDate): boolean {
 /** Whether it is Christmas season at this place and time (local time there). */
 export function isChristmas(at: number, lat: number, lon: number): boolean {
   return isChristmasDate(localDate(at, zoneAt(lat, lon)));
+}
+
+/** v1.2.1: the season of the desk pictures on the letters page (SPEC 9.11). */
+export type DeskSeason = 'christmas' | 'winter' | 'spring' | 'summer' | 'autumn' | 'november';
+
+/**
+ * The season of a calendar date for the desk pictures: Christmas season (first Advent to
+ * 26 December), winter until the end of February, spring from 1 March, summer from 1 June,
+ * autumn from 1 September and November from 1 November until the Christmas season starts.
+ */
+export function deskSeasonOfDate(date: LocalDate): DeskSeason {
+  if (isChristmasDate(date)) return 'christmas';
+  if (date.month >= DESK_SEASONS.NOVEMBER_FIRST_MONTH) {
+    // From 27 December the new winter begins; before Advent it is still November.
+    return date.month === CHRISTMAS.LAST_MONTH && date.day > CHRISTMAS.LAST_DAY
+      ? 'winter'
+      : 'november';
+  }
+  if (date.month >= DESK_SEASONS.AUTUMN_FIRST_MONTH) return 'autumn';
+  if (date.month >= DESK_SEASONS.SUMMER_FIRST_MONTH) return 'summer';
+  if (date.month >= DESK_SEASONS.SPRING_FIRST_MONTH) return 'spring';
+  return 'winter';
+}
+
+/** The season of the desk pictures at this place and time (local time there). */
+export function deskSeason(at: number, lat: number, lon: number): DeskSeason {
+  return deskSeasonOfDate(localDate(at, zoneAt(lat, lon)));
 }
 
 /**

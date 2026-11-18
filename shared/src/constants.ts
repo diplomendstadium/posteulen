@@ -153,6 +153,18 @@ export const CHRISTMAS = {
   PAPERS: 4,
 } as const;
 
+/**
+ * v1.2.1: the seasons of the desk pictures on top of the letters page (SPEC 9.11): the first
+ * month of each season. Winter runs from the end of the Christmas season to the end of
+ * February, November from 1 November to the start of the Christmas season – worldwide the same.
+ */
+export const DESK_SEASONS = {
+  SPRING_FIRST_MONTH: 3,
+  SUMMER_FIRST_MONTH: 6,
+  AUTUMN_FIRST_MONTH: 9,
+  NOVEMBER_FIRST_MONTH: 11,
+} as const;
+
 export const MENAGERIE = {
   OFFER_HOUR_UTC: 0,
   MAX_LOANS_PER_SPECIES: 1,
@@ -232,7 +244,8 @@ export const CENTRAL_BOTS = {
   NAME_MIN_CHARS: 3,
   /** v0.8.3: up to 30 characters (players: 20, so a bot name never collides with a new one). */
   NAME_MAX_CHARS: 30,
-  CHARACTER_MAX_CHARS: 8000,
+  /** v1.2.1: up to 16 000 characters (before 8 000). */
+  CHARACTER_MAX_CHARS: 16_000,
   CONTEXT_MAX_CHARS: 8000,
   /** Permanent motivation of bot owls in tenths: 0.5 to 20.0. */
   MOTIVATION_MIN: 5,
@@ -310,4 +323,14 @@ export const OPERATIONS = {
   FOREGROUND_POLL_SECONDS: 60,
   /** The event worker never sleeps longer than this (SPEC 4.5). */
   WORKER_MAX_SLEEP_MS: HOUR,
+} as const;
+
+/**
+ * v1.2.1: the server dashboard of the admin panel (SPEC 13 item 13). posteulen-stats.timer measures
+ * every 10 minutes; CPU and RAM are averaged over the last 7 days.
+ */
+export const SERVER_LOAD = {
+  WINDOW_DAYS: 7,
+  /** The measurement file is never read beyond this size (a week is about 50 KB). */
+  MAX_FILE_BYTES: 256 * 1024,
 } as const;

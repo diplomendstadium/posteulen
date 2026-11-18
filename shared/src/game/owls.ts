@@ -131,3 +131,54 @@ export function canFeedAgain(input: {
 }): boolean {
   return !input.fedToday || input.energy < input.maxEnergy;
 }
+
+/** v1.2.1: what the owl overview needs to know to sort an owl (SPEC 8.5). */
+export interface OverviewOwl {
+  readonly name: string | null;
+  readonly ready: boolean;
+  readonly energy: number;
+  readonly maxEnergy: number;
+  readonly stateUntil: number | null;
+  readonly adultAt: number | null;
+  readonly absence: {
+    readonly returnsAt: number | null;
+    readonly nextStop?: { readonly arrivesAt: number } | null;
+  } | null;
+}
+
+/**
+ * When an owl that is not ready is expected back or ready again: the return home of a flight
+ * (for a loan owl without return its next stop), otherwise the end of its state (rest, sickness,
+ * brooding, Menagerie) or the day a chick grows up; unknown last.
+ */
+export function expectedBack(owl: OverviewOwl): number {
+  return (
+    owl.absence?.returnsAt ??
+    owl.absence?.nextStop?.arrivesAt ??
+    owl.stateUntil ??
+    owl.adultAt ??
+    Number.POSITIVE_INFINITY
+  );
+}
+
+/**
+ * v1.2.1: the order of the owl overview (SPEC 8.5) – own and loan owls together. On top the owls
+ * ready for post, the fullest energy (in per cent of their maximum) first; below all others, the
+ * one expected back soonest first. Ties by name.
+ */
+export function overviewOrder<T extends OverviewOwl>(
+  owls: readonly T[],
+  compareNames: (a: string, b: string) => number,
+): { readonly ready: T[]; readonly busy: T[] } {
+  const byName = (a: T, b: T): number => compareNames(a.name ?? '', b.name ?? '');
+  const share = (owl: T): number => (owl.maxEnergy > 0 ? owl.energy / owl.maxEnergy : 0);
+  return {
+    ready: owls.filter((owl) => owl.ready).sort((a, b) => share(b) - share(a) || byName(a, b)),
+    busy: owls
+      .filter((owl) => !owl.ready)
+      .sort((a, b) => {
+        const difference = expectedBack(a) - expectedBack(b);
+        return Number.isNaN(difference) || difference === 0 ? byName(a, b) : difference;
+      }),
+  };
+}

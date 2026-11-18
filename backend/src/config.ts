@@ -25,6 +25,8 @@ export interface Config {
   readonly torPort: number;
   /** v0.9: the Tor switch of the admin panel, mirrored for the root helper (SPEC 16.5). */
   readonly torSwitchFile: string;
+  /** v1.2.1: measurements of posteulen-stats.timer for the server dashboard (SPEC 13 item 13). */
+  readonly serverLoadFile: string;
   readonly logLevel: string;
 }
 
@@ -89,6 +91,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     torOrigin: torOrigin === undefined ? undefined : new URL(torOrigin).origin,
     torPort: readPort(env['POSTEULEN_TOR_PORT'], 3004),
     torSwitchFile: path.join(dataDir, 'tor-switch'),
+    serverLoadFile: path.join(dataDir, 'server-load'),
     logLevel: env['POSTEULEN_LOG_LEVEL'] ?? 'info',
   };
 }

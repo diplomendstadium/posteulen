@@ -24,7 +24,7 @@ async function pair(browser: Browser, page: Page, options: { benKeys?: string[] 
 }
 
 async function buyAndName(page: Page, species: string, name: string): Promise<void> {
-  await page.goto('/app/menagerie');
+  await page.goto('/app/menagerie/innen');
   // v0.7.1: a purchase is confirmed first.
   page.once('dialog', (dialog) => void dialog.accept());
   await page.getByRole('button', { name: `${species} kaufen` }).click();
@@ -40,7 +40,7 @@ async function buyAndName(page: Page, species: string, name: string): Promise<vo
 test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
   test('kaufen, benennen, streicheln und füttern mit Einblendung', async ({ page }) => {
     const me = await registerViaUi(page);
-    await page.goto('/app/menagerie');
+    await page.goto('/app/menagerie/innen');
     // 3,0 Gold reichen für keine Eule.
     await expect(page.getByRole('button', { name: 'Waldkauz kaufen' })).toBeDisabled();
     setGold(me.name, 100);
