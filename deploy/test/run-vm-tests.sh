@@ -109,10 +109,12 @@ ssh_vm true || fail "VM per SSH nicht erreichbar (Konsole: $run_dir/console.log)
 echo "VM läuft."
 
 say "Szenario in der VM"
+# v1.2.1: nach /var/tmp (Festplatte) – /tmp ist in Debian 13 ein RAM-Dateisystem und für das
+# Bundle mit allen Bildern zu klein.
 scp -q -i "$CACHE/vm_key" -P "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-scenario.sh" debian@127.0.0.1:/tmp/
+  "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-scenario.sh" debian@127.0.0.1:/var/tmp/
 set +e
-ssh_vm "sudo bash /tmp/vm-scenario.sh '$version' '$previous'" 2>&1 | tee "$run_dir/scenario.log"
+ssh_vm "sudo bash /var/tmp/vm-scenario.sh '$version' '$previous'" 2>&1 | tee "$run_dir/scenario.log"
 status=${PIPESTATUS[0]}
 set -e
 

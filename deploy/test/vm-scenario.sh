@@ -129,7 +129,7 @@ diag() {
 }
 
 apt-get update -qq && apt-get install -y -qq git >/dev/null
-git clone --quiet --bare /tmp/posteulen.bundle /srv/posteulen.git
+git clone --quiet --bare /var/tmp/posteulen.bundle /srv/posteulen.git
 git -C /srv/posteulen.git config uploadpack.allowFilter true
 git clone --quiet /srv/posteulen.git /root/posteulen
 printf '127.0.0.1 %s admin.%s bots.%s www.%s\n' "$DOMAIN" "$DOMAIN" "$DOMAIN" "$DOMAIN" >>/etc/hosts
