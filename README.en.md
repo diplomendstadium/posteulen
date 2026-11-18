@@ -48,6 +48,8 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route. Every ready owl has a “Write a letter” button in the owl overview; when writing, the owl choice is there at once – it only offers the loan owls of the day if none of your owls can carry the letter. In the correspondence every letter shows below it when it arrived or when you sent it, on which parchment and with which owl; your writing field already looks like your letter. When an owl lands with post, you see it as soon as you open the app.
 - **A team of your own:** at the owl post office you first stand outside – “Enter the owl post office” takes you in, where you see the team of the day at work (by day, at night, decorated in Advent). One of four owl teams is on duty every day – drawn for each account separately, never the same one twice in a row – and you can borrow all of its owls – with values, what they carry and the loan fee (0.1 gold, owls that also carry gold 0.2 gold). There you can also look after your borrowed owls and send them off. Once a loan is over, its offer disappears until tomorrow.
+- **Who is ready?** Under “Owls”, all owls that can set off right away are at the top – your own and borrowed ones together, the liveliest first; loan owls carry “(loan owl)” after their name. Below are the ones that are travelling or busy, the next to come home first.
+- **Step inside:** the Menagerie now has a door too. Inside, the owls sit in wall niches and along the spiral staircase while the keeper sweeps. Above your letters stands a desk by the window – outside the seasons go by, and at night the candles are lit.
 - **Gold with the owl:** if an owl can carry gold and you have enough, it has the button “Send gold” in the owl overview. Bookings and the daily gold are in the settings.
 - **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
 - **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (not at all, 1, 2, 6, 12, 24 or 48 hours; preselected 2 hours with your own owls, 24 with loan owls). There it may be pampered and takes a reply back to you – with a reply on board it flies on at once. In the recipient’s conversations a little owl symbol stands behind your name; they can also send it on earlier without a letter.
@@ -99,7 +101,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.2.0** – the map as a hand-drawn atlas with names of landscapes, rivers and seas, an entrance for the owl post office with the team of the day inside, letter details below the parchment (details in [CHANGELOG.md](CHANGELOG.md) and SPEC appendix F).
+Version: **1.2.1** – a server dashboard at the top of the admin panel, the Menagerie with an entrance and an inside, an owl overview ordered by readiness, and the desk above your letters changing with the seasons (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
 
 **In short**
 
@@ -151,7 +153,7 @@ The script only asks what is necessary. All questions can also be answered with 
    | `/opt/posteulen/repo` | copy of the Git repository (for updates) |
    | `/opt/posteulen/releases/…` | built versions (the last 3 are kept) |
    | `/opt/posteulen/current` | link to the running version |
-   | `/var/lib/posteulen` | database (readable only by the service) |
+   | `/var/lib/posteulen` | database (readable only by the service) and measurements for the server dashboard |
    | `/var/backups/posteulen` | encrypted backups |
    | `/etc/posteulen` | configuration and secrets file |
    | `/etc/posteulen/local` | your own adjustments (never overwritten) |
@@ -181,6 +183,7 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - At the end of the installation (or of the update that added the admin panel) the initial admin password is shown once. Use it to sign in at `https://admin.posteulen.de`.
 - At the first login it must be changed (at least 15 characters); nothing else is possible before that.
 - The admin panel signs you out after 10 minutes without activity.
+- At the very top is the **server load**: three colourful rings – the fuller, the higher the load, from green to red – for the processor (all cores together) and the memory averaged over the last 7 days, and for how full the disk with the game data is. The figures are deliberately rough: a small systemd timer (`posteulen-stats.timer`) writes one line to `/var/lib/posteulen/server-load` every 10 minutes; it runs as the service user, without network, and needs practically no resources. After a fresh installation or the update, processor and memory appear after 10 to 20 minutes; until 7 days are full, the panel says since when it has been measuring. To check on the server: `systemctl list-timers posteulen-stats.timer`.
 - Choose the registration mode: “geschlossen” (closed, default), “nur mit Einladungscode” (invitation code only) or “offen für alle” (open to everyone). Invitation codes are valid for 48 hours, can be used once and are only shown when created.
 - Messages from users (at the very bottom): once a day, users can send the admin a short message (300 characters) from the settings – for problems and ideas. They are not encrypted, arrive without the sender and are deleted after 90 days.
 - Vouchers: for gold (0.1 to 100) or an owl (species of your choice or random), redeemable once, valid for 90 days. The code is only shown when it is created; users redeem it in the settings of the app. PostEulen does not store who redeemed a voucher.
@@ -199,7 +202,7 @@ At `https://bots.posteulen.de` you create pen friends for all players. It is com
 
 - **Initial password:** shown once at the end of the installation or of the first update to 0.8 (“Erstpasswort des Bots-Kontrollzentrums”). It must be changed at the first login. Later updates leave it alone. Forgotten? `sudo posteulen-cli bots-reset`.
 - **Signed out** after 12 hours without activity. The control centre can be switched to English as well.
-- **A bot starts as an empty draft:** name (3 to 30 characters, unique, also against players), character and background (given to the AI), home anywhere on land in the world, owl (an own one – every player gets an instance of it – or random loan owls), motivation of the owls (0.5 to 20; with 20 they manage other continents), rest with the player and whether players may also write with their own owls. Only after explicit activation does it take part; pausing stops new letters.
+- **A bot starts as an empty draft:** name (3 to 30 characters, unique, also against players), character and background (up to 16,000 characters, given to the AI), home anywhere on land in the world, owl (an own one – every player gets an instance of it – or random loan owls), motivation of the owls (0.5 to 20; with 20 they manage other continents), rest with the player and whether players may also write with their own owls. Only after explicit activation does it take part; pausing stops new letters.
 - **Planned events:** a time, plus a move and/or a letter to everyone (four versions: first contact and follow-up, each in German and English; up to two pictures of up to 5 MB each) and/or a gift (gold or an owl). Before saving there is a preview and a test of the AI adaptation with an imagined letter of a player (sends nothing; as in real use it takes the follow-up letter and the letter of the previous event as the conversation so far). Every event shows when the first and when the last player get the owl – estimated beforehand (“approx.”), then the real times. If a player writes back, the AI adapts the next planned letter (the follow-up one) for them and knows the last 15 letters of your correspondence (older ones as a summary); only if nothing is planned for four weeks does the bot reply directly after two hours. If the AI fails, the planned letter still goes, unchanged.
 - **Past events** are in the archive with numbers (sent, delivered, read, replies). The overview shows these numbers per bot (all time and 30 days) and a world map with all bot owls on their way – without names of players, but a resting owl of course sits at a player’s (fictional) home. The map works like the one in the game (drag, mouse wheel, two fingers, buttons), fits into the window (fully zoomed out, the mouse wheel scrolls the page on), has a legend (blue circle: flying out, green square: resting, orange triangle: flying back, diamond: home) and is updated every 5 minutes. Sent events are deleted for good 36 months after sending, with their deliveries and pictures nothing else uses (the statistics per bot stay). All times in the control centre and the admin panel are in the time zone of your device.
 - **Export and import** as a ZIP file (whole bots or single events, with pictures, without letters of players). An import only adds – it shows conflicts first and never sends anything from the past again. The format is in `SPEC.md`, Anhang S.
@@ -313,7 +316,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.2.0      # installs a particular version
+sudo posteulen-update v1.2.1      # installs a particular version
 ```
 
 Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.
@@ -349,7 +352,8 @@ For the automatic rollback, an additional unencrypted snapshot is kept in `/var/
 ```bash
 journalctl -u posteulen -n 100    # backend
 journalctl -u caddy -n 100        # web server/HTTPS
-journalctl -u tor@posteulen -n 50 # Tor (onion service,)
+journalctl -u tor@posteulen -n 50 # Tor (onion service)
+journalctl -u posteulen-stats -n 20 # measurements of the server dashboard
 systemctl status posteulen
 ```
 

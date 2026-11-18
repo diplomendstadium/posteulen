@@ -3,6 +3,28 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.2.1 – Neue Türen, neue Fenster
+
+Wünsche des Auftraggebers zu Menagerie, Eulenübersicht, Briefwechsel, Bots-Kontrollzentrum und Adminpanel (SPEC Anhang F, D-387 bis D-395).
+
+**Neu:**
+
+- **Server-Dashboard im Adminpanel:** ganz oben drei bunte Ringe (Grün bei 0 % bis Rot bei 100 %, einmal ganz herum) für die durchschnittliche Prozessorauslastung (alle Kerne zusammen) und Arbeitsspeicherbelegung der letzten 7 Tage sowie die aktuelle Belegung der Festplatte mit den Spieldaten. Gemessen wird alle 10 Minuten von einem eigenen, sparsamen systemd-Timer (`posteulen-stats.timer`, Dienstbenutzer, ohne Netz); der Hauptdienst bleibt unverändert gehärtet. Admin-API `GET /api/server-load`.
+- **Menagerie mit Eingang:** draußen das neue Außenbild, die Einleitung und der Knopf „Menagerie betreten“; drinnen (`/app/menagerie/innen`) das Innenbild bei Tag, bei Nacht und in der Weihnachtszeit über der Kaufliste.
+- **Eulenübersicht nach Einsatzbereitschaft:** „Bereit für Post“ (eigene und Leiheulen gemischt, die mit der vollsten Energie in Prozent zuerst), darunter „Unterwegs und beschäftigt“ (die mit der frühesten voraussichtlichen Rückkehr zuerst). Leiheulen tragen „(Leiheule)“ hinter dem Namen.
+- **Schreibtisch über dem Briefwechsel:** statt des festen Bilds ein Schreibtisch am Fenster, draußen die Jahreszeit am Wohnort – Weihnachtszeit, Winter (bis Ende Februar), Frühling (ab März), Sommer (ab Juni), Herbst (ab September), November (bis zum ersten Advent) –, jeweils bei Tag und bei Nacht.
+- **Virginiauhu** fliegt mit 65 km/h (vorher 85 km/h).
+- **Bots-Kontrollzentrum:** „Charakter und Hintergrund“ fasst 16.000 Zeichen (vorher 8.000).
+- **Bilder:** neue Außenbilder der Menagerie, vier Innenbilder der Menagerie, zwölf Schreibtischbilder, neue Tagflugbilder von Virginiauhu und Waldohreule; `Briefwechsel.png` entfällt. 506 Bilddateien, keine fehlt.
+- Hilfe, Erklärbär, README, SPEC, PROMPT und Update-Nachricht auf Deutsch und Englisch aktualisiert.
+
+### Hinweise für Betreiber
+
+- Keine Migration (Schema-Version bleibt 21), keine neuen Pakete, keine neuen Abhängigkeiten.
+- `npm audit`: Laufzeit 0 Funde; in den Entwicklungswerkzeugen ein neuer hoher Hinweis zu `picomatch` 4.0.7 ohne verfügbare Korrektur (betrifft nur den Build, siehe `DEPENDENCIES.md`).
+- **Neuer Zeitgeber** `posteulen-stats.timer` (mit `posteulen-stats.service` und dem Skript `/usr/local/sbin/posteulen-server-load`): `configure.sh` richtet ihn bei Installation und Update ein und schaltet ihn ein. Er schreibt alle 10 Minuten eine Zeile nach `/var/lib/posteulen/server-load` (höchstens gut 7 Tage, etwa 50 KB). Prozessor und Arbeitsspeicher erscheinen im Adminpanel 10 bis 20 Minuten nach dem Update. Kontrolle: `systemctl list-timers posteulen-stats.timer`.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.2.0 – Ein Atlas für die Eulen
 
 Die Karte bekommt das Aussehen eines handgezeichneten historischen Atlas, dazu Wünsche des Auftraggebers zu Postamt, Briefen und Bildern (SPEC Anhang F, D-379 bis D-386).

@@ -46,6 +46,8 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da – die Leiheulen des Tages bietet sie nur an, wenn keine deiner Eulen den Brief tragen kann. Im Briefwechsel steht unter jedem Brief, wann er angekommen ist bzw. wann du ihn abgeschickt hast, auf welchem Pergament und mit welcher Eule; dein Schreibfeld sieht schon aus wie dein Brief. Landet eine Eule mit Post, siehst du sie gleich beim Öffnen der App.
 - **Jedem sein Team:** Vor dem Eulenpostamt stehst du erst einmal draußen – mit „Eulenpostamt betreten“ geht es hinein, und du siehst das Team des Tages bei der Arbeit (bei Tag, bei Nacht, im Advent geschmückt). Jeden Tag hat eines von vier Eulenteams Dienst – für jedes Konto eigens ausgelost, nie zweimal hintereinander dasselbe –, und du kannst alle seine Eulen leihen – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
 - **Eine Karte wie aus dem Atlas:** Die Karte sieht aus wie ein handgezeichneter historischer Atlas – Pergament, feine Küsten, schraffierte Gebirge, kleine Wälder, Flüsse und Seen. Je näher du heranzoomst, desto mehr Landschaften, Flüsse und Meere tragen ihren Namen; rund um Westeuropa bis hin zu Lüneburger Heide, Harz und Schwäbischer Alb.
+- **Wer ist bereit?** Unter „Eulen“ stehen oben alle Eulen, die gleich losfliegen können – eigene und geliehene gemischt, die munterste zuerst; Leiheulen tragen „(Leiheule)“ hinter dem Namen. Darunter die, die gerade unterwegs oder beschäftigt sind, die nächste Heimkehrerin zuerst.
+- **Eintreten bitte:** Auch die Menagerie hat jetzt eine Tür. Drinnen sitzen die Eulen in Mauernischen und an der Wendeltreppe, und die Pflegerin fegt gerade. Über dem Briefwechsel steht ein Schreibtisch am Fenster – draußen ziehen die Jahreszeiten vorbei, nachts brennen Kerzen.
 - **Gold mit der Eule:** Kann eine Eule Gold tragen und hast du genug, hat sie in der Eulenübersicht den Knopf „Gold verschicken“. Buchungen und tägliches Gold stehen in den Einstellungen.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
 - **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (gar nicht, 1, 2, 6, 12, 24 oder 48 Stunden; vorgewählt 2 Stunden mit eigenen Eulen, 24 mit Leiheulen). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort weiter. Beim Empfänger steht im Briefwechsel ein kleines Eulensymbol hinter deinem Namen; er kann sie auch ohne Brief früher weiterfliegen lassen.
@@ -95,7 +97,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.2.0** – die Karte als handgezeichneter Atlas mit Landschafts-, Fluss- und Meeresnamen, ein Eingang fürs Eulenpostamt mit dem Team des Tages drinnen, Briefangaben unter dem Pergament (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.2.1** – ein Server-Dashboard ganz oben im Adminpanel, die Menagerie mit Eingang und Innenraum, eine Eulenübersicht nach Einsatzbereitschaft, der Schreibtisch über dem Briefwechsel im Wechsel der Jahreszeiten (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -147,7 +149,7 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    | `/opt/posteulen/repo` | Kopie des Git-Repositorys (für Updates) |
    | `/opt/posteulen/releases/…` | gebaute Versionen (die letzten 3 bleiben erhalten) |
    | `/opt/posteulen/current` | Verweis auf die laufende Version |
-   | `/var/lib/posteulen` | Datenbank (nur für den Dienst lesbar) |
+   | `/var/lib/posteulen` | Datenbank (nur für den Dienst lesbar) und Messwerte für das Server-Dashboard |
    | `/var/backups/posteulen` | verschlüsselte Sicherungen |
    | `/etc/posteulen` | Konfiguration und Geheimnis-Datei |
    | `/etc/posteulen/local` | eigene Anpassungen (werden nie überschrieben) |
@@ -176,6 +178,7 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 
 - Am Ende der Installation (bzw. des Updates, mit dem das Adminpanel dazukam) steht einmalig das Admin-Erstpasswort. Damit unter `https://admin.posteulen.de` anmelden.
 - Beim ersten Login muss es geändert werden (mindestens 15 Zeichen); vorher geht nichts anderes. Nach 10 Minuten ohne Aktivität meldet das Adminpanel dich ab.
+- Ganz oben steht die **Server-Auslastung**: drei bunte Ringe – je voller, desto höher die Last, von Grün bis Rot – für den Prozessor (alle Kerne zusammen) und den Arbeitsspeicher im Durchschnitt der letzten 7 Tage sowie die Belegung der Festplatte mit den Spieldaten. Die Werte sind bewusst grob: Ein kleiner systemd-Timer (`posteulen-stats.timer`) schreibt alle 10 Minuten eine Zeile nach `/var/lib/posteulen/server-load`; er läuft als Dienstbenutzer, ohne Netz, und braucht praktisch keine Ressourcen. Nach einer frischen Installation oder dem Update erscheinen Prozessor und Arbeitsspeicher nach 10 bis 20 Minuten; bis 7 Tage voll sind, steht dabei, seit wann gemessen wird. Kontrolle auf dem Server: `systemctl list-timers posteulen-stats.timer`.
 - Registrierungsmodus wählen: „geschlossen“ (Standard), „nur mit Einladungscode“ oder „offen für alle“. Einladungscodes sind 48 Stunden gültig, einmal verwendbar und werden nur beim Erzeugen angezeigt.
 - Das Fehlerprotokoll zeigt verständliche Einträge (ohne persönliche Daten), 30 Tage nach dem letzten Auftreten. Kann ein Gerät einen Brief nicht öffnen, steht hier die konkrete technische Ursache (die Nutzer sehen nur, dass der Brief verloren bzw. nass geworden ist). Kommt dieselbe Meldung innerhalb einer Stunde wieder, zählt der Eintrag hoch („23× · zuletzt …“) und gilt wieder als ungelesen, statt die Liste zu fluten.
 - Statistik: erstellte, vorhandene und aktive Konten sowie Briefe (nur Tageszähler).
@@ -194,7 +197,7 @@ Unter `https://bots.posteulen.de` legst du Brieffiguren für alle Spieler an. Es
 
 - **Erstpasswort:** steht einmalig am Ende der Installation bzw. des ersten Updates auf 0.8 („Erstpasswort des Bots-Kontrollzentrums“). Beim ersten Login muss es geändert werden. Spätere Updates lassen es in Ruhe. Vergessen? `sudo posteulen-cli bots-reset`.
 - **Abmeldung** nach 12 Stunden ohne Aktivität. Auch das Kontrollzentrum lässt sich auf Englisch umschalten.
-- **Ein Bot entsteht als leerer Entwurf:** Name (3 bis 30 Zeichen, eindeutig, auch gegenüber Spielern), Charakter und Hintergrund (bekommt die KI), Wohnort irgendwo auf Land in der Welt, Eule (eine eigene – jeder Spieler bekommt eine eigene Ausgabe davon – oder zufällige Leiheulen), Motivation der Eulen (0,5 bis 20; mit 20 schaffen sie auch andere Kontinente), Rast beim Spieler und ob Spieler auch mit eigenen Eulen schreiben dürfen. Erst nach dem ausdrücklichen Aktivieren macht er mit; Pausieren stoppt neue Briefe.
+- **Ein Bot entsteht als leerer Entwurf:** Name (3 bis 30 Zeichen, eindeutig, auch gegenüber Spielern), Charakter und Hintergrund (bis 16.000 Zeichen, bekommt die KI), Wohnort irgendwo auf Land in der Welt, Eule (eine eigene – jeder Spieler bekommt eine eigene Ausgabe davon – oder zufällige Leiheulen), Motivation der Eulen (0,5 bis 20; mit 20 schaffen sie auch andere Kontinente), Rast beim Spieler und ob Spieler auch mit eigenen Eulen schreiben dürfen. Erst nach dem ausdrücklichen Aktivieren macht er mit; Pausieren stoppt neue Briefe.
 - **Geplante Events:** ein Zeitpunkt, dazu ein Umzug und/oder ein Brief an alle (vier Fassungen: Erstkontakt und Folgebrief, je Deutsch und Englisch; bis zu zwei Bilder, je bis 5 MB) und/oder ein Geschenk (Gold oder eine Eule). Vor dem Speichern gibt es eine Vorschau und einen Test der KI-Anpassung mit einem ausgedachten Spielerbrief (verschickt nichts; er nimmt wie im echten Betrieb den Folgebrief und den Brief des vorigen Events als Verlauf). Zu jedem Event steht, wann der erste und wann der letzte Spieler die Eule bekommt – vorher geschätzt („ca.“), danach die echten Zeiten. Schreibt ein Spieler zurück, passt die KI den nächsten geplanten Brief (den Folgebrief) für ihn an und kennt dabei die letzten 15 Briefe eures Briefwechsels (ältere als Zusammenfassung); nur wenn vier Wochen lang nichts geplant ist, antwortet der Bot nach zwei Stunden direkt. Fällt die KI aus, geht der geplante Brief trotzdem unverändert.
 - **Vergangene Events** stehen im Archiv mit Zahlen (abgeschickt, zugestellt, gelesen, Antworten). Die Übersicht zeigt diese Zahlen je Bot (insgesamt und 30 Tage) und eine Weltkarte mit allen Bot-Eulen unterwegs – ohne Namen von Spielern, aber eine rastende Eule sitzt natürlich am (fiktiven) Wohnort eines Spielers. Die Karte bedient sich wie die im Spiel (ziehen, Mausrad, zwei Finger, Knöpfe), passt ins Fenster (ganz herausgezoomt scrollt das Mausrad die Seite weiter), hat eine Legende (blauer Kreis: fliegt hin, grünes Quadrat: rastet, orangefarbenes Dreieck: fliegt zurück, Raute: Wohnort) und wird alle 5 Minuten aktualisiert. Verschickte Events werden 36 Monate nach dem Versand mit ihren Zustellungen und nicht mehr genutzten Bildern endgültig gelöscht (die Statistik je Bot bleibt). Alle Uhrzeiten im Kontrollzentrum und im Adminpanel stehen in der Zeitzone deines Geräts.
 - **Export und Import** als ZIP-Datei (ganze Bots oder einzelne Events, mit Bildern, ohne Spielerbriefe). Ein Import ergänzt nur – er zeigt vorher Konflikte und schickt nie Vergangenes noch einmal los. Das Format steht in der `SPEC.md`, Anhang S.
@@ -308,7 +311,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.2.0      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.2.1      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.
@@ -345,6 +348,7 @@ Für den automatischen Rückfall bleibt vor jedem Update zusätzlich eine unvers
 journalctl -u posteulen -n 100    # Backend
 journalctl -u caddy -n 100        # Webserver/HTTPS
 journalctl -u tor@posteulen -n 50 # Tor (Onion-Dienst)
+journalctl -u posteulen-stats -n 20 # Messwerte des Server-Dashboards
 systemctl status posteulen
 ```
 
