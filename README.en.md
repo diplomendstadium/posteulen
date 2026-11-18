@@ -44,7 +44,7 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 
 - **Letters do not last for ever.** All letters are deleted automatically and for good **one year** after delivery. If you like, set 30, 90 or 180 days in the settings. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer. Anything you want to keep is best copied out – like in the old days.
 - **Forgotten password means: account gone.** Nobody can reset it, not even the operator. That is not a bug; it is the price of real encryption.
-- **A map like an old atlas:** the map looks like a hand-drawn historical atlas – parchment, fine coastlines, hatched mountains, little forests, rivers and lakes. The closer you zoom in, the more landscapes, rivers and seas carry their names; around Western Europe right down to the Harz, the Black Forest and the Swabian Jura.
+- **A map like an old atlas:** the map looks like a hand-drawn historical atlas – parchment, fine coastlines, hatched mountains, little forests, rivers and lakes. Trees and mountains stand only on land, never in the water. The closer you zoom in, the more landscapes, rivers and seas carry their names; around Western Europe right down to the Harz, the Black Forest and the Swabian Jura.
 - **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route. Every ready owl has a “Write a letter” button in the owl overview; when writing, the owl choice is there at once – it only offers the loan owls of the day if none of your owls can carry the letter. In the correspondence every letter shows below it when it arrived or when you sent it, on which parchment and with which owl; your writing field already looks like your letter. When an owl lands with post, you see it as soon as you open the app.
 - **A team of your own:** at the owl post office you first stand outside – “Enter the owl post office” takes you in, where you see the team of the day at work (by day, at night, decorated in Advent). One of four owl teams is on duty every day – drawn for each account separately, never the same one twice in a row – and you can borrow all of its owls – with values, what they carry and the loan fee (0.1 gold, owls that also carry gold 0.2 gold). There you can also look after your borrowed owls and send them off. Once a loan is over, its offer disappears until tomorrow.
@@ -101,7 +101,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.2.1** – a server dashboard at the top of the admin panel, the Menagerie with an entrance and an inside, an owl overview ordered by readiness, and the desk above your letters changing with the seasons (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
+Version: **1.2.2** – a bug-fix release: on the map, forests, mountains and the names of landscapes now stay on land, cover letters for gold gifts from bots show the right amount, plus small touches in the owl overview and the admin panel. Version 1.2.1 brought the server dashboard in the admin panel, the Menagerie with an entrance and an inside, the owl overview ordered by readiness and the desk above your letters changing with the seasons (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
 
 **In short**
 
@@ -316,7 +316,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.2.1      # installs a particular version
+sudo posteulen-update v1.2.2      # installs a particular version
 ```
 
 Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.

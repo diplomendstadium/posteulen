@@ -3,6 +3,24 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.2.2 – Trockene Füße im Atlas
+
+Korrekturversion nach Hinweisen des Auftraggebers (SPEC Anhang F, D-396 bis D-400).
+
+**Behoben:**
+
+- **Karte:** Bäume, Gipfel, Hügel und die übrigen Symbole der Atlas-Ebene stehen nur noch an Land – nicht mehr auf Meeren, Seen und Stauseen (z. B. Bottnischer Meerbusen, Hudson Bay, Onega-, Ladoga- und Baikalsee, Rybinsker Stausee) und ohne über das Ufer zu ragen. Das Kartenwerkzeug gibt jeder Fläche am Wasser eine kleine Land/Wasser-Maske mit (aus Natural Earth, Land ohne Seen); der Browser zeichnet ein Symbol nur, wenn Fuß, Seiten und Spitze auf Land stehen. Namen von Gebirgen, Wäldern und Landschaften, die auf dem Wasser lagen, stehen jetzt auf Land (die Skandinavische Taiga in Västerbotten statt auf dem Meerbusen).
+- **Begleitbrief zu Gold von Bots:** Schickt ein Bot des Kontrollzentrums Gold mit Brief, nennt der Begleitbrief den Betrag des Events statt „0,0 Gold“. Die Gutschrift und die Buchung waren schon vorher richtig.
+- **Eulenübersicht:** Leerzeichen zwischen dem Namen einer Leiheule und „(Leiheule)“.
+- **Adminpanel:** Abstand zwischen „Server-Auslastung“ und „Statistik“ wie zwischen allen anderen Karten.
+- Update-Nachricht, Hilfe, Erklärbär, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; im Repository liegt kein unbenutztes Bild (506 Bilddateien, alle in Gebrauch).
+
+### Hinweise für Betreiber
+
+- Keine Migration (Schema-Version bleibt 21), keine neuen Dienste, keine neuen Pakete, keine neuen Abhängigkeiten.
+- Die Kartendaten der Atlas-Ebene werden etwas größer (gut 30 KiB komprimiert).
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.2.1 – Neue Türen, neue Fenster
 
 Wünsche des Auftraggebers zu Menagerie, Eulenübersicht, Briefwechsel, Bots-Kontrollzentrum und Adminpanel (SPEC Anhang F, D-387 bis D-395).
