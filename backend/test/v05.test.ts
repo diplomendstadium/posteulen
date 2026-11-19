@@ -79,13 +79,13 @@ describe('motivation and the four interactions (v0.5)', () => {
     const before = gold(anna);
     app.db.run('UPDATE owls SET energy = 100, energy_at = ? WHERE id = ?', app.clock.now, id);
     const snacked = owlOf((await act(anna, id, 'snack')).body);
-    // Waldkauz: +20 % × 1.25 of 540 = 135, for 0.2 gold.
-    expect(snacked.energy).toBe(235);
+    // Waldkauz (v1.2.4): +20 % × 0.9 of 430 = 77.4, for 0.2 gold.
+    expect(snacked.energy).toBe(177);
     expect(snacked.snackedToday).toBe(true);
     expect(gold(anna)).toBe(before - GOLD.SNACK_PRICE);
     // v0.10: again while the energy is not full (paid again, no more motivation) …
     const again = owlOf((await act(anna, id, 'snack')).body);
-    expect(again.energy).toBe(370);
+    expect(again.energy).toBe(255);
     expect(again.motivation).toBe(12);
     expect(gold(anna)).toBe(before - 2 * GOLD.SNACK_PRICE);
     // … but not once it is full.

@@ -117,6 +117,17 @@ export interface Simulation {
   readonly end: { readonly at: number; readonly energy: number; readonly position: Point };
 }
 
+/**
+ * v1.2.4: the distance an owl has flown along a plan (km) – the sum of its flight segments.
+ * A finished flight adds this to the kilometres of its owl (SPEC 9.2).
+ */
+export function flownKm(segments: readonly Segment[]): number {
+  let km = 0;
+  for (const segment of segments)
+    if (segment.kind === 'fly') km += distanceKm(segment.from, segment.to);
+  return km;
+}
+
 /** Before v0.5 an empty owl slept 10 hours and was full again (old plans without recovery). */
 const LEGACY_SLEEP_HOURS = 10;
 /** Precision of the sleep duration (v0.5): the owl sleeps at most this much longer than needed. */

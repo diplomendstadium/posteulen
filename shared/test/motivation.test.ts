@@ -43,8 +43,9 @@ describe('motivation (v0.5)', () => {
 
   it('the favourite snack gives 20 % × recovery and has a name per species', () => {
     const waldkauz = SPECIES.find((species) => species.id === 'waldkauz')!;
-    expect(energyAfterSnack(100, waldkauz)).toBe(235);
-    expect(energyAfterSnack(500, waldkauz)).toBe(540);
+    // v1.2.4: 20 % of 430 × 0.9 = 77.4, capped at 430.
+    expect(energyAfterSnack(100, waldkauz)).toBeCloseTo(177.4, 6);
+    expect(energyAfterSnack(400, waldkauz)).toBe(430);
     expect(speciesSnack('waldkauz')).toBe('Haselnüsse');
     expect(speciesSnack('phoenix', 'en')).toBe('silver leaf');
     expect(speciesSnack('unbekannt')).toBe('Lieblingsleckerli');

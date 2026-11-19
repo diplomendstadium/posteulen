@@ -43,6 +43,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
     const today = utcDay(now);
     // v0.8.2: spaces an autocorrection added around the name do not count.
     const nameKey = normalizeName(body.name.trim());
+    const afterCommit: (() => void)[] = [];
     ctx.db.transaction(() => {
       const self = ctx.db.get<{
         name_key: string;
@@ -100,6 +101,10 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
           { name: displayName(ctx.db, me) ?? '' },
           now,
         );
+        // v1.2.4: the one who added first learns it by push, too (SPEC 11.2).
+        ctx.push.notify(target.id, 'contact_confirmed', null, now, (work) =>
+          afterCommit.push(work),
+        );
         ctx.hub.notify(me, 'contacts');
         ctx.hub.notify(target.id, 'contacts');
         return;
@@ -114,6 +119,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
         now + ACCOUNT.CONTACT_REQUEST_EXPIRY_HOURS * TIME.HOUR,
       );
     });
+    for (const work of afterCommit) work();
     // Always the same answer, whether the name exists or not (SPEC 8.8).
     return { ok: true };
   });

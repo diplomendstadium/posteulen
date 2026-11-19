@@ -3,7 +3,7 @@
  * inactivity deletion period, broadcast messages. No user list, no access to letters.
  */
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, BROADCAST, TIME } from '@posteulen/shared/constants.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import {
   BannerCreate,
@@ -80,6 +80,17 @@ export function owlsBySpecies(ctx: Context): { species: string; count: number; c
   }));
 }
 
+/**
+ * v1.2.4: the history of broadcasts keeps an entry for 180 days (SPEC 13 item 6); the messages
+ * in the system chats follow the retention of the accounts.
+ */
+export function pruneBroadcasts(ctx: Context, now: number): void {
+  ctx.db.run(
+    'DELETE FROM broadcasts WHERE created_at < ?',
+    now - BROADCAST.HISTORY_DAYS * TIME.DAY,
+  );
+}
+
 /** A message in the system chat of every account, with push (SPEC 13 item 6). */
 export function sendBroadcast(ctx: Context, text: string, now: number): number {
   const after: (() => void)[] = [];
@@ -114,13 +125,16 @@ export function registerAdminOperations(
     return { days: body.days };
   });
 
-  app.get('/api/broadcasts', { preHandler: authenticated }, async () => ({
-    broadcasts: ctx.db
-      .all<{ id: number; created_at: number; text: string }>(
-        'SELECT id, created_at, text FROM broadcasts ORDER BY created_at DESC LIMIT 50',
-      )
-      .map((row) => ({ id: row.id, createdAt: row.created_at, text: row.text })),
-  }));
+  app.get('/api/broadcasts', { preHandler: authenticated }, async () => {
+    pruneBroadcasts(ctx, ctx.now());
+    return {
+      broadcasts: ctx.db
+        .all<{ id: number; created_at: number; text: string }>(
+          'SELECT id, created_at, text FROM broadcasts ORDER BY created_at DESC LIMIT 50',
+        )
+        .map((row) => ({ id: row.id, createdAt: row.created_at, text: row.text })),
+    };
+  });
 
   app.post('/api/broadcasts', { preHandler: authenticated }, async (request) => {
     const body = parse(Broadcast, request.body);

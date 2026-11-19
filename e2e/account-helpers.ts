@@ -105,7 +105,12 @@ export async function localSecrets(page: Page): Promise<string[]> {
 export async function borrowViaUi(page: Page): Promise<string> {
   // v1.2: the loan owls are inside the post office.
   await page.goto('/app/postamt/innen');
-  const offer = page.getByTestId('loan-offer').first();
+  // v1.2.4: one that carries the long parchment as well (every team has such owls; several
+  // small species now carry only the short one).
+  const offer = page
+    .getByTestId('loan-offer')
+    .filter({ has: page.getByTestId('loan-stats').filter({ hasText: 'langes Pergament' }) })
+    .first();
   const name = (await offer.getByRole('heading').textContent()) ?? '';
   await offer.getByRole('button').click();
   await expect(page.getByText(/wartet jetzt hier und bei deinen Eulen/)).toBeVisible();

@@ -1,4 +1,6 @@
 /** Online state and app updates (SPEC 15, 16.3). */
+import { navigate } from './router.svelte.ts';
+
 export const status = $state({ online: navigator.onLine, updateReady: false });
 
 window.addEventListener('online', () => (status.online = true));
@@ -28,8 +30,17 @@ function serviceWorkerUrl(): string {
   return policy.createScriptURL(SW_URL) as string;
 }
 
+/** v1.2.4: the paths a tap on a push may open in the running app (`PUSH_TARGETS` in sw.ts). */
+const PUSH_PATH = /^\/app(\/(briefe(\/system)?|eulen|adressbuch|einstellungen))?$/;
+
 export async function registerServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator) || import.meta.env.DEV) return;
+  // v1.2.4: a tap on a push while the app is open shows the page that fits the push.
+  navigator.serviceWorker.addEventListener('message', (event: MessageEvent) => {
+    const data = event.data as { type?: unknown; url?: unknown } | null;
+    if (data?.type === 'open' && typeof data.url === 'string' && PUSH_PATH.test(data.url))
+      navigate(data.url);
+  });
   let registration: ServiceWorkerRegistration | undefined;
   try {
     registration = await navigator.serviceWorker.register(serviceWorkerUrl(), { scope: '/' });

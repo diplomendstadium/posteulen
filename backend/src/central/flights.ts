@@ -145,7 +145,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
   if (letters.length > 0) countStat(ctx, bot.id, 'delivered', at, event?.id, letters.length);
   // Arrival image of a delivery without a letter comes with the system message (9.2.6).
   const image = letters.length === 0 ? flight.owl_species : null;
-  let push: 'letter_arrived' | 'gold_arrived' | 'owl_gift' = 'letter_arrived';
+  let push: 'letter_arrived' | 'letter_resting' | 'gold_arrived' | 'owl_gift' = 'letter_arrived';
   if (event?.gift_gold) {
     credit(ctx.db, userId, 'bot_gift', event.gift_gold, at, null, bot.name);
     addSystemMessage(
@@ -196,6 +196,8 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       delivery.id,
     );
   }
+  // v1.2.4: a letter whose bot owl rests with the player is one push for both.
+  if (push === 'letter_arrived' && stop.status === 'resting') push = 'letter_resting';
   ctx.push.notify(userId, push, letters[0]?.id ?? flight.id, at, after);
   after(() => ctx.hub.notify(userId, 'chats', ...(wasKnown ? [] : (['contacts', 'map'] as const))));
 }

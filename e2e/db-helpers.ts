@@ -176,3 +176,20 @@ export function setOwl(
     }
   });
 }
+
+/**
+ * v1.2.4: all letters of an account count as read, and one unread system message arrives (the
+ * top bar shows "Neue Post!" only for letters).
+ */
+export function onlySystemUnread(name: string): void {
+  withDb((db) => {
+    const user = db.prepare('SELECT id FROM users WHERE name_display = ?').get(name) as
+      { id: string } | undefined;
+    if (!user) throw new Error(`no account ${name}`);
+    db.prepare('UPDATE chats SET unread = 0 WHERE owner_id = ?').run(user.id);
+    db.prepare(
+      `INSERT INTO system_messages (id, user_id, type, params, created_at, arrival_image)
+       VALUES (?, ?, 'password_changed', '{}', ?, NULL)`,
+    ).run(`e2e${Date.now().toString(36)}`.padEnd(22, 'x').slice(0, 22), user.id, Date.now());
+  });
+}

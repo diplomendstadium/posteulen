@@ -266,8 +266,8 @@ export const de = {
     linkWarning: 'Ungewöhnliche Zeichen in der Adresse – genau prüfen, wohin der Link führt.',
     compose: 'Neuen Brief schreiben',
     parchment: 'Pergament',
-    smallOption: 'Kurz – bis 800 Zeichen, kostenlos',
-    largeOption: 'Lang – bis 15 000 Zeichen, 0,1 Gold',
+    smallOption: 'Kurz – bis 800 Zeichen',
+    largeOption: 'Lang – bis 15 000 Zeichen',
     text: 'Text',
     counter: '{count} von {max} Zeichen',
     noSmileys: 'Pergament kennt keine Smileys.',
@@ -427,6 +427,10 @@ export const de = {
     owl_home: 'Eine deiner Eulen ist wieder zu Hause.',
     owl_home_letters: 'Eine deiner Eulen ist mit Post wieder zu Hause.',
     owl_resting: 'Eine Eule rastet bei dir.',
+    letter_resting: 'Eine Eule hat Post gebracht und rastet bei dir.',
+    contact_confirmed: 'Ein neuer Kontakt ist jetzt mit dir verbunden.',
+    donation: 'Die Eulen haben eine kleine Bitte an dich.',
+    owl_sick: 'Eine deiner Eulen ist krank geworden.',
   },
   push: {
     title: 'Benachrichtigungen',
@@ -449,6 +453,11 @@ export const de = {
     homeBody: 'Eine deiner Eulen ist wieder zu Hause.',
     homeLettersBody: 'Eine deiner Eulen ist mit Post wieder zu Hause.',
     restingBody: 'Eine Eule rastet bei dir.',
+    /** v1.2.4 */
+    letterRestingBody: 'Eine Eule hat Post gebracht und rastet bei dir.',
+    contactBody: 'Ein neuer Kontakt ist jetzt mit dir verbunden.',
+    donationBody: 'Die Eulen haben eine kleine Bitte an dich.',
+    sickBody: 'Eine deiner Eulen ist krank geworden.',
     newsBody: 'Es gibt Neuigkeiten bei PostEulen.',
     headerHint: 'Benachrichtigungen sind noch nicht eingerichtet – so geht’s',
     headerHide: 'Ausblenden bis zur nächsten Anmeldung',
@@ -505,6 +514,8 @@ export const de = {
     toMenagerie: 'Zur Menagerie',
     unnamed: 'Neue Eule',
     female: 'weiblich',
+    /** v1.2.4: kilometres an own owl has flown in all (line below its name). */
+    kmFlown: '{km} km',
     male: 'männlich',
     energy: 'Energie {energy} von {max}',
     motivation: 'Motivation {value} %',
@@ -693,8 +704,10 @@ export const de = {
     insideChristmasNight:
       'Im weihnachtlich geschmückten Eulenpostamt bei Nacht: die Leiheulen von heute im Lichterglanz zwischen Schalter, Regalen und Geschenken',
     loanTitle: 'Eulen leihen',
+    /** v1.2.4: followed by who is ready to travel right now (loanReady in texts/species.ts). */
+    loanWelcome: 'Herzlich willkommen! Möchtest du eine Eule leihen?',
     loanIntro:
-      'Heute im Angebot – für 0,1 Gold, Eulen, die auch Gold tragen, für 0,2 Gold. Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
+      'Eine Leiheule trägt einen Brief an bis zu 5 Empfänger nacheinander (Gold an einen) und verschwindet nach dem letzten. Gibt ihr unterwegs jemand eine Antwort mit, schaut sie sogar noch einmal bei dir vorbei – vorausgesetzt natürlich, du warst lieb zu ihr. Du musst sie innerhalb von 24 Stunden losschicken, sonst fliegt sie zurück (ohne Erstattung). Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.',
     loanCount: 'Heute geliehen: {count} von {max}. Morgen gibt es neue Eulen zum Leihen.',
     loanPrice: 'Leihgebühr: {price}',
     loan: '{name} leihen ({species}, {sex})',
@@ -913,7 +926,7 @@ export const de = {
     inactivitySave: 'Speichern',
     broadcastTitle: 'Rundnachricht an alle',
     broadcastIntro:
-      'Erscheint im Systemchat aller Konten, mit Benachrichtigung. Höchstens 3 000 Zeichen.',
+      'Erscheint im Systemchat aller Konten, mit Benachrichtigung. Höchstens 3 000 Zeichen. Der Verlauf hier behält jede Rundnachricht 180 Tage.',
     broadcastText: 'Text',
     broadcastSend: 'An alle senden',
     broadcastConfirm: 'Diese Nachricht wirklich an alle Konten senden?',

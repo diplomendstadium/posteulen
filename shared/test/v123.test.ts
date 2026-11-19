@@ -46,16 +46,16 @@ describe('info text on the start page (SPEC 8.1)', () => {
           : 'h',
     );
 
-  it('has the same structure in German and English, with five pictures', () => {
+  it('has the same structure in German and English, with five pictures (v1.2.4: six parts)', () => {
     expect(outline(ABOUT_EN)).toEqual(outline(ABOUT_DE));
     expect(outline(ABOUT_DE).filter((part) => part.includes(':'))).toEqual([
       'desk:right',
-      'group:left',
+      'homecoming:left',
       'menagerie:right',
       'post:left',
       'feeding:right',
     ]);
-    expect(outline(ABOUT_DE).filter((part) => part === 'h')).toHaveLength(5);
+    expect(outline(ABOUT_DE).filter((part) => part === 'h')).toHaveLength(6);
   });
 
   it('names the address of the instance instead of a fixed one, no in-app purchases', () => {

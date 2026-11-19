@@ -158,10 +158,10 @@ describe('buying and naming owls (SPEC 9.2.3, 9.2.4)', () => {
       name: null,
       ready: false,
       state: 'home',
-      maxEnergy: 540,
+      maxEnergy: 430,
     });
-    expect(bought.body.owl.energy).toBeGreaterThanOrEqual(324);
-    expect(bought.body.owl.energy).toBeLessThanOrEqual(540);
+    expect(bought.body.owl.energy).toBeGreaterThanOrEqual(258);
+    expect(bought.body.owl.energy).toBeLessThanOrEqual(430);
     expect(gold(anna)).toBe(40);
     const finance = await anna.agent.json<{ transactions: { type: string; amount: number }[] }>(
       'GET',
@@ -242,23 +242,23 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     const id = await buyOwl(app, anna);
     app.db.run('UPDATE owls SET energy = 100, energy_at = ? WHERE id = ?', app.clock.now, id);
     const fed = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/feed`, {});
-    // Waldkauz: +10 % × 1.25 of 540 = 67.5.
-    expect(fed.body.owl.energy).toBe(168);
+    // Waldkauz (v1.2.4): +10 % × 0.9 of 430 = 38.7.
+    expect(fed.body.owl.energy).toBe(139);
     expect(fed.body.owl.fedToday).toBe(true);
     expect(gold(anna)).toBe(39);
     // v0.10: again while the energy is not full – paid again (SPEC 9.3).
     expect(fed.body.owl.feedable).toBe(true);
     const again = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/feed`, {});
-    expect(again.body.owl.energy).toBe(235);
+    expect(again.body.owl.energy).toBe(177);
     expect(gold(anna)).toBe(39 - 1);
-    // Regeneration: 10 % × 1.25 per hour = 67.5 per hour.
+    // Regeneration: 10 % × 0.9 of 430 per hour = 38.7 per hour.
     app.clock.now += 2 * TIME.HOUR;
-    expect((await owls(anna))[0]?.energy).toBe(370);
+    expect((await owls(anna))[0]?.energy).toBe(255);
     app.clock.now += TIME.DAY;
     // Full again: the first biscuit of a day is always possible, then the owl is full.
     expect((await owls(anna))[0]?.feedable).toBe(true);
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).status).toBe(200);
-    expect((await owls(anna))[0]?.energy).toBe(540);
+    expect((await owls(anna))[0]?.energy).toBe(430);
     expect((await owls(anna))[0]?.feedable).toBe(false);
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).body).toMatchObject({
       code: 'owl_fed_today',

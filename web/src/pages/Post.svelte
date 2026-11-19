@@ -6,7 +6,8 @@
    * borrowed owls with the same controls as in the owl overview if there are any, then the loan
    * owls of the day with price and carrying capacity.
    */
-  import { t, fill, speciesName, decimal, goldText, locale } from '../lib/i18n.svelte.ts';
+  import { t, fill, speciesName, decimal, goldText, locale, i18n } from '../lib/i18n.svelte.ts';
+  import { loanDescription, loanReady } from '@posteulen/shared/texts/species.ts';
   import { OWL } from '@posteulen/shared/constants.ts';
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   import { speciesById } from '@posteulen/shared/game/owls.ts';
@@ -125,6 +126,15 @@
   <section aria-labelledby="loan-title">
     <div class="card section-head">
       <h2 id="loan-title">{t.post.loanTitle}</h2>
+      <!-- v1.2.4: a welcome and who is ready to travel right now. -->
+      <p data-testid="loan-welcome">
+        {t.post.loanWelcome}
+        {#if offer}{loanReady(
+            offer.offer.filter((item) => !item.loaned).map((item) => item.species),
+            (id) => speciesName(id),
+            i18n.lang,
+          )}{/if}
+      </p>
       <p>{t.post.loanIntro}</p>
       {#if offer}
         <p>{fill(t.post.loanCount, { count: offer.loans, max: offer.maxLoans })}</p>
@@ -149,6 +159,9 @@
               {stats(item.species)} · {t.owls[`cargo_${item.cargo}`]}
             </p>
             <p class="price">{fill(t.post.loanPrice, { price: goldText(item.price) })}</p>
+            {#if loanDescription(item.species, i18n.lang)}<p class="description">
+                {loanDescription(item.species, i18n.lang)}
+              </p>{/if}
             <button
               class="button"
               type="button"
@@ -181,8 +194,14 @@
     list-style: none;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    /* v1.2.4: wider cards with room for the description, like the Menagerie. */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
     gap: 1rem;
+  }
+
+  .description {
+    margin: 0.25rem 0 0.5rem;
+    line-height: 1.55;
   }
 
   .species li {

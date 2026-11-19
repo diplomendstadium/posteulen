@@ -114,12 +114,16 @@ test.describe('Version 0.10', () => {
     await otherContext.close();
   });
 
-  test('Einstellungen: Abmelden ganz oben, darunter Gold und Buchungen', async ({ page }) => {
+  test('Einstellungen: Abmelden ganz oben, darunter Benachrichtigungen, dann Gold und Buchungen', async ({
+    page,
+  }) => {
     await registerViaUi(page);
     await page.goto('/app/einstellungen');
     const headings = page.locator('main h2');
     await expect(headings.nth(0)).toHaveText('Abmelden');
-    await expect(headings.nth(1)).toHaveText('Gold und Buchungen');
+    // v1.2.4: the notifications right below signing out.
+    await expect(headings.nth(1)).toHaveText('Benachrichtigungen');
+    await expect(headings.nth(2)).toHaveText('Gold und Buchungen');
     await expect(page.getByTestId('finance')).toContainText('Dein Gold: 3,0 Gold');
     await expect(page.getByTestId('finance')).toContainText(/Jeden Tag um .* Uhr bekommst du/);
   });

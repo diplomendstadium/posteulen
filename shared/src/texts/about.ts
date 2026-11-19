@@ -3,12 +3,13 @@
  * English. Written in the small Markdown subset of `shared/src/markdown.ts`:
  *
  * - `# Heading` – a heading of the box,
- * - paragraphs separated by a blank line, inside them `**bold**`, `*italic*` and links to pages
- *   of the app (`[Hilfe](/hilfe)`),
+ * - paragraphs separated by a blank line, inside them `**bold**`, `*italic*`, links to pages
+ *   of the app (`[Hilfe](/hilfe)`) and the one link to the donation page (`[Spende](donate)`),
  * - `![picture](left|right)` on a line of its own – a picture floating at half the width of the
- *   text, the following text flows around it. Pictures: `desk`, `group`, `menagerie`, `post`
- *   (they follow day, night, season and Christmas at home like everywhere in the app) and
- *   `feeding` (an elf owl at its meal).
+ *   text, the following text flows around it. Pictures: `desk`, `menagerie`, `post` (they
+ *   follow day, night, season and Christmas at home like everywhere in the app), `homecoming`
+ *   (a southern white-faced owl coming home, by day or by night) and `feeding` (an elf owl at
+ *   its meal).
  *
  * `{host}` is replaced by the address the page was opened with.
  */
@@ -19,7 +20,7 @@ export const ABOUT_DE = `# Über PostEulen
 
 Weißt du noch, wie schön es war, einen richtigen Brief im Briefkasten zu finden? PostEulen holt dieses Gefühl zurück. Deine Nachrichten flitzen nicht in Millisekunden durchs Netz, sondern werden von einer Eule gebracht – und die hat, ganz Eule, ihren eigenen Kopf: Je nach Entfernung, Tageszeit und Kondition ist sie ein paar Stunden unterwegs. Nachts fliegt sie lieber (weniger anstrengend), über dem Meer hält sie tapfer durch, und wenn sie gar nicht mehr kann, macht sie ein Nickerchen – genau so lange, bis die Kraft bis zum nächsten Ziel reicht. Auf der Karte kannst du ihr dabei zusehen.
 
-![group](left)
+![homecoming](left)
 
 Du kannst dir Eulen in der Menagerie kaufen oder leihst sie dir im Eulenpostamt. Du kannst ihnen Namen geben, Wasser hinstellen, sie streicheln und sie mit Eulenkeksen oder ihrem Lieblingsleckerli verwöhnen. Zwanzig Eulenarten wohnen derzeit in der Menagerie, vom winzigen Elfenkauz über die rostrote Ostkreischeule und die Zypern-Zwergohreule bis zum mächtigen Virginiauhu. Nicht jede trägt alles: Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen Eulen tragen außerdem Gold. Gepflegte Eulen sind motivierter und fliegen die nächste Strecke schneller und weiter – vernachlässigte schauen grummelig drein. Gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier.
 
@@ -33,7 +34,7 @@ Gold gibt es jeden Tag automatisch, und ein paar optionale Brieffreunde sind auc
 
 PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen: Es gibt keinen Sog, keine Dauerbereitschaft. Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt. Es ist kein eigenes Handy nötig. PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht. Es gibt keine Kontaktmöglichkeiten für Fremde. Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
 
-*Selbstverständlich gibt es auch keine In-App-Käufe.*
+**Selbstverständlich gibt es auch keine In-App-Käufe.**
 
 Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
 
@@ -55,6 +56,12 @@ Apps holt man sich im App-Store, oder? Meistens schon. PostEulen gibt es dort ab
 
 **Alle anderen Handys, Firefox und der Computer:** einfach als Lesezeichen auf den Startbildschirm legen oder ganz normal im Browser benutzen. Alles funktioniert genauso. Der einzige Unterschied: Benachrichtigungen („Eine Eule ist gelandet!“) gibt es nur in der App auf dem Startbildschirm von Android/Chrome und iPhone/Safari. Im Browser kommt die Post trotzdem an – man sieht sie beim nächsten Hineinschauen. Im echten Leben klingelt der Briefkasten ja auch nicht.
 
+# Wer bezahlt das eigentlich?
+
+PostEulen ist ein Hobbyprojekt – aber eines, das echtes Geld kostet. Derzeit sind das etwa 10 € im Monat für Domain und Server und rund 30 € im Monat für die KI-Dienste, die bei der Entwicklung und im Betrieb helfen. Dazu kommt die Zeit für die Weiterentwicklung. Mit jedem neuen Konto steigen die Kosten, bei vielen Nutzern erheblich. Wird das irgendwann zu teuer und stehen dem nicht genug Spenden gegenüber, schalten wir die Registrierung neuer Konten ab: Ein neues Konto gibt es dann nur noch mit einem Einladungscode von uns. Bestehende Konten sind davon nicht betroffen.
+
+Jede [Spende](donate) hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten. Danke!
+
 # Hilfe
 
 Die [Hilfe](/hilfe) in der App erklärt alles Weitere, und der Erklärbär beantwortet noch offene Fragen gerne per Brief.
@@ -66,7 +73,7 @@ export const ABOUT_EN = `# About PostEulen
 
 Remember how lovely it was to find a real letter in the letterbox? PostEulen brings that feeling back. Your messages do not dash through the net in milliseconds; they are brought by an owl – and the owl, being an owl, has a mind of its own: depending on distance, time of day and fitness, it is on its way for a few hours. It prefers flying at night (less tiring), it bravely keeps going over the sea, and when it really cannot go on, it takes a nap – just long enough to have the strength for its next destination. You can watch it on the map.
 
-![group](left)
+![homecoming](left)
 
 You can buy owls in the Menagerie or borrow them at the owl post office. You can give them names, put out water for them, pet them and spoil them with owl biscuits or their favourite snack. Twenty owl species currently live in the Menagerie, from the tiny Elf Owl via the rust-red Eastern Screech Owl and the Cyprus Scops Owl to the mighty Great Horned Owl. Not every owl carries everything: small owls only manage a short parchment, medium ones a long one as well, and only the strong owls also carry gold. Cared-for owls are more motivated and fly their next leg faster and further – neglected ones look grumpy. Well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day.
 
@@ -80,7 +87,7 @@ You get gold every day automatically, and a few optional pen friends join in, to
 
 PostEulen is also a great way to introduce children gently to messengers: there is no pull and no constant availability. Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives. No phone of their own is needed. PostEulen runs in an ordinary web browser – also on a parent’s phone, tablet or computer. The child signs in there with their own account and signs out again afterwards; they do not need a smartphone of their own. Strangers have no way of getting in touch. Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child.
 
-*Of course there are no in-app purchases either.*
+**Of course there are no in-app purchases either.**
 
 The pen friends – the Explainer Bear and other bots – reply using AI (their letters are not encrypted and are sent to OpenAI to be answered). If you do not want that, remove them in their correspondence – or all at once, for good and for future bots too, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
 
@@ -101,6 +108,12 @@ You get apps from the app store, right? Usually, yes. PostEulen is deliberately 
 **iPhone or iPad with Safari:** open {host} → share icon (square with an arrow; on newer iPhones behind the three dots ••• at the bottom right) → “Add to Home Screen” → “Add”. After that, always open PostEulen with the new icon.
 
 **All other phones, Firefox and computers:** simply add a bookmark to your home screen or use it in the browser as usual. Everything works the same. The only difference: notifications (“An owl has landed!”) are only available in the app on the home screen of Android/Chrome and iPhone/Safari. In the browser your post arrives anyway – you see it the next time you look in. In real life the letterbox does not ring either.
+
+# Who pays for all this?
+
+PostEulen is a hobby project – but one that costs real money. At the moment that is about €10 a month for the domain and the server and around €30 a month for the AI services that help with development and running it. On top of that comes the time for further development. Every new account adds to the costs, and with many users they rise considerably. If this ever becomes too expensive and there are not enough donations to cover it, we will switch off the registration of new accounts: a new account will then only be possible with an invitation code from us. Existing accounts are not affected.
+
+Every [donation](donate) helps to keep PostEulen online and freely accessible to everyone. Thank you!
 
 # Help
 

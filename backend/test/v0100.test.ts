@@ -131,10 +131,10 @@ describe('feeding while not full (v0.10, SPEC 9.3)', () => {
   it('own owls: once a day in any case, then again while the energy is not full', async () => {
     setGold(app, anna, 200);
     const id = await buyOwl(app, anna, 'waldkauz', 'Waldi');
-    app.db.run('UPDATE owls SET energy = 540, energy_at = ? WHERE id = ?', app.clock.now, id);
+    app.db.run('UPDATE owls SET energy = 430, energy_at = ? WHERE id = ?', app.clock.now, id);
     const first = await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${id}/feed`, {});
     expect(first.status).toBe(200);
-    expect(first.body.owl).toMatchObject({ fedToday: true, feedable: false, energy: 540 });
+    expect(first.body.owl).toMatchObject({ fedToday: true, feedable: false, energy: 430 });
     expect(gold(anna)).toBe(200 - 60 - GOLD.FEED_PRICE);
     expect((await anna.agent.json('POST', `/api/owls/${id}/feed`, {})).body).toMatchObject({
       code: 'owl_fed_today',

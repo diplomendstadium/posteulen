@@ -159,9 +159,13 @@ describe('visiting owls (v0.8.2)', () => {
         ben.id,
       ),
     ).toHaveLength(0);
+    // v1.2.4: one push for the letter and the rest.
     expect(
-      app.db.all("SELECT 1 FROM notifications WHERE user_id = ? AND type = 'owl_resting'", ben.id),
-    ).toHaveLength(1);
+      app.db.all(
+        "SELECT type FROM notifications WHERE user_id = ? AND type != 'push_test'",
+        ben.id,
+      ),
+    ).toEqual([{ type: 'letter_resting' }]);
     const guests = await ben.agent.json<{ guests: { id: string }[] }>('GET', '/api/owls');
     const guest = guests.body.guests[0]!;
     // Only the host can send it on, and only while it rests there.

@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.2.4',
+    title: 'Kilometerzähler und ein Gruß vom Schalter: Version 1.2.4',
+    paragraphs: [
+      'Im Eulenturm wurde gemessen, gewogen und neu sortiert:',
+      '• Lange Pergamente kosten nichts mehr. Ob ein langer Brief mitfliegt, entscheidet nur noch deine Eule – und einige kleinere Arten tragen ab sofort nur noch kurze Pergamente: Elfenkauz, Zypern-Zwergohreule, Kanincheneule, Ostkreischeule, Südliche Weißgesichtseule, Mähnenkauz, Waldohreule und Schleiereule.',
+      '• Neue Werte im Eulenbuch: Die Sumpfohreule kostet jetzt 10 Gold. Die Schleiereule fliegt 32,5 km/h und erholt sich etwas langsamer, die Sperbereule erholt sich ebenfalls etwas langsamer, und der Waldkauz ist mit 25 km/h und 430 Energie ein noch bedächtigerer Flieger geworden.',
+      '• Jede eigene Eule hat jetzt einen Kilometerzähler: Unter ihrem Namen steht, wie weit sie schon geflogen ist – die Strecken von früher sind mitgezählt.',
+      '• Im Eulenpostamt begrüßt dich der Schalter jetzt persönlich und stellt dir jede Leiheule mit ein paar Worten vor.',
+      '• Bringt dir eine Eule Post und rastet bei dir, meldet sie sich nur noch einmal. Neu gibt es eine Benachrichtigung, wenn ein neuer Kontakt mit dir verbunden ist, wenn eine deiner Eulen krank wird und bei der kleinen Spendenbitte alle fünf Wochen. Tippst du auf eine Benachrichtigung, landest du gleich an der passenden Stelle, und klappt das Zustellen einmal nicht, versucht PostEulen es später noch einmal.',
+      '• „Neue Post!“ ruft die Leiste oben nur noch bei Briefen, nicht mehr bei Systemnachrichten. In den Einstellungen stehen die Benachrichtigungen jetzt ganz oben.',
+      '• Vor dem Anmelden richten sich die Bilder nach der Uhr deines Geräts, und die Startseite erzählt jetzt auch, was PostEulen kostet und wie eine Spende hilft.',
+      'Gute Flüge!',
+    ],
+  },
+  {
     version: '1.2.3',
     title: 'Ein frisch gefegter Eingang: Version 1.2.3',
     paragraphs: [
@@ -413,6 +428,21 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.2.4',
+    title: 'Mileage counters and a greeting at the counter: version 1.2.4',
+    paragraphs: [
+      'In the owl tower there has been measuring, weighing and re-sorting:',
+      '• Long parchments are free now. Whether a long letter can come along is up to your owl alone – and some of the smaller species now only carry short parchments: Elf Owl, Cyprus Scops Owl, Burrowing Owl, Eastern Screech Owl, Southern White-faced Owl, Maned Owl, Long-eared Owl and Barn Owl.',
+      '• New values in the owl book: the Short-eared Owl now costs 10 gold. The Barn Owl flies at 32.5 km/h and recovers a little more slowly, the Northern Hawk Owl recovers a little more slowly too, and the Tawny Owl has become an even more unhurried flyer at 25 km/h with 430 energy.',
+      '• Every owl of your own now has a mileage counter: below its name you can see how far it has flown – including the journeys from before.',
+      '• At the owl post office the counter now greets you personally and introduces every loan owl with a few words.',
+      '• If an owl brings you post and rests with you, it now announces itself only once. New: a notification when a new contact is connected with you, when one of your owls falls ill and with the little request for donations every five weeks. Tapping a notification takes you straight to the right place, and if delivering it fails once, PostEulen tries again later.',
+      '• The bar at the top only calls “New post!” for letters now, no longer for system messages. In the settings the notifications are now at the very top.',
+      '• Before you sign in, the pictures follow the clock of your device, and the start page now also tells you what PostEulen costs and how a donation helps.',
+      'Happy flying!',
+    ],
+  },
   {
     version: '1.2.3',
     title: 'A freshly swept entrance: version 1.2.3',

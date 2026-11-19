@@ -542,7 +542,7 @@ describe('eggs and chicks (SPEC 9.9, 17.2)', () => {
     ).toBe(200);
     advanceTo(app, hatchAt + 14 * TIME.DAY);
     expect(owlRow(chick.id)?.is_chick).toBe(0);
-    expect((await owls(anna)).owls.find((owl) => owl.id === chick.id)?.energy).toBe(540);
+    expect((await owls(anna)).owls.find((owl) => owl.id === chick.id)?.energy).toBe(430);
     expect(await systemTypes(anna)).toContain('chick_adult');
   });
 

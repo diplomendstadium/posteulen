@@ -155,3 +155,138 @@ export function speciesSnack(id: string, language: 'de' | 'en' = 'de'): string {
   const snacks = language === 'en' ? SPECIES_SNACKS_EN : SPECIES_SNACKS;
   return snacks[id] ?? (language === 'en' ? 'favourite snack' : 'Lieblingsleckerli');
 }
+
+/**
+ * v1.2.4: descriptions of the loan owls in the post office (texts of the client), shown under
+ * every owl on offer – like the descriptions in the Menagerie, without prices (the loan fee
+ * stands on every card).
+ */
+export const LOAN_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  'suedliche-weissgesichtseule':
+    'Unsere Weißgesichtseule liebt kurze Etappen, kurze Briefe und dich, wenn du ihr vor Abflug eine Knusperheuschrecke spendierst. Sie lässt sich gern und ausdauernd streicheln und genießt die Zuwendung von Menschen.',
+  ostkreischeule:
+    'Unsere Ostkreischeule kommt mit bis zu fünf Flügelschlägen pro Sekunde rasch auf Tempo, fliegt wendig zwischen den Ästen und kann auch segeln und gleiten. Kurze Briefe für die Nachbarschaft sind bei ihr bestens aufgehoben. Mit einem kleinen Schlangensnack lässt sie sich aber auch zu längeren Touren überreden.',
+  waldkauz:
+    'Unser Waldkauz ist ein bedächtiger Gewohnheitsflieger, der seine Runden immer sehr zuverlässig abarbeitet.',
+  sperbereule:
+    'Unsere Sperbereule ist die richtige Wahl, wenn es auf mittlere Distanz einmal schnell gehen muss. Sie fliegt bis zu 50 km/h und trägt neben Briefen auch Gold, wenn du welches verschenken möchtest.',
+  riesenfischuhu:
+    'Möchtest du einen Fernbrief aufgeben? Dann empfehlen wir unseren Riesenfischuhu. Er ist nicht nur stark, sondern ausgesprochen ausdauernd. Lange Strecken über Wasser fliegt er auch mit langen, schweren Briefen, ohne zu ermüden, und mit ruhigen Flügelschlägen. Auch ein Goldtransport ist für ihn kein Problem.',
+  schneeeule:
+    'Unsere Schneeeule ist nicht nur schnell und ausdauernd, sie bleibt auch auf langen Postflügen selbst bei Schneetreiben und eisigen Temperaturen gelassen. Tropische Temperaturen mag sie nicht besonders. Mit einem gefrorenen Birnensplitter vor Abflug lässt sie sich meist jedoch auch hiervon überzeugen. Falls du Gold transportieren möchtest, ist unsere Schneeeule die richtige Wahl, denn sie ist auch ausgesprochen kräftig.',
+  maehnenkauz:
+    'Unser Mähnenkauz fliegt deine kurzen Briefe für überschaubare Etappen mit erstaunlicher Entschlossenheit. Vor Abflug freut er sich über eine kleine Streicheleinheit.',
+  sumpfohreule:
+    'Unsere Sumpfohreule ist abenteuerlustig und ein motivierter Mittelstreckenflieger. Einen unbekannten Weg über die Wiesen probiert sie gern aus, selbst wenn sie dafür einen Umweg fliegen muss.',
+  brillenkauz:
+    'Unser Brillenkauz kommt aus den Tropenwäldern Mittel- und Südamerikas. Wir vermuten, dass er daher vor allem bei gutem Wetter und Sonnenschein fliegen möchte. Insbesondere bei Schnee und Hagel ist es manchmal schwer, ihn von seiner Stange zu holen. Mit einem Stück getrockneter Mango kann man ihn jedoch meist trotzdem locken. Auch er ist stark genug für einen Goldtransport.',
+  zypernzwergohreule:
+    'Unsere Zypern-Zwergohreule eignet sich besonders für kurze Briefe und überschaubare Distanzen. Dafür freut sie sich oft überschwänglich, wenn sie auch mal einen Auftrag bekommt. Mit langen Pergamenten und Gold kann sie jedoch nicht abheben.',
+  kanincheneule:
+    'Unsere Kanincheneule übernimmt am liebsten viele kurze Wege mit Gelegenheit zum Landen und Herumspazieren. Aufgrund ihrer überschaubaren Größe transportiert sie nur kleine Pergamente.',
+  riesenkauz:
+    'Für schnelle Langstreckenflüge bietet sich unser Riesenkauz an. Er ist kräftig genug, um neben kurzen und langen Pergamenten auch Gold zu transportieren.',
+  schleiereule:
+    'Unsere Schleiereule fühlt sich in jedem Klima und jeder Region wohl. Am meisten glänzt sie bei mittleren Distanzen und freut sich über einen gelegentlichen Apfelchip.',
+  milchuhu:
+    'Für internationale Postzustellungen ist unser Milchuhu bestens gerüstet. Auch wenn er nicht die schnellste Eule im Laden ist, schafft er auch die Überquerung von Meeren und Ozeanen, ohne zwischendurch vor Erschöpfung aufzugeben. Vor langen Etappen sammelt er gern vorab Energie durch das Verschlingen von Feigenstückchen.',
+  maskeneule:
+    'Unsere Maskeneule kommt eher selten zum Zug, da sie ziemlich scheu ist. Sie merkt sich aber sehr genau, bei wem sie ungestört landen kann. Ihre kurzen Zustellungen erledigt sie am liebsten spät, wenn die Gassen leer sind, dafür aber umso zuverlässiger.',
+  waldohreule:
+    'Unsere Waldohreule ist vielseitig einsetzbar. Besonders liegen ihr Mittelstreckenzustellungen, wobei sie auch längere Touren mit ein paar Pausen durchhält.',
+  elfenkauz:
+    'Unser winziger Elfenkauz ist draufgängerisch, solange die Aufgabe zu seiner Größe passt. Ein kleines Pergament bringt er flink durch enge Gassen. Danach braucht er jedoch eine Pause.',
+  bartkauz:
+    'Dieser Bartkauz hier ist manchmal etwas unberechenbar. Er mag zwar Schnee, ist aber überraschenderweise etwas wasserscheu und freut sich nicht, wenn er im Regen losgeschickt wird. Dafür ist er stark genug, um neben kurzen und langen Pergamenten auch Gold zu transportieren.',
+  haubenkauz:
+    'Unser hübscher Haubenkauz stammt aus den Tropenwäldern Mittel- und Südamerikas und freut sich besonders über Zustellungen bei warmem, sonnigem Wetter. Für ein Papayastückchen traut er sich aber auch im europäischen Winter aus dem Haus.',
+  virginiauhu:
+    'Unser Virginiauhu ist die leistungsfähigste Eule in unserem Eulenpostamt. Er fliegt ausgesprochen schnell, bei Bedarf sehr weit und transportiert dabei auch schwere Lasten wie Gold zuverlässig. Ihm kannst du jede Aufgabe anvertrauen.',
+};
+
+/** The descriptions of the loan owls in English (v1.2.4). */
+export const LOAN_DESCRIPTIONS_EN: Readonly<Record<string, string>> = {
+  'suedliche-weissgesichtseule':
+    'Our White-faced Owl loves short legs, short letters and you, if you treat it to a crunchy grasshopper before take-off. It likes being stroked at length and enjoys the attention of people.',
+  ostkreischeule:
+    'With up to five wingbeats a second, our Eastern Screech Owl gets up to speed quickly, flies nimbly between the branches and can soar and glide as well. Short letters for the neighbourhood are in the best of hands with it. With a little snake snack, though, it can be talked into longer trips, too.',
+  waldkauz:
+    'Our Tawny Owl is an unhurried creature of habit who always works through its rounds very reliably.',
+  sperbereule:
+    'Our Northern Hawk Owl is the right choice when things need to be quick over a medium distance. It flies at up to 50 km/h and carries gold as well as letters, if you would like to give some away.',
+  riesenfischuhu:
+    'Would you like to send a long-distance letter? Then we recommend our Blakiston’s Fish Owl. It is not only strong but remarkably tireless. It flies long stretches over water even with long, heavy letters, without tiring and with calm wingbeats. Carrying gold is no problem for it either.',
+  schneeeule:
+    'Our Snowy Owl is not only fast and tireless, it also stays calm on long post flights even in driving snow and icy temperatures. It is not too fond of tropical temperatures. With a frozen sliver of pear before take-off, though, it can usually be won over even to those. If you would like to send gold, our Snowy Owl is the right choice, because it is remarkably strong, too.',
+  maehnenkauz:
+    'Our Maned Owl flies your short letters over manageable legs with astonishing determination. Before take-off it is pleased about a little stroke.',
+  sumpfohreule:
+    'Our Short-eared Owl is adventurous and a motivated middle-distance flyer. It likes trying out an unknown way across the meadows, even if it has to fly a detour for it.',
+  brillenkauz:
+    'Our Spectacled Owl comes from the tropical forests of Central and South America. We suspect that is why it mainly wants to fly in good weather and sunshine. In snow and hail especially, it is sometimes hard to get it off its perch. With a piece of dried mango, though, it can usually be tempted anyway. It is strong enough to carry gold, too.',
+  zypernzwergohreule:
+    'Our Cyprus Scops Owl is particularly suited to short letters and manageable distances. In return it is often overjoyed when it gets a job for once. It cannot take off with long parchments or gold, though.',
+  kanincheneule:
+    'Our Burrowing Owl likes best to take on lots of short trips with chances to land and stroll about. Because of its modest size it only carries small parchments.',
+  riesenkauz:
+    'For fast long-distance flights our Powerful Owl is the one to choose. It is strong enough to carry gold as well as short and long parchments.',
+  schleiereule:
+    'Our Barn Owl feels at home in every climate and every region. It shines most over medium distances and is pleased about the occasional apple crisp.',
+  milchuhu:
+    'For international post our Verreaux’s Eagle-Owl is perfectly equipped. Even if it is not the fastest owl in the shop, it manages to cross seas and oceans without giving up from exhaustion along the way. Before long legs it likes to gather energy in advance by gobbling down pieces of fig.',
+  maskeneule:
+    'Our Oriental Bay Owl does not get picked very often, as it is rather shy. But it remembers very well where it can land undisturbed. It likes to make its short deliveries late, when the alleys are empty – and all the more reliably for it.',
+  waldohreule:
+    'Our Long-eared Owl is an all-rounder. Middle-distance deliveries suit it best, though it also manages longer trips with a few breaks.',
+  elfenkauz:
+    'Our tiny Elf Owl is daring, as long as the task suits its size. It brings a small parchment nimbly through narrow alleys. Afterwards, though, it needs a break.',
+  bartkauz:
+    'This Great Grey Owl here is sometimes a little unpredictable. It may like snow, but surprisingly it is a bit afraid of water and is not pleased to be sent off in the rain. In return it is strong enough to carry gold as well as short and long parchments.',
+  haubenkauz:
+    'Our pretty Crested Owl comes from the tropical forests of Central and South America and is particularly pleased about deliveries in warm, sunny weather. For a piece of papaya, though, it ventures out of the house even in a European winter.',
+  virginiauhu:
+    'Our Great Horned Owl is the most capable owl in our owl post office. It flies remarkably fast, very far if need be, and reliably carries heavy loads such as gold along the way. You can entrust it with any task.',
+};
+
+/** v1.2.4: the description of a loan owl in the post office. */
+export function loanDescription(id: string, language: 'de' | 'en' = 'de'): string | undefined {
+  return (language === 'en' ? LOAN_DESCRIPTIONS_EN : LOAN_DESCRIPTIONS)[id];
+}
+
+/** v1.2.4: "unsere" for the feminine species names (…eule), "unser" for the others. */
+const MASCULINE = new Set([
+  'waldkauz',
+  'riesenfischuhu',
+  'maehnenkauz',
+  'brillenkauz',
+  'riesenkauz',
+  'milchuhu',
+  'elfenkauz',
+  'bartkauz',
+  'haubenkauz',
+  'virginiauhu',
+]);
+
+function joined(items: readonly string[], and: string): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} ${and} ${items[items.length - 1] ?? ''}`;
+}
+
+/**
+ * v1.2.4: who is ready to travel in the post office right now – the owls still on offer
+ * today, e.g. „Im Moment sind unsere Sperbereule, unser Waldkauz und unser Riesenfischuhu
+ * reisebereit.“ Empty when nothing is on offer any more.
+ */
+export function loanReady(
+  species: readonly string[],
+  name: (id: string) => string,
+  language: 'de' | 'en' = 'de',
+): string {
+  if (species.length === 0) return '';
+  if (language === 'en') {
+    const owls = species.map((id) => `our ${name(id)}`);
+    return `At the moment ${joined(owls, 'and')} ${owls.length === 1 ? 'is' : 'are'} ready to travel.`;
+  }
+  const owls = species.map((id) => `${MASCULINE.has(id) ? 'unser' : 'unsere'} ${name(id)}`);
+  return `Im Moment ${owls.length === 1 ? 'ist' : 'sind'} ${joined(owls, 'und')} reisebereit.`;
+}

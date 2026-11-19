@@ -55,6 +55,8 @@ export function registerDonationHandler(ctx: Context): void {
         event.logicalAt,
         tools.after,
       );
+      // v1.2.4: the request for donations also comes as a push (SPEC 11.2).
+      ctx.push.notify(event.ref, 'donation', null, event.logicalAt, tools.after);
       ctx.db.run('UPDATE users SET donation_count = donation_count + 1 WHERE id = ?', event.ref);
     }
     ctx.queue.schedule('donation', event.ref, event.logicalAt + INTERVAL);

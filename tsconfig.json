@@ -14,6 +14,7 @@
     "deploy/test",
     "tools/map/build.ts",
     "tools/map/worldmask.ts",
+    "tools/zones/build.ts",
     "*.config.ts"
   ]
 }

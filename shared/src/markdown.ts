@@ -5,7 +5,8 @@
  * Blocks are separated by blank lines: `# Heading`, `![picture](left|right)` on a line of its
  * own, everything else is a paragraph (its line breaks become spaces). Inside a paragraph:
  * `**bold**`, `*italic*` and `[text](/path)` – links only to pages of the app (a path starting
- * with a single "/"); anything else stays text.
+ * with a single "/") and `[text](donate)`, the donation page of the project (`DONATION.URL`,
+ * v1.2.4); anything else stays text.
  */
 
 export type MarkdownInline =
@@ -18,7 +19,7 @@ export type MarkdownBlock =
   | { readonly kind: 'picture'; readonly picture: string; readonly align: 'left' | 'right' };
 
 const PICTURE = /^!\[([a-z]+)\]\((left|right)\)$/;
-const INLINE = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((\/(?!\/)[^)\s]*)\)/g;
+const INLINE = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((\/(?!\/)[^)\s]*|donate)\)/g;
 
 export function parseInlines(text: string): MarkdownInline[] {
   const result: MarkdownInline[] = [];

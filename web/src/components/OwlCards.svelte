@@ -346,6 +346,10 @@
         </h3>
         <p class="species">
           {speciesName(owl.species)} · {owl.sex === 'f' ? t.owls.female : t.owls.male}
+          <!-- v1.2.4: kilometres flown in all, own owls only. -->
+          {#if owl.kind === 'own' && owl.km !== null}· {fill(t.owls.kmFlown, {
+              km: owl.km.toLocaleString(i18n.lang === 'en' ? 'en-GB' : 'de-DE'),
+            })}{/if}
         </p>
         <p class="energy">
           <span>{fill(t.owls.energy, { energy: owl.energy, max: owl.maxEnergy })}</span>

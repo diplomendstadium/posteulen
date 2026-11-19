@@ -69,10 +69,11 @@
   >
 </section>
 
+<!-- v1.2.4: notifications right below signing out, above everything else. -->
+<PushSettings />
+
 <!-- v0.10: gold, daily gold and bookings (before: the page "Finanzen"). -->
 <FinanceSettings />
-
-<PushSettings />
 
 <LetterSettings />
 

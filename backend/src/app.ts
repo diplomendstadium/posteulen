@@ -28,6 +28,7 @@ import {
 import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
+import { backfillFlownKm } from './owls/distance.ts';
 import { removeRelatives } from './bots/relatives.ts';
 import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
@@ -106,7 +107,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   });
   const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
   const botsApi = buildApi({ kind: 'bots', origin: config.botsOrigin, db, hsts, logLevel });
-  ctx.push = new PushService(ctx, options.pushSender);
+  ctx.push = new PushService(ctx, options.pushSender, options.pushTimer);
   ctx.botReplies = new BotReplies(ctx, ctx.ai);
   ctx.centralBots = new CentralRunner(ctx, ctx.ai);
   registerLetterHandlers(ctx);
@@ -140,6 +141,8 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerDonationHandler(ctx);
   ensureDonationSchedules(ctx);
   sendUpdateNotes(ctx);
+  // v1.2.4: the kilometres of the owls from the flights before the update, once.
+  backfillFlownKm(ctx);
   // v0.9: hand the Tor switch of the admin panel to the root helper (also after a restore).
   if (config.env === 'production') syncTorSwitch(ctx);
   registerGoldJobs(ctx);
@@ -165,6 +168,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
     ctx,
     async close() {
       ctx.queue.stop();
+      ctx.push.stop();
       ctx.hub.shutdown();
       await Promise.allSettled([userApi.close(), adminApi.close(), botsApi.close()]);
       db.close();

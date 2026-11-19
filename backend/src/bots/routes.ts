@@ -6,7 +6,7 @@
  */
 import { christmasAt } from '../letters/season.ts';
 import type { FastifyInstance } from 'fastify';
-import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
+import { SECURITY } from '@posteulen/shared/constants.ts';
 import { BotLetterSend } from '@posteulen/shared/schemas/letters.ts';
 import { letterTextError } from '@posteulen/shared/text-rules.ts';
 import type { Context } from '../context.ts';
@@ -14,7 +14,6 @@ import { HttpError, emptyBody, parse } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
-import { debit } from '../gold/ledger.ts';
 import { checkRecipients, depart, departWithBotReply, guestRefOwl } from '../flights/transport.ts';
 import { removeAllCentralBotsForPlayer } from '../central/service.ts';
 import { playerBot } from './registry.ts';
@@ -60,8 +59,6 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
         throw new HttpError(400, 'bot_owls_only');
       const after: (() => void)[] = [];
       const result = ctx.db.transaction(() => {
-        if (body.parchment === 'large')
-          debit(ctx.db, me, 'large_parchment', GOLD.LARGE_PARCHMENT_SURCHARGE, now);
         const text = body.text.normalize('NFC');
         let letter: { id: string; arrivesAt: number };
         let owl: { name: string; species: string };

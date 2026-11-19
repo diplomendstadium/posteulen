@@ -49,7 +49,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(page.locator('.gold')).toContainText('4,0 Gold');
     const card = page.getByTestId('owl-card');
     await expect(card).toContainText('Waldkauz');
-    await expect(card).toContainText(/Energie \d+ von 540/);
+    await expect(card).toContainText(/Energie \d+ von 430/);
     // v0.10: full energy – biscuit and snack still once a day each, then the owl is full.
     setOwlEnergy(me.name, 1);
     await page.reload();
@@ -71,7 +71,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
 
     // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
     await expect(card.getByTestId('owl-motivation')).toContainText('Motivation 120 %');
-    await expect(card).toContainText('Geschwindigkeit 27,5 km/h +20 %');
+    await expect(card).toContainText('Geschwindigkeit 25,0 km/h +20 %');
     await card.getByRole('button', { name: 'Wasser geben' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'drinking');
     await page.keyboard.press('Escape');

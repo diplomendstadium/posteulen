@@ -50,9 +50,7 @@ export interface PreparedLetters {
   readonly keys: readonly { userId: string; ed25519: string; x25519: string }[];
 }
 
-export interface Prepared extends PreparedLetters {
-  readonly cost: number;
-}
+export type Prepared = PreparedLetters;
 
 export interface SealedItem {
   readonly letterId: string;

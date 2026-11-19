@@ -30,6 +30,7 @@ import { addSystemMessage } from '../messages/system.ts';
 import { displayName } from '../contacts/model.ts';
 import type { NotificationType } from '../push/service.ts';
 import { afterReturnHome, scheduleAdult } from '../owls/lifecycle.ts';
+import { addFlownKm } from '../owls/distance.ts';
 import { letterReachedBot } from '../bots/service.ts';
 
 export type OwlKind = 'own' | 'loan' | 'stand_in' | 'bot';
@@ -390,6 +391,12 @@ function legProfile(ctx: Context, flight: FlightRow, stored: FlightProfile): Fli
 }
 
 export function finishFlight(ctx: Context, flightId: string): void {
+  // v1.2.4: the owl's kilometres grow by the distance of the whole flight (SPEC 9.2).
+  const flight = ctx.db.get<{ owl_id: string | null; plan: string }>(
+    "SELECT owl_id, plan FROM flights WHERE id = ? AND state = 'active'",
+    flightId,
+  );
+  if (flight) addFlownKm(ctx, flight);
   ctx.db.run("UPDATE flights SET state = 'done' WHERE id = ?", flightId);
   ctx.db.run(
     "DELETE FROM scheduled_events WHERE type IN ('flight_stop', 'flight_rest_end') AND substr(ref, 1, 23) = ?",
@@ -673,6 +680,8 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
     push = chick ? 'chick_gift' : 'owl_gift';
     after(() => ctx.hub.notify(recipient, 'owls'));
   }
+  // v1.2.4: a letter whose owl rests with the recipient is one push for both.
+  if (push === 'letter_arrived' && stop.status === 'resting') push = 'letter_resting';
   ctx.push.notify(recipient, push, letters[0]?.id ?? flight.id, at, after);
   after(() => {
     ctx.hub.notify(recipient, 'chats');
@@ -826,9 +835,9 @@ export function registerFlightHandlers(ctx: Context): void {
     if (stop.type === 'deliver') deliver(ctx, flight, stop, event.logicalAt, tools.after);
     else arriveHome(ctx, flight, stop, event.logicalAt, tools.after);
     if (rests) {
-      // v0.8.2: the host learns that an owl rests with them – a push; v0.8.5 no system message
-      // any more: the chat list shows a little owl behind the holder's name instead (8.4).
-      ctx.push.notify(stop.userId, 'owl_resting', flight.id, event.logicalAt, tools.after);
+      // The host learns that an owl rests with them with the push of the delivery (v1.2.4: one
+      // push "brought post and rests with you"); no system message – the chat list shows a
+      // little owl behind the holder's name instead (8.4).
       tools.after(() => ctx.hub.notify(stop.userId, 'owls', 'chats'));
       return;
     }

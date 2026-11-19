@@ -296,7 +296,7 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     await expect(send(anna, [ben], `${text}a`, 'large', owl)).rejects.toThrow('too long');
   });
 
-  it('sends one letter per recipient in order and charges large parchment once', async () => {
+  it('sends one letter per recipient in order; large parchment is free (v1.2.4)', async () => {
     const clara = await person(app, 'Clara', { lat: 52.38, lon: 9.73 });
     await couple(anna, clara);
     setGold(app, anna, 100);
@@ -311,11 +311,9 @@ describe('letters (SPEC 5.8, 8.4)', () => {
     expect(arrival(sent, 1)).toBeGreaterThan(arrival(sent, 0));
     expect(sent.body).toMatchObject({ returnsAt: expect.any(Number) });
     expect(app.db.get<{ gold: number }>('SELECT gold FROM users WHERE id = ?', anna.id)?.gold).toBe(
-      // Owl, large parchment twice, the loan owl (once for both letters, v0.10 by species).
+      // Owl and the loan owl (once for both letters, v0.10 by species); no parchment fee.
       100 -
         60 -
-        1 -
-        1 -
         loanPrice(
           app.db.get<{ s: string }>(
             "SELECT owl_species AS s FROM flights WHERE owl_kind = 'loan' AND holder_id = ?",

@@ -87,7 +87,8 @@ describe('SSRF protection for push endpoints (SPEC 11.3)', () => {
       },
       async () => [{ address: '192.168.0.1', family: 4 }],
     );
-    expect(result).toEqual({ error: 'private address' });
+    // v1.2.4: a refused endpoint is not tried again.
+    expect(result).toEqual({ error: 'private address', permanent: true });
   });
 });
 

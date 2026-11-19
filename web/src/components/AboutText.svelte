@@ -3,16 +3,18 @@
    * The info text "Über PostEulen" at the bottom of the start page (SPEC 8.1): a fixed text in
    * the Markdown subset of shared/src/markdown.ts, rendered as elements (never as HTML). The
    * pictures float at half the width of the text and follow day, night, season and Christmas
-   * at home (Berlin when signed out) like everywhere in the app; on narrow screens they stand
-   * above their text at full width.
+   * like everywhere in the app (signed out: by the clock and time zone of the device, v1.2.4);
+   * on narrow screens they stand above their text at full width. `[text](donate)` is the one
+   * link that leaves the app: to the donation page (v1.2.4).
    */
+  import { DONATION } from '@posteulen/shared/constants.ts';
   import { ABOUT_DE, ABOUT_EN } from '@posteulen/shared/texts/about.ts';
   import { parseMarkdown } from '@posteulen/shared/markdown.ts';
-  import type { SceneId } from '@posteulen/shared/species.ts';
+  import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
   import { i18n, t, fill, speciesName } from '../lib/i18n.svelte.ts';
   import { owlImage, sceneImage } from '../lib/owl-image.ts';
-  import { groupScene, homeLight } from '../lib/season.ts';
-  import { groupAlt, placeAlt, placeScene } from '../lib/places.ts';
+  import { homeLight } from '../lib/season.ts';
+  import { placeAlt, placeScene } from '../lib/places.ts';
   import Link from './Link.svelte';
 
   const light = homeLight();
@@ -32,26 +34,34 @@
     return image.placeholder ? null : { scene, files: image.files, alt };
   }
 
+  function owlPicture(species: string, kind: OwlImageKind, alt: string): Picture | null {
+    const image = owlImage(species, kind);
+    return image.placeholder
+      ? null
+      : {
+          scene: `${species}-${kind}`,
+          files: { s480: image.files.s480, s960: image.files.s960 ?? image.files.s480 },
+          alt: fill(alt, { name: speciesName(species) }),
+        };
+  }
+
   function picture(name: string): Picture | null {
     switch (name) {
       case 'desk':
         return scenePicture(placeScene('letters', light), placeAlt('letters', light));
-      case 'group':
-        return scenePicture(groupScene(light), groupAlt(light));
+      case 'homecoming':
+        // v1.2.4: a southern white-faced owl back home on the window sill, by day or by night.
+        return owlPicture(
+          'suedliche-weissgesichtseule',
+          light.day ? 'homeDay' : 'homeNight',
+          light.day ? t.owls.homeDayAlt : t.owls.homeNightAlt,
+        );
       case 'menagerie':
         return scenePicture(placeScene('menagerie', light), placeAlt('menagerie', light));
       case 'post':
         return scenePicture(placeScene('post', light), placeAlt('post', light));
-      case 'feeding': {
-        const image = owlImage('elfenkauz', 'feeding');
-        return image.placeholder
-          ? null
-          : {
-              scene: 'elfenkauzFeeding',
-              files: { s480: image.files.s480, s960: image.files.s960 ?? image.files.s480 },
-              alt: fill(t.owls.feeding, { name: speciesName('elfenkauz') }),
-            };
-      }
+      case 'feeding':
+        return owlPicture('elfenkauz', 'feeding', t.owls.feeding);
       default:
         return null;
     }
@@ -83,6 +93,10 @@
         {#each block.inlines as inline, inlineIndex (inlineIndex)}
           {#if inline.kind === 'strong'}<strong>{inline.text}</strong
             >{:else if inline.kind === 'em'}<em>{inline.text}</em
+            >{:else if inline.kind === 'link' && inline.href === 'donate'}<a
+              href={DONATION.URL}
+              target="_blank"
+              rel="noopener noreferrer">{inline.text}</a
             >{:else if inline.kind === 'link'}<Link href={inline.href}>{inline.text}</Link
             >{:else}{inline.text}{/if}
         {/each}

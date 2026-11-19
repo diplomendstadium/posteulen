@@ -61,20 +61,20 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       SPECIES.filter((s) => s.cargo === cargo)
         .map((s) => s.id)
         .sort();
-    expect(by('short')).toEqual(['elfenkauz', 'kanincheneule', 'zypernzwergohreule']);
-    expect(by('long')).toEqual(
+    // v1.2.4: eight small and medium species carry only the short parchment.
+    expect(by('short')).toEqual(
       [
-        'haubenkauz',
+        'elfenkauz',
+        'kanincheneule',
         'maehnenkauz',
-        'maskeneule',
         'ostkreischeule',
         'schleiereule',
         'suedliche-weissgesichtseule',
-        'sumpfohreule',
-        'waldkauz',
         'waldohreule',
+        'zypernzwergohreule',
       ].sort(),
     );
+    expect(by('long')).toEqual(['haubenkauz', 'maskeneule', 'sumpfohreule', 'waldkauz'].sort());
     expect(by('gold')).toEqual(
       [
         'bartkauz',
@@ -90,8 +90,8 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
     );
   });
 
-  it('v0.5.1: Sumpfohreule 7 gold, Bartkauz 12 gold', () => {
-    expect(SPECIES.find((s) => s.id === 'sumpfohreule')?.price).toBe(7);
+  it('Sumpfohreule 10 gold (v1.2.4), Bartkauz 12 gold', () => {
+    expect(SPECIES.find((s) => s.id === 'sumpfohreule')?.price).toBe(10);
     expect(SPECIES.find((s) => s.id === 'bartkauz')?.price).toBe(12);
   });
 

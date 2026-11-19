@@ -245,6 +245,7 @@ export function afterReturnHome(ctx: Context, owlId: string, at: number, after: 
   if (owl.pending_sickness === 1) {
     ctx.db.run("UPDATE owls SET state = 'sick', pending_sickness = 0 WHERE id = ?", owlId);
     addSystemMessage(ctx, owl.owner_id, 'owl_sick', { owl: owl.name ?? '' }, at, after);
+    ctx.push.notify(owl.owner_id, 'owl_sick', owlId, at, after);
   }
 }
 
@@ -442,6 +443,8 @@ function sicknessRoll(ctx: Context, day: string, at: number, after: After): void
     }
     ctx.db.run("UPDATE owls SET state = 'sick' WHERE id = ?", owl.id);
     addSystemMessage(ctx, owl.owner_id, 'owl_sick', { owl: owl.name ?? '' }, at, after);
+    // v1.2.4: a sick owl also comes as a push (SPEC 11.2).
+    ctx.push.notify(owl.owner_id, 'owl_sick', owl.id, at, after);
     after(() => ctx.hub.notify(owl.owner_id, 'owls'));
   }
 }

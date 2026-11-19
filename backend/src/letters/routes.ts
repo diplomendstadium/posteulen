@@ -6,9 +6,8 @@
  */
 import { christmasPaperOf } from './season.ts';
 import type { FastifyInstance } from 'fastify';
-import { GOLD, SECURITY } from '@posteulen/shared/constants.ts';
+import { SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
-import { canAfford } from '@posteulen/shared/game/gold.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import {
   IdList,
@@ -25,7 +24,6 @@ import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { playerBot } from '../bots/registry.ts';
 import { countStat } from '../central/model.ts';
-import { balance, debit } from '../gold/ledger.ts';
 import {
   checkLetters,
   checkRecipients,
@@ -115,11 +113,6 @@ const UNREADABLE_CAUSES: Readonly<Record<string, string>> = {
 export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
 
-  function costOf(parchment: 'small' | 'large'): number {
-    // Large parchment costs once per owl, also with several recipients (SPEC 5.9).
-    return parchment === 'large' ? GOLD.LARGE_PARCHMENT_SURCHARGE : 0;
-  }
-
   app.post('/api/letters/prepare', { preHandler: authenticated }, async (request) => {
     if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
@@ -132,8 +125,6 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     // v0.7: a visiting owl takes a reply only to its holder.
     if (owl.guest && body.recipients[0] !== owl.guest.flight.holder_id)
       throw new HttpError(400, 'owl_recipients');
-    const cost = costOf(body.parchment);
-    if (!canAfford(balance(ctx.db, me), cost)) throw new HttpError(400, 'gold_insufficient');
     const letters = newLetters(body.recipients, now);
     const token = randomId();
     ctx.letterTokens.set(
@@ -152,7 +143,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       TOKEN_MS,
       now,
     );
-    return { token, letters, keys: publicKeys(ctx, body.recipients), cost };
+    // v1.2.4: both parchments are free; the owl decides what it can carry (chooseOwl).
+    return { token, letters, keys: publicKeys(ctx, body.recipients) };
   });
 
   app.post(
@@ -172,8 +164,6 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       checkRecipients(ctx, me, token.recipients, now);
       const afterCommit: (() => void)[] = [];
       const result = ctx.db.transaction(() => {
-        const cost = costOf(token.parchment);
-        if (cost > 0) debit(ctx.db, me, 'large_parchment', cost, now);
         const { route, owl } = depart(ctx, token, letters, now, (work) => afterCommit.push(work));
         const home = route.find((stop) => stop.type === 'home')?.arrivesAt ?? null;
         return {

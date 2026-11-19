@@ -137,7 +137,12 @@ export interface Vapid {
   readonly privateKey: string;
 }
 
-export type SendResult = { readonly status: number } | { readonly error: string };
+/**
+ * The answer of the push service, or why there was none. v1.2.4: `permanent` – the endpoint
+ * itself is not allowed (SSRF protection); trying again would not help.
+ */
+export type SendResult =
+  { readonly status: number } | { readonly error: string; readonly permanent?: true };
 
 const MAX_RESPONSE_BYTES = 4096;
 const TIMEOUT_MS = 10_000;
@@ -154,7 +159,11 @@ export async function sendPush(
     url = checkEndpointUrl(subscription.endpoint);
     target = await resolvePublic(url.hostname, resolver);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'endpoint' };
+    const message = error instanceof Error ? error.message : 'endpoint';
+    // A refused endpoint stays refused; a failed DNS lookup may work a minute later.
+    return error instanceof EndpointError
+      ? { error: message, permanent: true }
+      : { error: message };
   }
   const details = webpush.generateRequestDetails(
     {

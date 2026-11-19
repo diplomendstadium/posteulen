@@ -9,7 +9,11 @@ test.describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
     page,
   }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'Hilfe' }).click();
+    // The info text links to the help as well (v1.2.3): the link of the bar of links.
+    await page
+      .getByRole('navigation', { name: 'Hauptnavigation' })
+      .getByRole('link', { name: 'Hilfe' })
+      .click();
     await expect(page).toHaveURL(/\/hilfe$/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hilfe');
     const contents = page.getByRole('navigation', { name: 'Inhalt' });

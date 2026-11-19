@@ -53,6 +53,8 @@ export interface OwlRow {
   readonly clutch_id: string | null;
   readonly hatched_at: number | null;
   readonly created_at: number;
+  /** v1.2.4: kilometres flown in all. */
+  readonly km_flown: number;
 }
 
 export function facts(owl: OwlRow): {
@@ -147,6 +149,8 @@ export interface OwlView {
   readonly loanExpiresAt: number | null;
   readonly adultAt: number | null;
   readonly clutchId: string | null;
+  /** v1.2.4: kilometres flown in all (own owls; null for loan and visiting owls). */
+  readonly km: number | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
@@ -351,6 +355,8 @@ export function owlView(
     loanExpiresAt: owl.loan_expires_at,
     adultAt: owl.adult_at,
     clutchId: owl.clutch_id,
+    // v1.2.4: kilometres flown in all – only for own owls (not loan or visiting owls).
+    km: owl.kind === 'own' ? Math.round(owl.km_flown) : null,
     actions: {
       care: canCare(ownFacts),
       gift: canGift(ownFacts) && owl.name !== null,

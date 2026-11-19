@@ -84,6 +84,10 @@ export default defineConfig({
               homeBody: push.homeBody,
               homeLettersBody: push.homeLettersBody,
               restingBody: push.restingBody,
+              letterRestingBody: push.letterRestingBody,
+              contactBody: push.contactBody,
+              donationBody: push.donationBody,
+              sickBody: push.sickBody,
               newsBody: push.newsBody,
             },
           ];

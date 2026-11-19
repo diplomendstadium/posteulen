@@ -10,6 +10,7 @@ import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { pruneCareHistory } from '../owls/care.ts';
 import { isRetentionDay, purgeOldLetters } from '../letters/retention.ts';
 import { pruneFeedback } from '../admin/feedback.ts';
+import { pruneBroadcasts } from '../admin/operations.ts';
 import type { Context } from '../context.ts';
 import { hmac, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -189,6 +190,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   if (isRetentionDay(day)) purgeOldLetters(ctx, at, undefined, after);
   // v0.7.1: messages to the admin go after 90 days.
   pruneFeedback(ctx, at);
+  // v1.2.4: the history of broadcasts in the admin panel goes after 180 days.
+  pruneBroadcasts(ctx, at);
   // v0.7.2: homecomings nobody looked at (overlay) go after 60 days.
   ctx.db.run('DELETE FROM homecomings WHERE created_at < ?', at - 60 * TIME.DAY);
   // v0.8.2: banners of the admin are gone once they have ended.

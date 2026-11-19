@@ -259,8 +259,8 @@ export const en: Texts = {
     linkWarning: 'Unusual characters in the address – check carefully where the link leads.',
     compose: 'Write a new letter',
     parchment: 'Parchment',
-    smallOption: 'Short – up to 800 characters, free',
-    largeOption: 'Long – up to 15,000 characters, 0.1 gold',
+    smallOption: 'Short – up to 800 characters',
+    largeOption: 'Long – up to 15,000 characters',
     text: 'Text',
     counter: '{count} of {max} characters',
     noSmileys: 'Parchment knows no smileys.',
@@ -413,6 +413,10 @@ export const en: Texts = {
     owl_home: 'One of your owls is back home.',
     owl_home_letters: 'One of your owls is back home with post.',
     owl_resting: 'An owl is resting with you.',
+    letter_resting: 'An owl has brought post and is resting with you.',
+    contact_confirmed: 'A new contact is now connected with you.',
+    donation: 'The owls have a small request for you.',
+    owl_sick: 'One of your owls has fallen ill.',
   },
   push: {
     title: 'Notifications',
@@ -435,6 +439,11 @@ export const en: Texts = {
     homeBody: 'One of your owls is back home.',
     homeLettersBody: 'One of your owls is back home with post.',
     restingBody: 'An owl is resting with you.',
+    /** v1.2.4 */
+    letterRestingBody: 'An owl has brought post and is resting with you.',
+    contactBody: 'A new contact is now connected with you.',
+    donationBody: 'The owls have a small request for you.',
+    sickBody: 'One of your owls has fallen ill.',
     newsBody: 'There is news at PostEulen.',
     headerHint: 'Notifications are not set up yet – here is how',
     headerHide: 'Hide until the next sign-in',
@@ -489,6 +498,8 @@ export const en: Texts = {
     toMenagerie: 'To the Menagerie',
     unnamed: 'New owl',
     female: 'female',
+    /** v1.2.4: kilometres an own owl has flown in all (line below its name). */
+    kmFlown: '{km} km',
     male: 'male',
     energy: 'Energy {energy} of {max}',
     motivation: 'Motivation {value}%',
@@ -669,8 +680,10 @@ export const en: Texts = {
     insideChristmasNight:
       "Inside the owl post office decorated for Christmas, at night: today's loan owls in the glow of the lights among counter, shelves and presents",
     loanTitle: 'Borrow owls',
+    /** v1.2.4: followed by who is ready to travel right now (loanReady in texts/species.ts). */
+    loanWelcome: 'A warm welcome! Would you like to borrow an owl?',
     loanIntro:
-      'On offer today – for 0.1 gold, owls that also carry gold for 0.2 gold. A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back (no refund). Once a loan is over, its offer disappears until tomorrow.',
+      'A loan owl carries a letter to up to 5 recipients one after another (gold to one) and vanishes after the last one. If someone hands it a reply on the way, it even drops by at yours once more – provided, of course, you were kind to it. You must send it off within 24 hours, or it flies back (no refund). Once a loan is over, its offer disappears until tomorrow.',
     loanCount: 'Borrowed today: {count} of {max}. Tomorrow there are new owls to borrow.',
     loanPrice: 'Loan fee: {price}',
     loan: 'Borrow {name} ({species}, {sex})',
@@ -885,7 +898,7 @@ export const en: Texts = {
     inactivitySave: 'Save',
     broadcastTitle: 'Message to everyone',
     broadcastIntro:
-      'Appears in the system messages of all accounts, with a notification. At most 3,000 characters.',
+      'Appears in the system messages of all accounts, with a notification. At most 3,000 characters. The history here keeps every broadcast for 180 days.',
     broadcastText: 'Text',
     broadcastSend: 'Send to everyone',
     broadcastConfirm: 'Really send this message to all accounts?',

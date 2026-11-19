@@ -33,6 +33,8 @@ export interface Owl {
   readonly loanExpiresAt: number | null;
   readonly adultAt: number | null;
   readonly clutchId: string | null;
+  /** v1.2.4: kilometres flown in all (own owls; null for loan owls). */
+  readonly km: number | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;

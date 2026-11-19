@@ -148,6 +148,8 @@ export interface ContextOptions {
   readonly aiClient?: import('./bots/ai.ts').AiClient;
   /** Replaces the network transport of Web Push (tests). */
   readonly pushSender?: import('./push/service.ts').PushSender;
+  /** Replaces the timer of push retries (tests, v1.2.4). */
+  readonly pushTimer?: import('./push/service.ts').RetryTimer;
 }
 
 export async function createContext(

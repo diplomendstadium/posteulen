@@ -259,9 +259,19 @@ describe('a resting owl (v0.8.5, SPEC 8.4)', () => {
         ben.id,
       ),
     ).toEqual([]);
+    // v1.2.4: one push "brought post and rests with you" instead of two.
     expect(
-      app.db.all("SELECT 1 FROM notifications WHERE type = 'owl_resting' AND user_id = ?", ben.id),
+      app.db.all(
+        "SELECT 1 FROM notifications WHERE type = 'letter_resting' AND user_id = ?",
+        ben.id,
+      ),
     ).toHaveLength(1);
+    expect(
+      app.db.all(
+        "SELECT 1 FROM notifications WHERE type = 'letter_arrived' AND user_id = ?",
+        ben.id,
+      ),
+    ).toEqual([]);
     const map = await anna.agent.json<{
       flights: { stops: { status: string; restUntil: number | null }[] }[];
     }>('GET', '/api/map');

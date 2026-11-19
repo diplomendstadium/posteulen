@@ -18,7 +18,6 @@ export const GOLD = {
   DAILY_HIGH_DAYS: 30,
   /** v0.7: 03:00 UTC (before 15:00). */
   DAILY_HOUR_UTC: 3,
-  LARGE_PARCHMENT_SURCHARGE: 1,
   /** Loan owl of a species that carries short and long parchment only (v0.10: per species). */
   LOAN_PRICE: 1,
   /** v0.10: loan owl of a species that also carries gold (SPEC 9.6). */
@@ -214,6 +213,11 @@ export const SECURITY = {
   /** Letters to bots: plain text, one recipient. */
   MAX_BOT_LETTER_REQUEST_BYTES: 128 * 1024,
   PUSH_VERIFY_SECONDS: 60,
+  /**
+   * v1.2.4: a push that failed for a passing reason (network, 408, 429, 5xx) is tried again
+   * after these waits (minutes), at most within a day of the event (SPEC 11.3).
+   */
+  PUSH_RETRY_MINUTES: [1, 5, 30, 120, 360],
   /** Push subscription changes and test pushes per account and hour (v0.6.1). */
   PUSH_CHANGES_PER_HOUR: 10,
   /** Identical error log entries within this time count up one entry (v0.6.1). */
@@ -289,6 +293,12 @@ export const FEEDBACK = {
   MAX_CHARS: 300,
   /** Deleted this many days after they arrived. */
   RETENTION_DAYS: 90,
+} as const;
+
+/** v1.2.4: the history of broadcasts in the admin panel (SPEC 13 item 6). */
+export const BROADCAST = {
+  /** Entries of the history are deleted this many days after they were sent. */
+  HISTORY_DAYS: 180,
 } as const;
 
 /** v0.7: vouchers for gold or an owl, created in the admin panel (SPEC 13). */

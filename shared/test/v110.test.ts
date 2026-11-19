@@ -81,7 +81,8 @@ describe('version 1.1 values', () => {
     expect(screech?.maxEnergy).toBe(299);
     expect(screech?.recoveryFactor).toBe(3);
     expect(screech?.price).toBe(47);
-    expect(screech?.cargo).toBe('long');
+    // v1.2.4: only the short parchment.
+    expect(screech?.cargo).toBe('short');
     expect(scops && Math.round(owlSpeedKmh(scops.speedFactor))).toBe(36);
     expect(scops?.maxEnergy).toBe(130);
     expect(scops?.recoveryFactor).toBe(1.9);

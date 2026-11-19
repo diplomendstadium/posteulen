@@ -62,10 +62,11 @@
   const shownNews = $derived(
     live.news.filter((item) => item.type !== 'owl_home' && item.type !== 'owl_home_letters'),
   );
-  /** Unread letters and system messages: "Neue Post!" in the top bar (v0.2). */
-  const unread = $derived(
-    live.chats.reduce((sum, chat) => sum + chat.unread, 0) + live.systemUnread,
-  );
+  /**
+   * Unread letters: "Neue Post!" in the top bar (v0.2). v1.2.4: system messages only show their
+   * counter in the list of conversations, not here.
+   */
+  const unread = $derived(live.chats.reduce((sum, chat) => sum + chat.unread, 0));
   const newPostLetters = Array.from(t.app.newPost);
 
   // News are shown once on the overview and then removed (SPEC 8.3, 11.5).

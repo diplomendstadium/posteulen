@@ -38,22 +38,22 @@ export const SPECIES: readonly Species[] = [
   { id: 'elfenkauz', name: 'Elfenkauz', nameEn: 'Elf Owl', imageName: 'Elfenkauz', price: 40, maxEnergy: 100, speedFactor: 1.65, recoveryFactor: 2.0, cargo: 'short' },
   { id: 'haubenkauz', name: 'Haubenkauz', nameEn: 'Crested Owl', imageName: 'Haubenkauz', price: 48, maxEnergy: 540, speedFactor: 1.2, recoveryFactor: 1.2, cargo: 'long' },
   { id: 'kanincheneule', name: 'Kanincheneule', nameEn: 'Burrowing Owl', imageName: 'Kanincheneule', price: 29, maxEnergy: 350, speedFactor: 1.7, recoveryFactor: 1.7, cargo: 'short' },
-  { id: 'maehnenkauz', name: 'Mähnenkauz', nameEn: 'Maned Owl', imageName: 'Maehnenkauz', price: 49, maxEnergy: 330, speedFactor: 1.1, recoveryFactor: 1.5, cargo: 'long' },
+  { id: 'maehnenkauz', name: 'Mähnenkauz', nameEn: 'Maned Owl', imageName: 'Maehnenkauz', price: 49, maxEnergy: 330, speedFactor: 1.1, recoveryFactor: 1.5, cargo: 'short' },
   { id: 'maskeneule', name: 'Maskeneule', nameEn: 'Oriental Bay Owl', imageName: 'Maskeneule', price: 45, maxEnergy: 340, speedFactor: 1.35, recoveryFactor: 1.5, cargo: 'long' },
   { id: 'milchuhu', name: 'Milchuhu', nameEn: 'Verreaux\'s Eagle-Owl', imageName: 'Milchuhu', price: 35, maxEnergy: 1080, speedFactor: 0.9, recoveryFactor: 0.6, cargo: 'gold' },
   { id: 'riesenfischuhu', name: 'Riesenfischuhu', nameEn: 'Blakiston\'s Fish Owl', imageName: 'Riesenfischuhu', price: 50, maxEnergy: 1200, speedFactor: 0.7, recoveryFactor: 0.5, cargo: 'gold' },
   { id: 'riesenkauz', name: 'Riesenkauz', nameEn: 'Powerful Owl', imageName: 'Riesenkauz', price: 44, maxEnergy: 900, speedFactor: 1.8, recoveryFactor: 0.9, cargo: 'gold' },
-  { id: 'schleiereule', name: 'Schleiereule', nameEn: 'Barn Owl', imageName: 'Schleiereule', price: 7, maxEnergy: 380, speedFactor: 1.45, recoveryFactor: 1.5, cargo: 'long' },
+  { id: 'schleiereule', name: 'Schleiereule', nameEn: 'Barn Owl', imageName: 'Schleiereule', price: 7, maxEnergy: 380, speedFactor: 1.3, recoveryFactor: 1.3, cargo: 'short' },
   { id: 'schneeeule', name: 'Schneeeule', nameEn: 'Snowy Owl', imageName: 'Schneeeule', price: 24, maxEnergy: 990, speedFactor: 1.75, recoveryFactor: 0.85, cargo: 'gold' },
-  { id: 'sperbereule', name: 'Sperbereule', nameEn: 'Northern Hawk Owl', imageName: 'Sperbereule', price: 22, maxEnergy: 440, speedFactor: 2.0, recoveryFactor: 1.4, cargo: 'gold' },
-  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 7, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4, cargo: 'long' },
-  { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65, cargo: 'long' },
-  { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 540, speedFactor: 1.1, recoveryFactor: 1.25, cargo: 'long' },
+  { id: 'sperbereule', name: 'Sperbereule', nameEn: 'Northern Hawk Owl', imageName: 'Sperbereule', price: 22, maxEnergy: 440, speedFactor: 2.0, recoveryFactor: 1.2, cargo: 'gold' },
+  { id: 'sumpfohreule', name: 'Sumpfohreule', nameEn: 'Short-eared Owl', imageName: 'Sumpfohreule', price: 10, maxEnergy: 430, speedFactor: 1.35, recoveryFactor: 1.4, cargo: 'long' },
+  { id: 'suedliche-weissgesichtseule', name: 'Südliche Weißgesichtseule', nameEn: 'Southern White-faced Owl', imageName: 'Suedliche-Weissgesichtseule', price: 32, maxEnergy: 300, speedFactor: 1.3, recoveryFactor: 1.65, cargo: 'short' },
+  { id: 'waldkauz', name: 'Waldkauz', nameEn: 'Tawny Owl', imageName: 'Waldkauz', price: 6, maxEnergy: 430, speedFactor: 1, recoveryFactor: 0.9, cargo: 'long' },
   { id: 'phoenix', name: 'Phönix', nameEn: 'Phoenix', imageName: 'Phoenix', price: 150, maxEnergy: 2000, speedFactor: 4, recoveryFactor: 2, mythical: true, cargo: 'gold' },
   { id: 'virginiauhu', name: 'Virginiauhu', nameEn: 'Great Horned Owl', imageName: 'Virginiauhu', price: 68, maxEnergy: 1300, speedFactor: 2.6, recoveryFactor: 2, cargo: 'gold' },
-  { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45, cargo: 'long' },
+  { id: 'waldohreule', name: 'Waldohreule', nameEn: 'Long-eared Owl', imageName: 'Waldohreule', price: 8, maxEnergy: 410, speedFactor: 1.35, recoveryFactor: 1.45, cargo: 'short' },
   // v1.1: 47 km/h, 30 %/h; 36 km/h, 19 %/h (25 km/h and 10 %/h × factor).
-  { id: 'ostkreischeule', name: 'Ostkreischeule', nameEn: 'Eastern Screech Owl', imageName: 'Ostkreischeule', price: 47, maxEnergy: 299, speedFactor: 1.88, recoveryFactor: 3.0, cargo: 'long' },
+  { id: 'ostkreischeule', name: 'Ostkreischeule', nameEn: 'Eastern Screech Owl', imageName: 'Ostkreischeule', price: 47, maxEnergy: 299, speedFactor: 1.88, recoveryFactor: 3.0, cargo: 'short' },
   { id: 'zypernzwergohreule', name: 'Zypern-Zwergohreule', nameEn: 'Cyprus Scops Owl', imageName: 'Zypernzwergohreule', price: 15, maxEnergy: 130, speedFactor: 1.44, recoveryFactor: 1.9, cargo: 'short' },
 ];
 
@@ -178,13 +178,14 @@ export const SCENE_IMAGES = [
 /**
  * v1.1: the four teams of the post office (SPEC 9.6). Each account gets one whole team as its
  * loan offer of a day, never the team of its day before. A new species joins the smallest team
- * (drawn by lot between equally small ones) unless the client decides otherwise.
+ * (drawn by lot between equally small ones) unless the client decides otherwise. v1.2.4: in
+ * the order of the welcome text of the post office (the offer is shown in this order).
  */
 export const LOAN_TEAMS: Readonly<Record<'A' | 'B' | 'C' | 'D', readonly string[]>> = {
   A: ['sperbereule', 'ostkreischeule', 'waldkauz', 'suedliche-weissgesichtseule', 'riesenfischuhu'],
-  B: ['schneeeule', 'maehnenkauz', 'sumpfohreule', 'brillenkauz', 'zypernzwergohreule'],
-  C: ['riesenkauz', 'kanincheneule', 'schleiereule', 'milchuhu', 'maskeneule'],
-  D: ['virginiauhu', 'elfenkauz', 'waldohreule', 'bartkauz', 'haubenkauz'],
+  B: ['zypernzwergohreule', 'maehnenkauz', 'sumpfohreule', 'brillenkauz', 'schneeeule'],
+  C: ['riesenkauz', 'kanincheneule', 'milchuhu', 'schleiereule', 'maskeneule'],
+  D: ['waldohreule', 'elfenkauz', 'bartkauz', 'haubenkauz', 'virginiauhu'],
 };
 
 export type LoanTeam = keyof typeof LOAN_TEAMS;

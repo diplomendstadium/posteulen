@@ -1,6 +1,7 @@
 /**
- * Service worker (SPEC 15, D-08): caches only the app shell, never letter contents.
- * Push handling follows in Stufe 2.
+ * Service worker (SPEC 15, D-08): caches only the app shell, never letter contents. Web Push
+ * (SPEC 11.2–11.4): visible notification, receipt confirmed to the server, a tap opens the page
+ * that fits the type.
  */
 /** Replaced at build time by the posteulen-sw-manifest plugin. */
 declare const __POSTEULEN_SHELL__: string;
@@ -24,6 +25,11 @@ interface PushTexts {
   homeLettersBody: string;
   /** v0.8.2 */
   restingBody: string;
+  /** v1.2.4 */
+  letterRestingBody: string;
+  contactBody: string;
+  donationBody: string;
+  sickBody: string;
   newsBody: string;
 }
 declare const __POSTEULEN_PUSH_TEXTS__: { de: PushTexts; en: PushTexts };
@@ -134,6 +140,10 @@ sw.addEventListener('push', (event) => {
     owl_home: PUSH_TEXTS.homeBody,
     owl_home_letters: PUSH_TEXTS.homeLettersBody,
     owl_resting: PUSH_TEXTS.restingBody,
+    letter_resting: PUSH_TEXTS.letterRestingBody,
+    contact_confirmed: PUSH_TEXTS.contactBody,
+    donation: PUSH_TEXTS.donationBody,
+    owl_sick: PUSH_TEXTS.sickBody,
   };
   const body =
     typeof data.type === 'string' && Object.hasOwn(bodies, data.type)
@@ -149,6 +159,7 @@ sw.addEventListener('push', (event) => {
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-192.png',
         lang,
+        data: { url: pushTarget(data.type) },
         ...(id ? { tag: id } : {}),
       }),
       id
@@ -163,17 +174,55 @@ sw.addEventListener('push', (event) => {
   );
 });
 
+/**
+ * v1.2.4: the page a tap on a push opens, by its type only – the payload carries no IDs of
+ * conversations or owls (SPEC 11.2): letters to the conversations, owl events to the owls,
+ * a new contact to the address book, everything else to the system messages.
+ */
+const PUSH_TARGETS: Record<string, string> = {
+  letter_arrived: '/app/briefe',
+  letter_resting: '/app/briefe',
+  owl_resting: '/app/briefe',
+  owl_home_letters: '/app/briefe',
+  owl_home: '/app/eulen',
+  owl_gift: '/app/eulen',
+  chick_gift: '/app/eulen',
+  eggs_laid: '/app/eulen',
+  chicks_hatched: '/app/eulen',
+  owl_sick: '/app/eulen',
+  contact_confirmed: '/app/adressbuch',
+  gold_arrived: '/app/briefe/system',
+  deletion_warning: '/app/briefe/system',
+  broadcast: '/app/briefe/system',
+  donation: '/app/briefe/system',
+  push_test: '/app/einstellungen',
+};
+
+function pushTarget(type: unknown): string {
+  return typeof type === 'string' && Object.hasOwn(PUSH_TARGETS, type)
+    ? (PUSH_TARGETS[type] ?? '/app')
+    : '/app';
+}
+
 sw.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const data = event.notification.data as { url?: unknown } | null;
+  // Only the fixed paths above – nothing from outside decides where a tap leads.
+  const url =
+    typeof data?.url === 'string' && Object.values(PUSH_TARGETS).includes(data.url)
+      ? data.url
+      : '/app';
   event.waitUntil(
     (async () => {
       const windows = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const existing = windows[0];
       if (existing) {
+        // The open app goes to the page itself (client-side router, no reload).
+        existing.postMessage({ type: 'open', url });
         await existing.focus();
         return;
       }
-      await sw.clients.openWindow('/app');
+      await sw.clients.openWindow(url);
     })(),
   );
 });

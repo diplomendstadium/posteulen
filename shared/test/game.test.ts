@@ -110,7 +110,8 @@ describe('energy (SPEC 9.3, 17.2)', () => {
     expect(energyAfterFeeding(95, fast)).toBe(100);
     const waldkauz = speciesById('waldkauz');
     expect(waldkauz).toBeDefined();
-    if (waldkauz) expect(energyAfterFeeding(0, waldkauz)).toBeCloseTo(67.5, 6);
+    // v1.2.4: 10 % of 430 × 0.9.
+    if (waldkauz) expect(energyAfterFeeding(0, waldkauz)).toBeCloseTo(38.7, 6);
   });
 
   it('start energy is 60–100 % of the maximum', () => {
