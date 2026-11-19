@@ -3,6 +3,40 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.2.4 – Kilometerzähler und ein Gruß vom Schalter
+
+Wünsche des Auftraggebers zu Startseite, Eulen, Postamt, Benachrichtigungen und Adminpanel (SPEC Anhang F, D-406 bis D-417).
+
+**Neu:**
+
+- **Kilometer eigener Eulen:** In der Eulenübersicht steht unter dem Namen jeder eigenen Eule (auch Küken), wie weit sie insgesamt geflogen ist, z. B. „Sperbereule · weiblich · 1.234 km“. Gezählt wird beim Ende jedes Flugs die Summe der Flugabschnitte des Flugplans (mit Halten, Umwegen und Umkehr); die Flüge vor dem Update werden beim ersten Start einmal nachgerechnet. Leih- und Gast-Eulen zeigen keine Kilometer.
+- **Postamt:** Statt „Heute im Angebot …“ begrüßt der Schalter: „Herzlich willkommen! Möchtest du eine Eule leihen? Im Moment sind … reisebereit.“ – mit den Eulen, die heute noch angeboten und nicht geliehen sind. Jede Leiheule hat eine Beschreibung (Texte des Auftraggebers, ins Englische übertragen). Die Teams stehen in der Reihenfolge des Auftraggebers.
+- **Neue Pushes:** Kontakt verbunden (an den, der zuerst hinzugefügt hat), Spendenbitte, eigene Eule krank geworden.
+- **Push öffnet die passende Seite:** Briefwechsel, Eulenübersicht, Adressbuch oder Systemnachrichten – nur nach der Art des Pushs, ohne IDs in der Nutzlast; eine offene App wechselt ohne Neuladen dorthin.
+- **Push-Wiederholung:** Vorübergehend gescheiterte Pushes (Netzwerk, DNS, 408, 429, 5xx) bleiben ausstehend und werden nach 1, 5, 30, 120 und 360 Minuten erneut versucht, höchstens 24 Stunden lang; nach einem Neustart sofort. Abgelehnte Endpunkte, 404/410, andere 4xx und der Test-Push werden nicht wiederholt. Ins Fehlerprotokoll kommt erst das endgültige Scheitern.
+- **Startseite:** neuer Abschnitt „Wer bezahlt das eigentlich?“ (englisch „Who pays for all this?“) mit den Kosten des Projekts und einem Link auf die Spendenseite (`[Text](donate)` als einziger Link nach außen in der Markdown-Teilmenge); ebenso im README.
+
+**Geändert:**
+
+- **Langes Pergament kostenlos.** Ob ein langer Brief geht, entscheidet nur die Eule.
+- **Eulenarten:** nur noch kurzes Pergament tragen zusätzlich Ostkreischeule, Südliche Weißgesichtseule, Mähnenkauz, Waldohreule und Schleiereule; Sumpfohreule 10 Gold; Schleiereule Geschwindigkeit 1,3 (32,5 km/h) und Erholung 1,3; Sperbereule Erholung 1,2; Waldkauz Erholung 0,9, Geschwindigkeit 1,0 (25 km/h) und 430 Energie. Bestehende Eulen übernehmen die neuen Werte (Energie über 430 wird beim Anzeigen gekappt); laufende Flüge behalten ihren Plan.
+- **Brief mit Rast:** ein Push „Eine Eule hat Post gebracht und rastet bei dir.“ statt zweier – auch bei Eulen der Bots.
+- **„Neue Post!“** erscheint nur noch bei ungelesenen Briefen; Systemnachrichten zeigen ihren Zähler in der Chatliste. Systemnachrichten lösen außer den Ereignissen aus SPEC 11.2 keinen Push aus.
+- **Startseite:** „Selbstverständlich gibt es auch keine In-App-Käufe.“ fett; im Infotext die heimkehrende Südliche Weißgesichtseule statt des Gruppenbilds; ohne Anmeldung richten sich Tag, Nacht, Weihnachtszeit und Jahreszeit der Bilder nach Uhr, Kalender und Zeitzone des Geräts statt nach Berlin (Orte der Zeitzonen aus der tz-Datenbank, neues Werkzeug `tools/zones/build.ts`).
+- **Einstellungen:** Benachrichtigungen gleich unter „Abmelden“.
+- **Adminpanel:** Der Verlauf der Rundnachrichten behält jeden Eintrag 180 Tage.
+- **SPEC:** Anhang B nach Preis sortiert.
+- Update-Nachricht, Hilfe, Erklärbär, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; die gelieferte Datei `TexteLeiheulen.txt` ist eingepflegt und gelöscht.
+
+**Tests:** neue Tests in `shared/test/v124.test.ts`, `backend/test/v124.test.ts` und `e2e/v124.spec.ts`; bestehende Tests an die neuen Werte angepasst; voller `npm test`.
+
+### Hinweise für Betreiber
+
+- **Migration `0022_v124.sql`** (Schema-Version 22): neue Spalten `owls.km_flown` und `notifications.push_attempts`. Sie läuft beim Update automatisch. Beim ersten Start rechnet der Server die Kilometer aus allen gespeicherten Flügen einmal nach (gemerkt in `meta.km_backfill`); das dauert auf großen Instanzen einen Moment.
+- Keine neuen Dienste, keine neuen Pakete, keine neuen npm-Abhängigkeiten, keine neuen Bilder.
+- Der Abschnitt „Wer bezahlt das eigentlich?“ nennt die Kosten von posteulen.de. Wer eine eigene Instanz betreibt, passt `shared/src/texts/about.ts` an.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.2.3 – Ein frisch gefegter Eingang
 
 Wünsche des Auftraggebers zur Startseite und zum README (SPEC Anhang F, D-401 bis D-405).

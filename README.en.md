@@ -45,18 +45,19 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Letters do not last for ever.** All letters are deleted automatically and for good **one year** after delivery. If you like, set 30, 90 or 180 days in the settings. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer. Anything you want to keep is best copied out – like in the old days.
 - **Forgotten password means: account gone.** Nobody can reset it, not even the operator. That is not a bug; it is the price of real encryption.
 - **A map like an old atlas:** the map looks like a hand-drawn historical atlas – parchment, fine coastlines, hatched mountains, little forests, rivers and lakes. Trees and mountains stand only on land, never in the water. The closer you zoom in, the more landscapes, rivers and seas carry their names; around Western Europe right down to the Harz, the Black Forest and the Swabian Jura.
-- **Letters have room:** a small letter holds 800 characters and is free, a large parchment 15,000 characters.
+- **Letters have room:** a small letter holds 800 characters, a large parchment 15,000 characters – both free. Not every owl carries the large one, though: small and dainty species such as the Elf Owl, the Barn Owl or the Long-eared Owl only take short letters.
 - **One owl, many friends:** your own owls and loan owls fly to up to five recipients one after another – on the shortest route. Every ready owl has a “Write a letter” button in the owl overview; when writing, the owl choice is there at once – it only offers the loan owls of the day if none of your owls can carry the letter. In the correspondence every letter shows below it when it arrived or when you sent it, on which parchment and with which owl; your writing field already looks like your letter. When an owl lands with post, you see it as soon as you open the app.
-- **A team of your own:** at the owl post office you first stand outside – “Enter the owl post office” takes you in, where you see the team of the day at work (by day, at night, decorated in Advent). One of four owl teams is on duty every day – drawn for each account separately, never the same one twice in a row – and you can borrow all of its owls – with values, what they carry and the loan fee (0.1 gold, owls that also carry gold 0.2 gold). There you can also look after your borrowed owls and send them off. Once a loan is over, its offer disappears until tomorrow.
-- **Who is ready?** Under “Owls”, all owls that can set off right away are at the top – your own and borrowed ones together, the liveliest first; loan owls carry “(loan owl)” after their name. Below are the ones that are travelling or busy, the next to come home first.
+- **A team of your own:** at the owl post office you first stand outside – “Enter the owl post office” takes you in, where you see the team of the day at work (by day, at night, decorated in Advent). One of four owl teams is on duty every day – drawn for each account separately, never the same one twice in a row – and you can borrow all of its owls – with values, what they carry and the loan fee (0.1 gold, owls that also carry gold 0.2 gold). There you can also look after your borrowed owls and send them off. At the counter you are greeted and told who is ready to travel, and every loan owl introduces itself with a few words. Once a loan is over, its offer disappears until tomorrow.
+- **Who is ready?** Under “Owls”, all owls that can set off right away are at the top – your own and borrowed ones together, the liveliest first; loan owls carry “(loan owl)” after their name. Below are the ones that are travelling or busy, the next to come home first. Below the name of each of your own owls you can see how many kilometres it has flown so far.
 - **Step inside:** the Menagerie now has a door too. Inside, the owls sit in wall niches and along the spiral staircase while the keeper sweeps. Above your letters stands a desk by the window – outside the seasons go by, and at night the candles are lit.
 - **Gold with the owl:** if an owl can carry gold and you have enough, it has the button “Send gold” in the owl overview. Bookings and the daily gold are in the settings.
 - **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
 - **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (not at all, 1, 2, 6, 12, 24 or 48 hours; preselected 2 hours with your own owls, 24 with loan owls). There it may be pampered and takes a reply back to you – with a reply on board it flies on at once. In the recipient’s conversations a little owl symbol stands behind your name; they can also send it on earlier without a letter.
+- **Notifications that think along:** if an owl brings you post and rests with you, it announces itself only once. You are also notified when a new contact is connected with you or one of your owls falls ill. Tapping a notification opens the right page, and if one does not get through once, PostEulen tries again later. “New post!” in the bar at the top is only for letters; system messages just show their counter.
 - **Chicks need time:** you have five days for names and the gift before the lot decides. Owls can only be released into the wild while you have more than 20 of your own.
 - **Links as you like:** a switch in the settings decides whether links in letters can be clicked.
 - **German or English:** a little flag in the top right corner switches the whole app to English (and back). Accounts remember their language; the pen friends then write in English too.
-- **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may.
+- **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may. Why it still helps is explained below under “Who pays for all this?”.
 
 ### A good first messenger for children
 
@@ -90,7 +91,11 @@ The help in the app explains everything else, and the Explainer Bear answers que
   <img src="docs/readme/eulen.png" alt="The owl overview: loan owls and your own owls, one of them in flight" width="260">
 </p>
 
-PostEulen is a hobby project, put together out of curiosity, parchment and a healthy dose of love for owls.
+### Who pays for all this?
+
+PostEulen is a hobby project, put together out of curiosity, parchment and a healthy dose of love for owls – but one that costs real money. At the moment that is about **€10 a month** for the domain and the server and around **€30 a month** for the AI services that help with development and running it. On top of that comes the time for further development. Every new account adds to the costs, and with many users they rise considerably. If this ever becomes too expensive and there are not enough donations to cover it, we will switch off the registration of new accounts: a new account will then only be possible with an invitation code from us. Existing accounts are not affected.
+
+**Every donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen) helps to keep PostEulen online and freely accessible to everyone.** Thank you!
 
 ---
 
@@ -102,7 +107,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.2.3** – below its links the start page now has an illustrated text about PostEulen (in German and English, with pictures that change with day, night and the seasons), the sign-in box is tidied up and the bar of links is as wide as the rest of the page. Version 1.2.2 keeps forests, mountains and the names of landscapes on the map on land and makes cover letters for gold gifts from bots show the right amount (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
+Version: **1.2.4** – long parchments are free now, while some small owl species only carry short ones; several species have new values; your own owls show the kilometres they have flown; the post office greets you with the owls ready to travel and introduces every loan owl; notifications combine a letter and a rest, are new for connected contacts, sick owls and the request for donations, open the right page and are retried after passing errors; “New post!” only for letters; before signing in the pictures follow the clock and time zone of the device; the start page explains what the project costs; the admin panel keeps broadcasts for 180 days. The update brings a database migration that runs automatically (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Appendix F).
 
 **In short**
 
@@ -191,7 +196,7 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - The error log shows understandable entries (without personal data) for 30 days after they last occurred. If a device cannot open a letter, the specific technical cause is shown here (users only see that the letter was lost or got wet). If the same message comes back within an hour, the entry counts up (“23× · zuletzt …”) and counts as unread again, instead of flooding the list.
 - Statistics: accounts created, existing and active, and letters (daily counters only).
 - Deletion period for inactivity: default 180 days, at least 60. Those affected are warned 30 days before; even shortening the period deletes nobody without this warning.
-- Message to everyone: appears in the system chat of all accounts, with a notification.
+- Message to everyone: appears in the system chat of all accounts, with a notification. The list of sent messages keeps every entry for 180 days.
 - Banner: a short notice with start and end (at most 90 days), German and optionally English, shown at the top of the app for all accounts – including accounts created afterwards. Users can hide it with ✕.
 - OpenAI (bots): enter the API key (stored encrypted and never shown again), choose the model (default “gpt-6-luna”; “Modelle von OpenAI laden” or by hand), two daily limits (Explainer Bear, default 200 calls; all other bots together, default 500), “Verbindung testen” (test connection). Without a key the bots send their fixed letters but answer nothing; waiting replies are sent right after a key has been entered. The server needs outgoing connections to `api.openai.com` (port 443) for this. The bots reply in the language of each account.
 - Forgotten the admin password? On the server, `sudo posteulen-cli admin-reset` creates a new initial password and signs out all admin sessions. User data stays untouched.
@@ -317,7 +322,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.2.3      # installs a particular version
+sudo posteulen-update v1.2.4      # installs a particular version
 ```
 
 Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.

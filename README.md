@@ -42,19 +42,20 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 
 - **Briefe sind vergänglich.** Alle Briefe werden **ein Jahr** nach der Zustellung automatisch und unwiderruflich gelöscht. Wer mag, stellt in den Einstellungen 30, 90 oder 180 Tage ein. Aufgeräumt wird einmal pro Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben. Was bleiben soll, schreibt man sich besser ab – wie früher.
 - **Passwort vergessen heißt: Konto weg.** Niemand kann es zurücksetzen, auch der Betreiber nicht. Das ist kein Fehler, das ist der Preis echter Verschlüsselung.
-- **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen und ist kostenlos, ein großes Pergament 15.000 Zeichen.
+- **Briefe haben Platz:** Ein kleiner Brief fasst 800 Zeichen, ein großes Pergament 15.000 Zeichen – beide kostenlos. Das große trägt aber nicht jede Eule: Kleine und zierliche Arten wie Elfenkauz, Schleiereule oder Waldohreule nehmen nur kurze Briefe mit.
 - **Eine Eule, viele Freunde:** Eigene Eulen und Leiheulen fliegen bis zu fünf Empfänger nacheinander an – auf dem kürzesten Weg. Jede einsatzbereite Eule hat in der Eulenübersicht den Knopf „Brief schreiben“; beim Schreiben steht die Eulenwahl gleich da – die Leiheulen des Tages bietet sie nur an, wenn keine deiner Eulen den Brief tragen kann. Im Briefwechsel steht unter jedem Brief, wann er angekommen ist bzw. wann du ihn abgeschickt hast, auf welchem Pergament und mit welcher Eule; dein Schreibfeld sieht schon aus wie dein Brief. Landet eine Eule mit Post, siehst du sie gleich beim Öffnen der App.
-- **Jedem sein Team:** Vor dem Eulenpostamt stehst du erst einmal draußen – mit „Eulenpostamt betreten“ geht es hinein, und du siehst das Team des Tages bei der Arbeit (bei Tag, bei Nacht, im Advent geschmückt). Jeden Tag hat eines von vier Eulenteams Dienst – für jedes Konto eigens ausgelost, nie zweimal hintereinander dasselbe –, und du kannst alle seine Eulen leihen – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
+- **Jedem sein Team:** Vor dem Eulenpostamt stehst du erst einmal draußen – mit „Eulenpostamt betreten“ geht es hinein, und du siehst das Team des Tages bei der Arbeit (bei Tag, bei Nacht, im Advent geschmückt). Jeden Tag hat eines von vier Eulenteams Dienst – für jedes Konto eigens ausgelost, nie zweimal hintereinander dasselbe –, und du kannst alle seine Eulen leihen – mit Werten, Tragfähigkeit und Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold). Am Schalter wirst du begrüßt und erfährst, wer gerade reisebereit ist, und jede Leiheule stellt sich mit ein paar Worten vor. Dort kannst du deine geliehenen Eulen auch gleich versorgen und losschicken. Ist eine Leihe vorbei, verschwindet ihr Angebot bis morgen.
 - **Eine Karte wie aus dem Atlas:** Die Karte sieht aus wie ein handgezeichneter historischer Atlas – Pergament, feine Küsten, schraffierte Gebirge, kleine Wälder, Flüsse und Seen. Bäume und Berge stehen nur an Land, nie im Wasser. Je näher du heranzoomst, desto mehr Landschaften, Flüsse und Meere tragen ihren Namen; rund um Westeuropa bis hin zu Lüneburger Heide, Harz und Schwäbischer Alb.
-- **Wer ist bereit?** Unter „Eulen“ stehen oben alle Eulen, die gleich losfliegen können – eigene und geliehene gemischt, die munterste zuerst; Leiheulen tragen „(Leiheule)“ hinter dem Namen. Darunter die, die gerade unterwegs oder beschäftigt sind, die nächste Heimkehrerin zuerst.
+- **Wer ist bereit?** Unter „Eulen“ stehen oben alle Eulen, die gleich losfliegen können – eigene und geliehene gemischt, die munterste zuerst; Leiheulen tragen „(Leiheule)“ hinter dem Namen. Darunter die, die gerade unterwegs oder beschäftigt sind, die nächste Heimkehrerin zuerst. Unter dem Namen jeder eigenen Eule steht, wie viele Kilometer sie schon geflogen ist.
 - **Eintreten bitte:** Auch die Menagerie hat jetzt eine Tür. Drinnen sitzen die Eulen in Mauernischen und an der Wendeltreppe, und die Pflegerin fegt gerade. Über dem Briefwechsel steht ein Schreibtisch am Fenster – draußen ziehen die Jahreszeiten vorbei, nachts brennen Kerzen.
 - **Gold mit der Eule:** Kann eine Eule Gold tragen und hast du genug, hat sie in der Eulenübersicht den Knopf „Gold verschicken“. Buchungen und tägliches Gold stehen in den Einstellungen.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
 - **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (gar nicht, 1, 2, 6, 12, 24 oder 48 Stunden; vorgewählt 2 Stunden mit eigenen Eulen, 24 mit Leiheulen). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort weiter. Beim Empfänger steht im Briefwechsel ein kleines Eulensymbol hinter deinem Namen; er kann sie auch ohne Brief früher weiterfliegen lassen.
+- **Benachrichtigungen, die mitdenken:** Bringt eine Eule Post und rastet bei dir, meldet sie sich nur einmal. Benachrichtigt wird auch, wenn ein neuer Kontakt mit dir verbunden ist oder eine deiner Eulen krank wird. Ein Tipp darauf öffnet gleich die passende Seite, und kommt eine Benachrichtigung einmal nicht durch, versucht PostEulen es später noch einmal. „Neue Post!“ oben in der Leiste gibt es nur für Briefe; Systemnachrichten zeigen nur ihren Zähler.
 - **Küken brauchen Zeit:** Für Namen und Geschenk hast du fünf Tage, bevor das Los entscheidet. In die Freiheit entlassen lassen sich Eulen nur, solange man mehr als 20 eigene hat.
 - **Links nach Wunsch:** In den Einstellungen bestimmt ein Regler, ob Links in Briefen anklickbar sind.
 - **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
-- **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen.
+- **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen – warum es trotzdem hilft, steht unten unter „Wer bezahlt das eigentlich?“.
 
 ### Ein guter erster Messenger für Kinder
 
@@ -88,7 +89,11 @@ Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fra
   <img src="docs/readme/eulen.png" alt="Die Eulenübersicht: Leiheulen und eigene Eulen, eine davon im Flug" width="260">
 </p>
 
-PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesunden Portion Eulenliebe.
+### Wer bezahlt das eigentlich?
+
+PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesunden Portion Eulenliebe – aber eines, das echtes Geld kostet. Derzeit sind das etwa **10 € im Monat** für Domain und Server und rund **30 € im Monat** für die KI-Dienste, die bei der Entwicklung und im Betrieb helfen. Dazu kommt die Zeit für die Weiterentwicklung. Mit jedem neuen Konto steigen die Kosten, bei vielen Nutzern erheblich. Sollte das irgendwann zu teuer werden und stehen dem nicht genug Spenden gegenüber, schalten wir die Registrierung neuer Konten ab: Ein neues Konto gibt es dann nur noch mit einem Einladungscode von uns. Bestehende Konten sind davon nicht betroffen.
+
+**Jede Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen) hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten.** Danke!
 
 ---
 
@@ -98,7 +103,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.2.3** – die Startseite bekommt unter den Links einen bebilderten Text über PostEulen (auf Deutsch und Englisch, die Bilder wechseln mit Tag, Nacht und Jahreszeit), die Box „Anmelden“ ist aufgeräumt und die Linkleiste so breit wie der Rest der Seite. Mit 1.2.2 stehen auf der Karte Wälder, Berge und Landschaftsnamen nur noch an Land, und Begleitbriefe zu Goldgeschenken von Bots nennen den richtigen Betrag (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.2.4** – lange Pergamente kosten nichts mehr, dafür tragen einige kleine Eulenarten nur noch kurze; mehrere Arten haben neue Werte; eigene Eulen zeigen ihre geflogenen Kilometer; das Postamt begrüßt mit den reisebereiten Eulen und stellt jede Leiheule vor; Benachrichtigungen fassen Brief und Rast zusammen, kommen neu für verbundene Kontakte, kranke Eulen und die Spendenbitte, öffnen die passende Seite und werden bei vorübergehenden Fehlern wiederholt; „Neue Post!“ nur noch für Briefe; vor dem Anmelden richten sich die Bilder nach Uhr und Zeitzone des Geräts; die Startseite erklärt die Kosten des Projekts; das Adminpanel behält Rundnachrichten 180 Tage. Das Update bringt eine Datenbank-Migration mit, die beim Update automatisch läuft (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -186,7 +191,7 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Nachrichten der Nutzer (ganz unten): Nutzer können aus den Einstellungen einmal am Tag eine kurze Nachricht (300 Zeichen) an den Admin schicken – für Probleme und Ideen. Sie sind nicht verschlüsselt, kommen ohne Absender an und werden nach 90 Tagen gelöscht.
 - Gutscheine: für Gold (0,1 bis 100) oder eine Eule (Art wählbar oder zufällig), einmal einlösbar, 90 Tage gültig. Der Code wird nur beim Erzeugen angezeigt; Nutzer lösen ihn in den Einstellungen der App ein. Wer einen Gutschein eingelöst hat, speichert PostEulen nicht.
 - Löschfrist bei Inaktivität: Standard 180 Tage, mindestens 60. Betroffene werden 30 Tage vorher gewarnt; auch eine Verkürzung löscht niemanden ohne diese Warnung.
-- Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung.
+- Rundnachricht: erscheint im Systemchat aller Konten, mit Benachrichtigung. Die Liste der gesendeten Rundnachrichten behält jeden Eintrag 180 Tage.
 - Banner: ein kurzer Hinweis mit Beginn und Ende (höchstens 90 Tage), Deutsch und optional Englisch, erscheint oben in der App bei allen Konten – auch bei Konten, die erst danach entstehen. Nutzer können ihn mit ✕ ausblenden.
 - OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), zwei Tageslimits (Erklärbär, Standard 200 Aufrufe; alle anderen Bots zusammen, Standard 500), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
 - Adminpasswort vergessen? Auf dem Server erzeugt `sudo posteulen-cli admin-reset` ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben unberührt.
@@ -312,7 +317,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.2.3      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.2.4      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.
