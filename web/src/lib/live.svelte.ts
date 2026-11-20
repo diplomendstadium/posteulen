@@ -7,7 +7,8 @@
 import { OPERATIONS } from '@posteulen/shared/constants.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
 import { api } from './api.ts';
-import { account, accountGeneration, onSignOut } from './auth.svelte.ts';
+import { account, onSignOut, setProfile } from './auth.svelte.ts';
+import { currentContext, isCurrent, type AccountContext } from './context.ts';
 import { syncVault } from './vault.svelte.ts';
 import { clearOwlImages, queueOwlImage, showOwlImage } from './overlay.svelte.ts';
 import { t, fill } from './i18n.svelte.ts';
@@ -100,6 +101,10 @@ onSignOut(() => {
   clearOwlImages();
   queuedHomecomings.clear();
   queuedArrivals.clear();
+  // SPEC 5.5: the live connection and timers of the previous account end with it; they are
+  // opened again for the next account (startLive keeps running for the shell).
+  close();
+  stopPolling();
 });
 
 type Topic =
@@ -125,12 +130,12 @@ const queuedHomecomings = new Set<string>();
  * the window, by day or by candlelight depending on whether it is light at the user's home
  * at the moment it is shown. Several homecomings appear one after another.
  */
-async function showHomecomings(current: () => boolean): Promise<void> {
+async function showHomecomings(context: AccountContext): Promise<void> {
   if (document.visibilityState !== 'visible') return;
   const { homecomings } = await api<{
     homecomings: { id: string; owl: string; species: string; letters: number }[];
-  }>('GET', '/api/homecomings');
-  if (!current()) return;
+  }>('GET', '/api/homecomings', undefined, { context });
+  if (!isCurrent(context)) return;
   const fresh = homecomings.filter((item) => !queuedHomecomings.has(item.id));
   if (fresh.length === 0) return;
   for (const item of fresh) {
@@ -148,7 +153,7 @@ async function showHomecomings(current: () => boolean): Promise<void> {
       return { species: item.species, kind: day ? 'homeDay' : 'homeNight', caption };
     });
   }
-  await api('POST', '/api/homecomings/seen', { ids: fresh.map((item) => item.id) });
+  await api('POST', '/api/homecomings/seen', { ids: fresh.map((item) => item.id) }, { context });
 }
 
 /** v1.1: letters whose arrival image is already queued in this tab (no double pictures). */
@@ -161,12 +166,12 @@ const queuedArrivals = new Set<string>();
  * the first opportunity (open app, start, sign-in, return), no longer only in the chat. Several
  * appear one after another in the order they landed (SPEC 9.2.6).
  */
-async function showArrivals(current: () => boolean): Promise<void> {
+async function showArrivals(context: AccountContext): Promise<void> {
   if (document.visibilityState !== 'visible') return;
   const { arrivals } = await api<{
     arrivals: { id: string; owl: string; species: string; kind: string; from: string | null }[];
-  }>('GET', '/api/arrivals');
-  if (!current()) return;
+  }>('GET', '/api/arrivals', undefined, { context });
+  if (!isCurrent(context)) return;
   const fresh = arrivals.filter((item) => !queuedArrivals.has(item.id));
   if (fresh.length === 0) return;
   for (const item of fresh) {
@@ -180,7 +185,12 @@ async function showArrivals(current: () => boolean): Promise<void> {
       }),
     }));
   }
-  await api('POST', '/api/letters/arrival-seen', { ids: fresh.map((item) => item.id) });
+  await api(
+    'POST',
+    '/api/letters/arrival-seen',
+    { ids: fresh.map((item) => item.id) },
+    { context },
+  );
 }
 
 export interface SystemMessage {
@@ -198,8 +208,16 @@ export interface SystemMessage {
  * for the most recent landing only.
  */
 export async function showSystemArrivals(messages?: readonly SystemMessage[]): Promise<void> {
+  const context = currentContext();
+  if (!context) return;
   const list =
-    messages ?? (await api<{ messages: SystemMessage[] }>('GET', '/api/system-messages')).messages;
+    messages ??
+    (
+      await api<{ messages: SystemMessage[] }>('GET', '/api/system-messages', undefined, {
+        context,
+      })
+    ).messages;
+  if (!isCurrent(context)) return;
   const pending = list.filter((message) => message.arrivalImage && !message.arrivalShown);
   const latest = pending.at(-1);
   if (!latest?.arrivalImage) return;
@@ -219,66 +237,71 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
       fill(t.owls.arrives, { name }),
     );
   }
-  await api('POST', '/api/system-messages/arrival-shown', { ids: pending.map((m) => m.id) });
+  await api(
+    'POST',
+    '/api/system-messages/arrival-shown',
+    { ids: pending.map((m) => m.id) },
+    { context },
+  );
 }
 
 async function refresh(topics: readonly Topic[]): Promise<void> {
-  if (!account.profile) return;
-  const generation = accountGeneration();
-  /** Answers for an account that has signed out in the meantime are dropped (v0.6.1). */
-  const current = (): boolean => generation === accountGeneration();
+  const context = currentContext();
+  if (!context || !account.profile) return;
+  /** Answers of an earlier account context are dropped (SPEC 5.5). */
+  const current = (): boolean => isCurrent(context);
+  const get = <T>(path: string): Promise<T> => api<T>('GET', path, undefined, { context });
   const tasks: Promise<void>[] = [];
   if (topics.includes('chats') || topics.includes('system')) {
     tasks.push(
-      api<{ chats: ChatSummary[]; system: { unread: number } }>('GET', '/api/chats').then(
-        (result) => {
-          if (!current()) return;
-          live.chats = result.chats;
-          live.systemUnread = result.system.unread;
-          live.chatVersion++;
-        },
-      ),
+      get<{ chats: ChatSummary[]; system: { unread: number } }>('/api/chats').then((result) => {
+        if (!current()) return;
+        live.chats = result.chats;
+        live.systemUnread = result.system.unread;
+        live.chatVersion++;
+      }),
     );
   }
   if (topics.includes('contacts')) {
     tasks.push(
-      api<{
+      get<{
         contacts: Contact[];
         bots: BotContact[];
         allBots?: number;
         botsDisabled?: boolean;
         requests: { id: string; label: string; expiresAt: number }[];
-      }>('GET', '/api/contacts').then(async (result) => {
+      }>('/api/contacts').then(async (result) => {
         if (!current()) return;
         live.contacts = result.contacts;
         live.bots = result.bots;
         live.allBots = result.allBots ?? result.bots.length;
         live.botsDisabled = result.botsDisabled ?? false;
         live.requests = result.requests;
-        await syncVault(result.contacts);
+        // The vault is synchronised with exactly this context's contact list.
+        await syncVault(result.contacts, context);
       }),
     );
   }
   if (topics.includes('news')) {
     tasks.push(
-      api<{ news: NewsItem[] }>('GET', '/api/news').then((result) => {
+      get<{ news: NewsItem[] }>('/api/news').then((result) => {
         if (current()) live.news = result.news;
       }),
     );
   }
   if (topics.includes('profile')) {
     tasks.push(
-      api<{ profile: typeof account.profile }>('GET', '/api/sync').then((result) => {
-        if (result.profile && current()) account.profile = result.profile;
+      get<{ profile: typeof account.profile }>('/api/sync').then((result) => {
+        setProfile(context, result.profile);
       }),
     );
   }
-  if (topics.includes('homecomings')) tasks.push(showHomecomings(current));
+  if (topics.includes('homecomings')) tasks.push(showHomecomings(context));
   // v1.1: new letters can arrive with every change of the chats.
-  if (topics.includes('chats')) tasks.push(showArrivals(current));
+  if (topics.includes('chats')) tasks.push(showArrivals(context));
   if (topics.includes('banners')) {
     tasks.push(
-      api<{ banners: { id: string; text: string; endsAt: number }[] }>('GET', '/api/banners').then(
+      get<{ banners: { id: string; text: string; endsAt: number }[] }>('/api/banners').then(
         (result) => {
           if (current()) live.banners = result.banners;
         },
@@ -290,7 +313,7 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   if (topics.includes('map')) live.mapVersion++;
   if (topics.includes('push')) {
     tasks.push(
-      api<{ state: string }>('GET', '/api/push/status').then((result) => {
+      get<{ state: string }>('/api/push/status').then((result) => {
         if (current()) live.pushState = result.state;
       }),
     );
@@ -331,10 +354,26 @@ let poll: ReturnType<typeof setInterval> | null = null;
 let failures = 0;
 let started = false;
 
+function stopPolling(): void {
+  if (poll) clearInterval(poll);
+  poll = null;
+  failures = 0;
+}
+
+/**
+ * The SSE connection belongs to one account context: it carries the expected account (the
+ * server refuses it if the session cookie belongs to another account), and its events are
+ * ignored once the context ended – a late hint of account A never refreshes account B.
+ */
 function open(): void {
-  if (source || document.visibilityState !== 'visible' || !account.profile) return;
-  source = new EventSource('/api/events');
-  source.addEventListener('changed', (event) => {
+  const context = currentContext();
+  if (!started || source || document.visibilityState !== 'visible' || !context) return;
+  const connection = new EventSource(
+    `/api/events?account=${encodeURIComponent(context.accountId)}`,
+  );
+  source = connection;
+  connection.addEventListener('changed', (event) => {
+    if (!isCurrent(context) || source !== connection) return;
     failures = 0;
     const { topics } = JSON.parse((event as MessageEvent<string>).data) as { topics: Topic[] };
     void refresh(topics);
@@ -343,12 +382,19 @@ function open(): void {
       void showSystemArrivals().catch(() => undefined);
     }
   });
-  source.onerror = () => {
+  connection.onerror = () => {
+    if (!isCurrent(context) || source !== connection) {
+      connection.close();
+      return;
+    }
     failures++;
     if (failures >= 3 && !poll) {
       // SSE does not work here: poll every 60 s while visible (SPEC 11.6).
       close();
-      poll = setInterval(() => void refreshAll(), OPERATIONS.FOREGROUND_POLL_SECONDS * 1000);
+      poll = setInterval(() => {
+        if (isCurrent(context)) void refreshAll();
+        else stopPolling();
+      }, OPERATIONS.FOREGROUND_POLL_SECONDS * 1000);
     }
   };
 }
@@ -364,18 +410,19 @@ function onVisibility(): void {
     if (!poll) open();
   } else {
     close();
-    if (poll) {
-      clearInterval(poll);
-      poll = null;
-      failures = 0;
-    }
+    stopPolling();
   }
 }
 
+/**
+ * The shell is shown (signed in): live updates for the current account. Called again after a
+ * change of account in the same tab, it connects for the new account.
+ */
 export function startLive(): void {
-  if (started) return;
-  started = true;
-  document.addEventListener('visibilitychange', onVisibility);
+  if (!started) {
+    started = true;
+    document.addEventListener('visibilitychange', onVisibility);
+  }
   void refreshAll();
   open();
 }
@@ -384,6 +431,5 @@ export function stopLive(): void {
   started = false;
   document.removeEventListener('visibilitychange', onVisibility);
   close();
-  if (poll) clearInterval(poll);
-  poll = null;
+  stopPolling();
 }

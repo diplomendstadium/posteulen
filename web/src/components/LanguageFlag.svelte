@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { currentContext } from '../lib/context.ts';
   /**
    * Small flag in the top right corner of every screen (v0.4): the British flag switches to
    * English, the German flag back to German. Signed in, the choice is saved in the account.
    */
   import { api } from '../lib/api.ts';
-  import { account, type Profile } from '../lib/auth.svelte.ts';
+  import { account, type Profile, setProfile } from '../lib/auth.svelte.ts';
   import { i18n, setLanguage, t } from '../lib/i18n.svelte.ts';
 
   let { onwood = false }: { onwood?: boolean } = $props();
@@ -14,10 +15,11 @@
     setLanguage(next);
     if (!account.profile) return;
     try {
+      const context = currentContext();
       const result = await api<{ profile: Profile }>('PATCH', '/api/account/language', {
         language: next,
       });
-      account.profile = result.profile;
+      if (context) setProfile(context, result.profile);
     } catch {
       // Offline: the view has switched; the account follows with the next change.
     }

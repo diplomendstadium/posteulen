@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { currentContext } from '../lib/context.ts';
   /**
    * v0.7.1: a short message to the admin (SPEC 8.10) – for technical problems or ideas. Not
    * encrypted: it lies readable on the server, without the sender's name. One per calendar day
@@ -9,7 +10,7 @@
   import { sanitizeLetterText } from '@posteulen/shared/text-rules.ts';
   import ErrorText from './ErrorText.svelte';
   import { api } from '../lib/api.ts';
-  import { account, type Profile } from '../lib/auth.svelte.ts';
+  import { account, type Profile, setProfile } from '../lib/auth.svelte.ts';
   import { dateTime } from '../lib/format.ts';
   import { t, fill } from '../lib/i18n.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -40,8 +41,9 @@
     if (count > FEEDBACK.MAX_CHARS) return void (error = t.feedback.tooLong);
     busy = true;
     try {
+      const context = currentContext();
       const result = await api<{ profile: Profile }>('POST', '/api/feedback', { text });
-      account.profile = result.profile;
+      if (context) setProfile(context, result.profile);
       text = '';
       sent = true;
     } catch (caught) {

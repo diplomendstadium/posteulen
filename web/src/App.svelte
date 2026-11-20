@@ -70,7 +70,10 @@
     {:else if needsLogin && !account.profile}
       <p class="loading" role="status">…</p>
     {:else if route.path === '/app' || route.path.startsWith('/app/')}
-      <Shell />
+      <!-- SPEC 5.5: every account gets a fresh shell – no page state of the previous one. -->
+      {#key account.profile?.id}
+        <Shell />
+      {/key}
     {:else if route.path === '/willkommen'}
       <Welcome />
     {:else if route.path === '/hilfe'}

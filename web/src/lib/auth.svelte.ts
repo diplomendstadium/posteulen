@@ -2,8 +2,17 @@
  * Account state and the client side of registration, login, logout and password change
  * (SPEC 5.2–5.6). Crypto libraries are loaded on demand (large WASM modules).
  */
-import { api, ApiError, onUnauthorized } from './api.ts';
+import { api, ApiError, onAccountMismatch, onUnauthorized } from './api.ts';
 import { clearKeys, loadKeys, saveKeys, type LocalKeys } from './crypto/keystore.ts';
+import {
+  beginContext,
+  contextGeneration,
+  currentContext,
+  endContext,
+  isCurrent,
+  type AccountContext,
+} from './context.ts';
+import { announceAuthChange, onAuthChangedElsewhere } from './auth-sync.ts';
 import { solveCaptcha } from './captcha.ts';
 import type { Language } from '@posteulen/shared/i18n.ts';
 import { i18n } from './i18n.svelte.ts';
@@ -80,62 +89,145 @@ async function cryptoModules() {
 const paint = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 30));
 
 /**
- * State in memory that belongs to the signed-in account (contact vault, lists). v0.6.1: it is
- * dropped together with the keys – before, the decrypted vault of the previous account stayed
- * in memory after logging out and was used again by the next login in the same tab.
+ * State in memory that belongs to the signed-in account (contact vault, lists). It is dropped
+ * together with the keys whenever the account context ends (SPEC 5.5).
  */
 // Plain bookkeeping, not state the page shows.
 // eslint-disable-next-line svelte/prefer-svelte-reactivity
 const signOutListeners = new Set<() => void>();
-let generation = 0;
 
 export function onSignOut(listener: () => void): void {
   signOutListeners.add(listener);
 }
 
 /**
- * Changes with every sign-out. Code that awaits the server checks it before storing the
- * answer, so a request still running for the previous account cannot refill the state.
+ * Changes with every authentication change (sign-in, restored session, sign-out, session
+ * switched in another tab). Code that awaits the server checks it before storing the answer,
+ * so work still running for a previous account cannot refill the state of the next one.
  */
 export function accountGeneration(): number {
-  return generation;
+  return contextGeneration();
 }
 
-async function forget(): Promise<void> {
-  generation++;
+/** Drops the account state in memory (keys, vault, lists) and ends the context. */
+function dropLocalState(): void {
+  endContext();
   account.profile = null;
   account.keys = null;
   for (const listener of signOutListeners) listener();
-  await clearKeys().catch(() => undefined);
 }
 
-onUnauthorized(() => {
-  void forget();
+/**
+ * Sign-out of one account context: memory and the locally stored keys of exactly this account
+ * go. A late call for an earlier context (e.g. a 401 of session A arriving after B signed in)
+ * changes nothing.
+ */
+async function forget(context: AccountContext | null = currentContext()): Promise<void> {
+  if (context && !isCurrent(context)) return;
+  const accountId = context?.accountId ?? account.profile?.id ?? null;
+  dropLocalState();
+  if (accountId) await clearKeys(accountId).catch(() => false);
+  announceAuthChange();
+}
+
+/**
+ * Profile and keys are published together, and only if they belong to the same account – a
+ * profile of B is never used with keys of A. Starts a new account context.
+ */
+function publish(profile: Profile, keys: LocalKeys): AccountContext {
+  if (profile.id !== keys.userId) throw new Error('account_keys_mismatch');
+  const context = beginContext(profile.id);
+  account.profile = profile;
+  account.keys = keys;
+  return context;
+}
+
+/** Stores a newer profile of the same account (never one of another account or context). */
+export function setProfile(context: AccountContext, profile: Profile | null | undefined): void {
+  if (!profile || !isCurrent(context) || profile.id !== context.accountId) return;
+  account.profile = profile;
+}
+
+onUnauthorized((context) => {
+  if (isCurrent(context)) void forget(context);
 });
 
-/** App start: is there a valid session and are the local keys there? (SPEC 5.5) */
-export async function restore(): Promise<void> {
+// The session cookie belongs to another account by now (another tab or window signed in):
+// drop this tab's state and take over the valid session, if its keys are here.
+onAccountMismatch((context) => {
+  if (!isCurrent(context)) return;
+  dropLocalState();
+  void restore({ quiet: true });
+});
+
+onAuthChangedElsewhere(() => {
+  dropLocalState();
+  void restore({ quiet: true });
+});
+
+// bfcache (iPad, Safari): a page shown again from the cache may hold an account that is no
+// longer signed in here – check the session again.
+if (typeof window !== 'undefined') {
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) void restore({ quiet: true });
+  });
+}
+
+let restoring: Promise<void> | null = null;
+
+/**
+ * App start and every resumption: is there a valid session and are its local keys there?
+ * (SPEC 5.5) `quiet`: triggered by another tab or the server's account binding – a missing key
+ * record then only signs this tab out, without ending the session (the other tab may still be
+ * storing its keys and will announce itself).
+ */
+export function restore(options: { quiet?: boolean } = {}): Promise<void> {
+  if (restoring) return restoring.then(() => restoreOnce(options));
+  restoring = restoreOnce(options).finally(() => {
+    restoring = null;
+  });
+  return restoring;
+}
+
+async function restoreOnce(options: { quiet?: boolean }): Promise<void> {
+  const generationAtStart = contextGeneration();
+  const previous = currentContext();
   try {
     const session = await api<{ state: 'none' | 'expired' | 'active'; profile?: Profile }>(
       'GET',
       '/api/session',
+      undefined,
+      { context: null },
     );
+    // Another change of authentication happened meanwhile: that one wins.
+    if (contextGeneration() !== generationAtStart) return;
     if (session.state !== 'active' || !session.profile) {
-      await forget();
+      if (previous) await forget(previous);
+      else dropLocalState();
       return;
     }
     const profile = session.profile;
-    const keys = await loadKeys();
-    if (!keys || keys.userId !== profile.id) {
-      // A session without local keys is useless: log out cleanly.
-      await api('POST', '/api/logout', {}).catch(() => undefined);
-      await forget();
-    } else {
-      account.profile = profile;
-      account.keys = keys;
+    if (previous && previous.accountId === profile.id) {
+      setProfile(previous, profile);
+      return;
     }
+    const keys = await loadKeys(profile.id);
+    if (contextGeneration() !== generationAtStart) return;
+    if (!keys) {
+      if (previous) dropLocalState();
+      if (!options.quiet) {
+        // A session without local keys is useless: log out cleanly.
+        await api('POST', '/api/logout', {}, { context: null }).catch(() => undefined);
+      }
+      return;
+    }
+    if (previous) dropLocalState();
+    publish(profile, keys);
   } catch (error) {
-    if (!(error instanceof ApiError) || error.status === 401) await forget();
+    if (contextGeneration() !== generationAtStart) return;
+    if (!(error instanceof ApiError) || error.status === 401) {
+      if (previous) await forget(previous);
+    }
   } finally {
     account.checked = true;
   }
@@ -157,17 +249,20 @@ export async function login(
 ): Promise<LoginOutcome> {
   const { client, keys, encoding } = await cryptoModules();
   const start = client.startLogin(password);
-  let first = await api<LoginStart>('POST', '/api/login/start', {
-    name,
-    startLoginRequest: start.request,
-  });
+  let first = await api<LoginStart>(
+    'POST',
+    '/api/login/start',
+    { name, startLoginRequest: start.request },
+    { context: null },
+  );
   if (first.status === 'captcha_required') {
     onStep('captcha');
-    first = await api<LoginStart>('POST', '/api/login/start', {
-      name,
-      startLoginRequest: start.request,
-      altcha: await solveCaptcha(),
-    });
+    first = await api<LoginStart>(
+      'POST',
+      '/api/login/start',
+      { name, startLoginRequest: start.request, altcha: await solveCaptcha() },
+      { context: null },
+    );
   }
   if (first.status === 'wait') return { wait: first.retryAfterSeconds ?? 60 };
   if (first.status !== 'ok' || !first.loginResponse) return 'wrong';
@@ -184,10 +279,12 @@ export async function login(
       ed25519Public: string;
       x25519Public: string;
       profile: Profile;
-    }>('POST', '/api/login/finish', {
-      attemptId: first.attemptId,
-      finishLoginRequest: result.finishRequest,
-    });
+    }>(
+      'POST',
+      '/api/login/finish',
+      { attemptId: first.attemptId, finishLoginRequest: result.finishRequest },
+      { context: null },
+    );
   } catch (error) {
     if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
     throw error;
@@ -196,12 +293,17 @@ export async function login(
     ed25519: encoding.fromBase64Url(finish.ed25519Public),
     x25519: encoding.fromBase64Url(finish.x25519Public),
   });
+  if (finish.profile.id !== finish.userId) throw new Error('account_keys_mismatch');
+  // The session cookie now belongs to this account: whatever this tab still held goes first.
+  dropLocalState();
   await saveKeys(finish.userId, unlocked);
   unlocked.masterKey.fill(0);
-  account.profile = finish.profile;
-  account.keys = await loadKeys();
+  const stored = await loadKeys(finish.userId);
+  if (!stored) throw new Error('keys_not_stored');
+  publish(finish.profile, stored);
   account.notice = finish.deletionCancelled ? 'deletionCancelled' : null;
   setPushHintHidden(false);
+  announceAuthChange();
   return 'ok';
 }
 
@@ -229,31 +331,42 @@ export async function register(
       registrationRequest: start.request,
       ...(input.inviteCode ? { inviteCode: input.inviteCode } : {}),
     },
+    { context: null },
   );
   onStep('keys');
   await paint();
   const finish = client.finishRegistration(input.password, start.state, first.registrationResponse);
   const created = await keys.createAccountKeys(first.userId, finish.exportKey);
-  const done = await api<{ userId: string; profile: Profile }>('POST', '/api/register/finish', {
-    reservationId: first.reservationId,
-    registrationRecord: finish.record,
-    ed25519Public: encoding.toBase64Url(created.account.identity.ed25519Public),
-    x25519Public: encoding.toBase64Url(created.account.identity.x25519Public),
-    keyPackage: created.keyPackage,
-    home: input.home,
-    // v0.4: an account created in the English view prefers English.
-    language: i18n.lang,
-  });
+  const done = await api<{ userId: string; profile: Profile }>(
+    'POST',
+    '/api/register/finish',
+    {
+      reservationId: first.reservationId,
+      registrationRecord: finish.record,
+      ed25519Public: encoding.toBase64Url(created.account.identity.ed25519Public),
+      x25519Public: encoding.toBase64Url(created.account.identity.x25519Public),
+      keyPackage: created.keyPackage,
+      home: input.home,
+      // v0.4: an account created in the English view prefers English.
+      language: i18n.lang,
+    },
+    { context: null },
+  );
+  if (done.profile.id !== done.userId) throw new Error('account_keys_mismatch');
+  dropLocalState();
   await saveKeys(done.userId, created.account);
   created.account.masterKey.fill(0);
-  account.profile = done.profile;
-  account.keys = await loadKeys();
+  const stored = await loadKeys(done.userId);
+  if (!stored) throw new Error('keys_not_stored');
+  publish(done.profile, stored);
   setPushHintHidden(false);
+  announceAuthChange();
 }
 
 export async function logout(): Promise<void> {
-  await api('POST', '/api/logout', {}).catch(() => undefined);
-  await forget();
+  const context = currentContext();
+  await api('POST', '/api/logout', {}, { context }).catch(() => undefined);
+  await forget(context);
 }
 
 type Reauth = {
@@ -298,21 +411,24 @@ async function reauthenticate(
 
 /** Deletes the account after a fresh password check; logged out at once (SPEC 7.5). */
 export async function deleteAccount(password: string): Promise<'ok' | 'wrong' | { wait: number }> {
+  const context = currentContext();
   const checked = await reauthenticate(password, 'delete');
   if (checked === 'wrong' || 'wait' in checked) return checked;
-  await api('POST', '/api/account/delete', { token: checked.reauth.token });
-  await forget();
+  await api('POST', '/api/account/delete', { token: checked.reauth.token }, { context });
+  await forget(context);
   return 'ok';
 }
 
 export async function changeName(name: string): Promise<void> {
+  const context = currentContext();
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/name', { name });
-  account.profile = profile;
+  if (context) setProfile(context, profile);
 }
 
 export async function changeHome(home: { lat: number; lon: number }): Promise<void> {
+  const context = currentContext();
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/home', { home });
-  account.profile = profile;
+  if (context) setProfile(context, profile);
 }
 
 export async function changeLetterSettings(settings: {
@@ -320,8 +436,9 @@ export async function changeLetterSettings(settings: {
   print: boolean;
   links?: boolean;
 }): Promise<void> {
+  const context = currentContext();
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/letters', settings);
-  account.profile = profile;
+  if (context) setProfile(context, profile);
 }
 
 /**
@@ -349,7 +466,7 @@ export async function changePassword(
     },
   );
   const finish = client.finishRegistration(newPassword, registration.state, registrationResponse);
-  const userId = account.profile?.id ?? '';
+  const userId = currentContext()?.accountId ?? '';
   const keyPackage = await keys.rewrapMasterKey(
     userId,
     reauth.keyPackage,

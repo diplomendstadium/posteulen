@@ -6,7 +6,8 @@
   import LetterText from '../components/LetterText.svelte';
   import { api } from '../lib/api.ts';
   import { date, dateTime, time } from '../lib/format.ts';
-  import { loadConversation, type ShownLetter } from '../lib/letters.ts';
+  import { loadConversation, reportableFailures, type ShownLetter } from '../lib/letters.ts';
+  import { currentContext, isCurrent } from '../lib/context.ts';
   import { live, markChatRead, refreshTopics } from '../lib/live.svelte.ts';
   import { account } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -48,9 +49,20 @@
     }),
   );
 
+  /**
+   * Every load gets a number; only the latest one may change the page or report anything – an
+   * earlier, slower answer is dropped. Loads are bound to the account context they started in
+   * (SPEC 5.5).
+   */
+  let latestLoad = 0;
+
   async function load(): Promise<void> {
+    const ticket = ++latestLoad;
+    const context = currentContext();
+    if (!context) return;
     try {
-      const conversation = await loadConversation(peerId);
+      const conversation = await loadConversation(peerId, context);
+      if (ticket !== latestLoad || !isCurrent(context)) return;
       letters = conversation.letters;
       christmasPaper = conversation.christmasPaper;
       loading = false;
@@ -65,33 +77,32 @@
         if (firstUnread) await scrollToLetter(list, firstUnread.id);
         else await scrollToLatest(list, smooth);
       }
-      // A letter counts as read once it is shown in the visible conversation (SPEC 8.4).
-      // v0.5: one that could not be verified is reported as unreadable instead.
+      // A letter counts as read once it is shown in the visible conversation (SPEC 8.4). One
+      // that could not be verified – with the complete keys of this account – is reported as
+      // unreadable instead; while keys are still loading, nothing is reported.
       const unread = letters.filter(
         (l) => l.role === 'recipient' && l.status === 'delivered' && !l.read,
       );
       if (unread.length > 0 && document.visibilityState === 'visible') {
         const valid = unread.filter((l) => l.text !== null).map((l) => l.id);
-        // Only with the contact vault loaded: without the contact's keys nothing can be verified.
-        if (valid.length > 0) await api('POST', '/api/letters/read', { ids: valid });
+        if (valid.length > 0) {
+          if (ticket !== latestLoad || !isCurrent(context)) return;
+          await api('POST', '/api/letters/read', { ids: valid }, { context });
+        }
         // v0.8.2: with the technical reason for the admin's error log (one report per reason).
-        // Local bookkeeping, not rendered state.
-        // eslint-disable-next-line svelte/prefer-svelte-reactivity
-        const reasons = new Map<string, string[]>();
-        for (const letter of unread.filter((l) => l.text === null)) {
-          const reason = letter.failure ?? 'missing';
-          reasons.set(reason, [...(reasons.get(reason) ?? []), letter.id]);
+        for (const [reason, ids] of reportableFailures(conversation)) {
+          if (ticket !== latestLoad || !isCurrent(context)) return;
+          await api('POST', '/api/letters/unreadable', { ids, reason }, { context });
         }
-        if (vault.loaded) {
-          for (const [reason, ids] of reasons)
-            await api('POST', '/api/letters/unreadable', { ids, reason });
+        if (ticket === latestLoad && isCurrent(context) && !conversation.keysPending) {
+          markChatRead(peerId);
         }
-        markChatRead(peerId);
       }
       // v1.1: the arrival images no longer wait for the chat – the app shows them at the first
       // opportunity (live.svelte.ts, showArrivals).
     } catch {
-      // Offline or navigated away: the next update (SSE or return to the app) loads again.
+      // Offline, outdated or navigated away: the next update (SSE or return to the app) loads
+      // again.
     }
   }
 
@@ -101,7 +112,8 @@
 
   $effect(() => {
     void live.chatVersion;
-    void vault.loaded;
+    // Loaded again once the contact's keys are there (SPEC 5.7: checked again after waiting).
+    void vault.synced;
     void load();
   });
 
@@ -250,10 +262,18 @@
           {/if}
         {:else}
           <!-- v0.8.2: technical failures in the language of the game (the admin gets the reason). -->
-          <p class="invalid">
-            <span aria-hidden="true">💧</span>
-            {letter.role === 'sender' ? t.letters.unreadable : t.letters.invalid}
-          </p>
+          {#if letter.failure === 'keys_pending'}
+            <!-- The contact's keys are still loading: no verdict yet, checked again soon. -->
+            <p class="pending" role="status">
+              <span aria-hidden="true">🔏</span>
+              {t.letters.keysLoading}
+            </p>
+          {:else}
+            <p class="invalid">
+              <span aria-hidden="true">💧</span>
+              {letter.role === 'sender' ? t.letters.unreadable : t.letters.invalid}
+            </p>
+          {/if}
         {/if}
       </article>
       <!-- v1.2: time, parchment, carrier and status below the sheet, on a small plate; the
@@ -469,8 +489,14 @@
   .meta,
   .status,
   .cover,
-  .invalid {
+  .invalid,
+  .pending {
     font-family: var(--font-body);
+  }
+
+  .pending {
+    color: var(--ink-soft);
+    font-style: italic;
   }
 
   @media (prefers-reduced-motion: reduce) {

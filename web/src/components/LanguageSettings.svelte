@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { currentContext } from '../lib/context.ts';
   /**
    * Preferred language of the account (v0.4). Applies at once; the flag in the top right
    * corner does the same.
@@ -6,7 +7,7 @@
   import { LANGUAGES, type Language } from '@posteulen/shared/i18n.ts';
   import ErrorText from './ErrorText.svelte';
   import { api } from '../lib/api.ts';
-  import { account, type Profile } from '../lib/auth.svelte.ts';
+  import { type Profile, setProfile } from '../lib/auth.svelte.ts';
   import { i18n, setLanguage, t } from '../lib/i18n.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { status } from '../lib/status.svelte.ts';
@@ -19,10 +20,11 @@
     busy = true;
     error = null;
     try {
+      const context = currentContext();
       const result = await api<{ profile: Profile }>('PATCH', '/api/account/language', {
         language,
       });
-      account.profile = result.profile;
+      if (context) setProfile(context, result.profile);
       setLanguage(language);
     } catch (caught) {
       error = errorMessage(caught);

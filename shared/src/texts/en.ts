@@ -255,6 +255,7 @@ export const en: Texts = {
     delivered: 'delivered',
     returned: 'not delivered – the owl turned back',
     unreadable: 'The owl lost the letter on its way.',
+    keysLoading: 'Unsealing the letter – one moment, please …',
     invalid: 'The letter got so wet on its way that it can no longer be read.',
     linkWarning: 'Unusual characters in the address – check carefully where the link leads.',
     compose: 'Write a new letter',
@@ -1125,6 +1126,8 @@ export const en: Texts = {
     loading: 'Loading …',
   },
   errors: {
+    stale: 'A different account is signed in here now. Please reload the page.',
+    account_mismatch: 'A different account is signed in here now. Please reload the page.',
     banner_invalid:
       'The banner text contains characters that are not allowed (e.g. emojis), or is missing.',
     banner_period: 'Please choose an end in the future, at most 90 days after the start.',

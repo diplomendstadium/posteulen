@@ -1,8 +1,10 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // The web app's plain TypeScript modules are tested too (web/test, v1.3).
+  define: { __POSTEULEN_VERSION__: JSON.stringify('test') },
   test: {
-    include: ['shared/test/**/*.test.ts', 'backend/test/**/*.test.ts'],
+    include: ['shared/test/**/*.test.ts', 'backend/test/**/*.test.ts', 'web/test/**/*.test.ts'],
     environment: 'node',
     pool: 'forks',
     // Many tests run Argon2id (OPAQUE) several times; under full parallel load 5 s was too tight.

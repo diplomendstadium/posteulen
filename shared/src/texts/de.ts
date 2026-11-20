@@ -261,6 +261,7 @@ export const de = {
     /** v0.8.2: the recipient could not show the letter (sender's view). */
     unreadable: 'Die Eule hat den Brief unterwegs verloren.',
     /** v0.8.2: decryption or authenticity check failed (recipient's view). */
+    keysLoading: 'Der Brief wird gerade entsiegelt – einen Moment bitte …',
     invalid: 'Der Brief ist unterwegs so nass geworden, dass man ihn nicht mehr lesen kann.',
     /** v0.6.1: a link whose address contains unusual characters (shown in technical form). */
     linkWarning: 'Ungewöhnliche Zeichen in der Adresse – genau prüfen, wohin der Link führt.',
@@ -1160,6 +1161,8 @@ export const de = {
     loading: 'Lädt …',
   },
   errors: {
+    stale: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
+    account_mismatch: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
     banner_invalid:
       'Der Text des Banners enthält Zeichen, die nicht erlaubt sind (z. B. Emojis), oder fehlt.',
     banner_period: 'Bitte ein Ende in der Zukunft wählen, höchstens 90 Tage nach dem Beginn.',

@@ -109,7 +109,21 @@ export function userOf(request: FastifyRequest): SessionUser {
   return request.sessionUser;
 }
 
-export type SessionResult = SessionUser | { readonly reason: 'no_session' | 'session_expired' };
+export type SessionResult =
+  SessionUser | { readonly reason: 'no_session' | 'session_expired' | 'account_mismatch' };
+
+/**
+ * SPEC 5.5: the account a request of the web app expects (header `x-posteulen-account`; for the
+ * SSE connection, which cannot send headers, the query parameter `account`). Absent for
+ * requests without an account context (service worker, old clients).
+ */
+export function expectedAccount(request: FastifyRequest): string | undefined {
+  const header = request.headers['x-posteulen-account'];
+  if (typeof header === 'string' && header !== '') return header;
+  const query = request.query as Record<string, unknown> | undefined;
+  const fromQuery = query?.['account'];
+  return typeof fromQuery === 'string' && fromQuery !== '' ? fromQuery : undefined;
+}
 
 /** Looks up the session of a request without throwing (SPEC 5.5). */
 export function resolveSession(
@@ -119,6 +133,7 @@ export function resolveSession(
   options: { background?: boolean } = {},
 ): SessionResult {
   const token = request.cookies[specFor(spec, request).name];
+  const expected = expectedAccount(request);
   if (!token) return { reason: 'no_session' };
   const now = ctx.now();
   const hash = sha256(token);
@@ -134,6 +149,9 @@ export function resolveSession(
     hash,
   );
   if (!row) return { reason: 'no_session' };
+  // The cookie belongs to another account than the request was made for (another tab signed
+  // in meanwhile): refused before anything happens – not even activity is recorded.
+  if (expected !== undefined && expected !== row.user_id) return { reason: 'account_mismatch' };
   if (now - row.last_used_at > ACCOUNT.USER_SESSION_IDLE_DAYS * TIME.DAY) {
     ctx.db.run('DELETE FROM sessions WHERE token_hash = ?', hash);
     return { reason: 'session_expired' };
@@ -163,7 +181,10 @@ export function requireUser(
 ) {
   return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const session = resolveSession(ctx, spec, request, options);
-    if ('reason' in session) throw new HttpError(401, 'unauthorized', { reason: session.reason });
+    if ('reason' in session) {
+      if (session.reason === 'account_mismatch') throw new HttpError(409, 'account_mismatch');
+      throw new HttpError(401, 'unauthorized', { reason: session.reason });
+    }
     renewCookie(request, reply, spec, session);
     if (ctx.limits.session.hit(session.id, ctx.now()) > 0) throw new HttpError(429, 'rate_limited');
     request.sessionUser = session;
