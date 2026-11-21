@@ -131,9 +131,10 @@ describe('info text on the start page (v1.2.4, SPEC 8.1)', () => {
     }
     expect(ABOUT_DE).toContain('**Selbstverständlich gibt es auch keine In-App-Käufe.**');
     expect(ABOUT_EN).toContain('**Of course there are no in-app purchases either.**');
-    expect(ABOUT_DE).toMatch(/10 € im Monat.*30 € im Monat/);
-    expect(ABOUT_DE).toContain('Einladungscode');
-    expect(ABOUT_EN).toContain('invitation code');
+    // v1.3: the new text of the client – about 25 € a month, more with every active account.
+    expect(ABOUT_DE).toContain('ungefähr 25 € pro Monat');
+    expect(ABOUT_DE).toContain('kannst du uns [hier](donate) mit einer Spende unterstützen');
+    expect(ABOUT_EN).toContain('about €25 a month');
     const headings = (text: string) =>
       parseMarkdown(text)
         .filter((block) => block.kind === 'heading')

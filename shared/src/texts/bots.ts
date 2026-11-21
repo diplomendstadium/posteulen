@@ -60,7 +60,7 @@ Briefe an Bots wie mich sind übrigens nicht verschlüsselt. Im Advent und an We
 Dein Erklärbär`,
   day7: `Hallo, heute geht es um Pflege!
 
-Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und mit Motivation fliegen sie die nächste Strecke schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Ist eine Eule krank, pflegst du sie selbst gesund oder bringst sie zum Eulenarzt.
+Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und mit Motivation fliegen sie die nächste Strecke schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Wird eine Eule krank, kommt sie in die Rettungsstation – dort pflegst du sie mit Medizin, Futter, Wasser und Streicheleinheiten wieder gesund.
 
 Manchmal legt eine Eule Eier. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
 

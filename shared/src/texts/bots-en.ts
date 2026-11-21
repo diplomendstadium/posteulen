@@ -58,7 +58,7 @@ By the way, letters to bots like me are not encrypted. From the first Sunday of 
 Your Explainer Bear`,
     day7: `Hello, today is all about care!
 
-Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl is ill, nurse it back to health yourself or take it to the owl vet.
+Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl falls ill, it goes to the rescue centre – there you nurse it back to health with medicine, food, water and a little stroking.
 
 Sometimes an owl lays eggs. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
 
