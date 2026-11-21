@@ -97,8 +97,13 @@ function damage(carla: string, ben: string) {
     idOf(carla),
     idOf(ben),
   )[0];
+  // Only the pairs of this test: other tests on the same instance trigger key warnings on purpose.
+  const ids = [idOf(carla), idOf(ben)];
   const warnings = query<{ n: number }>(
-    'SELECT COUNT(*) AS n FROM contacts WHERE warn_lo = 1 OR warn_hi = 1',
+    `SELECT COUNT(*) AS n FROM contacts
+      WHERE (warn_lo = 1 OR warn_hi = 1) AND (user_lo IN (?, ?) OR user_hi IN (?, ?))`,
+    ...ids,
+    ...ids,
   )[0]!.n;
   return { unreadable: letter?.unreadable ?? -1, warnings };
 }
@@ -158,8 +163,10 @@ test.describe('Kontowechsel ohne Neuladen (SPEC 5.5)', () => {
     await expect(page.getByText(carla.name, { exact: true })).toBeVisible();
     await expect(page.getByText('Schlüsselwarnung')).toHaveCount(0);
     expect(damage(carla.name, ben.name)).toEqual({ unreadable: 0, warnings: 0 });
-    expectedFailures(guard.consoleErrors);
     await Promise.all(contexts.map((context) => context.close()));
+    // Late answers of Anna's ended session may still be logged until the page is closed.
+    await page.close();
+    expectedFailures(guard.consoleErrors);
   });
 
   test('ein zweiter Tab meldet Ben an: Annas alter Tab richtet keinen Schaden an', async ({
@@ -199,8 +206,10 @@ test.describe('Kontowechsel ohne Neuladen (SPEC 5.5)', () => {
     await expect(second.getByText(LETTER.slice(0, 60))).toBeVisible({ timeout: 30_000 });
     await expect(second.getByText(/so nass geworden/)).toHaveCount(0);
     expect(damage(carla.name, ben.name)).toEqual({ unreadable: 0, warnings: 0 });
-    expectedFailures(guard.consoleErrors);
     await Promise.all(contexts.map((context) => context.close()));
+    // Late answers of Anna's ended session may still be logged until the page is closed.
+    await page.close();
+    expectedFailures(guard.consoleErrors);
   });
 });
 
@@ -220,6 +229,8 @@ test.describe('Version 1.3.0: Oberfläche', () => {
     await expect(page).toHaveURL(/\/hilfe$/);
 
     await page.goto('/app/einstellungen');
+    await expect(page.getByTestId('finance')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Hilfe', level: 2 })).toBeVisible();
     const titles = await page.locator('section.card h2').allTextContents();
     const at = (title: string) => titles.indexOf(title);
     expect(at('Statistik')).toBe(at('Benachrichtigungen') + 1);

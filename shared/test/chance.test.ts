@@ -154,8 +154,8 @@ describe('locks for loan owls (v0.7, SPEC 9.6)', () => {
   it('rotates the names in three groups by day', () => {
     const days = ['2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08'];
     const groups = days.map((day) => loanNamesOn(day));
-    // Each list of Anhang D has about 108 names: about 36 per group.
-    expect(groups[0]!.length).toBeGreaterThan(30);
+    // Each list of Anhang D has about 108 names: 30–44 per group (the group belongs to the name).
+    expect(groups[0]!.length).toBeGreaterThanOrEqual(30);
     for (const name of groups[0]!) {
       expect(groups[1]).not.toContain(name);
       expect(groups[2]).not.toContain(name);

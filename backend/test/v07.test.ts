@@ -437,9 +437,10 @@ describe('loan owls are locked for two days (v0.7, SPEC 9.6)', () => {
       }
       at += TIME.DAY;
     }
-    // The groups of the German and English lists match name by name.
-    expect(loanNamesOn('2026-11-05', ['a', 'b', 'c', 'd'])).toHaveLength(
-      loanNamesOn('2026-11-05', ['A', 'B', 'C', 'D']).length,
+    // v1.3: the group belongs to the name – the same name is in the same group in every list.
+    const day = '2026-11-05';
+    expect(loanNamesOn(day, ['Salem', 'Neo'])).toEqual(
+      loanNamesOn(day, ['Neo', 'Salem']).reverse(),
     );
   });
 });

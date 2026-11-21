@@ -437,13 +437,14 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* v1.3: minmax(0, …) – a long word („Rettungsstation“) must not widen its column. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
   }
 
   @media (min-width: 48rem) {
     .tiles {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 
@@ -477,7 +478,7 @@
     }
 
     .home-grid .tiles {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-auto-rows: 1fr;
     }
 
@@ -508,6 +509,8 @@
     font-weight: 700;
     text-decoration: none;
     text-align: center;
+    hyphens: auto;
+    overflow-wrap: anywhere;
   }
 
   .tiles :global(.tile:hover) {

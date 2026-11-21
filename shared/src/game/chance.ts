@@ -95,15 +95,28 @@ export function loanIdentity(hmac: Uint8Array, namesFor: NamesFor = GERMAN_NAMES
 export const LOAN_NAME_GROUPS = 3;
 
 /**
- * The names a loan owl can get on a day – every third name of a list, by day number.
- * Consecutive days use different groups, so a name never comes back on the two following days
- * (and with it never the same species with the same name). Applied to each list of Anhang D on
- * its own; nothing needs to be stored.
+ * The group (0–2) of a name for the daily rotation – derived from the name itself (FNV-1a), so a
+ * name that stands in several lists (both sexes, both languages) always belongs to the same group.
+ */
+export function nameGroup(name: string): number {
+  let hash = 0x811c9dc5;
+  for (const char of name) {
+    hash ^= char.codePointAt(0) ?? 0;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash % LOAN_NAME_GROUPS;
+}
+
+/**
+ * The names a loan owl can get on a day – the names of one group, by day number. Consecutive
+ * days use different groups, so a name never comes back on the two following days (and with it
+ * never the same species with the same name) – in every list of Anhang D, because the group
+ * belongs to the name, not to its place in a list. Nothing needs to be stored.
  */
 export function loanNamesOn(day: string, names: readonly string[] = OWL_NAMES_F): string[] {
   const dayNumber = Math.floor(Date.parse(`${day}T00:00:00Z`) / 86_400_000);
   const group = ((dayNumber % LOAN_NAME_GROUPS) + LOAN_NAME_GROUPS) % LOAN_NAME_GROUPS;
-  return names.filter((_name, index) => index % LOAN_NAME_GROUPS === group);
+  return names.filter((name) => nameGroup(name) === group);
 }
 
 /** Attempts per species before falling back to the next free name of the list. */

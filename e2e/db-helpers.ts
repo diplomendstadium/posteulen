@@ -200,3 +200,30 @@ export function onlySystemUnread(name: string): void {
     ).run(`e2e${Date.now().toString(36)}`.padEnd(22, 'x').slice(0, 22), user.id, Date.now());
   });
 }
+
+/**
+ * v1.3: the account looks active – active, with letters to and from people on each of the last
+ * 14 days – so that the rule on gifts (SPEC 9.1.5) does not stand in the way of tests of others.
+ */
+export function looksActive(name: string): void {
+  withDb((db) => {
+    const user = db.prepare('SELECT id FROM users WHERE name_display = ?').get(name) as
+      { id: string } | undefined;
+    if (!user) throw new Error(`no account ${name}`);
+    for (let day = 0; day < 14; day++) {
+      db.prepare(
+        `INSERT OR REPLACE INTO activity_days (user_id, day, active, sent_human, received_human)
+         VALUES (?, ?, 1, 1, 1)`,
+      ).run(user.id, new Date(Date.now() - day * 86_400_000).toISOString().slice(0, 10));
+    }
+  });
+}
+
+/** v1.3: sets the day since when the account has an owl (order of the owl overview). */
+export function setOwnedSince(account: string, owlName: string, day: string): void {
+  withDb((db) => {
+    db.prepare(
+      "UPDATE owls SET owned_since = ? WHERE name = ? AND kind = 'own' AND owner_id = (SELECT id FROM users WHERE name_display = ?)",
+    ).run(day, owlName, account);
+  });
+}

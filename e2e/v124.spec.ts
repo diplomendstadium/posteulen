@@ -25,7 +25,8 @@ test.describe('Version 1.2.4', () => {
     await expect(about.locator('figure')).toHaveCount(5);
     await expect(about.locator('strong', { hasText: 'keine In-App-Käufe' })).toBeVisible();
     await expect(about.getByRole('heading', { name: 'Wer bezahlt das eigentlich?' })).toBeVisible();
-    await expect(about.getByRole('link', { name: 'Spende', exact: true })).toHaveAttribute(
+    // v1.3: the new text of the client links „hier“ to the donation page.
+    await expect(about.getByRole('link', { name: 'hier', exact: true })).toHaveAttribute(
       'href',
       'https://ko-fi.com/posteulen',
     );

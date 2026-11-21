@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import { expect, test } from './fixtures.ts';
 import { loginViaUi, PASSWORD, registerViaUi } from './account-helpers.ts';
-import { addOwls, setGold, setOwl } from './db-helpers.ts';
+import { addOwls, setGold, setOwl, setOwnedSince } from './db-helpers.ts';
 
 /**
  * v0.3: no text stands directly on the world-map background. Returns every visible text whose
@@ -188,19 +188,17 @@ test.describe('Version 0.3', () => {
     await expect(page).toHaveURL(/\/app\/eulen$/);
     await page.getByLabel('Name (2–20 Zeichen)').fill('Federchen');
     await page.getByRole('button', { name: 'Speichern' }).click();
-    // v1.2.1: own and loan owls together – ready ones on top by energy in per cent, then the busy
-    // ones; a loan owl says so behind its name.
+    // v1.3: own and loan owls together – ready ones on top, the one the player has had longest
+    // first, then the busy ones; a loan owl says so behind its name.
     const ready = page.getByRole('heading', { name: 'Bereit für Post', level: 2 });
     await expect(ready).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Leiheulen', level: 2 })).toHaveCount(0);
-    setOwl(name, { loans: true }, { share: 1 });
-    setOwl(name, { owlName: 'Federchen' }, { share: 0.2 });
-    await page.reload();
     const names = page.getByTestId('owl-card').locator('h3');
+    // Borrowed first, bought afterwards (both today): the loan owl first.
     // v1.2.2: with a space between the name and the hint.
     await expect(names.first()).toHaveText(/\S \(Leiheule\)$/);
     await expect(names.nth(1)).toHaveText('Federchen');
-    setOwl(name, { loans: true }, { share: 0.1 });
+    setOwnedSince(name, 'Federchen', '2025-01-01');
     await page.reload();
     await expect(names.first()).toHaveText('Federchen');
     setOwl(

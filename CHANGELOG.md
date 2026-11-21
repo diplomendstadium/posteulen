@@ -3,6 +3,44 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.3.0 – Die Eulenrettungsstation öffnet ihr Tor
+
+Fehlerbehebung beim Kontowechsel auf gemeinsam genutzten Geräten und Wünsche des Auftraggebers (SPEC Anhang F, D-418 bis D-438).
+
+**Behoben – Kontowechsel und Schlüsselverwaltung:** Auf einem gemeinsam genutzten Gerät (Beobachtung: älteres iPad, erst Konto A, dessen Sitzung serverseitig ablief, dann Konto B) konnte ein gültiger Brief beim Empfänger als „nass geworden“ erscheinen und danach eine Schlüsselwarnung auftauchen; nach einem Neuladen war der Brief lesbar.
+
+- *Ursachen (nachvollzogen):* (1) Der Chat prüfte Briefe, sobald der Tresor **geladen** war, nicht erst, wenn die Schlüssel aller Kontakte **gebunden** waren – fehlte die Bindung noch, wurde ein gültiger Brief als unlesbar gemeldet (reproduziert). (2) `accountGeneration` schützte nur einzelne Ergebnisse: Abläufe von Konto A (Tresor-Synchronisation, Schlüsselprüfung beim Anzeigen, Chat-Laden, Unlesbarkeitsmeldung) liefen nach einer Wartephase mit dem inzwischen globalen Zustand weiter und schickten ihre Anfragen mit dem Cookie von B – etwa das Markieren von Kontakten als „getrennt“ im Tresor von B, Unlesbarkeitsmeldungen für Briefe von B oder Schlüsselvergleiche gegen einen fremden Tresorzustand. (3) Jede verspätete 401-Antwort von A löste eine globale Abmeldung aus und konnte B zurücksetzen; die zugehörige Bereinigung konnte die gerade gespeicherten Schlüssel von B in IndexedDB löschen. (4) Ein zweiter Tab oder eine aus dem bfcache wiederhergestellte Seite behielt das alte Konto im Speicher, während das Cookie schon B gehörte; der Server konnte das nicht erkennen.
+- *Korrektur:* Kontokontext aus Konto-ID und Generation für alle asynchronen Abläufe mit `AbortController` und Prüfung nach jedem `await`; 401 beendet nur den eigenen Kontext; serverseitige Bindung an die erwartete Konto-ID (`409 account_mismatch`, ohne Wirkung); Profil und Schlüssel nur gemeinsam und nur für dieselbe Konto-ID; Schlüsselspeicher in einer Warteschlange, mit Abschluss der Transaktion und Löschen nur für die eigene Konto-ID; Tresor mit getrenntem „geladen“/„synchronisiert“, Synchronisationen nacheinander, Versionskonflikte ohne Überschreiben; Briefprüfung wartet auf die Schlüssel („Der Brief wird gerade entsiegelt …“) und meldet nur aus der neuesten Ladeanfrage; Live-Verbindung und Zeitgeber enden mit dem Kontext; Abgleich zwischen Tabs (BroadcastChannel bzw. `storage`, ohne Schlüssel oder Token) und Prüfung nach bfcache. Echte Schlüsselabweichungen sperren den Versand weiter, Bindungen und Schlüsselhistorien bleiben erhalten.
+
+**Neu:**
+
+- **Eulenrettungsstation** (Übersicht, ⚕): ersetzt Krankenpflege und Eulenarzt. Kranke eigene Eulen ziehen ein (unter „Meine Eulen“ mit leerer Stange) und brauchen 5–20 Hilfen; dazu immer drei wilde kranke Eulen (nie Phönix oder Virginiauhu). Fünf Hilfen je einmal am Tag (Streicheln beliebig oft), Medizin, Wasser und Streicheln kostenlos. Geheilte wilde Eulen fliegen in die Freiheit oder bleiben als Posteule. Bilder nach Jahreszeit (mit Vorfrühling) und Tag/Nacht.
+- **Statistik** in den Einstellungen: Briefe, Tage seit Kontoerstellung, aktive Tage, Kilometer zwischen Menschen, Interaktionen je Art.
+- **ASCII-Modus:** einzelne Briefe in Schreibmaschinenschrift für beide Seiten.
+- **Weltkugel 🌍** hinter dem Namen von Eulen mit mehr als 40.030 km, mit feierlicher Systemnachricht.
+- **Namen nach Geschlecht** für Leiheulen, Küken und wilde Eulen (neue Listen, Anhang D); Geschlecht der Leiheulen schon im Angebot sichtbar.
+- **Hilfe** über das Fragezeichen neben dem Sprachfähnchen, ganz unten in den Einstellungen und im Erklärbär-Chat.
+
+**Geändert:**
+
+- „Eulen“ heißt in Übersicht und Überschrift „Meine Eulen“ (unten weiter „Eulen“); neue Sortierung: bereite Eulen nach Besitzbeginn, übrige nach Beginn der Abwesenheit. Die Rettungsstation nimmt den Platz der Hilfe-Kachel ein.
+- Der Phönix wird nie krank.
+- Gold und Eulen verschenken nur noch aktive Spieler, alle zwei Wochen einmal.
+- Tausendertrennzeichen überall (Punkt bzw. Komma).
+- Neuer Spendentext auf Startseite und im README; Hinweis, dass PostEulen auch im Graustufenmodus funktioniert (für Kinder).
+- Update-Nachricht, Hilfe, Erklärbär, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; der gelieferte Ordner `Eulenrettungsstation/` ist eingepflegt und gelöscht.
+
+**Tests:** neue Tests in `web/test/` (Kontext, API, Schlüsselspeicher mit verzögerter IndexedDB-Nachbildung, Tresor, 680-Zeichen-Brief), `shared/test/v130.test.ts`, `backend/test/v130.test.ts`, `e2e/v130.spec.ts` (Kontowechsel ohne Neuladen mit verspäteten Antworten und zweitem Tab in WebKit und Chromium, Oberfläche); bestehende Tests angepasst.
+
+### Hinweise für Betreiber
+
+- **Migration `0023_v130.sql`** (Schema-Version 23): neue Tabellen `rescue_cases`, `rescue_wild`, `user_stats`, `activity_days`, neue Spalten `users.last_gift_day`, `users.ascii_mode`, `owls.globe_announced` und Trigger für die Statistik. Sie läuft beim Update automatisch. Dabei werden Eulen in Krankenpflege oder beim Eulenarzt sofort gesund, unbehandelte kranke Eulen kommen in die Rettungsstation, ein kranker Phönix wird gesund. Beim ersten Start zählt der Server Statistik und Tageslog einmal aus den gespeicherten Briefen und Flügen nach und verkündet die Weltkugel für Eulen, die schon mehr als 40.030 km geflogen sind.
+- **Neue Bilder** (108 Dateien in `images/`): je Art Krank, Krank-Nacht, Medizin, Gesund sowie die Rettungsstation außen und innen je Jahreszeit; der Build erzeugt sie wie immer.
+- Keine neuen Dienste, keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- Der Server antwortet Anfragen eines alten Tabs, dessen Cookie inzwischen einem anderen Konto gehört, mit `409 account_mismatch`; im Fehlerprotokoll erscheint dazu nichts.
+- Der Abschnitt „Wer bezahlt das eigentlich?“ nennt die Kosten von posteulen.de. Wer eine eigene Instanz betreibt, passt `shared/src/texts/about.ts` und das README an.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.2.4 – Kilometerzähler und ein Gruß vom Schalter
 
 Wünsche des Auftraggebers zu Startseite, Eulen, Postamt, Benachrichtigungen und Adminpanel (SPEC Anhang F, D-406 bis D-417).

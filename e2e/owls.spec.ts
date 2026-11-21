@@ -1,7 +1,7 @@
 import type { Browser, Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
 import { registerViaUi } from './account-helpers.ts';
-import { setGold, setOwlEnergy } from './db-helpers.ts';
+import { looksActive, setGold, setOwlEnergy } from './db-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
   await page.goto('/app/adressbuch');
@@ -19,6 +19,8 @@ async function pair(browser: Browser, page: Page, options: { benKeys?: string[] 
   await addContact(page, ben.name);
   await addContact(other, anna.name);
   setGold(anna.name, 300);
+  // v1.3: only active players give gold or owls (SPEC 9.1.5).
+  looksActive(anna.name);
   await page.goto('/app');
   return { anna, ben, other, otherContext };
 }
