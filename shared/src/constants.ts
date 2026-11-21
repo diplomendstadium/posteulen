@@ -26,8 +26,6 @@ export const GOLD = {
   FEED_PRICE: 1,
   /** Favourite snack (v0.5); v0.10: like the biscuit, more than once while not full. */
   SNACK_PRICE: 2,
-  SELF_CARE_PRICE: 2,
-  VET_PRICE: 10,
   TRANSFER_MIN: 1,
   TRANSFER_MAX: 200,
   /** Balance after a transfer must be strictly greater than this. */
@@ -106,8 +104,6 @@ export const OWL = {
   SICKNESS_PROBABILITY: 1 / 30,
   SICKNESS_HOUR_UTC: 3,
   SICKNESS_GRACE_DAYS: 28,
-  SELF_CARE_DAYS: 7,
-  VET_HOURS: 24,
   MENAGERIE_DAYS: 7,
   EGG_PROBABILITY: 1 / 100,
   BROODING_DAYS: 7,
@@ -121,6 +117,45 @@ export const OWL = {
   CHICK_GIFT_REMINDER_HOURS_BEFORE: 24,
   CHICK_ADULT_AT_MOTHER_DAYS: 14,
   CHICK_ADULT_AT_RECIPIENT_DAYS: 7,
+} as const;
+
+/**
+ * The owl rescue centre (SPEC 8.13, 9.8): a sick own owl needs a random number of counted
+ * interactions to get well (it only sees the progress in per cent); a wild sick owl needs
+ * price × 3 × a random factor of 0.8–1.2. Three wild owls per account; a healed wild owl stays
+ * with the player with this chance, otherwise it flies off into freedom.
+ */
+export const RESCUE = {
+  OWN_MIN_CARE: 5,
+  OWN_MAX_CARE: 20,
+  WILD_SLOTS: 3,
+  WILD_PRICE_FACTOR: 3,
+  WILD_RANDOM_MIN: 0.8,
+  WILD_RANDOM_MAX: 1.2,
+  STAY_CHANCE: 0.5,
+  /** Never as wild sick owls (SPEC 8.13). */
+  WILD_EXCLUDED: ['phoenix', 'virginiauhu'],
+  /** Early spring of the rescue centre pictures: 15 February to 15 March (SPEC 9.11). */
+  EARLY_SPRING_FROM: { month: 2, day: 15 },
+  EARLY_SPRING_TO: { month: 3, day: 15 },
+} as const;
+
+/** An owl that has flown more than the Earth's circumference wears 🌍 after its name (9.2.1). */
+export const GLOBE = {
+  KM: 40_030,
+  BADGE: '🌍',
+} as const;
+
+/**
+ * Giving gold or owls (SPEC 9.1.4, 9.2.7): one gift in 14 days, and only for players active on 7
+ * of the last 14 days, with letters from people received on 4 and letters to people sent on 4 of
+ * them. Explained to the players only as "only active players, every two weeks" (SPEC 9.1.5).
+ */
+export const GIFTS = {
+  WINDOW_DAYS: 14,
+  MIN_ACTIVE_DAYS: 7,
+  MIN_RECEIVED_DAYS: 4,
+  MIN_SENT_DAYS: 4,
 } as const;
 
 /**

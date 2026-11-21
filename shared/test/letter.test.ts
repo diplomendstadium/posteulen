@@ -83,6 +83,7 @@ describe('letters (SPEC 5.8, 17.1)', () => {
         ok: true,
         text: 'Hallo Bob!\nGrüße 0123 #* ©®™ https://example.org',
         sentAt: m.sentAt,
+        style: 'hand',
       });
       const own = await openLetter({
         server: m,

@@ -4,6 +4,7 @@
  * growing up. All handlers run in the event queue and are idempotent (SPEC 4.5).
  */
 import { ACCOUNT, MENAGERIE, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { owlLabel } from './globe.ts';
 import {
   chickCount,
   giftRequired,
@@ -23,6 +24,7 @@ import { LOAN_TEAMS, type LoanTeam } from '@posteulen/shared/species.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
 import { isMythical, loanPrice, randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
+import { admit } from '../rescue/service.ts';
 import { languageOf } from '../accounts/language.ts';
 import type { Context } from '../context.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
@@ -125,8 +127,9 @@ export function loanIdentitiesFor(
     offer,
     (species, attempt) =>
       hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
-    // v0.7: names rotate in groups by day, so none comes back on the two following days.
-    loanNamesOn(day, owlNames(languageOf(ctx, userId))),
+    // Names suit the sex and rotate in groups by day, so none comes back on the two
+    // following days (Anhang D).
+    (sex) => loanNamesOn(day, owlNames(languageOf(ctx, userId), sex)),
   );
   return new Map(offer.map((species, index) => [species, identities[index] as LoanIdentity]));
 }
@@ -238,14 +241,13 @@ export function afterReturnHome(ctx: Context, owlId: string, at: number, after: 
       owlId,
     );
     ctx.queue.schedule('hatch', owlId, at + OWL.BROODING_DAYS * TIME.DAY);
-    addSystemMessage(ctx, owl.owner_id, 'eggs_laid', { owl: owl.name ?? '' }, at, after);
+    addSystemMessage(ctx, owl.owner_id, 'eggs_laid', { owl: owlLabel(owl) }, at, after);
     ctx.push.notify(owl.owner_id, 'eggs_laid', owlId, at, after);
     return;
   }
   if (owl.pending_sickness === 1) {
-    ctx.db.run("UPDATE owls SET state = 'sick', pending_sickness = 0 WHERE id = ?", owlId);
-    addSystemMessage(ctx, owl.owner_id, 'owl_sick', { owl: owl.name ?? '' }, at, after);
-    ctx.push.notify(owl.owner_id, 'owl_sick', owlId, at, after);
+    // v1.3: a sick owl goes straight to the rescue centre (SPEC 9.8).
+    admit(ctx, owl, at, after);
   }
 }
 
@@ -301,7 +303,7 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
     ctx,
     mother.owner_id,
     giftRequired(count) ? 'chicks_hatched_gift' : 'chicks_hatched',
-    { owl: mother.name ?? '', count },
+    { owl: owlLabel(mother), count },
     at,
     after,
   );
@@ -311,12 +313,13 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
 
 /** Unnamed chicks get random names after 24 hours (9.9). */
 function nameDeadline(ctx: Context, clutchId: string, after: After): void {
-  const chicks = ctx.db.all<{ id: string; owner_id: string }>(
-    'SELECT id, owner_id FROM owls WHERE clutch_id = ? AND name IS NULL',
+  const chicks = ctx.db.all<{ id: string; owner_id: string; sex: 'f' | 'm' }>(
+    'SELECT id, owner_id, sex FROM owls WHERE clutch_id = ? AND name IS NULL',
     clutchId,
   );
   for (const chick of chicks) {
-    const names = owlNames(languageOf(ctx, chick.owner_id));
+    // A name that suits the chick's sex (Anhang D).
+    const names = owlNames(languageOf(ctx, chick.owner_id), chick.sex);
     ctx.db.run(
       'UPDATE owls SET name = ? WHERE id = ?',
       randomOwlName(ctx.random(), names),
@@ -385,7 +388,7 @@ function giftDeadline(ctx: Context, clutchId: string, at: number, after: After):
     ctx,
     clutch.owner_id,
     'clutch_lot',
-    { owl: chick.name ?? '', name: name?.name_display ?? '' },
+    { owl: owlLabel(chick), name: name?.name_display ?? '' },
     at,
     after,
   );
@@ -412,7 +415,7 @@ function chickAdult(ctx: Context, chickId: string, at: number, after: After): vo
     at,
     chickId,
   );
-  addSystemMessage(ctx, chick.owner_id, 'chick_adult', { owl: chick.name ?? '' }, at, after);
+  addSystemMessage(ctx, chick.owner_id, 'chick_adult', { owl: owlLabel(chick) }, at, after);
   after(() => ctx.hub.notify(chick.owner_id, 'owls'));
 }
 
@@ -434,6 +437,8 @@ function sicknessRoll(ctx: Context, day: string, at: number, after: After): void
     activeSince,
   );
   for (const owl of owls) {
+    // v1.3: the phoenix never falls ill (SPEC 9.2.2).
+    if (isMythical(owl.species)) continue;
     if (!pastGracePeriod(owl.owned_since, day)) continue;
     if (!rollsSick(ctx.random(), careBonusOf(ctx, owl, day, at))) continue;
     if (owl.state === 'flying') {
@@ -441,27 +446,17 @@ function sicknessRoll(ctx: Context, day: string, at: number, after: After): void
       ctx.db.run('UPDATE owls SET pending_sickness = 1 WHERE id = ?', owl.id);
       continue;
     }
-    ctx.db.run("UPDATE owls SET state = 'sick' WHERE id = ?", owl.id);
-    addSystemMessage(ctx, owl.owner_id, 'owl_sick', { owl: owl.name ?? '' }, at, after);
-    // v1.2.4: a sick owl also comes as a push (SPEC 11.2).
-    ctx.push.notify(owl.owner_id, 'owl_sick', owl.id, at, after);
-    after(() => ctx.hub.notify(owl.owner_id, 'owls'));
+    // v1.3: straight to the rescue centre, with system message and push (SPEC 9.8, 11.2).
+    admit(ctx, owl, at, after);
   }
 }
 
-function treatmentEnd(ctx: Context, owlId: string, at: number, after: After): void {
-  const owl = loadOwl(ctx, owlId);
-  if (!owl || (owl.state !== 'self_care' && owl.state !== 'vet')) return;
-  if (owl.state_until !== null && owl.state_until > at) return;
-  // Energy at the vet did not regenerate (away from home): continue from the stored value.
-  ctx.db.run(
-    "UPDATE owls SET state = 'home', state_until = NULL, energy_at = ? WHERE id = ?",
-    owl.state === 'vet' ? at : owl.energy_at,
-    owlId,
-  );
-  backHome(ctx, owlId, at);
-  addSystemMessage(ctx, owl.owner_id, 'owl_healthy', { owl: owl.name ?? '' }, at, after);
-  after(() => ctx.hub.notify(owl.owner_id, 'owls'));
+/**
+ * Altbestand: the end of a treatment by the player or the owl vet. Since v1.3 there is no such
+ * treatment (the update made such owls healthy); events still queued do nothing.
+ */
+function treatmentEnd(): void {
+  // Nothing to do.
 }
 
 // ── Menagerie (9.7) ──────────────────────────────────────────────────────────────────────
@@ -482,7 +477,7 @@ function menagerieEnd(ctx: Context, owlId: string, at: number, after: After): vo
     ctx,
     owl.owner_id,
     'menagerie_done',
-    { owl: owl.name ?? '', amount: wage },
+    { owl: owlLabel(owl), amount: wage },
     at,
     after,
   );
@@ -495,7 +490,7 @@ function loanExpire(ctx: Context, owlId: string, at: number, after: After): void
   // A loan owl that is already flying delivers first (it vanishes after the delivery).
   if (!owl || owl.kind !== 'loan' || owl.state !== 'home') return;
   ctx.db.run('DELETE FROM owls WHERE id = ?', owlId);
-  addSystemMessage(ctx, owl.owner_id, 'loan_expired', { owl: owl.name ?? '' }, at, after);
+  addSystemMessage(ctx, owl.owner_id, 'loan_expired', { owl: owlLabel(owl) }, at, after);
   after(() => ctx.hub.notify(owl.owner_id, 'owls'));
 }
 
@@ -506,9 +501,7 @@ export function registerLifecycleHandlers(ctx: Context): void {
   ctx.queue.on('menagerie_end', (event, tools) =>
     menagerieEnd(ctx, event.ref, event.logicalAt, tools.after),
   );
-  ctx.queue.on('treatment_end', (event, tools) =>
-    treatmentEnd(ctx, event.ref, event.logicalAt, tools.after),
-  );
+  ctx.queue.on('treatment_end', () => treatmentEnd());
   ctx.queue.on('hatch', (event, tools) => hatch(ctx, event.ref, event.logicalAt, tools.after));
   ctx.queue.on('clutch_names', (event, tools) => nameDeadline(ctx, event.ref, tools.after));
   ctx.queue.on('clutch_gift', (event, tools) =>

@@ -65,6 +65,12 @@
   const christmasNow = home ? isChristmas(Date.now(), home.lat, home.lon) : false;
   const paper = $derived(christmasNow ? `christmas-${christmasPaper}A` : 'parchment-own');
   const printed = $derived(account.profile?.lettersPrint ?? false);
+  /**
+   * v1.3: ASCII mode (settings) – this one letter in a plain monospaced font for both sides.
+   * Chosen anew for every letter; handwriting stays the default. Letters to people only.
+   */
+  const asciiMode = $derived(account.profile?.asciiMode ?? false);
+  let mono = $state(false);
   /** v0.8.5: a rest picked by hand (hours); null = the preselection of the chosen owl's kind. */
   let restManual = $state<number | null>(null);
   let text = $state('');
@@ -255,7 +261,12 @@
       // Bots: plain text, one recipient (SPEC 10.1); people: end-to-end encrypted (5.8).
       const result = bot
         ? await sendToBot(peerId, owlId, parchment, text)
-        : await sendPrepared(await prepare(recipients, parchment, owlId, rest), parchment, text);
+        : await sendPrepared(
+            await prepare(recipients, parchment, owlId, rest),
+            parchment,
+            text,
+            asciiMode && mono ? 'mono' : 'hand',
+          );
       showOwlImage(
         result.owl.species,
         'departure',
@@ -263,6 +274,7 @@
       );
       void refreshTopics('profile');
       text = '';
+      mono = false;
       recipients = [peerId];
       sentNotice = true;
       onsent();
@@ -303,11 +315,18 @@
       rows="6"
       class={paper}
       class:printed
+      class:mono={asciiMode && mono && !bot}
       data-christmas={christmasNow ? christmasPaper : undefined}
       value={text}
       oninput={input}
       aria-describedby="letter-count"></textarea>
   </div>
+  {#if asciiMode && !bot}
+    <label class="option mono-option"
+      ><input type="checkbox" bind:checked={mono} data-testid="letter-mono" />
+      {t.letters.monoOption}</label
+    >
+  {/if}
   <p id="letter-count" class:over={count > max} class="counter">
     {fill(t.letters.counter, { count, max: max.toLocaleString(locale()) })}
   </p>
@@ -469,6 +488,20 @@
     font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.5;
+  }
+
+  /* v1.3: ASCII mode – a plain monospaced font, no line breaks of its own (SPEC 8.4). */
+  textarea.mono {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .mono-option {
+    display: block;
+    margin-top: 0.5rem;
   }
 
   .counter {

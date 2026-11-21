@@ -107,7 +107,7 @@ test.describe('Version 0.10', () => {
     await page.getByLabel('Text').fill('Ein langer Brief.');
     const elf = page.getByRole('radio', { name: /Elfi/ });
     await expect(elf).toBeEnabled();
-    await page.getByLabel(/Lang – bis 15 000 Zeichen/).check();
+    await page.getByLabel(/Lang – bis 15.000 Zeichen/).check();
     await expect(elf).toBeDisabled();
     await expect(page.getByText('Trägt kein langes Pergament.').first()).toBeVisible();
     await expect(page.getByRole('radio', { name: /Waldi/ })).toBeEnabled();

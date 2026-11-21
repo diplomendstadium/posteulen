@@ -3,6 +3,7 @@
  * The server never sees the password or any unencrypted private key.
  */
 import { DEFAULT_LANGUAGE, isLanguage } from '@posteulen/shared/i18n.ts';
+import { giftBlockOf } from '../accounts/stats.ts';
 import { dailyWage } from '@posteulen/shared/game/gold.ts';
 import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
@@ -578,10 +579,11 @@ export function profileOf(ctx: Context, userId: string) {
     language: string;
     feedback_sent_on: string | null;
     links_clickable: number;
+    ascii_mode: number;
   }>(
     `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
             name_changed_year, letter_retention_days, letters_print, language, feedback_sent_on,
-            links_clickable
+            links_clickable, ascii_mode
        FROM users WHERE id = ?`,
     userId,
   );
@@ -604,5 +606,8 @@ export function profileOf(ctx: Context, userId: string) {
     dailyGold: dailyWage(row.created_on, ctx.now()),
     // v0.7.1: a message to the admin was already sent today (UTC).
     feedbackSentToday: row.feedback_sent_on === utcDay(ctx.now()),
+    // v1.3: ASCII mode (SPEC 8.10) and whether gold or an owl may be given now (SPEC 9.1.5).
+    asciiMode: row.ascii_mode === 1,
+    canGift: giftBlockOf(ctx, userId, ctx.now()) === null,
   };
 }

@@ -7,7 +7,7 @@
 import { christmasAt } from '../letters/season.ts';
 import { BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { simulate, type FlightProfile } from '@posteulen/shared/game/flight.ts';
-import { owlNames } from '@posteulen/shared/names-data.ts';
+import { anyOwlNames } from '@posteulen/shared/names-data.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import { botLetters } from '@posteulen/shared/texts/bots.ts';
 import { fill } from '@posteulen/shared/texts/de.ts';
@@ -107,7 +107,7 @@ export function dispatchBotLetter(
   now: number,
 ): { letterId: string; arrivesAt: number } {
   const species = pick(ctx, BOT_OWL_SPECIES).id;
-  const owlName = pick(ctx, owlNames(languageOf(ctx, bot.owner_id)));
+  const owlName = pick(ctx, anyOwlNames(languageOf(ctx, bot.owner_id)));
   const profile = profileOf(ctx);
   const simulation = simulate(
     profile,
@@ -200,7 +200,7 @@ export function createBots(ctx: Context, userId: string, now: number): void {
     now,
     now,
     letters.explainer.day0,
-    pick(ctx, owlNames(language)),
+    pick(ctx, anyOwlNames(language)),
     pick(ctx, BOT_OWL_SPECIES).id,
     christmasAt(ctx, id, now),
   );

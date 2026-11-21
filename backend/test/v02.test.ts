@@ -219,7 +219,7 @@ describe('migration 0007 (v0.2)', () => {
     );
 
     expect(migrate(db, migrations)).toEqual([
-      7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+      7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
     ]);
     expect(db.all('SELECT id, state FROM owls ORDER BY id')).toEqual([
       { id: 'o1', state: 'menagerie' },

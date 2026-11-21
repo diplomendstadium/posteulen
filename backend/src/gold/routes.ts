@@ -8,6 +8,7 @@ import { transferProblem } from '@posteulen/shared/game/gold.ts';
 import { CoverSend, GoldPrepare } from '@posteulen/shared/schemas/owls.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse } from '../http/errors.ts';
+import { recordGift, requireGiftAllowed } from '../accounts/stats.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
@@ -128,6 +129,8 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(GoldPrepare, request.body);
     const me = userOf(request).id;
     const now = ctx.now();
+    // v1.3: only active players, one gift of gold or an owl in two weeks (SPEC 9.1.5).
+    requireGiftAllowed(ctx, me, now);
     checkRecipients(ctx, me, [body.recipient], now);
     const problem = transferProblem(balance(ctx.db, me), body.amount);
     if (problem) throw new HttpError(400, problem);
@@ -179,9 +182,11 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
       // Checked again inside the transaction: the balance may have changed meanwhile.
+      requireGiftAllowed(ctx, me, now);
       const problem = transferProblem(balance(ctx.db, me), token.gold);
       if (problem) throw new HttpError(400, problem);
       debit(ctx.db, me, 'transfer_out', token.gold, now, token.recipients[0] ?? null);
+      recordGift(ctx, me, now);
       const { route, owl } = depart(ctx, token, letters, now);
       return {
         owl: { name: owl.name, species: owl.species },

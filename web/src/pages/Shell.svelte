@@ -4,6 +4,7 @@
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
   import LanguageFlag from '../components/LanguageFlag.svelte';
+  import HelpLink from '../components/HelpLink.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
   import { sceneImage } from '../lib/owl-image.ts';
@@ -28,23 +29,28 @@
   onMount(() => startLive());
   onDestroy(() => stopLive());
 
-  /** Sections of the logged-in start page (SPEC 8.3). Icons are decorative; text is always shown. */
+  /**
+   * Sections of the logged-in start page (SPEC 8.3). Icons are decorative; text is always shown.
+   * v1.3: "Meine Eulen" (tile and heading; the bottom bar keeps the short "Eulen"), the rescue
+   * centre with a simplified staff of Aesculapius takes the place of the help (the help is behind
+   * the "?" in the top bar, in the settings and in the Explainer Bear's chat).
+   */
   const sections = [
     { href: '/app/briefe', label: t.nav.letters, icon: '✉' },
-    { href: '/app/eulen', label: t.nav.owls, icon: '🦉' },
+    { href: '/app/eulen', label: t.nav.myOwls, icon: '🦉' },
     // v0.10: the post office takes the place of the finance page.
     { href: '/app/postamt', label: t.nav.post, icon: '📯' },
     { href: '/app/menagerie', label: t.nav.menagerie, icon: '⌂' },
     { href: '/app/adressbuch', label: t.nav.addressBook, icon: '☰' },
     { href: '/app/karte', label: t.nav.map, icon: '⌖' },
     { href: '/app/einstellungen', label: t.nav.settings, icon: '⚙' },
-    { href: '/hilfe', label: t.nav.help, icon: '?' },
+    { href: '/app/rettungsstation', label: t.nav.rescue, icon: '⚕' },
   ] as const;
 
   const bottomNav = [
     { href: '/app', label: t.nav.home, icon: '⌂' },
     sections[0],
-    sections[1],
+    { ...sections[1], label: t.nav.owls },
     sections[4],
     sections[5],
   ] as const;
@@ -128,6 +134,7 @@
         <span>{t.units.gold(account.profile?.gold ?? 0)}</span>
       </p>
       <LanguageFlag onwood />
+      <HelpLink onwood />
     </div>
   </header>
   {#if live.pushState !== 'confirmed' && !account.pushHintHidden}

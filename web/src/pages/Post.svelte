@@ -153,7 +153,10 @@
               size={480}
             />
             <h3 class="name">{item.name}</h3>
-            <p class="species-name">{speciesName(item.species)}</p>
+            <!-- v1.3: the sex is shown before borrowing, like on the owl cards (SPEC 8.6). -->
+            <p class="species-name">
+              {speciesName(item.species)} · {item.sex === 'f' ? t.owls.female : t.owls.male}
+            </p>
             <!-- v0.10: the technical data as in the Menagerie, with the carrying capacity. -->
             <p class="stats" data-testid="loan-stats">
               {stats(item.species)} · {t.owls[`cargo_${item.cargo}`]}

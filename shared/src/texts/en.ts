@@ -3,6 +3,7 @@
  * English to match the flag. The admin panel stays German (operators), so `admin` reuses
  * the German texts.
  */
+import { formatGold } from '../game/gold.ts';
 import { de, type Texts } from './de.ts';
 
 export const en: Texts = {
@@ -162,6 +163,12 @@ export const en: Texts = {
       'All your letters and system messages older than {days} days will be deleted for good at the next weekly tidy-up (early on Monday). Continue?',
     printLabel: 'Show letters in print instead of handwriting',
     linksLabel: 'Links in letters clickable',
+    asciiLabel: 'ASCII mode',
+    asciiHint:
+      'When writing a letter to a person you can then choose a plain typewriter font for that one letter – handy for pictures made of letters and signs (ASCII art). Both of you will always see the letter in this font. You choose it anew for every letter; otherwise it stays in handwriting.',
+    helpHint:
+      'All about owls, letters, gold and safety – and the Explainer Bear answers your questions.',
+    helpLink: 'To the help',
     linksHint:
       'When switched off, web addresses are shown as plain text in letters – nothing opens by accident. Disguised addresses are still marked.',
     printHint: 'Easier to read, for example on small screens.',
@@ -255,6 +262,7 @@ export const en: Texts = {
     delivered: 'delivered',
     returned: 'not delivered – the owl turned back',
     unreadable: 'The owl lost the letter on its way.',
+    monoOption: 'Typewriter font for this letter (for ASCII art)',
     keysLoading: 'Unsealing the letter – one moment, please …',
     invalid: 'The letter got so wet on its way that it can no longer be read.',
     linkWarning: 'Unusual characters in the address – check carefully where the link leads.',
@@ -355,8 +363,13 @@ export const en: Texts = {
     bot_deleted:
       '{name} has laid down the quill for good and writes no more letters. Your correspondence has gone with them.',
     chick_gift_received: '{name} has given you the chick {owl}. It will be grown up in 7 days.',
-    owl_sick: '{owl} has fallen ill. Nurse it yourself or take it to the owl vet.',
-    owl_healthy: '{owl} is healthy again.',
+    owl_sick:
+      '{owl} has fallen ill and is now being looked after in the rescue centre. Pay a visit – with medicine, food, water and a little stroking, {owl} will soon be well again.',
+    owl_healthy: '{owl} is well again and may go home.',
+    rescue_joined:
+      '{owl} does not want to leave you and stays with you as a post owl. You will find {owl} under “My owls”.',
+    owl_globe:
+      '🌍 What a journey! {owl} has flown {km} km – further than once around the Earth. To celebrate, {owl} now wears the globe after its name: {owl} 🌍',
     eggs_laid: '{owl} has laid eggs and is now brooding for 7 days.',
     chicks_hatched:
       '{owl} has hatched a chick. Give it a name within the next 5 days – otherwise the lot picks one.',
@@ -516,15 +529,14 @@ export const en: Texts = {
     flyingGift: 'Is flying to {names} as a gift.',
     sleepingTo: 'Is asleep on the way to {names}.',
     sleepingHome: 'Is asleep on the way home.',
-    stateSick: 'Ill – needs care or the owl vet.',
-    stateSelfCare: 'Being nursed at home – fit again from {until}.',
-    stateVet: 'At the owl vet until {until}.',
+    stateRescue: 'Ill – being looked after in the rescue centre (recovery {progress} %).',
+    toRescue: 'To the rescue centre',
+    perchRescueAlt: 'Empty perch – {name} is being looked after in the rescue centre',
+    giftRule: 'Only active players can give away gold or an owl, once every two weeks.',
     stateBrooding: 'Brooding until {until}.',
     stateMenagerie: 'In the Menagerie until {until}.',
     loanUntil: 'Loan owl – must take off by {until}.',
     chick: 'Chick – grown up from {until}.',
-    treatSelf: 'Nurse it yourself (0.2 gold, 7 days)',
-    treatVet: 'To the owl vet (1.0 gold, 24 h)',
     menagerie: 'Lend to the Menagerie (7 days)',
     menagerieConfirm: 'Lend {name} to the Menagerie for 7 days? Afterwards you get {amount}.',
     chickNameTitle: 'What should your chick be called?',
@@ -761,6 +773,8 @@ export const en: Texts = {
     main: 'Main navigation',
     letters: 'Letters',
     owls: 'Owls',
+    myOwls: 'My owls',
+    rescue: 'Rescue centre',
     post: 'Post office',
     menagerie: 'Menagerie',
     addressBook: 'Address book',
@@ -780,8 +794,27 @@ export const en: Texts = {
     gold: 'Gold',
     goldAmount: '{amount} gold',
   },
+  stats: {
+    title: 'Statistics',
+    lettersSent: 'Letters sent',
+    lettersReceived: 'Letters received',
+    days: 'Days since the account was created',
+    activeDays: 'Active days',
+    activeValue: '{count} ({percent} %)',
+    km: 'Kilometres flown between people',
+    kmValue: '{km} km',
+    count: '{count}',
+    interactionsTitle: 'Attention for owls',
+    water: 'Water given',
+    pet: 'Stroked',
+    feed: 'Owl biscuits',
+    snack: 'Favourite snacks',
+    medicine: 'Medicine given',
+    countedSince:
+      'Some values have only been counted since {date}; older ones are included only as far as they were still stored.',
+  },
   units: {
-    gold: (tenths: number): string => `${(tenths / 10).toFixed(1)} gold`,
+    gold: (tenths: number): string => `${formatGold(tenths, '.')} gold`,
   },
   pages: {
     helpTitle: 'Help',

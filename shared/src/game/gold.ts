@@ -17,7 +17,15 @@ export function priceTenths(price: number): number {
 export function formatGold(tenths: number, separator: ',' | '.' = ','): string {
   const sign = tenths < 0 ? '-' : '';
   const abs = Math.abs(tenths);
-  return `${sign}${Math.floor(abs / 10)}${separator}${abs % 10}`;
+  // v1.3: thousands grouped – with a dot in German, a comma in English (SPEC 8.12).
+  return `${sign}${groupThousands(Math.floor(abs / 10), separator === ',' ? '.' : ',')}${separator}${abs % 10}`;
+}
+
+/** Digits of a whole number grouped in threes: 12234323 → "12.234.323" (SPEC 8.12). */
+export function groupThousands(value: number, separator: '.' | ',' = '.'): string {
+  const sign = value < 0 ? '-' : '';
+  const digits = String(Math.trunc(Math.abs(value)));
+  return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
 }
 
 /**

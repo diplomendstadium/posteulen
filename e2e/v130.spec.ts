@@ -59,7 +59,7 @@ async function setUp(browser: Browser, page: Page) {
   addOwls(carla.name, 'waldkauz', 1);
   // Carla writes the long letter to Ben.
   await carlaPage!.goto(`/app/briefe/${idOf(ben.name)}`);
-  await carlaPage!.getByLabel('Lang – bis 15 000 Zeichen').check();
+  await carlaPage!.getByLabel('Lang – bis 15.000 Zeichen').check();
   await carlaPage!.getByLabel('Text').fill(LETTER);
   const group = carlaPage!.getByRole('group', { name: 'Welche Eule soll fliegen?' });
   await group.getByRole('radio', { name: /Helfer 1/ }).check();

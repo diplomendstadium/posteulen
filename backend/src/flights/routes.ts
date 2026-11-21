@@ -3,6 +3,7 @@
  * the browser never receives flight plans of other people's owls.
  */
 import type { FastifyInstance } from 'fastify';
+import { flightOwlLabel } from '../owls/globe.ts';
 import type { Context } from '../context.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName } from '../contacts/model.ts';
@@ -71,7 +72,8 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
         ),
       flights: flights.map((flight) => ({
         id: flight.id,
-        owl: { name: flight.owl_name, species: flight.owl_species },
+        // v1.3: with 🌍 for an owl that has flown around the Earth (SPEC 9.2.1).
+        owl: { name: flightOwlLabel(ctx, flight), species: flight.owl_species },
         purpose: flight.purpose,
         stops: routeOf(flight).map((stop) => ({
           name: stop.type === 'home' ? null : displayName(ctx.db, stop.userId),

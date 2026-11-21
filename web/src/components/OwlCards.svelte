@@ -1,8 +1,8 @@
 <script lang="ts">
   /**
    * Cards of own and loan owls with all their actions (SPEC 8.5): picture, values, state, care,
-   * treatment, Menagerie, renaming, gifts, release, "Brief schreiben" and (v0.10) "Gold
-   * verschicken". v0.10: one component for the owl overview and the post office, which shows the
+   * Menagerie, renaming, gifts, release, "Brief schreiben" and (v0.10) "Gold verschicken". v1.3:
+   * a sick owl is in the rescue centre (empty perch, link there); 🌍 after the name. v0.10: one component for the owl overview and the post office, which shows the
    * borrowed owls with the very same controls.
    */
   import { t, fill, speciesName, goldText, decimal, i18n } from '../lib/i18n.svelte.ts';
@@ -13,6 +13,8 @@
     MOTIVATION,
   } from '@posteulen/shared/constants.ts';
   import { cargoCovers, speciesById } from '@posteulen/shared/game/owls.ts';
+  import { owlDisplayName } from '@posteulen/shared/game/gifts.ts';
+  import Link from './Link.svelte';
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   import { maxTransfer } from '@posteulen/shared/game/gold.ts';
   import {
@@ -37,7 +39,6 @@
     nameOwl,
     petOwl,
     snackOwl,
-    treatOwl,
     waterOwl,
     type Owl,
   } from '../lib/owls.ts';
@@ -88,6 +89,13 @@
   );
   const canSendGold = (owl: Owl): boolean =>
     goldPossible && owl.ready && cargoCovers(owl.cargo, 'gold');
+  /**
+   * v1.3: gold and owls can only be given by active players, once in two weeks (SPEC 9.1.5) –
+   * the buttons stay, but are off with a short note. Gold with a loan owl counts as well.
+   */
+  const giftAllowed = $derived(account.profile?.canGift ?? true);
+  /** v1.3: the name as shown everywhere – with 🌍 after more than 40 030 km (SPEC 9.2.1). */
+  const label = (owl: Owl): string => owlDisplayName(owl.name ?? '', owl.globetrotter);
 
   async function act(work: () => Promise<void>): Promise<void> {
     if (busy) return;
@@ -161,12 +169,6 @@
       newName = '';
     });
 
-  const treat = (owl: Owl, kind: 'self' | 'vet') =>
-    act(async () => {
-      onchange((await treatOwl(owl.id, kind)).owl);
-      void refreshTopics('profile');
-    });
-
   const menagerie = (owl: Owl) =>
     act(async () => {
       const wage = goldText(menagerieWage(speciesPrice(owl.species)));
@@ -220,7 +222,6 @@
     if (owl.isChick) return 'chick';
     // v0.7: a brooding owl sits on its eggs.
     if (owl.state === 'brooding') return 'brooding';
-    if (['sick', 'self_care', 'vet'].includes(owl.state)) return 'grumpy';
     if (owl.state === 'home' && grumpy(owl)) return 'grumpy';
     return napping(owl) ? 'napHome' : 'normal';
   }
@@ -229,6 +230,7 @@
     const name = owl.name ?? '';
     const species = speciesName(owl.species);
     if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
+    if (owl.state === 'sick') return fill(t.owls.perchRescueAlt, { name });
     if (restingAway(owl))
       return fill(t.owls.perchRestingAlt, {
         name,
@@ -256,11 +258,7 @@
     const until = owl.stateUntil === null ? '' : dateTime(owl.stateUntil);
     switch (owl.state) {
       case 'sick':
-        return t.owls.stateSick;
-      case 'self_care':
-        return fill(t.owls.stateSelfCare, { until });
-      case 'vet':
-        return fill(t.owls.stateVet, { until });
+        return fill(t.owls.stateRescue, { progress: owl.rescue?.progress ?? 0 });
       case 'brooding':
         return fill(t.owls.stateBrooding, { until });
       case 'menagerie':
@@ -333,14 +331,14 @@
           wide
           speciesId={owl.species}
           kind={pictureKind(owl)}
-          perch={owl.state === 'menagerie' || restingAway(owl)}
+          perch={owl.state === 'menagerie' || owl.state === 'sick' || restingAway(owl)}
           alt={pictureAlt(owl)}
         />
       </div>
       <div class="facts">
         <h3 class="name">
           <!-- v1.2.2: the space stands before the block – Svelte drops it at the start of one. -->
-          {owl.name}
+          {label(owl)}
           {#if markLoans && owl.kind === 'loan'}<span class="loan-mark">{t.owls.loanMark}</span
             >{/if}
         </h3>
@@ -348,7 +346,7 @@
           {speciesName(owl.species)} · {owl.sex === 'f' ? t.owls.female : t.owls.male}
           <!-- v1.2.4: kilometres flown in all, own owls only. -->
           {#if owl.kind === 'own' && owl.km !== null}· {fill(t.owls.kmFlown, {
-              km: owl.km.toLocaleString(i18n.lang === 'en' ? 'en-GB' : 'de-DE'),
+              km: owl.km,
             })}{/if}
         </p>
         <p class="energy">
@@ -393,6 +391,12 @@
           >
           {stateText(owl)}
         </p>
+        {#if owl.state === 'sick'}
+          <!-- v1.3: cared for in the rescue centre only (SPEC 8.13). -->
+          <p class="rescue-link">
+            <Link href="/app/rettungsstation" class="button secondary">{t.owls.toRescue}</Link>
+          </p>
+        {/if}
         <div class="actions">
           {#if owl.ready}
             <!-- v0.8.5: write a letter with exactly this owl. -->
@@ -408,7 +412,7 @@
             <button
               class="button"
               type="button"
-              disabled={!status.online}
+              disabled={!status.online || !giftAllowed}
               onclick={() => (sendingGold = owl)}>{t.owls.sendGold}</button
             >
           {/if}
@@ -441,20 +445,6 @@
               >{owl.snackable ? snackButton(owl) : t.owls.snackedToday}</button
             >
           {/if}
-          {#if owl.actions.treat}
-            <button
-              class="button secondary"
-              type="button"
-              disabled={busy || !status.online}
-              onclick={() => void treat(owl, 'self')}>{t.owls.treatSelf}</button
-            >
-            <button
-              class="button secondary"
-              type="button"
-              disabled={busy || !status.online}
-              onclick={() => void treat(owl, 'vet')}>{t.owls.treatVet}</button
-            >
-          {/if}
           {#if owl.actions.menagerie}
             <button
               class="button secondary"
@@ -479,8 +469,13 @@
             <button
               class="button secondary"
               type="button"
+              disabled={!giftAllowed}
               onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{t.owls.gift}</button
             >
+          {/if}
+          {#if !giftAllowed && (owl.actions.gift || canSendGold(owl))}
+            <!-- v1.3: only "active players" may give something, every two weeks (SPEC 9.1.5). -->
+            <p class="hint" data-testid="gift-rule">{t.owls.giftRule}</p>
           {/if}
           {#if owl.actions.release}
             <button

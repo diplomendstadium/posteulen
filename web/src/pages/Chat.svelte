@@ -242,7 +242,7 @@
       >
         {#if coverText(letter)}<p class="cover">{coverText(letter)}</p>{/if}
         {#if letter.text !== null}
-          <LetterText text={letter.text} />
+          <LetterText text={letter.text} mono={letter.style === 'mono'} />
           {#if letter.media && letter.media.length > 0 && letter.role === 'recipient'}
             <!-- v0.8: pictures of a control-centre bot, below the letter, without file names. -->
             <div class="pictures">

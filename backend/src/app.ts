@@ -16,6 +16,7 @@ import { PushService } from './push/service.ts';
 import { registerFlightHandlers } from './flights/service.ts';
 import { registerFlightRoutes } from './flights/routes.ts';
 import { registerOwlRoutes } from './owls/routes.ts';
+import { registerRescueRoutes } from './rescue/routes.ts';
 import { registerLifecycleHandlers } from './owls/lifecycle.ts';
 import { registerAccountHandlers } from './accounts/lifecycle.ts';
 import { registerAccountRoutes } from './accounts/routes.ts';
@@ -29,6 +30,8 @@ import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
 import { backfillFlownKm } from './owls/distance.ts';
+import { backfillStats } from './accounts/stats.ts';
+import { announceAllGlobetrotters } from './owls/globe.ts';
 import { removeRelatives } from './bots/relatives.ts';
 import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
@@ -143,6 +146,10 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   sendUpdateNotes(ctx);
   // v1.2.4: the kilometres of the owls from the flights before the update, once.
   backfillFlownKm(ctx);
+  // v1.3: the statistics and the day log from the stored letters and flights, once.
+  backfillStats(ctx, ctx.now());
+  // v1.3: owls that flew around the Earth before get their 🌍 announced once.
+  announceAllGlobetrotters(ctx, ctx.now());
   // v0.9: hand the Tor switch of the admin panel to the root helper (also after a restore).
   if (config.env === 'production') syncTorSwitch(ctx);
   registerGoldJobs(ctx);
@@ -151,6 +158,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerLetterRoutes(userApi, ctx);
   registerPushRoutes(userApi, ctx);
   registerOwlRoutes(userApi, ctx);
+  registerRescueRoutes(userApi, ctx);
   registerGoldRoutes(userApi, ctx);
   registerFlightRoutes(userApi, ctx);
   registerAccountRoutes(userApi, ctx);

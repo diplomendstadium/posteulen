@@ -21,9 +21,29 @@
   let print = $state(account.profile?.lettersPrint ?? false);
   /** v0.8.2: links in letters clickable – a switch that takes effect at once. */
   let links = $state(account.profile?.linksClickable ?? true);
+  /** v1.3: ASCII mode – the editor offers a monospaced font per letter; a switch as well. */
+  let ascii = $state(account.profile?.asciiMode ?? false);
   let busy = $state(false);
   let error = $state<string | null>(null);
   let saved = $state(false);
+
+  async function toggleAscii(): Promise<void> {
+    if (busy || !status.online) return;
+    busy = true;
+    error = null;
+    try {
+      await changeLetterSettings({
+        retentionDays: account.profile?.letterRetentionDays ?? LETTER.RETENTION_MAX_DAYS,
+        print: account.profile?.lettersPrint ?? false,
+        ascii,
+      });
+    } catch (caught) {
+      ascii = !ascii;
+      error = errorMessage(caught);
+    } finally {
+      busy = false;
+    }
+  }
 
   async function toggleLinks(): Promise<void> {
     if (busy || !status.online) return;
@@ -102,6 +122,19 @@
       {t.settings.linksLabel}</label
     >
     <p class="hint">{t.settings.linksHint}</p>
+    <label class="option switch-row"
+      ><input
+        type="checkbox"
+        role="switch"
+        class="switch"
+        bind:checked={ascii}
+        disabled={busy || !status.online}
+        onchange={() => void toggleAscii()}
+        data-testid="ascii-mode"
+      />
+      {t.settings.asciiLabel}</label
+    >
+    <p class="hint">{t.settings.asciiHint}</p>
     <ErrorText message={error} />
     {#if saved}<p class="notice" role="status">
         <span aria-hidden="true">✔</span><span>{t.settings.lettersSaved}</span>

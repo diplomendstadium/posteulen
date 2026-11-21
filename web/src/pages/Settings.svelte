@@ -11,6 +11,8 @@
   import FeedbackForm from '../components/FeedbackForm.svelte';
   import BotSettings from '../components/BotSettings.svelte';
   import FinanceSettings from '../components/FinanceSettings.svelte';
+  import StatsSettings from '../components/StatsSettings.svelte';
+  import Link from '../components/Link.svelte';
   import { changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
@@ -72,6 +74,9 @@
 <!-- v1.2.4: notifications right below signing out, above everything else. -->
 <PushSettings />
 
+<!-- v1.3: statistics of the account between notifications and gold (SPEC 8.10). -->
+<StatsSettings />
+
 <!-- v0.10: gold, daily gold and bookings (before: the page "Finanzen"). -->
 <FinanceSettings />
 
@@ -121,8 +126,15 @@
 
 <AccountSettings />
 
-<!-- v0.7.1: at the very bottom, a short message to the admin. -->
+<!-- v0.7.1: a short message to the admin. -->
 <FeedbackForm />
+
+<!-- v1.3: the help at the very bottom (it left the overview, SPEC 8.10, 8.11). -->
+<section class="card" aria-labelledby="help-title">
+  <h2 id="help-title">{t.nav.help}</h2>
+  <p>{t.settings.helpHint}</p>
+  <Link href="/hilfe" class="button secondary">{t.settings.helpLink}</Link>
+</section>
 
 <style>
   section {

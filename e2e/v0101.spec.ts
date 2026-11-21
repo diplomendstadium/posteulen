@@ -88,7 +88,7 @@ test.describe('Version 0.10.1', () => {
     await expect(choice.getByRole('radio', { name: /Elfi/ })).toBeChecked();
     await expect(choice.locator('.hint.offer')).toHaveCount(0);
     // A long letter: Elfi cannot carry it – now the loan owls of the day are offered.
-    await page.getByLabel(/Lang – bis 15 000 Zeichen/).check();
+    await page.getByLabel(/Lang – bis 15.000 Zeichen/).check();
     await expect(choice.getByRole('radio', { name: /Elfi/ })).toBeDisabled();
     await expect(choice.locator('.hint.offer').first()).toBeVisible();
     await expect(page.getByText(/Du kannst eine Leiheule des Tages nehmen/)).toBeVisible();

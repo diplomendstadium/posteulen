@@ -35,12 +35,19 @@ export interface Owl {
   readonly clutchId: string | null;
   /** v1.2.4: kilometres flown in all (own owls; null for loan owls). */
   readonly km: number | null;
+  /** v1.3: 🌍 after the name (SPEC 9.2.1). */
+  readonly globetrotter: boolean;
+  /** v1.3: order of the overview (SPEC 8.5). */
+  readonly ownedSince: string;
+  readonly createdAt: number;
+  readonly awaySince: number | null;
+  /** v1.3: in the rescue centre, with the progress in per cent (SPEC 8.13). */
+  readonly rescue: { readonly progress: number } | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
     readonly release: boolean;
     readonly rename: boolean;
-    readonly treat: boolean;
     readonly menagerie: boolean;
   };
   readonly absence: {
@@ -76,6 +83,8 @@ export interface GuestOwl {
   readonly feedable: boolean;
   readonly snackable: boolean;
   readonly caredAt: number | null;
+  /** v1.3: 🌍 after the name. */
+  readonly globetrotter?: boolean;
   readonly holderId: string;
   readonly holderName: string | null;
   readonly restUntil: number;
@@ -119,10 +128,6 @@ export function listOwls(): Promise<{
   clutches: Clutch[];
 }> {
   return api('GET', '/api/owls');
-}
-
-export function treatOwl(id: string, kind: 'self' | 'vet'): Promise<{ owl: Owl }> {
-  return api('POST', `/api/owls/${id}/treat`, { kind });
 }
 
 export function lendToMenagerie(id: string): Promise<{ owl: Owl }> {

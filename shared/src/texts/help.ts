@@ -177,7 +177,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Oben im Briefwechsel siehst du einen Schreibtisch voller Briefe vor hohen Fenstern. Draußen wechseln die Jahreszeiten mit dem Kalender an deinem Wohnort: Winter bis Ende Februar, Frühling ab März, Sommer ab Juni, Herbst ab September, ab November kahle Bäume und vom ersten Advent bis zum zweiten Weihnachtsfeiertag Schnee und Mistelzweig – bei Tag im Tageslicht, bei Nacht mit Kerzenschein. Darunter siehst du für jedes Gegenüber einen Chat, sortiert nach der letzten Aktivität und mit Zähler für ungelesene Briefe. Oben angeheftet sind die Systemnachrichten.',
       [
         `Kurzes Pergament: bis ${LETTER.SMALL_MAX_CHARS} Zeichen, kostenlos.`,
-        `Langes Pergament: bis ${LETTER.LARGE_MAX_CHARS} Zeichen, ebenfalls kostenlos – sofern deine Eule es tragen kann.`,
+        `Langes Pergament: bis ${LETTER.LARGE_MAX_CHARS.toLocaleString('de-DE')} Zeichen, ebenfalls kostenlos – sofern deine Eule es tragen kann.`,
       ],
       `So geht’s: Pergament wählen, Text schreiben, bei Bedarf weitere Empfänger hinzufügen (insgesamt höchstens ${LETTER.MAX_RECIPIENTS}), Eule wählen und absenden. Die Eulenwahl steht schon da, bevor du das erste Wort schreibst, und bleibt beim Tippen stehen. Bei mehreren Empfängern sortiert PostEulen sie so, dass die Eule den kürzesten Weg fliegt – von dir zu allen und wieder nach Hause. Mit den Pfeilen kannst du die Reihenfolge trotzdem ändern. Bei der Eulenwahl zeigt PostEulen dir für jede Eule, wann sie bei jedem Empfänger ankommt und wann sie wieder zu Hause ist.`,
       'Du kannst auch bei der Eule anfangen: In der Eulenübersicht hat jede einsatzbereite eigene Eule und jede Leiheule den Knopf „Brief schreiben“. Du wählst bis zu fünf Kontakte – oder einen Bot –, und der Briefwechsel öffnet sich mit genau dieser Eule.',
@@ -285,7 +285,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Die Karte zeigt die ganze Welt. Westeuropa, wo alle wohnen, ist genau gezeichnet, mit Städten; außerhalb davon siehst du Ländergrenzen und Hauptstädte. Eingezeichnet sind dein Wohnort, die Wohnorte deiner Kontakte und Bots und deine Eulen, die gerade für dich unterwegs sind. Eulen anderer Leute siehst du nie – auch nicht, wenn sie zu dir fliegen. Den Erklärbären findest du auf der Karte, sobald du ihm zum ersten Mal geschrieben hast; andere Bots, sobald ihr erster Brief bei dir ist – sie können überall auf der Welt wohnen.',
       'Die Karte sieht aus wie aus einem handgezeichneten alten Atlas: warmes Pergament, feine Küsten mit Wellenlinien, gestrichelte Grenzen, Flüsse und Seen, schraffierte Gebirge, kleine Hügel für die Mittelgebirge, olivgrüne Baumgruppen für Wälder – Bäume, Berge und Hügel stehen dabei immer an Land, nie auf Meeren, Seen oder Stauseen. Je näher du heranzoomst, desto mehr Namen erscheinen – ganz weit draußen die Ozeane, dann Meere, Gebirge und große Landschaften, schließlich Flüsse, Seen, Wälder und kleinere Landschaften. Rund um Westeuropa ist die Karte viel genauer als im Rest der Welt, bis hin zu Lüneburger Heide, Harz, Eifel oder Schwäbischer Alb. Ein Name erscheint nur, wo er Platz hat; Städte, deine Orte und deine Eulen gehen vor.',
       'Deine Eulen siehst du dort, wo sie gerade sind. Den Weg, der noch vor ihnen liegt, zeigt die Karte nicht – Eulen lassen sich nicht gern in die Karten schauen. Unter der Karte stehen alle deine Eulen unterwegs mit ihrem nächsten Halt; rastet eine gerade, steht dort, bei wem und bis wann.',
-      'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch dein Wohnort, deine Kontakte und deine Eulen zu sehen sind (die Bots zählen dafür nicht). Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200 000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
+      'Beim Öffnen zoomt die Karte so weit hinein, dass gerade noch dein Wohnort, deine Kontakte und deine Eulen zu sehen sind (die Bots zählen dafür nicht). Zur Orientierung zeigt sie Städte: weit herausgezoomt die mit über einer Million Einwohnern, näher herangezoomt alle mit über 200.000. Ist kein Platz für einen Städtenamen oder läge er auf deinen Orten oder Eulen, bleibt er ausgeblendet, bis du näher heranzoomst. England, Schottland, Wales und Nordirland sind als eigene Länder eingezeichnet.',
       `Die dunkle Fläche ist die Nacht. Positionen und Nachtgrenze rechnet dein Gerät alle ${MAP.CLIENT_REFRESH_MINUTES} Minuten neu aus, ohne den Server zu fragen.`,
       'Die Karte ist immer quadratisch und so groß, dass sie ganz ins Fenster passt. Du kannst mit zwei Fingern oder dem Mausrad zoomen, verschieben und mit der Tastatur steuern (Pfeiltasten, Plus und Minus). Ganz herausgezoomt passt die ganze Welt ins Quadrat. Der Knopf unter Plus und Minus („Ansicht zurücksetzen“) springt zurück zur Ansicht beim Öffnen der Karte.',
       'Wohnen kannst du nur in Westeuropa: Beim Erstellen deines Kontos und beim Umzug zeigt die Karte deshalb nur den Westeuropa-Ausschnitt.',
@@ -296,7 +296,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Gold',
     blocks: [
       `Du startest mit ${gold(GOLD.START)}. Jeden Tag um ${dailyGoldTime} bekommt jedes aktive Konto Gold: in den ersten ${GOLD.DAILY_HIGH_DAYS} Tagen nach der Kontoerstellung ${gold(GOLD.DAILY)} am Tag, danach ${gold(GOLD.DAILY_LATER)}. Manchmal schickt dir auch ein Bot Gold oder sogar eine Eule – kommt ein Brief dazu, steht über ihm „Begleitbrief zu …“ mit dem Betrag bzw. der Eule.`,
-      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)} (Eulen, die auch Gold tragen: ${gold(GOLD.LOAN_PRICE_GOLD)}), Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}, Krankenpflege ${gold(GOLD.SELF_CARE_PRICE)} oder Eulenarzt ${gold(GOLD.VET_PRICE)}. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
+      `Kosten: Eulen je nach Art, Leiheule ${gold(GOLD.LOAN_PRICE)} (Eulen, die auch Gold tragen: ${gold(GOLD.LOAN_PRICE_GOLD)}), Eulenkeks ${gold(GOLD.FEED_PRICE)}, Lieblingsleckerli ${gold(GOLD.SNACK_PRICE)}. Medizin, Wasser und Streicheln in der Rettungsstation kosten nichts. Alles muss voll gedeckt sein; Schulden gibt es nicht.`,
       `Deinen Goldstand siehst du oben rechts. In den Einstellungen unter „Gold und Buchungen“ stehen das tägliche Gold und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
       `Gold verschicken: Jede einsatzbereite eigene oder geliehene Eule, die Gold tragen kann, hat unter „Eulen“ (Leiheulen auch im Postamt) den Knopf „Gold verschicken“ – sobald du genug Gold hast. ${gold(GOLD.TRANSFER_MIN)} bis ${gold(GOLD.TRANSFER_MAX)} an einen Kontakt, gern mit kurzem Begleitbrief; vor dem Losschicken siehst du, wann sie ankommt. Danach müssen dir mehr als ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} bleiben. Das Gold wird beim Abflug abgebucht und kommt mit der Eule an. Kehrt sie um, bekommst du es zurück, sobald sie wieder zu Hause ist. Bots kannst du kein Gold schicken.`,
     ],
@@ -326,10 +326,10 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Preis in Gold, maximale Energie, Geschwindigkeit, Erholung pro Stunde (bei Motivation 100 %) und was die Eule tragen kann:',
       SPECIES.map(
         (species) =>
-          `${species.name}: ${species.price} Gold, ${species.maxEnergy} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde – ${de.owls[`cargo_${species.cargo}`]}`,
+          `${species.name}: ${species.price} Gold, ${species.maxEnergy.toLocaleString('de-DE')} Energie, ${decimalDe(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, Erholung ${decimalDe(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)} % pro Stunde – ${de.owls[`cargo_${species.cargo}`]}`,
       ),
       `Der Phönix ist keine gewöhnliche Eule: Er kostet ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 150} Gold, fliegt viermal so schnell wie eine Eule mit Faktor 1, wird nie verliehen, hilft nicht in der Menagerie aus und legt keine Eier.`,
-      `Der Virginiauhu (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} Gold, 1 300 Energie, 65 km/h, 20 % Erholung pro Stunde) ist eine ganz normale Art: Du kannst ihn kaufen, leihen und an die Menagerie verleihen, und er legt Eier.`,
+      `Der Virginiauhu (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} Gold, 1.300 Energie, 65 km/h, 20 % Erholung pro Stunde) ist eine ganz normale Art: Du kannst ihn kaufen, leihen und an die Menagerie verleihen, und er legt Eier.`,
     ],
   },
   {
@@ -364,12 +364,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'krankheit',
     title: 'Krankheiten',
     blocks: [
-      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus (siehe Energie und Pflege) deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken und Bot-Eulen werden nie krank, Eulen inaktiver Konten auch nicht.`,
-      'Eine kranke Eule schaut grummelig und kann nicht fliegen, bis sie geheilt ist. Pflegen geht weiter.',
-      [
-        `Selbst gesund pflegen: ${gold(GOLD.SELF_CARE_PRICE)} für spezielles Futter, nach ${OWL.SELF_CARE_DAYS} Tagen ist sie gesund.`,
-        `Eulenarzt: ${gold(GOLD.VET_PRICE)}, nach ${OWL.VET_HOURS} Stunden ist sie gesund.`,
-      ],
+      `Jede Nacht kann eine erwachsene Eule mit einer Wahrscheinlichkeit von 1 zu 30 krank werden – mit Pflegebonus (siehe Energie und Pflege) deutlich seltener. In den ersten ${OWL.SICKNESS_GRACE_DAYS} Tagen bei dir wird sie nie krank. Leiheulen, Küken, Bot-Eulen und der Phönix werden nie krank, Eulen inaktiver Konten auch nicht.`,
+      'Eine kranke Eule kommt sofort in die Rettungsstation (in der Übersicht mit dem Äskulapstab). Unter „Meine Eulen“ siehst du an ihrer Stelle eine leere Stange mit dem Hinweis, dass sie in der Rettungsstation ist. Fliegen kann sie erst wieder, wenn sie gesund ist.',
       'Wird eine Eule unterwegs krank, merkst du es, wenn sie heimkommt.',
     ],
   },

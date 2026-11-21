@@ -85,7 +85,8 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
   it('Zahlen in der Hilfe stammen aus den Konstanten', () => {
     const text = allText(HELP_SECTIONS);
     expect(text).toContain(`${formatGold(GOLD.START)} Gold`);
-    expect(text).toContain(`bis ${LETTER.LARGE_MAX_CHARS} Zeichen`);
+    // v1.3: thousands grouped with a dot (SPEC 8.12).
+    expect(text).toContain(`bis ${LETTER.LARGE_MAX_CHARS.toLocaleString('de-DE')} Zeichen`);
     expect(text).toContain(`mindestens ${ACCOUNT.PASSWORD_MIN_CHARS} Zeichen`);
     for (const species of SPECIES) expect(text).toContain(`${species.name}: ${species.price} Gold`);
   });
@@ -103,9 +104,10 @@ describe('Hilfe, Datenschutz, Impressum (SPEC 8.11)', () => {
   });
 
   it('nennt beim Schreiben die aktuellen Höchstlängen (v0.3)', () => {
-    const spaced = (n: number): string => n.toLocaleString('de-DE').replace('.', ' ');
-    expect(de.letters.smallOption).toContain(spaced(LETTER.SMALL_MAX_CHARS));
-    expect(de.letters.largeOption).toContain(spaced(LETTER.LARGE_MAX_CHARS));
+    // v1.3: thousands grouped with a dot (SPEC 8.12).
+    const grouped = (n: number): string => n.toLocaleString('de-DE');
+    expect(de.letters.smallOption).toContain(grouped(LETTER.SMALL_MAX_CHARS));
+    expect(de.letters.largeOption).toContain(grouped(LETTER.LARGE_MAX_CHARS));
   });
 
   it('erklärt Laien den Weg aufs Handy; Sonderfälle nur in der Hilfe (v0.3)', () => {

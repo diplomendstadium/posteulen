@@ -3,6 +3,8 @@
  * German. Placeholders use {name}. v0.4: the English view has the same keys in en.ts, typed
  * against `Texts`, so no text can be missing there.
  */
+import { formatGold } from '../game/gold.ts';
+
 export const de = {
   app: {
     name: 'PostEulen',
@@ -164,6 +166,12 @@ export const de = {
     printLabel: 'Briefe in Druckschrift statt Handschrift anzeigen',
     /** v0.8.2 */
     linksLabel: 'Links in Briefen anklickbar',
+    asciiLabel: 'ASCII-Modus',
+    asciiHint:
+      'Beim Schreiben eines Briefs an einen Menschen kannst du dann für diesen einen Brief eine schlichte Schreibmaschinenschrift wählen – praktisch für Bilder aus Buchstaben und Zeichen (ASCII-Art). Beide sehen den Brief dauerhaft in dieser Schrift. Du wählst sie bei jedem Brief neu; sonst bleibt es bei der Handschrift.',
+    helpHint:
+      'Alles über Eulen, Briefe, Gold und Sicherheit – und der Erklärbär beantwortet deine Fragen.',
+    helpLink: 'Zur Hilfe',
     linksHint:
       'Ausgeschaltet stehen Internetadressen nur als Text im Brief – nichts öffnet sich aus Versehen. Verkleidete Adressen werden weiter markiert.',
     printHint: 'Leichter zu lesen, zum Beispiel auf kleinen Bildschirmen.',
@@ -261,6 +269,7 @@ export const de = {
     /** v0.8.2: the recipient could not show the letter (sender's view). */
     unreadable: 'Die Eule hat den Brief unterwegs verloren.',
     /** v0.8.2: decryption or authenticity check failed (recipient's view). */
+    monoOption: 'Schreibmaschinenschrift für diesen Brief (für ASCII-Art)',
     keysLoading: 'Der Brief wird gerade entsiegelt – einen Moment bitte …',
     invalid: 'Der Brief ist unterwegs so nass geworden, dass man ihn nicht mehr lesen kann.',
     /** v0.6.1: a link whose address contains unusual characters (shown in technical form). */
@@ -268,7 +277,7 @@ export const de = {
     compose: 'Neuen Brief schreiben',
     parchment: 'Pergament',
     smallOption: 'Kurz – bis 800 Zeichen',
-    largeOption: 'Lang – bis 15 000 Zeichen',
+    largeOption: 'Lang – bis 15.000 Zeichen',
     text: 'Text',
     counter: '{count} von {max} Zeichen',
     noSmileys: 'Pergament kennt keine Smileys.',
@@ -366,8 +375,15 @@ export const de = {
     bot_deleted:
       '{name} hat seine Feder für immer niedergelegt und schreibt keine Briefe mehr. Euer Briefwechsel ist mit ihm verschwunden.',
     chick_gift_received: '{name} hat dir das Küken {owl} geschenkt. In 7 Tagen ist es erwachsen.',
-    owl_sick: '{owl} ist krank geworden. Pflege sie selbst oder bring sie zum Eulenarzt.',
-    owl_healthy: '{owl} ist wieder gesund.',
+    owl_sick:
+      '{owl} ist krank geworden und wird jetzt in der Rettungsstation gepflegt. Schau dort vorbei – mit Medizin, Futter, Wasser und Streicheleinheiten ist {owl} bald wieder gesund.',
+    owl_healthy: '{owl} ist wieder gesund und darf wieder nach Hause.',
+    /** v1.3: a healed wild owl of the rescue centre stays as a post owl. */
+    rescue_joined:
+      '{owl} möchte sich nicht von dir trennen und bleibt als Posteule bei dir. Du findest {owl} unter „Meine Eulen“.',
+    /** v1.3: more than the Earth's circumference flown. */
+    owl_globe:
+      '🌍 Was für eine Reise! {owl} ist schon {km} km geflogen – weiter als einmal rund um die Erde. Zur Feier trägt {owl} ab heute die Weltkugel hinter dem Namen: {owl} 🌍',
     eggs_laid: '{owl} hat Eier gelegt und brütet jetzt 7 Tage.',
     chicks_hatched:
       'Bei {owl} ist ein Küken geschlüpft. Gib ihm in den nächsten 5 Tagen einen Namen – sonst sucht das Los einen aus.',
@@ -532,15 +548,16 @@ export const de = {
     flyingGift: 'Fliegt als Geschenk zu {names}.',
     sleepingTo: 'Schläft auf dem Weg zu {names}.',
     sleepingHome: 'Schläft auf dem Heimweg.',
-    stateSick: 'Krank – braucht Pflege oder den Eulenarzt.',
-    stateSelfCare: 'Wird zu Hause gesund gepflegt – wieder fit ab {until}.',
-    stateVet: 'Beim Eulenarzt bis {until}.',
+    /** v1.3: a sick owl is nursed in the rescue centre (SPEC 8.13). */
+    stateRescue: 'Krank – wird in der Rettungsstation gepflegt (Genesung {progress} %).',
+    toRescue: 'Zur Rettungsstation',
+    perchRescueAlt: 'Leere Stange – {name} wird gerade in der Rettungsstation gepflegt',
+    /** v1.3: the rule on gifts, as the players learn it (SPEC 9.1.5). */
+    giftRule: 'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
     stateBrooding: 'Brütet bis {until}.',
     stateMenagerie: 'In der Menagerie bis {until}.',
     loanUntil: 'Leiheule – muss bis {until} losfliegen.',
     chick: 'Küken – erwachsen ab {until}.',
-    treatSelf: 'Selbst pflegen (0,2 Gold, 7 Tage)',
-    treatVet: 'Zum Eulenarzt (1,0 Gold, 24 Std.)',
     menagerie: 'An die Menagerie verleihen (7 Tage)',
     menagerieConfirm: '{name} für 7 Tage an die Menagerie verleihen? Danach gibt es {amount}.',
     chickNameTitle: 'Wie soll dein Küken heißen?',
@@ -786,6 +803,10 @@ export const de = {
     main: 'Hauptnavigation',
     letters: 'Briefwechsel',
     owls: 'Eulen',
+    /** v1.3: tile and heading of the owl overview (the bottom bar keeps „Eulen“). */
+    myOwls: 'Meine Eulen',
+    /** v1.3: the owl rescue centre (SPEC 8.13). */
+    rescue: 'Rettungsstation',
     post: 'Postamt',
     menagerie: 'Menagerie',
     addressBook: 'Adressbuch',
@@ -805,8 +826,29 @@ export const de = {
     gold: 'Gold',
     goldAmount: '{amount} Gold',
   },
+  /** v1.3: statistics in the settings (SPEC 8.10). */
+  stats: {
+    title: 'Statistik',
+    lettersSent: 'Verschickte Briefe',
+    lettersReceived: 'Erhaltene Briefe',
+    days: 'Tage seit Kontoerstellung',
+    activeDays: 'Aktive Tage',
+    activeValue: '{count} ({percent} %)',
+    km: 'Geflogene Kilometer zwischen Menschen',
+    kmValue: '{km} km',
+    count: '{count}',
+    interactionsTitle: 'Zuwendung für Eulen',
+    water: 'Wasser gegeben',
+    pet: 'Gestreichelt',
+    feed: 'Eulenkekse',
+    snack: 'Lieblingsleckerli',
+    medicine: 'Medizin gegeben',
+    countedSince:
+      'Einige Werte werden erst seit dem {date} gezählt; ältere sind nur enthalten, soweit sie noch gespeichert waren.',
+  },
   units: {
-    gold: (tenths: number): string => `${(tenths / 10).toFixed(1).replace('.', ',')} Gold`,
+    // v1.3: thousands grouped ("1.234,5 Gold", SPEC 8.12).
+    gold: (tenths: number): string => `${formatGold(tenths, ',')} Gold`,
   },
   pages: {
     helpTitle: 'Hilfe',
@@ -927,7 +969,7 @@ export const de = {
     inactivitySave: 'Speichern',
     broadcastTitle: 'Rundnachricht an alle',
     broadcastIntro:
-      'Erscheint im Systemchat aller Konten, mit Benachrichtigung. Höchstens 3 000 Zeichen. Der Verlauf hier behält jede Rundnachricht 180 Tage.',
+      'Erscheint im Systemchat aller Konten, mit Benachrichtigung. Höchstens 3.000 Zeichen. Der Verlauf hier behält jede Rundnachricht 180 Tage.',
     broadcastText: 'Text',
     broadcastSend: 'An alle senden',
     broadcastConfirm: 'Diese Nachricht wirklich an alle Konten senden?',
@@ -1077,7 +1119,7 @@ export const de = {
     withLetter: 'Brief an alle Spieler',
     parchment: 'Pergament',
     parchmentSmall: 'kurz (bis 800 Zeichen)',
-    parchmentLarge: 'lang (bis 15 000 Zeichen)',
+    parchmentLarge: 'lang (bis 15.000 Zeichen)',
     eventOwl: 'Eule',
     owlDefault: 'wie in den Einstellungen',
     textFirstDe: 'Deutsch – Erstkontakt (für Spieler ohne früheren Brief dieses Bots)',

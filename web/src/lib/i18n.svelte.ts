@@ -7,9 +7,9 @@
  * when the language changes (App.svelte, `{#key}`), so texts computed once in a component
  * follow as well.
  */
-import { de, fill, type Texts } from '@posteulen/shared/texts/de.ts';
+import { de, fill as fillTemplate, type Texts } from '@posteulen/shared/texts/de.ts';
 import { en } from '@posteulen/shared/texts/en.ts';
-import { formatGold as formatTenths } from '@posteulen/shared/game/gold.ts';
+import { formatGold as formatTenths, groupThousands } from '@posteulen/shared/game/gold.ts';
 import { DEFAULT_LANGUAGE, isLanguage, localeOf, type Language } from '@posteulen/shared/i18n.ts';
 import { speciesName as nameOfSpecies } from '@posteulen/shared/species.ts';
 
@@ -48,7 +48,26 @@ export const t: Texts = new Proxy({} as Texts, {
   get: (_target, key) => (i18n.lang === 'en' ? en : de)[key as keyof Texts],
 });
 
-export { fill };
+/**
+ * A whole number in the notation of the language, thousands grouped: "12.234.323" or
+ * "12,234,323" (SPEC 8.12). Years and codes are not passed through here.
+ */
+export function formatNumber(value: number): string {
+  if (Number.isInteger(value)) return groupThousands(value, i18n.lang === 'en' ? ',' : '.');
+  return value.toLocaleString(locale(), { maximumFractionDigits: 2 });
+}
+
+/**
+ * Fills a text template; numbers are shown in the notation of the language with grouped
+ * thousands (v1.3, SPEC 8.12) – except a `year`.
+ */
+export function fill(template: string, values: Readonly<Record<string, string | number>>): string {
+  const shown: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(values)) {
+    shown[key] = typeof value === 'number' && key !== 'year' ? formatNumber(value) : value;
+  }
+  return fillTemplate(template, shown);
+}
 
 /** "12,3" or "12.3", depending on the language. */
 export function formatGold(tenths: number): string {
@@ -85,5 +104,10 @@ export function decimal(value: number, digits: number): string {
   // Round half up in decimal (28.75 → 28.8), not in binary floating point.
   const scale = 10 ** digits;
   const text = (Math.round(value * scale + 1e-9) / scale).toFixed(digits);
-  return i18n.lang === 'en' ? text : text.replace('.', ',');
+  // v1.3: the whole part with grouped thousands (SPEC 8.12).
+  const negative = text.startsWith('-');
+  const [whole = '0', part] = (negative ? text.slice(1) : text).split('.');
+  const grouped = groupThousands(Number(whole), i18n.lang === 'en' ? ',' : '.');
+  const mark = i18n.lang === 'en' ? '.' : ',';
+  return `${negative ? '-' : ''}${grouped}${part === undefined ? '' : mark + part}`;
 }

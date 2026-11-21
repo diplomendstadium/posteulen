@@ -1,5 +1,6 @@
 /** Account settings (SPEC 7.3–7.5, 8.10): change name or home, delete the account. */
 import type { FastifyInstance } from 'fastify';
+import { statsOf } from './stats.ts';
 import { isLand, roundHome } from '@posteulen/shared/map/landmask.ts';
 import { checkUserName } from '@posteulen/shared/names.ts';
 import {
@@ -135,6 +136,8 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
       );
       if (body.links !== undefined)
         ctx.db.run('UPDATE users SET links_clickable = ? WHERE id = ?', body.links ? 1 : 0, me);
+      if (body.ascii !== undefined)
+        ctx.db.run('UPDATE users SET ascii_mode = ? WHERE id = ?', body.ascii ? 1 : 0, me);
       // v0.8.5: a shorter period takes effect with the next weekly clean-up (Monday 04:00 UTC),
       // like every deletion by age; burning letters still works at once.
     });
@@ -143,6 +146,11 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
   });
 
   /** Deletion with a fresh password check; logout at once, 24 hours to change one's mind (7.5). */
+  /** v1.3: statistics of the account for the settings (SPEC 8.10). */
+  app.get('/api/account/stats', { preHandler: authenticated }, async (request) => ({
+    stats: statsOf(ctx, userOf(request).id, ctx.now()),
+  }));
+
   /** Preferred language (v0.4): the settings and the flag in the top right corner. */
   app.patch('/api/account/language', { preHandler: authenticated }, async (request) => {
     const body = parse(LanguageSetting, request.body);

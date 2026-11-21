@@ -24,6 +24,7 @@ import {
 } from '../flights/service.ts';
 import { getInactivityDays } from '../admin/settings.ts';
 import { pruneErrorLog } from '../ops/error-log.ts';
+import { pruneActivityDays } from './stats.ts';
 
 type After = (work: () => void) => void;
 
@@ -185,6 +186,8 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   // Unconfirmed notifications are kept for "Neuigkeiten", but not forever.
   ctx.db.run('DELETE FROM notifications WHERE created_at < ?', at - 60 * TIME.DAY);
   pruneCareHistory(ctx, at);
+  // v1.3: the day log for giving gold and owls needs two weeks only (SPEC 9.1.5).
+  pruneActivityDays(ctx, at);
   // v0.8.5: letters and system messages past their period only once a week, on Mondays. A
   // missed run waits for the next Monday (the daily job only runs for the current day).
   if (isRetentionDay(day)) purgeOldLetters(ctx, at, undefined, after);

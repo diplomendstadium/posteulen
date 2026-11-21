@@ -1,6 +1,9 @@
 /** Owl rows, current energy and the view sent to the browser (SPEC 8.5, 9.2, 9.3). */
 import { energyNow, displayEnergy } from '@posteulen/shared/game/energy.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
+import { OWL, TIME } from '@posteulen/shared/constants.ts';
+import { isGlobetrotter, owlDisplayName } from '@posteulen/shared/game/gifts.ts';
+import { rescueProgress } from '@posteulen/shared/game/rescue.ts';
 import {
   canCare,
   canGift,
@@ -55,6 +58,8 @@ export interface OwlRow {
   readonly created_at: number;
   /** v1.2.4: kilometres flown in all. */
   readonly km_flown: number;
+  /** v1.3: the 🌍 badge was announced. */
+  readonly globe_announced?: number;
 }
 
 export function facts(owl: OwlRow): {
@@ -151,12 +156,19 @@ export interface OwlView {
   readonly clutchId: string | null;
   /** v1.2.4: kilometres flown in all (own owls; null for loan and visiting owls). */
   readonly km: number | null;
+  /** v1.3: 🌍 after the name – flown further than around the Earth (SPEC 9.2.1). */
+  readonly globetrotter: boolean;
+  /** v1.3: order of the overview (SPEC 8.5): since when the player has it, created, away since. */
+  readonly ownedSince: string;
+  readonly createdAt: number;
+  readonly awaySince: number | null;
+  /** v1.3: in the rescue centre (sick), with the progress in per cent (SPEC 8.13). */
+  readonly rescue: { readonly progress: number } | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
     readonly release: boolean;
     readonly rename: boolean;
-    readonly treat: boolean;
     readonly menagerie: boolean;
   };
   readonly absence: {
@@ -192,6 +204,8 @@ export interface GuestView {
   readonly feedable: boolean;
   readonly snackable: boolean;
   readonly caredAt: number | null;
+  /** v1.3: 🌍 after the name (SPEC 9.2.1). */
+  readonly globetrotter: boolean;
   /** Whose owl it is: their user ID and current name (null if no longer a contact). */
   readonly holderId: string;
   readonly holderName: string | null;
@@ -213,7 +227,8 @@ export function guestView(
   const maxEnergy = speciesById(owl.species)?.maxEnergy ?? 0;
   return {
     id: owl.id,
-    name: owl.name ?? flight.owl_name,
+    // v1.3: with 🌍 for an owl that has flown around the Earth (SPEC 9.2.1).
+    name: owlDisplayName(owl.name ?? flight.owl_name, isGlobetrotter(owl.km_flown)),
     species: owl.species,
     sex: owl.sex,
     loan: owl.kind === 'loan',
@@ -227,6 +242,7 @@ export function guestView(
     feedable: canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
     snackable: canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
     caredAt: owl.cared_at,
+    globetrotter: isGlobetrotter(owl.km_flown),
     holderId: flight.holder_id,
     holderName: stop
       ? findContact(ctx.db, stop.userId, flight.holder_id)
@@ -283,6 +299,7 @@ export function botGuestView(
     feedable: !care.has('feed'),
     snackable: !care.has('snack'),
     caredAt: null,
+    globetrotter: false,
     holderId: flight.holder_id,
     holderName: bot?.name ?? null,
     restUntil: stop?.restUntil ?? now,
@@ -302,9 +319,11 @@ export function owlView(
   const today = utcDay(now);
   const year = new Date(now).getUTCFullYear();
   let absence: OwlView['absence'] = null;
+  let awaySince: number | null = null;
   if (owl.state === 'flying') {
     const flight = activeFlightOf(ctx, owl.id);
     if (flight) {
+      awaySince = flight.started_at;
       const route = routeOf(flight);
       const info = flightPosition(flight, now);
       const position = info?.position;
@@ -331,6 +350,22 @@ export function owlView(
   const ownFacts = facts(owl);
   const energy = displayEnergy(currentEnergy(ctx, owl, now));
   const maxEnergy = species?.maxEnergy ?? 0;
+  const rescue =
+    owl.state === 'sick'
+      ? ctx.db.get<{ needed: number; done: number; admitted_at: number }>(
+          'SELECT needed, done, admitted_at FROM rescue_cases WHERE owl_id = ?',
+          owl.id,
+        )
+      : undefined;
+  // v1.3: since when the owl has been away or busy (SPEC 8.5: away longest first).
+  if (owl.state === 'sick') awaySince = rescue?.admitted_at ?? null;
+  else if (owl.state === 'menagerie' && owl.state_until !== null)
+    awaySince = owl.state_until - OWL.MENAGERIE_DAYS * TIME.DAY;
+  else if (owl.state === 'brooding' && owl.state_until !== null)
+    awaySince = owl.state_until - OWL.BROODING_DAYS * TIME.DAY;
+  else if (owl.is_chick === 1)
+    awaySince = Math.max(owl.hatched_at ?? 0, Date.parse(`${owl.owned_since}T00:00:00Z`));
+  else if (owl.state === 'home' && owl.name === null) awaySince = owl.created_at;
   return {
     id: owl.id,
     name: owl.name,
@@ -357,12 +392,16 @@ export function owlView(
     clutchId: owl.clutch_id,
     // v1.2.4: kilometres flown in all – only for own owls (not loan or visiting owls).
     km: owl.kind === 'own' ? Math.round(owl.km_flown) : null,
+    globetrotter: owl.kind === 'own' && isGlobetrotter(owl.km_flown),
+    ownedSince: owl.owned_since,
+    createdAt: owl.created_at,
+    awaySince,
+    rescue: rescue ? { progress: rescueProgress(rescue.done, rescue.needed) } : null,
     actions: {
       care: canCare(ownFacts),
       gift: canGift(ownFacts) && owl.name !== null,
       release: releaseAllowed(ownFacts, ownCount),
       rename: owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
-      treat: owl.state === 'sick',
       menagerie: canLendToMenagerie(ownFacts),
     },
     absence,

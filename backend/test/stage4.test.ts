@@ -479,34 +479,7 @@ describe('sickness (SPEC 9.8, 17.2)', () => {
     // Random 0 also means eggs for the female: brooding instead of sick.
     expect(owlRow(female)).toMatchObject({ state: 'brooding', pending_sickness: 0 });
   });
-
-  it('treatment: own care 0.2 gold / 7 days, vet 1.0 gold / 24 hours', async () => {
-    const a = await owlAged(60);
-    const b = await owlAged(60);
-    app.db.run("UPDATE owls SET state = 'sick' WHERE owner_id = ?", anna.id);
-    setGold(app, anna, 50);
-    expect(
-      (await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${a}/treat`, { kind: 'self' }))
-        .body.owl,
-      // v0.8.5: releasing needs more than 20 own owls (9.2.8).
-    ).toMatchObject({ state: 'self_care', actions: { care: true, release: false } });
-    expect(
-      (await anna.agent.json<{ owl: OwlView }>('POST', `/api/owls/${b}/treat`, { kind: 'vet' }))
-        .body.owl,
-    ).toMatchObject({ state: 'vet', actions: { care: false, release: false } });
-    expect(gold(anna)).toBe(50 - 2 - 10);
-    expect(
-      (await anna.agent.json('POST', `/api/owls/${a}/treat`, { kind: 'vet' })).body,
-    ).toMatchObject({
-      code: 'owl_not_sick',
-    });
-    advanceTo(app, app.clock.now + 24 * TIME.HOUR);
-    expect(owlRow(b)?.state).toBe('home');
-    expect(owlRow(a)?.state).toBe('self_care');
-    advanceTo(app, app.clock.now + 6 * TIME.DAY);
-    expect(owlRow(a)?.state).toBe('home');
-    expect((await systemTypes(anna)).filter((t) => t === 'owl_healthy')).toHaveLength(2);
-  });
+  // v1.3: the treatment by the player or the owl vet gave way to the rescue centre (v130.test.ts).
 });
 
 describe('eggs and chicks (SPEC 9.9, 17.2)', () => {

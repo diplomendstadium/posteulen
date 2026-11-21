@@ -1,10 +1,10 @@
 /**
- * Version 1.2.1: the desk pictures of the letters page by season, the order of the owl overview
- * and the Virginiauhu at 65 km/h.
+ * Version 1.2.1: the desk pictures of the letters page by season and the Virginiauhu at 65 km/h
+ * (the order of the owl overview changed in v1.3, see v130.test.ts).
  */
 import { describe, expect, it } from 'vitest';
 import { owlSpeedKmh } from '../src/game/flight.ts';
-import { expectedBack, overviewOrder, speciesById, type OverviewOwl } from '../src/game/owls.ts';
+import { speciesById } from '../src/game/owls.ts';
 import { deskSeason, deskSeasonOfDate } from '../src/game/season.ts';
 import { SCENE_IMAGES } from '../src/species.ts';
 
@@ -52,59 +52,6 @@ describe('desk pictures by season (SPEC 9.11)', () => {
     }
     expect(files).not.toContain('Briefwechsel.png');
     expect(files).toContain('Menagerie-Innen-Weihnachten-Nacht.png');
-  });
-});
-
-describe('order of the owl overview (SPEC 8.5)', () => {
-  const owl = (name: string, values: Partial<OverviewOwl> = {}): OverviewOwl => ({
-    name,
-    ready: true,
-    energy: 50,
-    maxEnergy: 100,
-    stateUntil: null,
-    adultAt: null,
-    absence: null,
-    ...values,
-  });
-  const names = (list: readonly OverviewOwl[]) => list.map((entry) => entry.name);
-  const compare = (a: string, b: string) => a.localeCompare(b, 'de');
-
-  it('puts the ready owls on top, the fullest energy in per cent first', () => {
-    const { ready, busy } = overviewOrder(
-      [
-        owl('Bruno', { energy: 300, maxEnergy: 1000 }),
-        owl('Anni', { energy: 90, maxEnergy: 100 }),
-        owl('Cleo', { energy: 45, maxEnergy: 50 }),
-        owl('Dora', { energy: 0, maxEnergy: 0 }),
-      ],
-      compare,
-    );
-    // Equal shares by name; an empty maximum counts as empty.
-    expect(names(ready)).toEqual(['Anni', 'Cleo', 'Bruno', 'Dora']);
-    expect(busy).toEqual([]);
-  });
-
-  it('sorts the others by the expected return, unknown last', () => {
-    const away = (returnsAt: number | null, nextStop?: number) => ({
-      returnsAt,
-      ...(nextStop === undefined ? {} : { nextStop: { arrivesAt: nextStop } }),
-    });
-    const { ready, busy } = overviewOrder(
-      [
-        owl('Flieger', { ready: false, absence: away(5000) }),
-        owl('Krank', { ready: false, stateUntil: 3000 }),
-        owl('Küken', { ready: false, adultAt: 9000 }),
-        owl('Leihe', { ready: false, absence: away(null, 4000) }),
-        owl('Rätsel', { ready: false }),
-        owl('Anderes Rätsel', { ready: false }),
-        owl('Daheim'),
-      ],
-      compare,
-    );
-    expect(names(ready)).toEqual(['Daheim']);
-    expect(names(busy)).toEqual(['Krank', 'Leihe', 'Flieger', 'Küken', 'Anderes Rätsel', 'Rätsel']);
-    expect(expectedBack(owl('x', { absence: away(7000), stateUntil: 1 }))).toBe(7000);
-    expect(expectedBack(owl('x'))).toBe(Number.POSITIVE_INFINITY);
   });
 });
 

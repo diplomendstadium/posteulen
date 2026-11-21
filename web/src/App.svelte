@@ -2,6 +2,7 @@
   import { i18n, setLanguage, t } from './lib/i18n.svelte.ts';
   import StatusBanners from './components/StatusBanners.svelte';
   import LanguageFlag from './components/LanguageFlag.svelte';
+  import HelpLink from './components/HelpLink.svelte';
   import { onMount, untrack } from 'svelte';
   import { navigate, route } from './lib/router.svelte.ts';
   import { account, restore } from './lib/auth.svelte.ts';
@@ -60,7 +61,7 @@
   <a class="skip-link" href="#main">{t.app.skipToContent}</a>
   <StatusBanners />
   {#if !inShell || !account.profile}
-    <div class="language-row"><LanguageFlag /></div>
+    <div class="language-row"><LanguageFlag /><HelpLink /></div>
   {/if}
   <main id="main" tabindex="-1">
     {#if !account.checked}
@@ -100,6 +101,7 @@
   .language-row {
     display: flex;
     justify-content: flex-end;
+    gap: 0.5rem;
     padding: 0.5rem 1rem 0;
   }
 

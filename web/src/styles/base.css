@@ -22,6 +22,9 @@
   --font-display: 'Cinzel Decorative', Georgia, serif;
   /* Letters (v0.3): never for names or links, which stay in --font-body (SPEC 6, 7.1). */
   --font-hand-own: 'Dancing Script', 'Comic Sans MS', cursive;
+  /* v1.3: ASCII mode – a plain monospaced font of the device (nothing loaded, SPEC 8.4). */
+  --font-mono:
+    ui-monospace, 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
   --font-hand-other: 'Playwrite DE VA', 'Comic Sans MS', cursive;
   /* v1.2: the names on the map, as in an old atlas. */
   --font-atlas: 'EB Garamond', Georgia, serif;

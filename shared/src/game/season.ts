@@ -3,7 +3,7 @@
  * the end of 26 December, by the local time at a (fictional) home. The time zone comes from the
  * same grid as the greeting (8.3); the rules including summer time from Intl.
  */
-import { CHRISTMAS, DESK_SEASONS } from '../constants.ts';
+import { CHRISTMAS, DESK_SEASONS, RESCUE } from '../constants.ts';
 import { zoneAt } from '../map/timezone.ts';
 
 export interface LocalDate {
@@ -83,6 +83,26 @@ export function deskSeasonOfDate(date: LocalDate): DeskSeason {
 /** The season of the desk pictures at this place and time (local time there). */
 export function deskSeason(at: number, lat: number, lon: number): DeskSeason {
   return deskSeasonOfDate(localDate(at, zoneAt(lat, lon)));
+}
+
+/** The seasons of the rescue centre pictures: the desk seasons plus early spring. */
+export type RescueSeason = DeskSeason | 'earlySpring';
+
+/**
+ * The season of the rescue centre pictures (SPEC 9.11): like the desk, but from 15 February to
+ * 15 March early spring (snow remnants, snowdrops, crocuses).
+ */
+export function rescueSeasonOfDate(date: LocalDate): RescueSeason {
+  const key = date.month * 100 + date.day;
+  const from = RESCUE.EARLY_SPRING_FROM.month * 100 + RESCUE.EARLY_SPRING_FROM.day;
+  const to = RESCUE.EARLY_SPRING_TO.month * 100 + RESCUE.EARLY_SPRING_TO.day;
+  if (key >= from && key <= to) return 'earlySpring';
+  return deskSeasonOfDate(date);
+}
+
+/** The season of the rescue centre pictures at this place and time (local time there). */
+export function rescueSeason(at: number, lat: number, lon: number): RescueSeason {
+  return rescueSeasonOfDate(localDate(at, zoneAt(lat, lon)));
 }
 
 /**

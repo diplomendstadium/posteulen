@@ -1,46 +1,81 @@
-/** SPEC Anhang D: names for loan owls and random chick names (German view). */
-// prettier-ignore
-export const OWL_NAMES: readonly string[] = [
-  'Momo', 'Keks', 'Pino', 'Flauschi', 'Nori', 'Puschel', 'Tofu', 'Krümel', 'Miso', 'Knöpfchen',
-  'Flöckchen', 'Pips', 'Mochi', 'Wuschel', 'Kiki', 'Fussel', 'Bubu', 'Schnuffel', 'Pünktchen', 'Taps',
-  'Nyx', 'Rune', 'Nebel', 'Echo', 'Onyx', 'Schatten', 'Mondlicht', 'Nox', 'Salem', 'Merlin',
-  'Dämmer', 'Mystic', 'Orion', 'Cosmo', 'Nova', 'Auri', 'Kismet', 'Lumi', 'Zora', 'Vesper',
-  'Moos', 'Flocke', 'Ahorn', 'Wolke', 'Feder', 'Klee', 'Sturm', 'Kiesel', 'Frost', 'Funke',
-  'Tau', 'Asche', 'Regen', 'Herbst', 'Flieder', 'Tanne', 'Wind', 'Farn', 'Schnee', 'Glimmer',
-  'Rio', 'Kim', 'Mika', 'Lou', 'Juno', 'Niko', 'Toni', 'Sam', 'Robin', 'Alex',
-  'Yuki', 'Nalu', 'Quinn', 'Sky', 'Ari', 'Neo', 'Jona', 'Remy', 'Eli', 'Lio',
-  'Huhu', 'Schuhu', 'Kuckuck', 'Professor', 'Brille', 'Knick', 'Flatter', 'Wupp', 'Glubsch', 'Schnabel',
-  'Plüsch', 'Knarz', 'Wölkchen', 'Murmel', 'Pompom', 'Knuff', 'Zwirbel', 'Quatsch', 'Knurps',
-  // v0.3.2: old-fashioned, historical and mythological first names (D-130).
-  'Hermes', 'Arnold', 'Dougal', 'Bathilda', 'Ariana', 'Kendra', 'Hestia', 'Phineas', 'Arcturus', 'Ruppert',
-  'Walburga', 'Septimus', 'Septima', 'Aurora', 'Wilhelmina', 'Silvanus', 'Cuthbert', 'Galatea', 'Rolanda', 'Irma',
-  'Garrick', 'Ambrosius', 'Rosmerta', 'Dilys', 'Armando', 'Everard', 'Perenelle', 'Hepzibah', 'Merope', 'Wendelin',
-  'Gunhilda',
-];
-
 /**
- * v0.4: the same list for the English view – German words translated, international names
- * kept. Same length and order as OWL_NAMES (SPEC Anhang D).
+ * SPEC Anhang D: names for loan owls, chicks and the wild owls of the rescue centre – one list
+ * per sex and language, so every owl gets a name that suits its sex.
  */
+
+/** Male owls, German view. */
 // prettier-ignore
-export const OWL_NAMES_EN: readonly string[] = [
-  'Momo', 'Cookie', 'Pino', 'Fluffy', 'Nori', 'Tuft', 'Tofu', 'Crumble', 'Miso', 'Button',
-  'Snowdrop', 'Pips', 'Mochi', 'Scruffy', 'Kiki', 'Fluff', 'Bubu', 'Snuffles', 'Dotty', 'Tippy',
-  'Nyx', 'Rune', 'Mist', 'Echo', 'Onyx', 'Shadow', 'Moonlight', 'Nox', 'Salem', 'Merlin',
-  'Dusk', 'Mystic', 'Orion', 'Cosmo', 'Nova', 'Auri', 'Kismet', 'Lumi', 'Zora', 'Vesper',
-  'Moss', 'Flake', 'Maple', 'Cloud', 'Feather', 'Clover', 'Storm', 'Pebble', 'Frost', 'Spark',
-  'Dew', 'Ash', 'Rain', 'Autumn', 'Lilac', 'Fir', 'Breeze', 'Fern', 'Snow', 'Glimmer',
-  'Rio', 'Kim', 'Mika', 'Lou', 'Juno', 'Niko', 'Toni', 'Sam', 'Robin', 'Alex',
-  'Yuki', 'Nalu', 'Quinn', 'Sky', 'Ari', 'Neo', 'Jona', 'Remy', 'Eli', 'Lio',
-  'Hoot', 'Hooty', 'Cuckoo', 'Professor', 'Specs', 'Nibbles', 'Flutter', 'Whoosh', 'Goggles', 'Beaky',
-  'Plush', 'Creaky', 'Cloudlet', 'Marble', 'Pompom', 'Snuggles', 'Twirl', 'Fiddlesticks', 'Pipsqueak',
-  'Hermes', 'Arnold', 'Dougal', 'Bathilda', 'Ariana', 'Kendra', 'Hestia', 'Phineas', 'Arcturus', 'Ruppert',
-  'Walburga', 'Septimus', 'Septima', 'Aurora', 'Wilhelmina', 'Silvanus', 'Cuthbert', 'Galatea', 'Rolanda', 'Irma',
-  'Garrick', 'Ambrosius', 'Rosmerta', 'Dilys', 'Armando', 'Everard', 'Perenelle', 'Hepzibah', 'Merope', 'Wendelin',
-  'Gunhilda',
+export const OWL_NAMES_M: readonly string[] = [
+  'Abel', 'Adalbert', 'Alarich', 'Albert', 'Alex', 'Alfred', 'Ambrosius', 'Anselm', 'Anton', 'Arcturus',
+  'Ari', 'Armando', 'Arnold', 'Arthur', 'Asche', 'Augustin', 'Aurel', 'Auri', 'Balduin', 'Balthasar',
+  'Benno', 'Bruno', 'Caspar', 'Clemens', 'Cosmo', 'Cuthbert', 'Dougal', 'Echo', 'Edgar', 'Edmund',
+  'Eli', 'Emil', 'Erasmus', 'Erik', 'Everard', 'Felix', 'Ferdinand', 'Florian', 'Friedrich', 'Frost',
+  'Garrick', 'Gregor', 'Gustav', 'Hektor', 'Henrik', 'Hermes', 'Hugo', 'Ivo', 'Jakob', 'Jasper',
+  'Jona', 'Julius', 'Juno', 'Karl', 'Kiki', 'Kim', 'Kismet', 'Konrad', 'Leander', 'Lennart',
+  'Leopold', 'Lio', 'Lou', 'Lumi', 'Magnus', 'Marius', 'Merlin', 'Mika', 'Miso', 'Momo',
+  'Moos', 'Moritz', 'Nalu', 'Neo', 'Niko', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odin',
+  'Onyx', 'Orion', 'Oskar', 'Otto', 'Phineas', 'Pino', 'Quinn', 'Remy', 'Rio', 'Robin',
+  'Rune', 'Ruppert', 'Salem', 'Sam', 'Septimus', 'Severin', 'Silvanus', 'Sky', 'Sturm', 'Tanne',
+  'Tau', 'Theodor', 'Toni', 'Vesper', 'Viktor', 'Vincent', 'Wendelin', 'Wilhelm', 'Yuki',
 ];
 
-/** Names for loan owls and chicks in the language of the account (v0.4). */
-export function owlNames(language: 'de' | 'en'): readonly string[] {
-  return language === 'en' ? OWL_NAMES_EN : OWL_NAMES;
+/** Female owls, German view. */
+// prettier-ignore
+export const OWL_NAMES_F: readonly string[] = [
+  'Ada', 'Adelheid', 'Agatha', 'Agnes', 'Alex', 'Alina', 'Alma', 'Amalia', 'Anastasia', 'Anneliese',
+  'Antonia', 'Ari', 'Ariadne', 'Ariana', 'Astrid', 'Athena', 'Auri', 'Aurora', 'Bathilda', 'Beatrice',
+  'Berta', 'Clara', 'Daphne', 'Diana', 'Dilys', 'Dorothea', 'Echo', 'Edith', 'Eleonora', 'Eli',
+  'Elise', 'Emilia', 'Emma', 'Esther', 'Flora', 'Freya', 'Frida', 'Funke', 'Galatea', 'Gerda',
+  'Greta', 'Gunhilda', 'Helena', 'Henriette', 'Hepzibah', 'Hestia', 'Ida', 'Ingrid', 'Iris', 'Irma',
+  'Johanna', 'Jona', 'Juno', 'Jutta', 'Kendra', 'Kiki', 'Kim', 'Kismet', 'Leonora', 'Lio',
+  'Livia', 'Lou', 'Luise', 'Lumi', 'Luna', 'Mathilda', 'Merope', 'Mika', 'Minerva', 'Miso',
+  'Momo', 'Nalu', 'Neo', 'Niko', 'Nora', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odilia',
+  'Onyx', 'Ophelia', 'Perenelle', 'Pino', 'Quinn', 'Remy', 'Rio', 'Robin', 'Rolanda', 'Rosmerta',
+  'Rune', 'Salem', 'Sam', 'Selene', 'Selma', 'Septima', 'Sky', 'Tanne', 'Theodora', 'Toni',
+  'Vesper', 'Viola', 'Walburga', 'Wendelin', 'Wilhelmina', 'Yuki', 'Zora',
+];
+
+/** Male owls, English view. */
+// prettier-ignore
+export const OWL_NAMES_EN_M: readonly string[] = [
+  'Abel', 'Alaric', 'Albert', 'Alex', 'Alfred', 'Ambrose', 'Anselm', 'Anthony', 'Arcturus', 'Ari',
+  'Armand', 'Arnold', 'Arthur', 'Ash', 'Aubrey', 'Augustine', 'Aurelius', 'Baldwin', 'Balthazar', 'Bernard',
+  'Bruno', 'Casper', 'Charles', 'Clement', 'Conrad', 'Cosmo', 'Cuthbert', 'Dougal', 'Echo', 'Edgar',
+  'Edmund', 'Eli', 'Emil', 'Erasmus', 'Eric', 'Ethelbert', 'Everard', 'Felix', 'Ferdinand', 'Florian',
+  'Frederick', 'Frost', 'Garrick', 'Gregory', 'Gustavus', 'Hector', 'Henry', 'Hermes', 'Hugh', 'Ivo',
+  'Jacob', 'Jasper', 'Jordan', 'Julius', 'Juno', 'Kiki', 'Kim', 'Kismet', 'Leander', 'Lee',
+  'Leonard', 'Leopold', 'Lou', 'Lumi', 'Magnus', 'Marius', 'Maurice', 'Merlin', 'Micah', 'Misha',
+  'Morgan', 'Moses', 'Neo', 'Nicky', 'Noel', 'Norrie', 'Nova', 'Nox', 'Nyx', 'Odin',
+  'Onyx', 'Orion', 'Oscar', 'Otto', 'Phineas', 'Pip', 'Quinn', 'Remy', 'Rio', 'Robin',
+  'Rune', 'Rupert', 'Salem', 'Sam', 'Septimus', 'Severin', 'Sky', 'Storm', 'Sylvanus', 'Tanner',
+  'Theodore', 'Toby', 'Toni', 'Vesper', 'Victor', 'Vincent', 'William', 'Wynn', 'Yuki',
+];
+
+/** Female owls, English view. */
+// prettier-ignore
+export const OWL_NAMES_EN_F: readonly string[] = [
+  'Ada', 'Adelaide', 'Agatha', 'Agnes', 'Alex', 'Alina', 'Alma', 'Amelia', 'Anastasia', 'Annalise',
+  'Antonia', 'Ari', 'Ariadne', 'Ariana', 'Ash', 'Astrid', 'Athena', 'Aubrey', 'Aurora', 'Bathilda',
+  'Beatrice', 'Bertha', 'Clara', 'Daphne', 'Diana', 'Dilys', 'Dorothy', 'Echo', 'Edith', 'Eleanor',
+  'Eli', 'Elise', 'Emily', 'Emma', 'Esther', 'Faye', 'Flora', 'Freda', 'Freya', 'Galatea',
+  'Gertrude', 'Greta', 'Gunhilda', 'Helen', 'Henrietta', 'Hephzibah', 'Hestia', 'Ida', 'Ingrid', 'Iris',
+  'Irma', 'Joanna', 'Jordan', 'Judith', 'Juno', 'Kendra', 'Kiki', 'Kim', 'Kismet', 'Lee',
+  'Leonora', 'Livia', 'Lou', 'Louise', 'Lumi', 'Luna', 'Matilda', 'Merope', 'Micah', 'Minerva',
+  'Misha', 'Morgan', 'Neo', 'Nicky', 'Noel', 'Nora', 'Norrie', 'Nova', 'Nox', 'Nyx',
+  'Odette', 'Onyx', 'Ophelia', 'Petronella', 'Pip', 'Quinn', 'Remy', 'Rio', 'Robin', 'Rolanda',
+  'Rosmerta', 'Rune', 'Salem', 'Sam', 'Selene', 'Selma', 'Septima', 'Sky', 'Storm', 'Tanner',
+  'Theodora', 'Toni', 'Vesper', 'Viola', 'Walburga', 'Wilhelmina', 'Wynn', 'Yuki', 'Zora',
+];
+
+export type OwlSex = 'f' | 'm';
+
+/** Names for an owl of this sex in the language of the account. */
+export function owlNames(language: 'de' | 'en', sex: OwlSex): readonly string[] {
+  if (language === 'en') return sex === 'f' ? OWL_NAMES_EN_F : OWL_NAMES_EN_M;
+  return sex === 'f' ? OWL_NAMES_F : OWL_NAMES_M;
+}
+
+/** Names of both lists of a language, each once – for owls of bots (no sex shown). */
+export function anyOwlNames(language: 'de' | 'en'): readonly string[] {
+  return [...new Set([...owlNames(language, 'f'), ...owlNames(language, 'm')])];
 }

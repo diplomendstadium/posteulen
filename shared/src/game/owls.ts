@@ -2,8 +2,11 @@
 import { GOLD, LETTER, OWL } from '../constants.ts';
 import { SPECIES, type Cargo, type Species } from '../species.ts';
 
-export type OwlState =
-  'home' | 'flying' | 'gift_flight' | 'sick' | 'self_care' | 'vet' | 'brooding' | 'menagerie';
+/**
+ * v1.3: `sick` means "in the rescue centre" (SPEC 9.8). The states of the former treatments
+ * (nursing at home, owl vet) no longer occur; the update made such owls healthy.
+ */
+export type OwlState = 'home' | 'flying' | 'gift_flight' | 'sick' | 'brooding' | 'menagerie';
 
 export type OwlKind = 'own' | 'loan' | 'bot';
 
@@ -38,9 +41,12 @@ export function canGift(owl: OwlFacts): boolean {
   return canTransport(owl) && owl.kind === 'own';
 }
 
-/** Petting and feeding (9.2.5): at home, also sick, in own care, brooding or as a chick. */
+/**
+ * Petting and feeding at home (9.2.5): at home, brooding or as a chick. A sick owl is cared for
+ * in the rescue centre only (SPEC 8.13).
+ */
 export function canCare(owl: OwlFacts): boolean {
-  return ['home', 'sick', 'self_care', 'brooding'].includes(owl.state);
+  return ['home', 'brooding'].includes(owl.state);
 }
 
 /** Menagerie: own adult healthy owls at home, not brooding, never a phoenix (9.7, v0.5). */
@@ -50,7 +56,7 @@ export function canLendToMenagerie(owl: OwlFacts): boolean {
 
 /** The state allows a release (9.2.5); whether the stock does, says `releaseAllowed`. */
 export function canRelease(owl: OwlFacts): boolean {
-  return owl.kind === 'own' && !owl.isChick && ['home', 'sick', 'self_care'].includes(owl.state);
+  return owl.kind === 'own' && !owl.isChick && ['home', 'sick'].includes(owl.state);
 }
 
 /**
@@ -66,9 +72,9 @@ export function canRename(owl: OwlFacts): boolean {
   return owl.kind === 'own';
 }
 
-/** Regeneration only at home – also sick, in own care or brooding (9.3). */
+/** Regeneration only at home – also brooding and in the rescue centre (9.3). */
 export function regenerates(state: OwlState): boolean {
-  return ['home', 'sick', 'self_care', 'brooding'].includes(state);
+  return ['home', 'sick', 'brooding'].includes(state);
 }
 
 /** Renaming once per calendar year per owl; the first naming does not count (9.2.4). */
@@ -132,52 +138,40 @@ export function canFeedAgain(input: {
   return !input.fedToday || input.energy < input.maxEnergy;
 }
 
-/** v1.2.1: what the owl overview needs to know to sort an owl (SPEC 8.5). */
+/** What the owl overview needs to know to sort an owl (SPEC 8.5). */
 export interface OverviewOwl {
   readonly name: string | null;
   readonly ready: boolean;
-  readonly energy: number;
-  readonly maxEnergy: number;
-  readonly stateUntil: number | null;
-  readonly adultAt: number | null;
-  readonly absence: {
-    readonly returnsAt: number | null;
-    readonly nextStop?: { readonly arrivesAt: number } | null;
-  } | null;
+  /** UTC day since when the player has the owl (loan owls: the offer day). */
+  readonly ownedSince: string;
+  /** When the owl row was created (bought, hatched, borrowed) – tie-break within a day. */
+  readonly createdAt: number;
+  /** When the owl left the player or became busy (flight, Menagerie, rescue centre, brooding, chick). */
+  readonly awaySince: number | null;
 }
 
 /**
- * When an owl that is not ready is expected back or ready again: the return home of a flight
- * (for a loan owl without return its next stop), otherwise the end of its state (rest, sickness,
- * brooding, Menagerie) or the day a chick grows up; unknown last.
- */
-export function expectedBack(owl: OverviewOwl): number {
-  return (
-    owl.absence?.returnsAt ??
-    owl.absence?.nextStop?.arrivesAt ??
-    owl.stateUntil ??
-    owl.adultAt ??
-    Number.POSITIVE_INFINITY
-  );
-}
-
-/**
- * v1.2.1: the order of the owl overview (SPEC 8.5) – own and loan owls together. On top the owls
- * ready for post, the fullest energy (in per cent of their maximum) first; below all others, the
- * one expected back soonest first. Ties by name.
+ * v1.3: the order of the owl overview (SPEC 8.5) – own and loan owls together. On top the owls
+ * ready for post, the one the player has had longest first; below all others, the one that has
+ * been away or busy longest first (unknown last). Ties by name.
  */
 export function overviewOrder<T extends OverviewOwl>(
   owls: readonly T[],
   compareNames: (a: string, b: string) => number,
 ): { readonly ready: T[]; readonly busy: T[] } {
   const byName = (a: T, b: T): number => compareNames(a.name ?? '', b.name ?? '');
-  const share = (owl: T): number => (owl.maxEnergy > 0 ? owl.energy / owl.maxEnergy : 0);
   return {
-    ready: owls.filter((owl) => owl.ready).sort((a, b) => share(b) - share(a) || byName(a, b)),
+    ready: owls
+      .filter((owl) => owl.ready)
+      .sort(
+        (a, b) =>
+          a.ownedSince.localeCompare(b.ownedSince) || a.createdAt - b.createdAt || byName(a, b),
+      ),
     busy: owls
       .filter((owl) => !owl.ready)
       .sort((a, b) => {
-        const difference = expectedBack(a) - expectedBack(b);
+        const since = (owl: T): number => owl.awaySince ?? Number.POSITIVE_INFINITY;
+        const difference = since(a) - since(b);
         return Number.isNaN(difference) || difference === 0 ? byName(a, b) : difference;
       }),
   };

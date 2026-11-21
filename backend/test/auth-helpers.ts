@@ -26,6 +26,8 @@ export const PARIS = { lat: 48.86, lon: 2.35 };
 
 export interface TestApp extends App {
   clock: { now: number };
+  /** v1.3: the rule on giving gold and owls applies (else accounts look active). */
+  giftRule?: boolean;
 }
 
 export interface SentPush {
@@ -49,6 +51,12 @@ export async function testApp(
     aiClient?: import('../src/bots/ai.ts').AiClient;
     /** v0.9: extra environment (e.g. the onion address). */
     env?: Record<string, string>;
+    /**
+     * v1.3: apply the rule on giving gold and owls (SPEC 9.1.5). Off by default: tests of other
+     * rules may give as often as they like (`person` makes accounts look active, and a temporary
+     * trigger forgets the last gift); the v1.3 tests switch it on.
+     */
+    giftRule?: boolean;
   } = {},
 ): Promise<TestApp & { pushes: SentPush[] }> {
   const pushes: SentPush[] = [];
@@ -76,7 +84,13 @@ export async function testApp(
     },
   );
   setRegistrationMode(app.db, 'open');
-  return Object.assign(app, { clock, pushes });
+  if (!options.giftRule) {
+    // Test set-up only: a temporary trigger of this connection, never in the database file.
+    app.db.exec(`CREATE TEMP TRIGGER test_gifts_open AFTER UPDATE OF last_gift_day ON users
+      WHEN NEW.last_gift_day IS NOT NULL
+      BEGIN UPDATE users SET last_gift_day = NULL WHERE id = NEW.id; END`);
+  }
+  return Object.assign(app, { clock, pushes, giftRule: options.giftRule === true });
 }
 
 let nextIp = 1;
@@ -311,7 +325,26 @@ export async function person(
   await register(agent, name, password, { home, ...(language ? { language } : {}) });
   const result = await login(agent, name, password);
   const unlocked = await unlockFromLogin(result);
-  return { agent, name, id: String(result.body['userId']), identity: unlocked.identity };
+  const id = String(result.body['userId']);
+  if (!app.giftRule) looksActive(app, id);
+  return { agent, name, id, identity: unlocked.identity };
+}
+
+/**
+ * v1.3: an account that was active with letters to and from people every day – from two weeks
+ * before until a year after the test's clock, so the rule on gifts never stands in the way of
+ * tests of other rules (SPEC 9.1.5).
+ */
+export function looksActive(app: TestApp, userId: string): void {
+  const start = app.clock.now - 14 * 86_400_000;
+  for (let day = 0; day < 380; day++) {
+    app.db.run(
+      `INSERT OR REPLACE INTO activity_days (user_id, day, active, sent_human, received_human)
+       VALUES (?, ?, 1, 1, 1)`,
+      userId,
+      new Date(start + day * 86_400_000).toISOString().slice(0, 10),
+    );
+  }
 }
 
 export async function couple(a: Person, b: Person): Promise<void> {

@@ -38,9 +38,10 @@ import {
   OwlBuy,
   OwlName,
   OwlRelease,
-  OwlTreat,
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
+import { kmOf, owlLabel } from './globe.ts';
+import { countInteraction, recordGift, requireGiftAllowed } from '../accounts/stats.ts';
 import { careForBotOwl } from '../central/care.ts';
 import {
   borrow,
@@ -205,7 +206,10 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       : guestFlight(ctx, me, id);
     // v0.8.3: a visiting owl of a control-centre bot (no owl row; free care, SPEC 10.7).
     if (guest?.flight.holder_kind === 'bot') {
-      ctx.db.transaction(() => careForBotOwl(ctx, guest.flight, kind, today, now));
+      ctx.db.transaction(() => {
+        careForBotOwl(ctx, guest.flight, kind, today, now);
+        countInteraction(ctx, me, kind);
+      });
       const flight = loadFlight(ctx, guest.flight.id);
       return { guest: flight ? botGuestView(ctx, flight, guest.index, now) : null };
     }
@@ -246,6 +250,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         now,
         energy === undefined || guest ? undefined : { value: energy, at: now },
       );
+      // v1.3: every interaction counts in the player's statistics (SPEC 8.10).
+      countInteraction(ctx, me, kind);
       if (guest) {
         // The plan follows: more energy now, and the next leg with the new motivation.
         const flight = loadFlight(ctx, guest.flight.id);
@@ -352,7 +358,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           id: ref,
           kind: owl.kind,
           guest: true,
-          name: owl.name,
+          // v1.3: with 🌍 for an owl that has flown around the Earth (SPEC 9.2.1).
+          name: owlLabel({ name: owl.name, km_flown: kmOf(ctx, owl.id) }),
           species: owl.species,
           energy: Math.round(owl.energy),
           maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
@@ -389,7 +396,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         id: owlId,
         kind: owl.kind,
         offer: owlId.startsWith(LOAN_REF_PREFIX),
-        name: owl.name,
+        name: owlLabel({ name: owl.name, km_flown: kmOf(ctx, owl.id) }),
         species: owl.species,
         energy: Math.round(owl.energy),
         maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
@@ -414,6 +421,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const now = ctx.now();
     const owl = ownOwl(ctx, me, id);
     if (!canGift(facts(owl)) || owl.name === null) throw new HttpError(400, 'owl_not_ready');
+    // v1.3: only active players, one gift of gold or an owl in two weeks (SPEC 9.1.5).
+    requireGiftAllowed(ctx, me, now);
     checkRecipients(ctx, me, [body.recipient], now);
     const planned = planFlight(ctx, {
       holderId: me,
@@ -459,7 +468,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const letters = checkLetters(token, body.cover ? [body.cover] : []);
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
+      requireGiftAllowed(ctx, me, now);
       const { route, owl } = depart(ctx, token, letters, now);
+      recordGift(ctx, me, now);
       return {
         owl: { name: owl.name, species: owl.species },
         arrivesAt: route[0]?.arrivesAt ?? now,
@@ -467,34 +478,6 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     });
     ctx.hub.notify(me, 'owls', 'map', 'chats');
     return result;
-  });
-
-  /** Treatment of a sick owl (9.8): own care 0.2 gold / 7 days, vet 1.0 gold / 24 hours. */
-  app.post('/api/owls/:id/treat', { preHandler: authenticated }, async (request) => {
-    const id = owlIdParam(request.params);
-    const body = parse(OwlTreat, request.body);
-    const me = userOf(request).id;
-    const now = ctx.now();
-    ctx.db.transaction(() => {
-      const owl = ownOwl(ctx, me, id);
-      if (owl.state !== 'sick') throw new HttpError(400, 'owl_not_sick');
-      const vet = body.kind === 'vet';
-      debit(ctx.db, me, 'treatment', vet ? GOLD.VET_PRICE : GOLD.SELF_CARE_PRICE, now);
-      const until = now + (vet ? OWL.VET_HOURS * TIME.HOUR : OWL.SELF_CARE_DAYS * TIME.DAY);
-      // At the vet the owl is away and does not regenerate: freeze its energy now.
-      ctx.db.run(
-        'UPDATE owls SET state = ?, state_until = ?, energy = ?, energy_at = ? WHERE id = ?',
-        vet ? 'vet' : 'self_care',
-        until,
-        currentEnergy(ctx, owl, now),
-        now,
-        id,
-      );
-      if (vet) leftHome(ctx, id, now);
-      ctx.queue.schedule('treatment_end', id, until);
-    });
-    ctx.hub.notify(me, 'owls', 'profile', 'finance');
-    return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
   /** Lend an owl to the menagerie for 7 days (9.7). */

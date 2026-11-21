@@ -1,5 +1,6 @@
 /** Writing and reading letters in the browser (SPEC 5.8, 8.4). */
 import { sanitizeLetterText, type Parchment } from '@posteulen/shared/text-rules.ts';
+import type { LetterStyle } from '@posteulen/shared/crypto/letter.ts';
 import { api, ApiError } from './api.ts';
 import { account } from './auth.svelte.ts';
 import { assertCurrent, currentContext, type AccountContext } from './context.ts';
@@ -41,6 +42,8 @@ export interface ApiLetter {
 
 export interface ShownLetter extends ApiLetter {
   readonly text: string | null;
+  /** v1.3: written in ASCII mode – a monospaced font for both sides. */
+  readonly style?: LetterStyle;
   /** v0.8.2: why the letter cannot be shown (reported to the admin's error log). */
   readonly failure?: string;
 }
@@ -86,6 +89,8 @@ export async function sealFor(
   kind: ApiLetter['kind'],
   parchment: Parchment,
   text: string,
+  /** v1.3: `mono` – ASCII mode for this letter. */
+  style: LetterStyle = 'hand',
 ): Promise<SealedItem[]> {
   const context = currentContext();
   const own = account.keys;
@@ -120,6 +125,7 @@ export async function sealFor(
         senderX25519Public: own.x25519Public,
         recipientX25519Public: fromBase64Url(recipientKey.x25519),
       },
+      style,
     );
     assertCurrent(context);
     items.push({
@@ -143,9 +149,10 @@ export async function sendPrepared(
   prepared: Prepared,
   parchment: Parchment,
   text: string,
+  style: LetterStyle = 'hand',
 ): Promise<SendResult> {
   const context = currentContext();
-  const items = await sealFor(prepared, 'letter', parchment, text);
+  const items = await sealFor(prepared, 'letter', parchment, text, style);
   return api<SendResult>(
     'POST',
     '/api/letters/send',
@@ -247,7 +254,7 @@ export async function loadConversation(
       ciphertext: fromBase64Url(letter.ciphertext),
       wrap: fromBase64Url(letter.wrap),
     });
-    if (opened.ok) return { ...letter, text: opened.text };
+    if (opened.ok) return { ...letter, text: opened.text, style: opened.style };
     return { ...letter, text: null, failure: opened.reason };
   }
 }

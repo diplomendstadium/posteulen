@@ -30,7 +30,9 @@ import { addSystemMessage } from '../messages/system.ts';
 import { displayName } from '../contacts/model.ts';
 import type { NotificationType } from '../push/service.ts';
 import { afterReturnHome, scheduleAdult } from '../owls/lifecycle.ts';
-import { addFlownKm } from '../owls/distance.ts';
+import { addFlownKm, afterFlownKm } from '../owls/distance.ts';
+import { flightOwlLabel } from '../owls/globe.ts';
+import { countFlightKm } from '../accounts/stats.ts';
 import { letterReachedBot } from '../bots/service.ts';
 
 export type OwlKind = 'own' | 'loan' | 'stand_in' | 'bot';
@@ -392,11 +394,23 @@ function legProfile(ctx: Context, flight: FlightRow, stored: FlightProfile): Fli
 
 export function finishFlight(ctx: Context, flightId: string): void {
   // v1.2.4: the owl's kilometres grow by the distance of the whole flight (SPEC 9.2).
-  const flight = ctx.db.get<{ owl_id: string | null; plan: string }>(
-    "SELECT owl_id, plan FROM flights WHERE id = ? AND state = 'active'",
+  const flight = ctx.db.get<{
+    owl_id: string | null;
+    plan: string;
+    route: string;
+    holder_id: string;
+    holder_kind: string;
+    owl_kind: string;
+  }>(
+    "SELECT owl_id, plan, route, holder_id, holder_kind, owl_kind FROM flights WHERE id = ? AND state = 'active'",
     flightId,
   );
-  if (flight) addFlownKm(ctx, flight);
+  if (flight) {
+    addFlownKm(ctx, flight);
+    afterFlownKm(ctx, flight, ctx.now());
+    // v1.3: the player's statistics count kilometres flown between people (SPEC 8.10).
+    countFlightKm(ctx, flight);
+  }
   ctx.db.run("UPDATE flights SET state = 'done' WHERE id = ?", flightId);
   ctx.db.run(
     "DELETE FROM scheduled_events WHERE type IN ('flight_stop', 'flight_rest_end') AND substr(ref, 1, 23) = ?",
@@ -498,7 +512,7 @@ function arriveHome(
         ctx,
         flight.holder_id,
         'loan_back',
-        { owl: flight.owl_name, species: flight.owl_species, count: replies },
+        { owl: flightOwlLabel(ctx, flight), species: flight.owl_species, count: replies },
         at,
         after,
       );
@@ -529,7 +543,7 @@ function arriveHome(
     'INSERT INTO homecomings (id, user_id, owl_name, species, letters, created_at) VALUES (?, ?, ?, ?, ?, ?)',
     randomId(),
     flight.holder_id,
-    flight.owl_name,
+    flightOwlLabel(ctx, flight),
     flight.owl_species,
     replies,
     at,
@@ -644,7 +658,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       ctx,
       recipient,
       'gold_arrived',
-      { name: senderName, amount: flight.gold, owl: flight.owl_name },
+      { name: senderName, amount: flight.gold, owl: flightOwlLabel(ctx, flight) },
       at,
       after,
       image,
@@ -672,7 +686,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       ctx,
       recipient,
       chick ? 'chick_gift_received' : 'owl_gift_received',
-      { name: senderName, owl: flight.owl_name, species: flight.owl_species },
+      { name: senderName, owl: flightOwlLabel(ctx, flight), species: flight.owl_species },
       at,
       after,
       chick && image ? `${image}:chick` : image,

@@ -142,6 +142,8 @@ export const LetterSettings = v.strictObject({
   print: v.boolean(),
   /** v0.8.2: links in letters clickable (missing: unchanged). */
   links: v.optional(v.boolean()),
+  /** v1.3: ASCII mode – the editor offers a monospaced font per letter (missing: unchanged). */
+  ascii: v.optional(v.boolean()),
 });
 
 /** Preferred language of the account (v0.4, settings and flag). */

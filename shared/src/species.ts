@@ -94,12 +94,28 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'xmasNight', suffix: 'Weihnachten-Nacht' },
   { kind: 'xmasNap', suffix: 'Weihnachten-Schlaf' },
   { kind: 'grumpyNight', suffix: 'Grummelig-Nacht' },
+  // v1.3: the rescue centre (SPEC 8.13) – sick by day and by night, getting medicine, healthy
+  // again (26 kinds; the phoenix never falls ill and has 20).
+  { kind: 'sick', suffix: 'Krank' },
+  { kind: 'sickNight', suffix: 'Krank-Nacht' },
+  { kind: 'medicine', suffix: 'Medizin' },
+  { kind: 'healthy', suffix: 'Gesund' },
 ] as const;
+
+/** Picture kinds a mythical species does not have: no eggs, no chicks, never sick. */
+const NOT_MYTHICAL: readonly string[] = [
+  'chick',
+  'brooding',
+  'sick',
+  'sickNight',
+  'medicine',
+  'healthy',
+];
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */
 export function imageKindsOf(species: Pick<Species, 'mythical'>): readonly OwlImageKindEntry[] {
   return species.mythical
-    ? OWL_IMAGE_KINDS.filter((entry) => entry.kind !== 'chick' && entry.kind !== 'brooding')
+    ? OWL_IMAGE_KINDS.filter((entry) => !NOT_MYTHICAL.includes(entry.kind))
     : OWL_IMAGE_KINDS;
 }
 
@@ -171,6 +187,39 @@ export const SCENE_IMAGES = [
       [
         { id: `letters${season}Day`, file: `Schreibtisch-${file}-Tag.png`, sizes: [480, 960] },
         { id: `letters${season}Night`, file: `Schreibtisch-${file}-Nacht.png`, sizes: [480, 960] },
+      ] as const,
+  ),
+  // v1.3: the rescue centre from outside and inside – one picture per season (RescueSeason: the
+  // desk seasons plus early spring), by day and by night (SPEC 8.13, 9.11).
+  ...(
+    [
+      ['Christmas', 'Weihnachten'],
+      ['Winter', 'Winter'],
+      ['EarlySpring', 'Vorfruehling'],
+      ['Spring', 'Fruehling'],
+      ['Summer', 'Sommer'],
+      ['Autumn', 'Herbst'],
+      ['November', 'November'],
+    ] as const
+  ).flatMap(
+    ([season, file]) =>
+      [
+        { id: `rescue${season}Day`, file: `Rettungsstation-${file}-Tag.png`, sizes: [480, 960] },
+        {
+          id: `rescue${season}Night`,
+          file: `Rettungsstation-${file}-Nacht.png`,
+          sizes: [480, 960],
+        },
+        {
+          id: `rescueInside${season}Day`,
+          file: `Rettungsstation-Innen-${file}-Tag.png`,
+          sizes: [480, 960],
+        },
+        {
+          id: `rescueInside${season}Night`,
+          file: `Rettungsstation-Innen-${file}-Nacht.png`,
+          sizes: [480, 960],
+        },
       ] as const,
   ),
 ] as const;

@@ -7,7 +7,7 @@
 import { CENTRAL_BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { startEnergy } from '@posteulen/shared/game/energy.ts';
 import { randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
-import { owlNames } from '@posteulen/shared/names-data.ts';
+import { anyOwlNames } from '@posteulen/shared/names-data.ts';
 import { SPECIES } from '@posteulen/shared/species.ts';
 import type { Context } from '../context.ts';
 import { languageOf } from '../accounts/language.ts';
@@ -67,7 +67,7 @@ export function startBotFlight(
   const pool = SPECIES.filter((species) => !species.mythical);
   const own = mode === 'own' && bot.owl_species && bot.owl_name;
   const species = own ? (bot.owl_species ?? '') : pick(ctx, pool).id;
-  const name = own ? (bot.owl_name ?? '') : pick(ctx, owlNames(languageOf(ctx, userId)));
+  const name = own ? (bot.owl_name ?? '') : pick(ctx, anyOwlNames(languageOf(ctx, userId)));
   const maxEnergy = speciesById(species)?.maxEnergy ?? 0;
   const { id, route } = startFlight(ctx, {
     holderId: bot.id,

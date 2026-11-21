@@ -9,13 +9,14 @@
   import { t } from '../lib/i18n.svelte.ts';
   import { account } from '../lib/auth.svelte.ts';
 
-  let { text }: { text: string } = $props();
+  let { text, mono = false }: { text: string; mono?: boolean } = $props();
   /** v0.8.2: the user can switch clickable links off (settings); the address stays visible. */
   const clickable = $derived(account.profile?.linksClickable ?? true);
   const parts = $derived(linkify(text));
 </script>
 
-<p class="text">
+<!-- v1.3: a letter written in ASCII mode keeps its monospaced font for both sides (SPEC 8.4). -->
+<p class="text" class:mono data-testid={mono ? 'letter-mono' : undefined}>
   {#each parts as part, index (index)}
     {#if part.href}{#if clickable}<a
           href={part.href}
@@ -32,6 +33,16 @@
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     margin: 0;
+  }
+
+  /* ASCII art: monospaced, lines as written – wide pictures scroll inside the letter. */
+  .text.mono {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
   }
 
   .text a,

@@ -19,6 +19,8 @@ export type SystemMessageType =
   | 'chick_gift_received'
   | 'owl_sick'
   | 'owl_healthy'
+  | 'rescue_joined'
+  | 'owl_globe'
   | 'eggs_laid'
   | 'chicks_hatched'
   | 'chicks_hatched_gift'

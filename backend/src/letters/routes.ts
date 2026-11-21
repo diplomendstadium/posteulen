@@ -5,6 +5,7 @@
  * kept for letters that were already on the way with the stage-2 placeholder owl.
  */
 import { christmasPaperOf } from './season.ts';
+import { owlLabel } from '../owls/globe.ts';
 import type { FastifyInstance } from 'fastify';
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
@@ -251,9 +252,12 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       flight_holder: string | null;
       media: string | null;
       christmas: number;
+      owl_km: number | null;
     }>(
-      `SELECT l.*, COALESCE(NULLIF(f.gold, 0), e.gift_gold) AS gold_amount, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder
+      `SELECT l.*, COALESCE(NULLIF(f.gold, 0), e.gift_gold) AS gold_amount, f.owl_kind AS flight_owl_kind, f.holder_id AS flight_holder,
+              o.km_flown AS owl_km
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
+         LEFT JOIN owls o ON o.id = f.owl_id
          LEFT JOIN central_bot_events e ON e.id = l.bot_event_id
         WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
            OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
@@ -287,7 +291,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           // v1.0: only the recipient learns this – for the sender it would be a read receipt.
           arrivalSeen: mine ? true : row.arrival_seen === 1,
           owl: {
-            name: row.owl_name,
+            // v1.3: with 🌍 if the owl has flown around the Earth (SPEC 9.2.1).
+            name: owlLabel({ name: row.owl_name, km_flown: row.owl_km ?? 0 }),
             species: row.owl_species,
             ...carrierOf(me, row, (id) =>
               // v0.8: a reply handed to the owl of a bot names the bot.
@@ -403,16 +408,18 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       owl_name: string;
       owl_species: string;
       arrives_at: number;
+      owl_km: number | null;
     }>(
-      `SELECT id, sender_id, kind, owl_name, owl_species, arrives_at FROM letters
-        WHERE recipient_id = ? AND recipient_has = 1 AND status = 'delivered' AND arrival_seen = 0
-        ORDER BY arrives_at, id LIMIT 50`,
+      `SELECT l.id, l.sender_id, l.kind, l.owl_name, l.owl_species, l.arrives_at, o.km_flown AS owl_km
+         FROM letters l LEFT JOIN flights f ON f.id = l.flight_id LEFT JOIN owls o ON o.id = f.owl_id
+        WHERE l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered' AND l.arrival_seen = 0
+        ORDER BY l.arrives_at, l.id LIMIT 50`,
       me,
     );
     return {
       arrivals: rows.map((row) => ({
         id: row.id,
-        owl: row.owl_name,
+        owl: owlLabel({ name: row.owl_name, km_flown: row.owl_km ?? 0 }),
         species: row.owl_species,
         kind: row.kind,
         from:

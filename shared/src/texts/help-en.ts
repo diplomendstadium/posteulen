@@ -277,7 +277,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'Gold',
     blocks: [
       `You start with ${gold(GOLD.START)}. Every day at ${dailyGoldTime} every active account gets gold: ${gold(GOLD.DAILY)} a day during the first ${GOLD.DAILY_HIGH_DAYS} days after creating the account, then ${gold(GOLD.DAILY_LATER)}. Sometimes a bot sends you gold or even an owl, too – if a letter comes with it, it says “Cover letter for …” with the amount or the owl.`,
-      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)} (owls that also carry gold: ${gold(GOLD.LOAN_PRICE_GOLD)}), owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}, nursing ${gold(GOLD.SELF_CARE_PRICE)} or the owl vet ${gold(GOLD.VET_PRICE)}. Everything must be fully covered; there are no debts.`,
+      `Costs: owls depending on the species, loan owl ${gold(GOLD.LOAN_PRICE)} (owls that also carry gold: ${gold(GOLD.LOAN_PRICE_GOLD)}), owl biscuit ${gold(GOLD.FEED_PRICE)}, favourite snack ${gold(GOLD.SNACK_PRICE)}. Medicine, water and petting in the rescue centre are free. Everything must be fully covered; there are no debts.`,
       `You see your gold at the top right. In the settings under “Gold and bookings” you find the daily gold and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
       `Sending gold: every ready owl of your own or on loan that can carry gold has the button “Send gold” under “Owls” (loan owls also in the post office) – as soon as you have enough gold. ${gold(GOLD.TRANSFER_MIN)} to ${gold(GOLD.TRANSFER_MAX)} to a contact, with a short cover letter if you like; before sending you see when it arrives. Afterwards you must have more than ${gold(GOLD.TRANSFER_MIN_REMAINING_EXCLUSIVE)} left. The gold is debited when the owl takes off and arrives with the owl. If it turns back, you get it back as soon as it is home again. You cannot send gold to bots.`,
     ],
@@ -307,7 +307,7 @@ const SECTIONS: readonly HelpSection[] = [
       'Price in gold, maximum energy, speed, recovery per hour (with motivation 100%) and what the owl can carry:',
       SPECIES.map(
         (species) =>
-          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)}% per hour – ${en.owls[`cargo_${species.cargo}`]}`,
+          `${species.nameEn}: ${species.price} gold, ${species.maxEnergy.toLocaleString('en-GB')} energy, ${decimalEn(FLIGHT.BASE_SPEED_KMH * species.speedFactor)} km/h, recovery ${decimalEn(OWL.REGEN_SHARE_PER_HOUR * 100 * species.recoveryFactor)}% per hour – ${en.owls[`cargo_${species.cargo}`]}`,
       ),
       `The phoenix is no ordinary owl: it costs ${SPECIES.find((species) => species.id === 'phoenix')?.price ?? 150} gold, flies four times as fast as an owl with factor 1, is never lent out, does not help out in the Menagerie and lays no eggs.`,
       `The Great Horned Owl (${SPECIES.find((species) => species.id === 'virginiauhu')?.price ?? 60} gold, 1,300 energy, 65 km/h, 20% recovery per hour) is an ordinary species: you can buy it, borrow it and lend it to the Menagerie, and it lays eggs.`,
@@ -345,12 +345,8 @@ const SECTIONS: readonly HelpSection[] = [
     id: 'krankheit',
     title: 'Illnesses',
     blocks: [
-      `Every night an adult owl can fall ill with a probability of 1 in 30 – with the care bonus (see Energy and care) much less often. During its first ${OWL.SICKNESS_GRACE_DAYS} days with you it never falls ill. Loan owls, chicks and bot owls never fall ill, and neither do the owls of inactive accounts.`,
-      'An ill owl looks grumpy and cannot fly until it has been cured. Care still works.',
-      [
-        `Nurse it yourself: ${gold(GOLD.SELF_CARE_PRICE)} for special food, after ${OWL.SELF_CARE_DAYS} days it is healthy.`,
-        `Owl vet: ${gold(GOLD.VET_PRICE)}, after ${OWL.VET_HOURS} hours it is healthy.`,
-      ],
+      `Every night an adult owl can fall ill with a probability of 1 in 30 – with the care bonus (see Energy and care) much less often. During its first ${OWL.SICKNESS_GRACE_DAYS} days with you it never falls ill. Loan owls, chicks, bot owls and the phoenix never fall ill, and neither do the owls of inactive accounts.`,
+      'An ill owl goes straight to the rescue centre (on the overview, with the staff of Aesculapius). Under “My owls” you see an empty perch in its place, with a note that it is in the rescue centre. It can only fly again once it is well.',
       'If an owl falls ill on its way, you notice when it comes home.',
     ],
   },

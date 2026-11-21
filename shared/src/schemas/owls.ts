@@ -87,8 +87,6 @@ export const CoverSend = v.strictObject({
   cover: v.optional(CoverLetter),
 });
 
-export const OwlTreat = v.strictObject({ kind: v.picklist(['self', 'vet']) });
-
 export const Loan = v.strictObject({
   species: v.picklist(SPECIES.map((species) => species.id)),
 });
@@ -97,4 +95,10 @@ export const ChickGiftPrepare = v.strictObject({
   chickId: Id,
   recipient: Id,
   withCover: v.boolean(),
+});
+
+/** v1.3: an interaction in the rescue centre (SPEC 8.13). */
+export const RescueParams = v.strictObject({
+  id: Id,
+  action: v.picklist(['medicine', 'feed', 'snack', 'pet', 'water']),
 });

@@ -38,6 +38,10 @@ export interface Profile {
   readonly dailyGold: number;
   /** v0.7.1: a message to the admin was already sent today (UTC). */
   readonly feedbackSentToday?: boolean;
+  /** v1.3: ASCII mode – a monospaced font can be chosen per letter (SPEC 8.10). */
+  readonly asciiMode?: boolean;
+  /** v1.3: gold or an owl may be given right now (SPEC 9.1.5). */
+  readonly canGift?: boolean;
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */
@@ -435,6 +439,7 @@ export async function changeLetterSettings(settings: {
   retentionDays: number;
   print: boolean;
   links?: boolean;
+  ascii?: boolean;
 }): Promise<void> {
   const context = currentContext();
   const { profile } = await api<{ profile: Profile }>('PATCH', '/api/account/letters', settings);

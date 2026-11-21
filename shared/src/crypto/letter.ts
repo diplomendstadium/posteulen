@@ -14,6 +14,13 @@ import { maxChars, paddedBytes, sanitizeLetterText, type Parchment } from '../te
 import { LETTER } from '../constants.ts';
 
 export const LETTER_FORMAT = 1;
+/**
+ * v1.3: format 2 adds one signed field after the text – the font of this letter for both sides
+ * (`mono`: a plain monospaced font for ASCII art, SPEC 8.4). Only letters written with that
+ * option use format 2; all others stay format 1.
+ */
+export const LETTER_FORMAT_STYLED = 2;
+export type LetterStyle = 'hand' | 'mono';
 export type LetterKind = 'letter' | 'cover_gold' | 'cover_owl' | 'cover_chick';
 export type LetterRole = 'recipient' | 'sender';
 export const LETTER_KINDS: readonly LetterKind[] = [
@@ -27,6 +34,7 @@ const NONCE_BYTES = 24;
 const TAG_BYTES = 16;
 const SIGNATURE_BYTES = 64;
 const FIELD_COUNT = 9;
+const FIELD_COUNT_STYLED = 10;
 
 /** Exact ciphertext length per parchment – the server rejects anything else (SPEC 5.9). */
 export function ciphertextBytes(parchment: Parchment): number {
@@ -60,10 +68,10 @@ export interface SealedLetter {
   readonly wrapSender: Uint8Array;
 }
 
-function body(meta: LetterMeta, text: string): Uint8Array {
-  return encodeFields(
+function body(meta: LetterMeta, text: string, style: LetterStyle): Uint8Array {
+  const fields = [
     CONTEXTS.LETTER,
-    LETTER_FORMAT,
+    style === 'mono' ? LETTER_FORMAT_STYLED : LETTER_FORMAT,
     meta.letterId,
     meta.senderId,
     meta.recipientId,
@@ -71,7 +79,8 @@ function body(meta: LetterMeta, text: string): Uint8Array {
     meta.kind,
     meta.parchment,
     text,
-  );
+  ] as const;
+  return style === 'mono' ? encodeFields(...fields, 'mono') : encodeFields(...fields);
 }
 
 function associatedData(
@@ -101,13 +110,16 @@ export async function sealLetter(
   meta: LetterMeta,
   text: string,
   keys: SealKeys,
+  /** v1.3: `mono` – a plain monospaced font for this letter, for both sides (ASCII mode). */
+  style: LetterStyle = 'hand',
 ): Promise<SealedLetter> {
   const clean = sanitizeLetterText(text).text;
   if (clean !== text.normalize('NFC')) throw new Error('text violates the text rules');
   if (countCodePoints(clean) > maxChars(meta.parchment)) throw new Error('text too long');
   if (meta.kind !== 'letter' && meta.parchment !== 'small')
     throw new Error('cover letters use small parchment');
-  return sealUnchecked(meta, clean, keys);
+  if (style === 'mono' && meta.kind !== 'letter') throw new Error('only letters can be mono');
+  return sealUnchecked(meta, clean, keys, paddedBytes(meta.parchment), style);
 }
 
 /**
@@ -119,9 +131,10 @@ export async function sealUnchecked(
   clean: string,
   keys: SealKeys,
   blockBytes: number = paddedBytes(meta.parchment),
+  style: LetterStyle = 'hand',
 ): Promise<SealedLetter> {
   const s = await sodium();
-  const content = body(meta, clean);
+  const content = body(meta, clean, style);
   const signature = s.crypto_sign_detached(
     encodeFields(CONTEXTS.LETTER_SIG, content),
     keys.senderEd25519Secret,
@@ -157,7 +170,13 @@ export async function sealUnchecked(
 }
 
 export type OpenResult =
-  | { readonly ok: true; readonly text: string; readonly sentAt: number }
+  | {
+      readonly ok: true;
+      readonly text: string;
+      readonly sentAt: number;
+      /** v1.3: the font chosen by the writer (format 2), otherwise handwriting. */
+      readonly style: LetterStyle;
+    }
   | { readonly ok: false; readonly reason: string };
 
 /**
@@ -213,7 +232,10 @@ export async function openLetter(input: {
   }
   try {
     const plain = s.unpad(padded, blockBytes);
-    const { fields, rest } = decodeFields(plain, FIELD_COUNT);
+    let { fields, rest } = decodeFields(plain, FIELD_COUNT);
+    // v1.3: format 2 carries one more signed field (the font).
+    const styled = fields[1] !== undefined && fieldNumber(fields[1]) === LETTER_FORMAT_STYLED;
+    if (styled) ({ fields, rest } = decodeFields(plain, FIELD_COUNT_STYLED));
     if (rest.length !== SIGNATURE_BYTES) return fail('format');
     const content = plain.subarray(0, plain.length - SIGNATURE_BYTES);
     const signed = encodeFields(CONTEXTS.LETTER_SIG, content);
@@ -222,9 +244,11 @@ export async function openLetter(input: {
     ) {
       return fail('signature');
     }
-    const [context, format, letterId, senderId, recipientId, sentAt, kind, parchment, text] =
+    const [context, format, letterId, senderId, recipientId, sentAt, kind, parchment, text, style] =
       fields.map((f, i) => (i === 1 || i === 5 ? fieldNumber(f) : fieldText(f)));
-    if (context !== CONTEXTS.LETTER || format !== LETTER_FORMAT) return fail('format');
+    if (context !== CONTEXTS.LETTER) return fail('format');
+    if (format !== (styled ? LETTER_FORMAT_STYLED : LETTER_FORMAT)) return fail('format');
+    if (styled && (style !== 'mono' || kind !== 'letter')) return fail('format');
     // The signed content must match what the server says (no forwarding, no relabelling).
     // v0.6.1: the send time, too – the server assigns it and the sender signs exactly that.
     if (
@@ -240,7 +264,7 @@ export async function openLetter(input: {
     if (input.role === 'recipient' && recipientId !== input.ownUserId) return fail('not_for_me');
     const clean = sanitizeLetterText(String(text)).text;
     if (countCodePoints(clean) > maxChars(server.parchment)) return fail('too_long');
-    return { ok: true, text: clean, sentAt: Number(sentAt) };
+    return { ok: true, text: clean, sentAt: Number(sentAt), style: styled ? 'mono' : 'hand' };
   } catch {
     return fail('format');
   }

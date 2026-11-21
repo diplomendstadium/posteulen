@@ -219,15 +219,7 @@ describe('owl states (SPEC 9.2.5)', () => {
   const own = { kind: 'own', isChick: false } as const;
   it('allows actions per state', () => {
     expect(canTransport({ ...own, state: 'home' })).toBe(true);
-    for (const state of [
-      'flying',
-      'gift_flight',
-      'sick',
-      'self_care',
-      'vet',
-      'brooding',
-      'menagerie',
-    ] as const) {
+    for (const state of ['flying', 'gift_flight', 'sick', 'brooding', 'menagerie'] as const) {
       expect(canTransport({ ...own, state }), state).toBe(false);
     }
     expect(canTransport({ state: 'home', kind: 'own', isChick: true })).toBe(false);
@@ -237,10 +229,11 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canGift({ ...own, state: 'home' })).toBe(true);
     expect(maxRecipients({ state: 'home', kind: 'loan', isChick: false })).toBe(5);
     expect(maxRecipients({ ...own, state: 'home' })).toBe(5);
-    expect(canCare({ ...own, state: 'sick' })).toBe(true);
-    expect(canCare({ ...own, state: 'vet' })).toBe(false);
+    // v1.3: a sick owl is cared for in the rescue centre only.
+    expect(canCare({ ...own, state: 'sick' })).toBe(false);
+    expect(canCare({ ...own, state: 'brooding' })).toBe(true);
     expect(canCare({ ...own, state: 'flying' })).toBe(false);
-    expect(canRelease({ ...own, state: 'self_care' })).toBe(true);
+    expect(canRelease({ ...own, state: 'sick' })).toBe(true);
     expect(canRelease({ ...own, state: 'brooding' })).toBe(false);
     expect(canRelease({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(canRelease({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
@@ -250,7 +243,7 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canLendToMenagerie({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
     expect(canLendToMenagerie({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(regenerates('brooding')).toBe(true);
-    expect(regenerates('vet')).toBe(false);
+    expect(regenerates('menagerie')).toBe(false);
     expect(regenerates('flying')).toBe(false);
   });
 

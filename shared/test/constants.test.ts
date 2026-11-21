@@ -7,7 +7,14 @@ import {
   owlImageFileName,
 } from '../src/species.ts';
 import { GOLD, LETTER, MAP, SECURITY } from '../src/constants.ts';
-import { OWL_NAMES } from '../src/names-data.ts';
+import {
+  anyOwlNames,
+  OWL_NAMES_EN_F,
+  OWL_NAMES_EN_M,
+  OWL_NAMES_F,
+  OWL_NAMES_M,
+  owlNames,
+} from '../src/names-data.ts';
 import { VERSION } from '../src/version.ts';
 
 describe('species (SPEC Anhang B, 9.2.1)', () => {
@@ -100,7 +107,7 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
   });
 
   it('builds the file names of Anhang B', () => {
-    expect(OWL_IMAGE_KINDS).toHaveLength(22);
+    expect(OWL_IMAGE_KINDS).toHaveLength(26);
     expect(owlImageFileName('Waldkauz', '')).toBe('Waldkauz.png');
     expect(owlImageFileName('Waldkauz', 'Kueken')).toBe('Waldkauz-Kueken.png');
     expect(owlImageFileName('Maehnenkauz', 'Abflug')).toBe('Maehnenkauz-Abflug.png');
@@ -127,15 +134,19 @@ describe('species (SPEC Anhang B, 9.2.1)', () => {
       'Schleiereule-Weihnachten-Nacht.png',
       'Schleiereule-Weihnachten-Schlaf.png',
       'Schleiereule-Grummelig-Nacht.png',
+      'Schleiereule-Krank.png',
+      'Schleiereule-Krank-Nacht.png',
+      'Schleiereule-Medizin.png',
+      'Schleiereule-Gesund.png',
     ]);
   });
 
-  it('gives the phoenix neither a chick nor a brooding picture (v0.7)', () => {
+  it('gives the phoenix neither a chick nor a brooding picture, nor pictures of illness', () => {
     const phoenix = SPECIES.find((s) => s.mythical);
     const owl = SPECIES.find((s) => !s.mythical);
     expect(phoenix && imageKindsOf(phoenix).map((k) => k.kind)).not.toContain('brooding');
     expect(phoenix && imageKindsOf(phoenix)).toHaveLength(20);
-    expect(owl && imageKindsOf(owl)).toHaveLength(22);
+    expect(owl && imageKindsOf(owl)).toHaveLength(26);
     expect(SCENE_IMAGES.map((scene) => scene.file)).toContain('Verbrennen.png');
   });
 });
@@ -164,9 +175,20 @@ describe('constants (SPEC Anhang A)', () => {
     expect(MAP.SOUTH_LAT).toBeLessThan(MAP.NORTH_LAT);
   });
 
-  it('has the name list of Anhang D (v0.8: no names of aunt and uncle any more)', () => {
-    expect(OWL_NAMES).toHaveLength(130);
-    expect(new Set(OWL_NAMES).size).toBe(OWL_NAMES.length);
+  it('has the four name lists of Anhang D, by sex and language, without doubles', () => {
+    expect(OWL_NAMES_M).toHaveLength(109);
+    expect(OWL_NAMES_F).toHaveLength(107);
+    expect(OWL_NAMES_EN_M).toHaveLength(109);
+    expect(OWL_NAMES_EN_F).toHaveLength(109);
+    for (const list of [OWL_NAMES_M, OWL_NAMES_F, OWL_NAMES_EN_M, OWL_NAMES_EN_F]) {
+      expect(new Set(list).size).toBe(list.length);
+    }
+    expect(owlNames('de', 'm')).toBe(OWL_NAMES_M);
+    expect(owlNames('en', 'f')).toBe(OWL_NAMES_EN_F);
+    expect(OWL_NAMES_M).toContain('Adalbert');
+    expect(OWL_NAMES_F).not.toContain('Adalbert');
+    expect(anyOwlNames('de')).toContain('Adalbert');
+    expect(anyOwlNames('de')).toContain('Adelheid');
   });
 
   it('has a semantic version', () => {

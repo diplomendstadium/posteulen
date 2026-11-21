@@ -15,7 +15,7 @@ import {
   sicknessProbability,
   speciesPrice,
 } from '../src/game/chance.ts';
-import { OWL_NAMES } from '../src/names-data.ts';
+import { OWL_NAMES_F, OWL_NAMES_M } from '../src/names-data.ts';
 import { LOAN_TEAMS, SPECIES } from '../src/species.ts';
 
 /** Fixed seed (SPEC 17.2). */
@@ -96,12 +96,15 @@ describe('menagerie (SPEC 9.6, 9.7)', () => {
   it('derives name and sex of loan owls from HMAC bytes', () => {
     const a = loanIdentity(new Uint8Array([1, 2, 3, 4]));
     expect(loanIdentity(new Uint8Array([1, 2, 3, 4]))).toEqual(a);
-    expect(OWL_NAMES).toContain(a.name);
+    // The name suits the sex (Anhang D).
     expect(a.sex).toBe('f');
-    expect(loanIdentity(new Uint8Array([1, 2, 3, 5])).sex).toBe('m');
-    expect(OWL_NAMES).toContain(loanIdentity(new Uint8Array([])).name);
-    expect(randomOwlName(0)).toBe(OWL_NAMES[0]);
-    expect(randomOwlName(0.9999999)).toBe(OWL_NAMES.at(-1));
+    expect(OWL_NAMES_F).toContain(a.name);
+    const male = loanIdentity(new Uint8Array([1, 2, 3, 5]));
+    expect(male.sex).toBe('m');
+    expect(OWL_NAMES_M).toContain(male.name);
+    expect(OWL_NAMES_F).toContain(loanIdentity(new Uint8Array([])).name);
+    expect(randomOwlName(0)).toBe(OWL_NAMES_F[0]);
+    expect(randomOwlName(0.9999999, OWL_NAMES_M)).toBe(OWL_NAMES_M.at(-1));
   });
 
   it('pays 10 % of the species price', () => {
@@ -116,7 +119,11 @@ describe('loan identities of a day (v0.2)', () => {
   it('three different names, even if every derivation gives the same bytes', () => {
     const same = loanIdentities(['a', 'b', 'c'], () => new Uint8Array([1, 2, 3, 4, 5, 6]));
     expect(new Set(same.map((identity) => identity.name)).size).toBe(3);
-    expect(same.every((identity) => OWL_NAMES.includes(identity.name))).toBe(true);
+    expect(
+      same.every((identity) =>
+        (identity.sex === 'f' ? OWL_NAMES_F : OWL_NAMES_M).includes(identity.name),
+      ),
+    ).toBe(true);
   });
 
   it('keeps the first derivation and uses further attempts only on a clash', () => {
@@ -147,7 +154,8 @@ describe('locks for loan owls (v0.7, SPEC 9.6)', () => {
   it('rotates the names in three groups by day', () => {
     const days = ['2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08'];
     const groups = days.map((day) => loanNamesOn(day));
-    expect(groups[0]!.length).toBeGreaterThan(40);
+    // Each list of Anhang D has about 108 names: about 36 per group.
+    expect(groups[0]!.length).toBeGreaterThan(30);
     for (const name of groups[0]!) {
       expect(groups[1]).not.toContain(name);
       expect(groups[2]).not.toContain(name);
