@@ -48,6 +48,22 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.3.0',
+    title: 'Die Eulenrettungsstation öffnet ihr Tor: Version 1.3.0',
+    paragraphs: [
+      'Hinter einem knarrenden Holztor am Bach hat eine neue Station eröffnet:',
+      '• Die Eulenrettungsstation ersetzt Krankenpflege und Eulenarzt. Wird eine deiner Eulen krank, zieht sie sofort dort ein – bei „Meine Eulen“ siehst du an ihrer Stelle eine leere Stange. In der Station gibst du ihr Medizin, Futter, Leckerli, Wasser und Streicheleinheiten; ein Balken zeigt, wie es ihr schon geht. Ist sie wieder gesund, fliegt sie mit dir nach Hause. Eulen, die gerade gepflegt wurden oder beim Eulenarzt waren, sind schon wieder fit.',
+      '• Dort warten auch immer drei wilde Eulen auf Pflege. Manche flattern danach dankbar in die Freiheit – und manche wollen gar nicht mehr weg und bleiben als Posteule bei dir.',
+      '• Wer weiter geflogen ist als einmal um die Erde, trägt ab sofort eine kleine Weltkugel hinter dem Namen: 🌍',
+      '• Leiheulen und Küken bekommen jetzt Namen, die zu ihnen passen – und im Postamt siehst du schon vor dem Leihen, ob es eine Sie oder ein Er ist.',
+      '• In den Einstellungen gibt es eine kleine Statistik über deine Briefe, deine aktiven Tage, die Flugkilometer und die Zuwendung für deine Eulen. Wer gern Bilder aus Buchstaben malt, schaltet dort den ASCII-Modus ein und kann einzelne Briefe in Schreibmaschinenschrift schicken.',
+      '• Die Übersicht hat aufgeräumt: „Eulen“ heißt jetzt „Meine Eulen“ und ist neu sortiert, die Hilfe findest du über das Fragezeichen oben rechts, in den Einstellungen und im Briefwechsel mit dem Erklärbären. Große Zahlen haben jetzt Tausenderpunkte.',
+      '• Gold und Eulen verschenken können jetzt nur aktive Spieler, und zwar alle zwei Wochen einmal.',
+      '• Und hinter den Kulissen: Wer sich auf einem gemeinsamen Gerät abmeldet und ein anderes Konto anmeldet, bekommt nichts mehr vom vorigen Konto untergemischt – keine nassen Briefe und keine falschen Schlüsselwarnungen.',
+      'Gute Besserung allen kranken Eulen!',
+    ],
+  },
+  {
     version: '1.2.4',
     title: 'Kilometerzähler und ein Gruß vom Schalter: Version 1.2.4',
     paragraphs: [
@@ -428,6 +444,22 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.3.0',
+    title: 'The owl rescue centre opens its gate: version 1.3.0',
+    paragraphs: [
+      'Behind a creaking wooden gate by the stream, a new place has opened:',
+      '• The owl rescue centre takes the place of nursing at home and the owl vet. If one of your owls falls ill, it moves in there at once – under “My owls” you see an empty perch in its place. In the centre you give it medicine, food, a snack, water and a little stroking; a bar shows how well it is already. Once it is well, it flies home with you. Owls that were being nursed or at the vet are already fit again.',
+      '• Three wild owls are always waiting there to be looked after, too. Some flutter gratefully back into freedom afterwards – and some do not want to leave and stay with you as a post owl.',
+      '• An owl that has flown further than once around the Earth now wears a little globe after its name: 🌍',
+      '• Loan owls and chicks now get names that suit them – and in the post office you can see before borrowing whether it is a she or a he.',
+      '• The settings show a little statistics page about your letters, your active days, the kilometres flown and the attention your owls get. If you like drawing pictures with letters, switch on ASCII mode there and send single letters in a typewriter font.',
+      '• The overview has been tidied: “Owls” is now “My owls” and sorted anew, and the help is behind the question mark at the top right, in the settings and in your letters with the Explainer Bear. Large numbers now have thousands separators.',
+      '• Gold and owls can now only be given away by active players, once every two weeks.',
+      '• And behind the scenes: if you sign out on a shared device and another account signs in, nothing of the previous account gets mixed in any more – no wet letters and no false key warnings.',
+      'Get well soon, all poorly owls!',
+    ],
+  },
   {
     version: '1.2.4',
     title: 'Mileage counters and a greeting at the counter: version 1.2.4',

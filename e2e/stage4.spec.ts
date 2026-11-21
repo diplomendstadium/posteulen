@@ -47,27 +47,30 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await expect(card.getByRole('button', { name: 'Verschenken' })).toHaveCount(0);
   });
 
-  test('kranke Eule zeigt das grummelige Bild; Eulenarzt und Menagerie', async ({ page }) => {
+  test('kranke Eule ist in der Rettungsstation: leere Stange und Pflege dort (v1.3)', async ({
+    page,
+  }) => {
     const me = await registerViaUi(page);
     setGold(me.name, 300);
     await buyAndName(page, 'Waldkauz', 'Kränkel');
-    await buyAndName(page, 'Waldohreule', 'Fleißig');
     makeSick(me.name);
     await page.reload();
     const sick = page.getByTestId('owl-card').filter({ hasText: 'Kränkel' });
-    await expect(sick).toContainText('Krank – braucht Pflege oder den Eulenarzt.');
-    await expect(sick.getByRole('img')).toHaveAttribute('src', /grumpy/);
-    await sick.getByRole('button', { name: 'Zum Eulenarzt (1,0 Gold, 24 Std.)' }).click();
-    await expect(sick).toContainText(/Beim Eulenarzt bis/);
-    await expect(sick.getByRole('img')).toHaveAttribute('src', /grumpy/);
+    await expect(sick).toContainText(
+      'Krank – wird in der Rettungsstation gepflegt (Genesung 0 %).',
+    );
+    await expect(sick.getByRole('img')).toHaveAttribute('src', /perch/);
     await expect(sick.getByRole('button', { name: 'Streicheln' })).toHaveCount(0);
-
-    const other = page.getByTestId('owl-card').filter({ hasText: 'Fleißig' });
-    await other.getByRole('button', { name: 'Selbst pflegen (0,2 Gold, 7 Tage)' }).click();
-    await expect(other).toContainText(/Wird zu Hause gesund gepflegt/);
-    await expect(other.getByRole('button', { name: 'Streicheln' })).toBeVisible();
-    await page.goto('/app/einstellungen');
-    await expect(page.getByRole('cell', { name: 'Behandlung' })).toHaveCount(2);
+    await sick.getByRole('link', { name: 'Zur Rettungsstation' }).click();
+    await expect(page).toHaveURL(/\/app\/rettungsstation$/);
+    await page.getByRole('link', { name: 'Eintreten' }).click();
+    const card = page.getByTestId('rescue-own').filter({ hasText: 'Kränkel' });
+    await expect(card.getByRole('img')).toHaveAttribute('src', /sick/);
+    await card.getByRole('button', { name: 'Medizin geben' }).click();
+    await expect(card.getByRole('button', { name: 'Medizin geben – heute schon' })).toBeDisabled();
+    await expect(card.getByTestId('rescue-progress')).not.toContainText('Wieder gesund: 0 %');
+    // Three wild sick owls wait as well.
+    await expect(page.getByTestId('rescue-wild')).toHaveCount(3);
   });
 
   test('Küken benennen und eines mit Begleitbrief verschenken', async ({ browser, page }) => {

@@ -39,7 +39,8 @@ test.describe('App-Hülle', () => {
     await page.goto('/app');
     await page.getByRole('link', { name: 'Eulen', exact: true }).first().click();
     await expect(page).toHaveURL(/\/app\/eulen$/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Eulen');
+    // v1.3: the page is called "Meine Eulen"; the bottom bar keeps the short "Eulen".
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Meine Eulen');
     await page.goBack();
     await expect(page).toHaveURL(/\/app$/);
 

@@ -318,3 +318,37 @@ export async function giftChick(
     ...(await coverFor(prepared, 'cover_chick', cover)),
   });
 }
+
+/** v1.3: an owl in the rescue centre – own (sick) or wild (SPEC 8.13). */
+export interface RescueOwl {
+  readonly id: string;
+  readonly name: string;
+  readonly species: string;
+  readonly sex: 'f' | 'm';
+  readonly progress: number;
+  readonly today: Readonly<Record<RescueAction, boolean>>;
+  readonly healed: boolean;
+  readonly globetrotter?: boolean;
+}
+
+export type RescueAction = 'medicine' | 'feed' | 'snack' | 'pet' | 'water';
+
+export function getRescue(): Promise<{
+  own: RescueOwl[];
+  wild: RescueOwl[];
+  prices: { feed: number; snack: number };
+}> {
+  return api('GET', '/api/rescue');
+}
+
+export function rescueCare(
+  who: 'own' | 'wild',
+  id: string,
+  action: RescueAction,
+): Promise<{ progress: number; counted: boolean; healed: boolean }> {
+  return api('POST', `/api/rescue/${who}/${id}/${action}`, {});
+}
+
+export function releaseWild(id: string): Promise<{ stays: boolean; owlId: string | null }> {
+  return api('POST', `/api/rescue/wild/${id}/release`, {});
+}

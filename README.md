@@ -64,6 +64,7 @@ PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen
 - **Kein Sog, keine Dauerbereitschaft.** Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt.
 - **Kein eigenes Handy nötig.** PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht.
 - **Keine Fremden.** Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
+- **Ruhig fürs Auge.** PostEulen ist so gestaltet, dass es auch im Graustufenmodus des Geräts tadellos funktioniert. So lässt sich die bunte Reizüberflutung ganz einfach abschalten – angenehm gerade für Kinder.
 - **Kein echtes Geld.** In PostEulen gibt es keine In-App-Käufe und auch sonst keine Möglichkeit, echtes Geld auszugeben. Die Spielwährung Gold bekommt jeder Spieler jeden Tag automatisch geschenkt – Eulen, Futter und Pergament bezahlt man nur damit. Es geht nie um echtes Geld; die freiwillige Spende an die Betreiber läuft außerhalb der App und bringt im Spiel nichts.
 - Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
 
@@ -91,9 +92,7 @@ Die Hilfe in der App erklärt alles Weitere, und der Erklärbär beantwortet Fra
 
 ### Wer bezahlt das eigentlich?
 
-PostEulen ist ein Hobbyprojekt, gebastelt aus Neugier, Pergament und einer gesunden Portion Eulenliebe – aber eines, das echtes Geld kostet. Derzeit sind das etwa **10 € im Monat** für Domain und Server und rund **30 € im Monat** für die KI-Dienste, die bei der Entwicklung und im Betrieb helfen. Dazu kommt die Zeit für die Weiterentwicklung. Mit jedem neuen Konto steigen die Kosten, bei vielen Nutzern erheblich. Sollte das irgendwann zu teuer werden und stehen dem nicht genug Spenden gegenüber, schalten wir die Registrierung neuer Konten ab: Ein neues Konto gibt es dann nur noch mit einem Einladungscode von uns. Bestehende Konten sind davon nicht betroffen.
-
-**Jede Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen) hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten.** Danke!
+PostEulen ist ein Hobbyprojekt, das aber leider echtes Geld kostet. Derzeit belaufen sich die Kosten für Entwicklung und Betrieb auf ungefähr **25 € pro Monat**. Mit jedem weiteren aktiven Konto steigen die Kosten ein bisschen. Wenn es dir auch wichtig ist, dass wir PostEulen auch zukünftig anbieten können, kannst du uns [hier](https://ko-fi.com/posteulen) mit einer Spende unterstützen. **Jede Spende hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten.** Danke!
 
 ---
 

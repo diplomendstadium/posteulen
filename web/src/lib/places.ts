@@ -5,12 +5,16 @@
  */
 import type { LoanTeam, SceneId } from '@posteulen/shared/species.ts';
 import { t, fill } from './i18n.svelte.ts';
-import { lettersScene, type HomeLight } from './season.ts';
+import { lettersScene, rescueScene, type HomeLight } from './season.ts';
 
-export type Place = 'menagerie' | 'menagerieInside' | 'post' | 'postInside' | 'letters';
+export type Place =
+  'menagerie' | 'menagerieInside' | 'post' | 'postInside' | 'letters' | 'rescue' | 'rescueInside';
 
 export function placeScene(place: Place, light: HomeLight, team: LoanTeam = 'A'): SceneId {
   if (place === 'letters') return lettersScene(light);
+  // v1.3: the rescue centre follows the seasons, like the desk (with early spring).
+  if (place === 'rescue' || place === 'rescueInside')
+    return rescueScene(light, place === 'rescueInside');
   return `${place}${place === 'postInside' ? team : ''}${light.christmas ? 'Xmas' : ''}${light.day ? 'Day' : 'Night'}` as SceneId;
 }
 
@@ -23,6 +27,8 @@ export function placeAlt(place: Place, light: HomeLight): string {
       ];
     return fill(t.letters.picture, { view });
   }
+  if (place === 'rescue') return day ? t.rescue.pictureDay : t.rescue.pictureNight;
+  if (place === 'rescueInside') return day ? t.rescue.insideDay : t.rescue.insideNight;
   if (place === 'menagerieInside') {
     if (christmas) return day ? t.menagerie.insideChristmasDay : t.menagerie.insideChristmasNight;
     return day ? t.menagerie.insideDay : t.menagerie.insideNight;

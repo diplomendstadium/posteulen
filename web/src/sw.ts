@@ -189,7 +189,7 @@ const PUSH_TARGETS: Record<string, string> = {
   chick_gift: '/app/eulen',
   eggs_laid: '/app/eulen',
   chicks_hatched: '/app/eulen',
-  owl_sick: '/app/eulen',
+  owl_sick: '/app/rettungsstation/innen',
   contact_confirmed: '/app/adressbuch',
   gold_arrived: '/app/briefe/system',
   deletion_warning: '/app/briefe/system',

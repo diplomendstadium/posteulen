@@ -32,7 +32,7 @@ Gold gibt es jeden Tag automatisch, und ein paar optionale Brieffreunde sind auc
 
 # Ein guter erster Messenger für Kinder
 
-PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen: Es gibt keinen Sog, keine Dauerbereitschaft. Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt. Es ist kein eigenes Handy nötig. PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht. Es gibt keine Kontaktmöglichkeiten für Fremde. Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
+PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen: Es gibt keinen Sog, keine Dauerbereitschaft. Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt. Es ist kein eigenes Handy nötig. PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht. Es gibt keine Kontaktmöglichkeiten für Fremde. Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann. Und weil PostEulen auch im Graustufenmodus des Geräts tadellos funktioniert, lässt sich die bunte Reizüberflutung ganz einfach abschalten.
 
 **Selbstverständlich gibt es auch keine In-App-Käufe.**
 
@@ -58,9 +58,7 @@ Apps holt man sich im App-Store, oder? Meistens schon. PostEulen gibt es dort ab
 
 # Wer bezahlt das eigentlich?
 
-PostEulen ist ein Hobbyprojekt – aber eines, das echtes Geld kostet. Derzeit sind das etwa 10 € im Monat für Domain und Server und rund 30 € im Monat für die KI-Dienste, die bei der Entwicklung und im Betrieb helfen. Dazu kommt die Zeit für die Weiterentwicklung. Mit jedem neuen Konto steigen die Kosten, bei vielen Nutzern erheblich. Wird das irgendwann zu teuer und stehen dem nicht genug Spenden gegenüber, schalten wir die Registrierung neuer Konten ab: Ein neues Konto gibt es dann nur noch mit einem Einladungscode von uns. Bestehende Konten sind davon nicht betroffen.
-
-Jede [Spende](donate) hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten. Danke!
+PostEulen ist ein Hobbyprojekt, das aber leider echtes Geld kostet. Derzeit belaufen sich die Kosten für Entwicklung und Betrieb auf ungefähr 25 € pro Monat. Mit jedem weiteren aktiven Konto steigen die Kosten ein bisschen. Wenn es dir auch wichtig ist, dass wir PostEulen auch zukünftig anbieten können, kannst du uns [hier](donate) mit einer Spende unterstützen. Jede Spende hilft, PostEulen weiterhin online und für alle frei zugänglich zu halten. Danke!
 
 # Hilfe
 
@@ -85,7 +83,7 @@ You get gold every day automatically, and a few optional pen friends join in, to
 
 # A good first messenger for children
 
-PostEulen is also a great way to introduce children gently to messengers: there is no pull and no constant availability. Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives. No phone of their own is needed. PostEulen runs in an ordinary web browser – also on a parent’s phone, tablet or computer. The child signs in there with their own account and signs out again afterwards; they do not need a smartphone of their own. Strangers have no way of getting in touch. Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child.
+PostEulen is also a great way to introduce children gently to messengers: there is no pull and no constant availability. Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives. No phone of their own is needed. PostEulen runs in an ordinary web browser – also on a parent’s phone, tablet or computer. The child signs in there with their own account and signs out again afterwards; they do not need a smartphone of their own. Strangers have no way of getting in touch. Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child. And because PostEulen works perfectly in the device’s greyscale mode, the colourful overload can simply be switched off.
 
 **Of course there are no in-app purchases either.**
 
@@ -111,9 +109,7 @@ You get apps from the app store, right? Usually, yes. PostEulen is deliberately 
 
 # Who pays for all this?
 
-PostEulen is a hobby project – but one that costs real money. At the moment that is about €10 a month for the domain and the server and around €30 a month for the AI services that help with development and running it. On top of that comes the time for further development. Every new account adds to the costs, and with many users they rise considerably. If this ever becomes too expensive and there are not enough donations to cover it, we will switch off the registration of new accounts: a new account will then only be possible with an invitation code from us. Existing accounts are not affected.
-
-Every [donation](donate) helps to keep PostEulen online and freely accessible to everyone. Thank you!
+PostEulen is a hobby project that, sadly, costs real money. At the moment development and running it cost about €25 a month. Every additional active account adds a little to that. If it matters to you, too, that we can keep offering PostEulen in the future, you can support us [here](donate) with a donation. Every donation helps to keep PostEulen online and freely accessible to everyone. Thank you!
 
 # Help
 

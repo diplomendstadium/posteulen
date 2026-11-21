@@ -481,6 +481,8 @@ export const en: Texts = {
     degoogled4: 'Without either, letters still arrive – you see them when you open the app.',
   },
   bots: {
+    helpHint: 'Rather read it yourself?',
+    helpLink: 'To the help',
     label: 'Bot',
     notice:
       'Letters to bots are not end-to-end encrypted. They are stored readably on the server and sent to OpenAI to be answered.',
@@ -645,6 +647,40 @@ export const en: Texts = {
     petting: '{name} is enjoying being petted',
     imageAlt: '{species}: {what}',
   },
+  rescue: {
+    intro:
+      'A warm welcome to the owl rescue centre. Here you can help nurse sick and injured owls back to health.',
+    enter: 'Step inside',
+    inside:
+      'Our sick and injured owls are glad when someone looks after them until they feel better. Giving medicine, stroking, feeding and water all help them get well sooner. While some owls then flutter gratefully back into freedom, now and then one decides to stay as a post owl with the people who nursed it. Who knows? Perhaps this is the beginning of a wonderful friendship.',
+    insideOwn:
+      'If you nurse your own sick owl here, it will of course come home with you afterwards.',
+    rules:
+      'Every kind of help counts once a day: medicine, feeding, a snack, stroking and water. The owls like being stroked as often as you like. Medicine, water and stroking are free.',
+    ownTitle: 'Your owls being nursed',
+    wildTitle: 'Sick owls',
+    progress: 'Well again: {progress} %',
+    medicine: 'Give medicine',
+    feed: 'Feed (owl biscuit, {price})',
+    snack: 'Give {snack} ({price})',
+    pet: 'Stroke',
+    water: 'Give water',
+    doneToday: '{action} – done today',
+    medicineCaption: '{name} is getting medicine.',
+    healed: '{name} is well again. Thank you for looking after {name}.',
+    goHome: '{name} may go home again.',
+    findOut: 'Find out where {name} flies',
+    freedom: '{name} sets off gratefully back into freedom.',
+    stays: '{name} does not want to leave you and would like to join you as a post owl.',
+    healedHint: '{name} is well again!',
+    sickAlt: '{name} is ill and being nursed, {species}',
+    pictureDay:
+      'The owl rescue centre behind a wooden gate, with aviaries, a stream and a waterfall, by day',
+    pictureNight:
+      'The owl rescue centre behind a wooden gate, with aviaries and lanterns, at night',
+    insideDay: 'Inside the owl rescue centre by day: places to nurse sick owls',
+    insideNight: 'Inside the owl rescue centre at night: places to nurse sick owls by lamplight',
+  },
   menagerie: {
     intro:
       'The Menagerie: here you can buy owls and lend your own owls. Loan owls are at the owl post office.',
@@ -774,6 +810,7 @@ export const en: Texts = {
     letters: 'Letters',
     owls: 'Owls',
     myOwls: 'My owls',
+    tools: 'Language and help',
     rescue: 'Rescue centre',
     post: 'Post office',
     menagerie: 'Menagerie',
@@ -1159,6 +1196,10 @@ export const en: Texts = {
     loading: 'Loading …',
   },
   errors: {
+    gift_not_allowed: 'Only active players can give away gold or an owl, once every two weeks.',
+    rescue_done_today: 'This owl has already had that today. Again tomorrow!',
+    rescue_healed: 'This owl is already well again.',
+    rescue_not_healed: 'This owl is not well yet.',
     stale: 'A different account is signed in here now. Please reload the page.',
     account_mismatch: 'A different account is signed in here now. Please reload the page.',
     banner_invalid:

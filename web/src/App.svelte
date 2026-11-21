@@ -61,7 +61,8 @@
   <a class="skip-link" href="#main">{t.app.skipToContent}</a>
   <StatusBanners />
   {#if !inShell || !account.profile}
-    <div class="language-row"><LanguageFlag /><HelpLink /></div>
+    <!-- v1.3: language and help, a landmark of its own (SPEC 14). -->
+    <nav class="language-row" aria-label={t.nav.tools}><LanguageFlag /><HelpLink /></nav>
   {/if}
   <main id="main" tabindex="-1">
     {#if !account.checked}

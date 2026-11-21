@@ -4,6 +4,7 @@
   import Compose from '../components/Compose.svelte';
   import PictureViewer from '../components/PictureViewer.svelte';
   import LetterText from '../components/LetterText.svelte';
+  import Link from '../components/Link.svelte';
   import { api } from '../lib/api.ts';
   import { date, dateTime, time } from '../lib/format.ts';
   import { loadConversation, reportableFailures, type ShownLetter } from '../lib/letters.ts';
@@ -319,6 +320,14 @@
     }}
   />
 {:else if bot}
+  {#if bot.type === 'explainer'}
+    <!-- v1.3: the help between the Explainer Bear's last letter and the editor (SPEC 8.4, 8.11). -->
+    <p class="help-link" data-testid="explainer-help">
+      <span aria-hidden="true">?</span>
+      <span>{t.bots.helpHint}</span>
+      <Link href="/hilfe">{t.bots.helpLink}</Link>
+    </p>
+  {/if}
   {#if writableFrom !== null}
     <p class="notice">
       <span aria-hidden="true">⏳</span><span
@@ -383,6 +392,18 @@
     max-width: 100%;
     max-height: 20rem;
     border-radius: 0.25rem;
+  }
+
+  .help-link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.5rem;
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
   }
 
   .bot-label {

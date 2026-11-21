@@ -18,6 +18,11 @@ const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
   night: 'normal',
   // v1.2: grumpy at night → the grumpy picture by day (the phoenix has none at night).
   grumpyNight: 'grumpy',
+  // v1.3: pictures of the rescue centre – the ordinary counterpart if one is missing.
+  sickNight: 'sick',
+  sick: 'grumpy',
+  medicine: 'feeding',
+  healthy: 'normal',
 };
 
 export function owlImage(

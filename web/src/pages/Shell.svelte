@@ -21,6 +21,7 @@
   import Owls from './Owls.svelte';
   import Menagerie from './Menagerie.svelte';
   import Post from './Post.svelte';
+  import Rescue from './Rescue.svelte';
   import MapPage from './MapPage.svelte';
   import OwlOverlay from '../components/OwlOverlay.svelte';
   import { showSystemArrivals } from '../lib/live.svelte.ts';
@@ -171,6 +172,8 @@
         <Menagerie />
       {:else if current.href === '/app/postamt'}
         <Post />
+      {:else if current.href === '/app/rettungsstation'}
+        <Rescue />
       {:else if current.href === '/app/karte'}
         <MapPage />
       {:else}

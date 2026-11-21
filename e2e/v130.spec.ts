@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import type { Browser, Page, Route } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
 import { PASSWORD, registerViaUi } from './account-helpers.ts';
-import { addOwls } from './db-helpers.ts';
+import { addOwls, setGold } from './db-helpers.ts';
 
 /**
  * Version 1.3.0: account switch without reload (SPEC 5.5) – the iPad case. A valid letter of
@@ -201,5 +201,112 @@ test.describe('Kontowechsel ohne Neuladen (SPEC 5.5)', () => {
     expect(damage(carla.name, ben.name)).toEqual({ unreadable: 0, warnings: 0 });
     expectedFailures(guard.consoleErrors);
     await Promise.all(contexts.map((context) => context.close()));
+  });
+});
+
+test.describe('Version 1.3.0: Oberfläche', () => {
+  test('Übersicht, Hilfe-Links, Einstellungen mit Statistik und ASCII-Modus', async ({ page }) => {
+    const me = await registerViaUi(page);
+    // v1.3: thousands grouped with a dot.
+    setGold(me.name, 12_345);
+    await page.goto('/app');
+    const tiles = page.locator('ul.tiles');
+    await expect(tiles.getByRole('link', { name: 'Meine Eulen' })).toBeVisible();
+    await expect(tiles.getByRole('link', { name: 'Rettungsstation' })).toBeVisible();
+    await expect(tiles.getByRole('link', { name: 'Hilfe' })).toHaveCount(0);
+    await expect(page.getByText('1.234,5 Gold')).toBeVisible();
+    // The question mark next to the flag leads to the help.
+    await page.getByTestId('help-link').first().click();
+    await expect(page).toHaveURL(/\/hilfe$/);
+
+    await page.goto('/app/einstellungen');
+    const titles = await page.locator('section.card h2').allTextContents();
+    const at = (title: string) => titles.indexOf(title);
+    expect(at('Statistik')).toBe(at('Benachrichtigungen') + 1);
+    expect(at('Gold und Buchungen')).toBe(at('Statistik') + 1);
+    expect(titles.at(-1)).toBe('Hilfe');
+    const stats = page.getByTestId('stats');
+    await expect(stats).toContainText('Tage seit Kontoerstellung');
+    await expect(stats).toContainText('Aktive Tage');
+    await expect(stats).toContainText('1 (100 %)');
+    await expect(stats).toContainText('Medizin gegeben');
+    await page.getByTestId('ascii-mode').check();
+    await expect(page.getByTestId('ascii-mode')).toBeChecked();
+
+    // The Explainer Bear's chat links to the help between the letters and the editor.
+    await page.goto('/app/briefe');
+    await page.getByRole('link', { name: /Erklärbär/ }).click();
+    await expect(
+      page.getByTestId('explainer-help').getByRole('link', { name: 'Zur Hilfe' }),
+    ).toBeVisible();
+    // No typewriter option for letters to bots.
+    await expect(page.getByTestId('letter-mono')).toHaveCount(0);
+  });
+
+  test('Postamt zeigt das Geschlecht, 🌍 hinter dem Namen, Verschenken nur für aktive Spieler', async ({
+    page,
+  }) => {
+    const me = await registerViaUi(page);
+    await page.goto('/app/postamt/innen');
+    const offer = page.getByTestId('loan-offer').first();
+    await expect(offer.locator('.species-name')).toHaveText(/ · (weiblich|männlich)$/);
+    addOwls(me.name, 'bartkauz', 1);
+    query(
+      "UPDATE owls SET km_flown = 41000 WHERE name = 'Helfer 1' AND owner_id = ?",
+      idOf(me.name),
+    );
+    await page.goto('/app/eulen');
+    const card = page.getByTestId('owl-card').filter({ hasText: 'Helfer 1' });
+    await expect(card.getByRole('heading', { level: 3 })).toHaveText('Helfer 1 🌍');
+    await expect(card).toContainText('41.000 km');
+    // A new account is not "active" yet: the button stays, but is off with a short note.
+    await expect(card.getByRole('button', { name: 'Verschenken' })).toBeDisabled();
+    await expect(card.getByTestId('gift-rule')).toHaveText(
+      'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
+    );
+  });
+
+  test('ein Brief in Schreibmaschinenschrift für ASCII-Art – für beide Seiten', async ({
+    browser,
+    page,
+  }) => {
+    test.slow();
+    const context = await browser.newContext({ locale: 'de-DE' });
+    const benPage = await context.newPage();
+    const anna = await registerViaUi(page);
+    const ben = await registerViaUi(benPage);
+    await addContact(page, ben.name);
+    await addContact(benPage, anna.name);
+    addOwls(anna.name, 'waldkauz', 1);
+    await page.goto('/app/einstellungen');
+    await page.getByTestId('ascii-mode').check();
+    await expect(page.getByTestId('ascii-mode')).toBeChecked();
+    await page.goto(`/app/briefe/${idOf(ben.name)}`);
+    const art = ' /\\_/\\\n( o.o )\n > ^ <';
+    await page.getByLabel('Text').fill(art);
+    await page.getByTestId('letter-mono').check();
+    const group = page.getByRole('group', { name: 'Welche Eule soll fliegen?' });
+    await group.getByRole('radio', { name: /Helfer 1/ }).check();
+    await page.getByRole('button', { name: 'Absenden' }).click();
+    await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
+    // Chosen anew for every letter.
+    await expect(page.getByTestId('letter-mono')).not.toBeChecked();
+    await expect(page.locator('p.text.mono')).toHaveCount(1);
+    await expect
+      .poll(
+        () =>
+          query<{ status: string }>(
+            'SELECT status FROM letters WHERE sender_id = ? AND recipient_id = ?',
+            idOf(anna.name),
+            idOf(ben.name),
+          )[0]?.status,
+        { timeout: 60_000 },
+      )
+      .toBe('delivered');
+    await benPage.goto(`/app/briefe/${idOf(anna.name)}`);
+    const letter = benPage.locator('p.text.mono');
+    await expect(letter).toHaveCount(1, { timeout: 30_000 });
+    await expect(letter).toHaveCSS('white-space', 'pre');
+    await context.close();
   });
 });

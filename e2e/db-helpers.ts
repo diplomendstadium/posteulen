@@ -29,12 +29,19 @@ export function setGold(name: string, tenths: number, instance: 'main' | 'admin'
   }, instance);
 }
 
-/** Makes all own owls of an account sick (the daily roll is random, SPEC 9.8). */
+/**
+ * Makes all own owls of an account sick (the daily roll is random, SPEC 9.8) – v1.3: they are
+ * in the rescue centre and need ten interactions.
+ */
 export function makeSick(name: string): void {
   withDb((db) => {
     db.prepare(
       "UPDATE owls SET state = 'sick' WHERE kind = 'own' AND owner_id = (SELECT id FROM users WHERE name_display = ?)",
     ).run(name);
+    db.prepare(
+      `INSERT OR IGNORE INTO rescue_cases (owl_id, needed, admitted_at)
+       SELECT id, 10, ? FROM owls WHERE state = 'sick' AND owner_id = (SELECT id FROM users WHERE name_display = ?)`,
+    ).run(Date.now(), name);
   });
 }
 

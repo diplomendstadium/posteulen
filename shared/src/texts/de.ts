@@ -498,6 +498,8 @@ export const de = {
     degoogled4: 'Ohne beides kommen Briefe trotzdem an – du siehst sie beim Öffnen der App.',
   },
   bots: {
+    helpHint: 'Lieber selbst nachlesen?',
+    helpLink: 'Zur Hilfe',
     label: 'Bot',
     notice:
       'Briefe an Bots sind nicht Ende-zu-Ende-verschlüsselt. Sie liegen lesbar auf dem Server und werden zum Beantworten an OpenAI übermittelt.',
@@ -672,6 +674,42 @@ export const de = {
     petting: '{name} genießt das Streicheln',
     imageAlt: '{species}: {what}',
   },
+  /** v1.3: the owl rescue centre (SPEC 8.13; texts of the client, lightly edited). */
+  rescue: {
+    intro:
+      'Herzlich willkommen in der Eulenrettungsstation. Hier kannst du dabei helfen, kranke und verletzte Eulen gesund zu pflegen.',
+    enter: 'Eintreten',
+    inside:
+      'Unsere kranken und verletzten Eulen freuen sich, wenn sich jemand um sie kümmert, bis es ihnen wieder besser geht. Medizin verabreichen, Streicheln, Füttern und Wasser geben hilft ihnen dabei, schneller wieder gesund zu werden. Während einige Eulen anschließend dankbar in die Freiheit zurückflattern, kommt es manchmal auch vor, dass sie sich dafür entscheiden, als Posteule bei den Menschen zu bleiben, die sie gepflegt haben. Wer weiß? Vielleicht ist dies der Beginn einer wunderbaren Freundschaft.',
+    insideOwn:
+      'Wenn du deine eigene kranke Eule hier pflegst, kommt sie anschließend selbstverständlich wieder mit dir nach Hause.',
+    rules:
+      'Jede Hilfe zählt einmal am Tag: Medizin, Füttern, Leckerli, Streicheln und Wasser. Gestreichelt werden möchten die Eulen so oft du magst. Medizin, Wasser und Streicheln kosten nichts.',
+    ownTitle: 'Deine Eulen in Pflege',
+    wildTitle: 'Kranke Eulen',
+    progress: 'Wieder gesund: {progress} %',
+    medicine: 'Medizin geben',
+    feed: 'Füttern (Eulenkeks, {price})',
+    snack: '{snack} geben ({price})',
+    pet: 'Streicheln',
+    water: 'Wasser geben',
+    doneToday: '{action} – heute schon',
+    medicineCaption: '{name} bekommt Medizin.',
+    healed: '{name} ist wieder gesund. Danke, dass du dich um {name} gekümmert hast.',
+    goHome: '{name} darf wieder nach Hause.',
+    findOut: 'Herausfinden, wohin {name} fliegt',
+    freedom: '{name} macht sich dankbar auf den Weg zurück in die Freiheit.',
+    stays: '{name} möchte sich nicht von dir trennen, sondern sich dir als Posteule anschließen.',
+    healedHint: '{name} ist wieder gesund!',
+    sickAlt: '{name} ist krank und wird gepflegt, {species}',
+    pictureDay:
+      'Die Eulenrettungsstation hinter einem Holztor, mit Volieren, Bach und Wasserfall, bei Tag',
+    pictureNight:
+      'Die Eulenrettungsstation hinter einem Holztor, mit Volieren und Laternen, bei Nacht',
+    insideDay: 'In der Eulenrettungsstation bei Tag: Pflegeplätze für kranke Eulen',
+    insideNight:
+      'In der Eulenrettungsstation bei Nacht: Pflegeplätze für kranke Eulen im Lampenlicht',
+  },
   menagerie: {
     intro:
       'Die Menagerie: Hier kannst du Eulen kaufen und eigene Eulen verleihen. Leiheulen gibt es im Eulenpostamt.',
@@ -805,6 +843,8 @@ export const de = {
     owls: 'Eulen',
     /** v1.3: tile and heading of the owl overview (the bottom bar keeps „Eulen“). */
     myOwls: 'Meine Eulen',
+    /** v1.3: the row with the language flag and the help above the public pages. */
+    tools: 'Sprache und Hilfe',
     /** v1.3: the owl rescue centre (SPEC 8.13). */
     rescue: 'Rettungsstation',
     post: 'Postamt',
@@ -1203,6 +1243,10 @@ export const de = {
     loading: 'Lädt …',
   },
   errors: {
+    gift_not_allowed: 'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
+    rescue_done_today: 'Das hat diese Eule heute schon bekommen. Morgen wieder!',
+    rescue_healed: 'Diese Eule ist schon wieder gesund.',
+    rescue_not_healed: 'Diese Eule ist noch nicht wieder gesund.',
     stale: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
     account_mismatch: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
     banner_invalid:

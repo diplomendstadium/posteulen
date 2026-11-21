@@ -10,8 +10,11 @@ import {
   deskSeasonOfDate,
   isChristmas,
   isChristmasDate,
+  rescueSeason,
+  rescueSeasonOfDate,
   type DeskSeason,
   type LocalDate,
+  type RescueSeason,
 } from '@posteulen/shared/game/season.ts';
 import { devicePlace } from '@posteulen/shared/map/zone-place.ts';
 import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
@@ -22,6 +25,8 @@ export interface HomeLight {
   readonly christmas: boolean;
   /** v1.2.1: the season of the desk pictures on the letters page. */
   readonly season: DeskSeason;
+  /** v1.3: the season of the rescue centre pictures (with early spring). */
+  readonly rescueSeason: RescueSeason;
 }
 
 /** The time zone of the device (undefined if the browser does not tell). */
@@ -46,6 +51,7 @@ export function deviceLight(at: number = Date.now()): HomeLight {
     day: isDay(at, place.lat, place.lon),
     christmas: isChristmasDate(date),
     season: deskSeasonOfDate(date),
+    rescueSeason: rescueSeasonOfDate(date),
   };
 }
 
@@ -56,6 +62,7 @@ export function homeLight(at: number = Date.now()): HomeLight {
     day: isDay(at, home.lat, home.lon),
     christmas: isChristmas(at, home.lat, home.lon),
     season: deskSeason(at, home.lat, home.lon),
+    rescueSeason: rescueSeason(at, home.lat, home.lon),
   };
 }
 
@@ -72,6 +79,8 @@ export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind
   }
   if (kind === 'napHome' && light.christmas) return 'xmasNap';
   if (kind === 'grumpy' && !light.day) return 'grumpyNight';
+  // v1.3: a sick owl in the rescue centre at night.
+  if (kind === 'sick' && !light.day) return 'sickNight';
   return kind;
 }
 
@@ -85,4 +94,10 @@ export function groupScene(light: HomeLight): SceneId {
 export function lettersScene(light: HomeLight): SceneId {
   const season = light.season.charAt(0).toUpperCase() + light.season.slice(1);
   return `letters${season}${light.day ? 'Day' : 'Night'}` as SceneId;
+}
+
+/** v1.3: the rescue centre from outside or inside for the season and light at home. */
+export function rescueScene(light: HomeLight, inside: boolean): SceneId {
+  const season = light.rescueSeason.charAt(0).toUpperCase() + light.rescueSeason.slice(1);
+  return `rescue${inside ? 'Inside' : ''}${season}${light.day ? 'Day' : 'Night'}` as SceneId;
 }
