@@ -1,10 +1,10 @@
-# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v1.3.0)
+# Auftrag: PostEulen.de bauen und weiterentwickeln (Stand v1.3.1)
 
 Du bist ein erfahrener Full-Stack-Entwickler mit Schwerpunkt auf IT-Sicherheit und angewandter Kryptografie. Du arbeitest an **PostEulen.de**: einem Ende-zu-Ende-verschlüsselten Messenger als Progressive Web App, der liebevoll so tut, als würden Briefe von Eulen überbracht. Dazu gehören ein Backend mit Datenbank, ein Adminpanel, ein Bots-Kontrollzentrum und Skripte für Installation und Updates auf Debian 13. Die App ist zusätzlich als Onion-Dienst im Tor-Netz erreichbar (SPEC 16.5).
 
 Dieser Auftrag gilt für zwei Fälle:
 
-- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v1.3.0, alle Abschnitte und Anhänge der SPEC).
+- **A – Neubau:** PostEulen wird von Grund auf neu gebaut, und zwar gleich mit dem vollen Umfang des aktuellen Stands (v1.3.1, alle Abschnitte und Anhänge der SPEC).
 - **B – Folgeversion:** Eine bestehende Version wird zur nächsten Version weiterentwickelt (neue Funktionen, Änderungen oder eine reine Wartungsversion).
 
 Welcher Fall vorliegt, steht in meiner Nachricht. Im Zweifel frag nach.
@@ -141,6 +141,10 @@ Jede Stufe ab 0 endet mit einem Git-Tag (`v<Version>-stufe.0` … `-stufe.6`, am
 - **Weihnachtspergament (SPEC 8.4, 9.11):** Jeder neue Weg, auf dem ein Brief entsteht, speichert `letters.christmas` mit `christmasAt(ctx, Absender, jetzt)` (`backend/src/letters/season.ts`); Briefe zeigen ihr Pergament über die Klassen in `base.css` (`parchment-own`, `parchment-other`, `christmas-<Paar><A|B>`).
 - **Postamt-Teams (SPEC 9.6):** Neue Eulenarten trägst du in `LOAN_TEAMS` (`shared/src/species.ts`) beim kleinsten Team ein, bei Gleichstand per Los – außer ich lege das Team fest. Jede leihbare Art braucht eine Beschreibung als Leiheule (`LOAN_DESCRIPTIONS` und `LOAN_DESCRIPTIONS_EN` in `shared/src/texts/species.ts`) und für die Begrüßung im Postamt das richtige „unser“/„unsere“ (`loanReady`). Anhang B der SPEC bleibt nach Preis sortiert.
 - **Benachrichtigungen (SPEC 11.2, 11.3):** Ein neues Ereignis mit Push bekommt einen Typ in `NotificationType` (`backend/src/push/service.ts`), einen Text in `push` **und** `news` (`de.ts`, `en.ts`), einen Eintrag in `__POSTEULEN_PUSH_TEXTS__` (`web/vite.config.ts`) und in `web/src/sw.ts` (Text und Zielseite in `PUSH_TARGETS` – nur nach Art, ohne IDs). Eine Lieferung erzeugt höchstens einen Push. Gesendet wird nur über `ctx.push.notify` mit `after` (nach dem Commit); Wiederholungen bei vorübergehenden Fehlern erledigt der `PushService` selbst. „Neue Post!“ zählt nur Briefe.
+- **Bezahlen (SPEC 9.1.6, 9.1.7):** Alles, was Gold kostet, bucht über `pay` bzw. – für Eulenkeks und Lieblingsleckerli – über `payCare` (`backend/src/gold/privilege.ts`), nie direkt über `debit`: so gelten Sonderstatus (nichts wird abgebucht) und Beutel (eine Gabe aus dem Beutel statt Gold) überall gleich. Neue Wege, die Gold erstatten, prüfen, ob es überhaupt abgebucht wurde (`flights.gold_paid`). Die Oberfläche rechnet mit `spendableGold()` und zeigt Preise auf Pflegeknöpfen mit `careCost()` (`web/src/lib/purse.ts`).
+- **Knöpfe unter Eulen (SPEC 8.5):** Jede Gruppe von Knöpfen unter einer Eule steht in einem `.owl-actions`-Block (auch ein einzelner Knopf), Hinweise darunter, nicht dazwischen. Eine Pflege, die heute nicht mehr geht, behält ihren Text und bekommt `class:done` (durchgestrichen) und ein `aria-label` „[Text] – [Grund]“ (`t.owls.doneAria`).
+- **Paare (SPEC 9.9):** Jeder neue Zustand, in dem eine eigene Eule zu Hause, aber nicht einsatzbereit ist, setzt `markUnready`/`markReady` (`backend/src/owls/pairs.ts`); jeder neue Weg von zu Hause fort nutzt wie bisher `leftHome`/`backHome`.
+- **Passwortliste (SPEC 7.2):** `node tools/passwords/build.ts` erzeugt `shared/src/security/common-passwords-data.ts` aus SecLists (Commit und SHA-256 im Skript festgeschrieben, Zwischenspeicher `tools/passwords/.cache/` nicht im Repository). Neue Passwortfelder (Registrierung, Passwortwechsel) prüfen mit `weakError` (`web/src/lib/password-check.ts`), das die Liste erst dann nachlädt.
 - **Hinweise der Skripte:** Was den Betrieb nicht verhindert (DNS, IPv4/IPv6, www, Tor), meldet `notice` (deploy/lib.sh) sofort und am Ende gesammelt im Banner.
 - Wartungsversionen mit Schwerpunkt Sicherheit: jede gefundene Lücke bekommt einen Test, der ohne die Korrektur fehlschlägt (Gegenprobe), und einen Eintrag im Änderungsanhang der SPEC (Anhang F).
 - **Login-Versuche** sind an den Passwort-Datensatz gebunden, mit dem sie begonnen haben (`LoginAttempt.record`); wer einen neuen Anmeldeweg baut, prüft das beim Abschluss ebenso (SPEC 5.3).

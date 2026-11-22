@@ -1,6 +1,6 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 1.3.0 (2026-11-21). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> Stand: Version 1.3.1 (2026-11-22). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-18: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde (`deepmerge` über `@sveltejs/vite-plugin-svelte`) und 14 hohe, alle aus **einem** neuen Hinweis zu `picomatch` 4.0.7 (über `vite`, `vitest`, `svelte-check`, `typescript-eslint`; siehe unten). Für beide gibt es noch keine korrigierte Version. Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
@@ -75,6 +75,14 @@ Das Werkzeug kommt ohne npm-Abhängigkeiten aus (eigene Rasterung, Douglas–Peu
 | Daten | Version | Lizenz | Zweck |
 |---|---|---|---|
 | tz-Datenbank (IANA), `zone1970.tab`, `zone.tab`, `tzdata.zi` aus dem Debian-Paket `tzdata` | 2026f | gemeinfrei | Hauptort jeder Zeitzone (auch unter alten Namen) für Tag und Nacht auf der Startseite ohne Anmeldung (`shared/src/map/zone-places-data.ts`, SPEC 9.11) |
+
+## Werkzeug Passwortliste (`tools/passwords/`, nur Entwicklungsrechner, ab v1.3.1)
+
+| Daten | Version | Lizenz | Zweck |
+|---|---|---|---|
+| SecLists (Daniel Miessler), `Passwords/Common-Credentials`: `Pwdb_top-1000000.txt`, `xato-net-10-million-passwords-1000000.txt`, `100k-most-used-passwords-NCSC.txt`, `Language-Specific/German_common-password-list-top-1000000.txt` | Commit `a9679c2d7018` | MIT (Copyright (c) 2018 Daniel Miessler) | Sperrliste häufiger Passwörter (SPEC 7.2): je die ersten 300.000 Einträge, davon nur 15–64 Zeichen, klein geschrieben – 9.966 Einträge in `shared/src/security/common-passwords-data.ts` (mit Quellen- und Lizenzhinweis im Dateikopf). Die Quelldateien sind mit SHA-256 in `tools/passwords/build.ts` festgeschrieben. |
+
+Die Liste wird im Browser nur beim Erstellen eines Kontos und beim Passwortwechsel nachgeladen (eigener Chunk, etwa 190 KB, komprimiert etwa 90 KB).
 
 ## Server (APT, Debian 13)
 

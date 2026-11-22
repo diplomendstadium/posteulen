@@ -3,6 +3,40 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.3.1 – Nachtwache im Nest und ein Beutel voller Kekse
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-439 bis D-455).
+
+**Neu:**
+
+- **Nachtbilder:** Brüten bei Nacht (`Brueten-Nacht`) und wieder gesund bei Nacht (`Gesund-Nacht`) je Art (nicht der Phönix); gezeigt, solange es am Wohnort dunkel ist, sonst wie bisher das Tagbild.
+- **Beutel:** Eulenkekse und Leckerlis für den Beutel eines Spielers – von Bots (1–10 je Brief, nur mit Brief; Systemnachricht) oder von Gutscheinen des Admins (1–50). Solange der Beutel welche hat, kosten Füttern bzw. Lieblingsleckerli nichts (eigene Eulen, Leiheulen, Gast-Eulen, Rettungsstation); Leckerlis passen zu jeder Art. Oben im Postamt, bei „Meine Eulen“ und in der Rettungsstation steht „In deinem Beutel befinden sich noch … Eulenkekse und … Leckerlis.“; die Knöpfe zeigen „aus dem Beutel“.
+- **Paare:** Eine weibliche eigene Eule legt nach der Heimkehr doppelt so oft Eier, wenn ein eigener erwachsener Eulenmann derselben Art an mindestens 2 der letzten 7 UTC-Tage mehr als 6 Stunden gemeinsam mit ihr einsatzbereit zu Hause war, und ebenfalls doppelt so oft, wenn sie auf der Reise bei einem Empfänger mindestens 2 Stunden neben einem einsatzbereiten Eulenmann ihrer Art gerastet hat; beides zusammen dreimal so oft.
+- **Sonderstatus (Adminpanel):** Spieler per Nutzername dauerhaft oder bis zu einem Zeitpunkt privilegieren und jederzeit widerrufen: unbegrenztes Gold („∞ Gold“, nichts wird abgebucht, der gewohnte Kontostand bleibt), keine Regel für Geschenke, kein Mindestrest bei Überweisungen, mehr als 50 eigene Eulen; höchstens 20 Gold je Eule bleibt. Systemnachricht bei Erteilen und Ende.
+- **Passwortprüfung** bei Registrierung und Passwortwechsel (in der App, der Server sieht das Passwort nie): nicht den Nutzernamen enthalten (Vergleich wie bei Namen), nicht auf einer Liste von 9.966 häufigen Passwörtern mit 15–64 Zeichen (aus SecLists, MIT), keine einfachen Muster (höchstens 3 verschiedene Zeichen, Wiederholungen, Folgen auf Alphabet, Ziffern und Tastaturreihen).
+- **KI:** Erklärbär und Bots des Kontrollzentrums erfahren, mit welcher Eule (Name, Art, Geschlecht) ein Brief des Spielers ankam, und dürfen darauf eingehen.
+
+**Geändert:**
+
+- **Löschfrist:** neue Konten 180 Tage (bisher 365); bestehende Konten behalten ihre Frist; wählbar weiter 30, 90, 180 und 365 Tage.
+- **Rettungsstation:** eine wilde Eule statt drei (wer noch drei hat, bekommt erst eine neue, wenn alle versorgt sind); neue wilde Eulen brauchen Artpreis × 4 × 0,7–1,3 Hilfen (vorhandene behalten ihre Zahl); eigene kranke Eulen 6–25 Hilfen (bisher 5–20); Reihenfolge Wasser, Streicheln, Medizin, Füttern, Leckerli; Abstand zwischen Infoblock und „Kranke Eulen“.
+- **Knöpfe unter Eulen:** jede Zeile füllt die ganze Breite, Text zentriert – die Knöpfe bilden ein Rechteck (Eulenkarten, Gast-Eulen, Rettungsstation, Postamt, Menagerie). Heute schon erledigte Pflege bleibt mit demselben Text, ausgegraut und durchgestrichen; den Grund liest der Screenreader vor.
+- **Hilfeseite** ohne eigenen Hilfe-Link oben rechts.
+- **Namen (Anhang D):** aus der deutschen männlichen Liste Eli und Kiki, aus der deutschen weiblichen Liste Neo, Niko, Pino, Rio und Wendelin gestrichen.
+- **Leiheulen:** Eine Namenskollision ändert nur noch den Namen, nicht Geschlecht, Energie oder Motivation – dieselbe Eule in beiden Sprachen.
+- Update-Nachricht, Hilfe, Erklärbär-Wissen, Startseite, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; die gelieferten Ordner `Nachtbrüter/` und `Gesund bei Nacht/` sind eingepflegt und gelöscht.
+
+**Tests:** `shared/test/v131.test.ts`, `backend/test/v131.test.ts`, `e2e/v131.spec.ts`, Ergänzungen in `backend/test/v080.test.ts` und `backend/test/bots.test.ts`; bestehende Tests an die neuen Regeln angepasst.
+
+### Hinweise für Betreiber
+
+- **Migration `0024_v131.sql`** (Schema-Version 24): neue Tabellen `privileged_users`, `owl_unready`, neue Spalten `users.bag_biscuits`, `users.bag_treats`, `owls.mate_met`, `flights.gold_paid`, `flights.owl_sex`, `central_bot_events.gift_biscuits`, `central_bot_events.gift_treats`; `vouchers` neu aufgebaut (Arten `biscuits`, `treats`, Spalte `count`). Sie läuft beim Update automatisch; kranke und brütende Eulen werden als „nicht bereit“ übernommen.
+- **Neue Bilder** (40 Dateien in `images/`): je Art `…-Brueten-Nacht.png` und `…-Gesund-Nacht.png`.
+- **Neue Datendatei:** `shared/src/security/common-passwords-data.ts` (erzeugt mit `node tools/passwords/build.ts`, Quelle SecLists, MIT-Lizenz, in DEPENDENCIES.md). Sie wird nur beim Erstellen eines Kontos und beim Passwortwechsel nachgeladen.
+- Das Adminpanel hat einen neuen Abschnitt „Sonderstatus für Spieler“ – die einzige Stelle, an der der Admin auf einzelne Konten wirkt. Wer ihn bekommt, sieht nur der Admin.
+- Keine neuen Dienste, keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.3.0 – Die Eulenrettungsstation öffnet ihr Tor
 
 Fehlerbehebung beim Kontowechsel auf gemeinsam genutzten Geräten und Wünsche des Auftraggebers (SPEC Anhang F, D-418 bis D-438).
