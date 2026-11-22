@@ -72,17 +72,18 @@ describe('order of the owl overview (SPEC 8.5)', () => {
 });
 
 describe('rescue centre (SPEC 8.13, 9.8)', () => {
-  it('own owls need 5–20 interactions, equally likely', () => {
-    expect(ownCareNeeded(0)).toBe(5);
-    expect(ownCareNeeded(0.9999999)).toBe(20);
-    const seen = new Set(Array.from({ length: 16 }, (_, i) => ownCareNeeded((i + 0.5) / 16)));
-    expect(seen.size).toBe(16);
+  it('own owls need 6–25 interactions, equally likely (v1.3.1)', () => {
+    expect(ownCareNeeded(0)).toBe(6);
+    expect(ownCareNeeded(0.9999999)).toBe(25);
+    const seen = new Set(Array.from({ length: 20 }, (_, i) => ownCareNeeded((i + 0.5) / 20)));
+    expect(seen.size).toBe(20);
   });
 
-  it('wild owls need price × 3 × 0.8–1.2', () => {
-    expect(wildCareNeeded(10, 0)).toBe(24);
-    expect(wildCareNeeded(10, 1)).toBe(36);
-    expect(wildCareNeeded(10, 0.5)).toBe(30);
+  it('wild owls need price × 4 × 0.7–1.3 (v1.3.1)', () => {
+    expect(wildCareNeeded(10, 0)).toBe(28);
+    expect(wildCareNeeded(10, 1)).toBe(52);
+    expect(wildCareNeeded(10, 0.5)).toBe(40);
+    expect(wildCareNeeded(6, 0.25)).toBe(20);
     expect(wildCareNeeded(0, 0)).toBe(1);
   });
 
@@ -93,7 +94,8 @@ describe('rescue centre (SPEC 8.13, 9.8)', () => {
     expect(ids).toHaveLength(SPECIES.length - 2);
     expect(pickWildSpecies(0).id).toBe(ids[0]);
     expect(pickWildSpecies(0.9999999).id).toBe(ids.at(-1));
-    expect(RESCUE.WILD_SLOTS).toBe(3);
+    // v1.3.1: one wild owl per account.
+    expect(RESCUE.WILD_SLOTS).toBe(1);
   });
 
   it('progress in whole per cent, 100 only when done', () => {

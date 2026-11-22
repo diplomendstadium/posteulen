@@ -28,9 +28,12 @@ export function pastGracePeriod(ownedSince: string, day: string): boolean {
   return daysBetween(ownedSince, day) >= OWL.SICKNESS_GRACE_DAYS;
 }
 
-/** Eggs after every return home of a female own owl: 1/100 (9.9). */
-export function laysEggs(random: number): boolean {
-  return random < OWL.EGG_PROBABILITY;
+/**
+ * Eggs after every return home of a female own owl: 1/100 (9.9); v1.3.1: `probability` from
+ * the pair rules (`eggProbability`, game/pairs.ts).
+ */
+export function laysEggs(random: number, probability: number = OWL.EGG_PROBABILITY): boolean {
+  return random < probability;
 }
 
 /** 1–3 chicks, uniformly distributed (9.9). */
@@ -77,9 +80,14 @@ export interface LoanIdentity {
  * bytes (9.6: deterministic, nothing stored). The energy is known in advance, so the letter
  * preview can offer the loan owls of the day with an exact flight plan (8.4 step 4).
  */
-export function loanIdentity(hmac: Uint8Array, namesFor: NamesFor = GERMAN_NAMES): LoanIdentity {
+export function loanIdentity(
+  hmac: Uint8Array,
+  namesFor: NamesFor = GERMAN_NAMES,
+  /** v1.3.1: a sex already rolled (another attempt only looks for another name). */
+  fixedSex?: OwlSex,
+): LoanIdentity {
   const value = (((hmac[0] ?? 0) << 16) | ((hmac[1] ?? 0) << 8) | (hmac[2] ?? 0)) >>> 0;
-  const sex: OwlSex = ((hmac[3] ?? 0) & 1) === 0 ? 'f' : 'm';
+  const sex: OwlSex = fixedSex ?? (((hmac[3] ?? 0) & 1) === 0 ? 'f' : 'm');
   // The name comes from the list of the owl's sex (Anhang D).
   const names = namesFor(sex);
   return {
@@ -133,9 +141,15 @@ export function loanIdentities(
 ): LoanIdentity[] {
   const taken = new Set<string>();
   return offer.map((species) => {
-    let identity = loanIdentity(derive(species, 0), namesFor);
+    const first = loanIdentity(derive(species, 0), namesFor);
+    let identity = first;
+    // v1.3.1: a clash only changes the name – sex, energy and motivation stay, so the owl is the
+    // same in both languages.
     for (let attempt = 1; taken.has(identity.name) && attempt < NAME_ATTEMPTS; attempt++) {
-      identity = loanIdentity(derive(species, attempt), namesFor);
+      identity = {
+        ...first,
+        name: loanIdentity(derive(species, attempt), namesFor, first.sex).name,
+      };
     }
     // Still a clash: the next free name of the list of its sex (the sex stays).
     const names = namesFor(identity.sex);

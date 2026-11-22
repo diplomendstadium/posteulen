@@ -48,6 +48,9 @@ export interface EventRow {
   readonly owl_mode: 'default' | OwlMode;
   readonly gift_gold: number | null;
   readonly gift_species: string | null;
+  /** v1.3.1: owl biscuits or treats for the pouch (1–10). */
+  readonly gift_biscuits: number | null;
+  readonly gift_treats: number | null;
   readonly media: string;
   readonly started_at: number | null;
   readonly archived_at: number | null;

@@ -180,7 +180,7 @@ describe('Hilfe zu Version 0.2', () => {
     // v0.8.5: deleted 365 days after delivery, at the weekly clean-up (Mondays).
     expect(text).toContain('365 Tage – also ein Jahr – nach ihrer Zustellung');
     expect(text).toContain('einmal in der Woche, montags früh');
-    expect(text).toContain('30, 90 oder 180 Tagen');
+    expect(text).toContain('30, 90, 180 Tage oder ein Jahr');
     expect(text).toContain('mindestens 1 Stunde zu Hause');
     expect(text).toContain('3-mal pro Kalendermonat');
     expect(text).toContain('Leiheulen des Tages');

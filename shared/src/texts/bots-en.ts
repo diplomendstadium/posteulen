@@ -15,7 +15,7 @@ I am the Explainer Bear, and over the next few days I will send you a few short 
 
 At the bottom you will find the most important places: Letters, Owls, Address book and Map. You start with 3 gold. Your own owl costs 6 gold or more, but during your first 30 days you get 3 gold every day, and 2 gold after that. Until then, borrow a loan owl – at the post office or right when you write a letter.
 
-Important: all letters are deleted automatically and for good one year after delivery at the latest, this one too. In the settings you can have them deleted even sooner.
+Important: your letters are deleted automatically and for good 180 days after delivery, this one too. In the settings you choose 30, 90, 180 days or one year.
 
 Questions about PostEulen? Just write to me – you will find me under Letters! Once you have, you will find me on your map as well.`,
     day1: `Hello, today I will tell you a little magic trick!
@@ -58,9 +58,9 @@ By the way, letters to bots like me are not encrypted. From the first Sunday of 
 Your Explainer Bear`,
     day7: `Hello, today is all about care!
 
-Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl falls ill, it goes to the rescue centre – there you nurse it back to health with medicine, food, water and a little stroking.
+Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl falls ill, you nurse it back to health in the rescue centre.
 
-Sometimes an owl lays eggs. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
+Sometimes an owl lays eggs – more often if a male of her species lives with you. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
 
 That was the last letter of my series. I am happy to answer your questions!
 

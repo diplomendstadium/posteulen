@@ -1,5 +1,5 @@
 /**
- * v0.7: vouchers for gold or an owl (SPEC 13, 8.10). The admin creates them; each can be
+ * v0.7: vouchers for gold or an owl (SPEC 13, 8.10); v1.3.1 also owl biscuits or treats. The admin creates them; each can be
  * redeemed once within 90 days in the settings. Codes are stored only as HMAC (like invitation
  * codes) with the last four characters for the list; who redeemed one is not stored.
  */
@@ -12,6 +12,7 @@ import type { Context } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
+import { addToBag } from '../gold/privilege.ts';
 
 /** Easy to type: no 0/O, 1/I/L (as invitation codes). 12 characters ≈ 59 bits. */
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -20,7 +21,13 @@ function voucherHmac(ctx: Context, code: string): Buffer {
   return hmac(ctx.keys.voucher, code.toUpperCase().replace(/[\s-]/g, ''));
 }
 
-export type VoucherContent = { kind: 'gold'; gold: number } | { kind: 'owl'; species: string };
+export type VoucherContent =
+  | { kind: 'gold'; gold: number }
+  | { kind: 'owl'; species: string }
+  /** v1.3.1: owl biscuits or treats for the pouch (SPEC 9.1.6). */
+  | { kind: 'biscuits' | 'treats'; count: number };
+
+type VoucherKind = VoucherContent['kind'];
 
 export function createVoucher(
   ctx: Context,
@@ -33,14 +40,15 @@ export function createVoucher(
   const id = randomId();
   const expiresAt = now + VOUCHER.VALID_DAYS * TIME.DAY;
   ctx.db.run(
-    `INSERT INTO vouchers (id, hmac, hint, kind, gold, species, created_at, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO vouchers (id, hmac, hint, kind, gold, species, count, created_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     voucherHmac(ctx, code),
     raw.slice(8, 12),
     content.kind,
     content.kind === 'gold' ? content.gold : null,
     content.kind === 'owl' ? content.species : null,
+    content.kind === 'biscuits' || content.kind === 'treats' ? content.count : null,
     now,
     expiresAt,
   );
@@ -54,9 +62,10 @@ export function listVouchers(ctx: Context, now: number) {
     .all<{
       id: string;
       hint: string;
-      kind: 'gold' | 'owl';
+      kind: VoucherKind;
       gold: number | null;
       species: string | null;
+      count: number | null;
       created_at: number;
       expires_at: number;
       redeemed: number;
@@ -67,6 +76,7 @@ export function listVouchers(ctx: Context, now: number) {
       kind: row.kind,
       gold: row.gold,
       species: row.species,
+      count: row.count,
       createdAt: row.created_at,
       expiresAt: row.expires_at,
       redeemed: row.redeemed === 1,
@@ -82,14 +92,18 @@ export function redeemVoucher(
   userId: string,
   code: string,
   now: number,
-): { kind: 'gold'; amount: number } | { kind: 'owl'; species: string } {
+):
+  | { kind: 'gold'; amount: number }
+  | { kind: 'owl'; species: string }
+  | { kind: 'biscuits' | 'treats'; count: number } {
   const row = ctx.db.get<{
     id: string;
-    kind: 'gold' | 'owl';
+    kind: VoucherKind;
     gold: number | null;
     species: string | null;
+    count: number | null;
   }>(
-    'SELECT id, kind, gold, species FROM vouchers WHERE hmac = ? AND expires_at > ? AND redeemed = 0',
+    'SELECT id, kind, gold, species, count FROM vouchers WHERE hmac = ? AND expires_at > ? AND redeemed = 0',
     voucherHmac(ctx, code),
     now,
   );
@@ -100,6 +114,11 @@ export function redeemVoucher(
     const amount = row.gold ?? 0;
     credit(ctx.db, userId, 'voucher', amount, now);
     return { kind: 'gold', amount };
+  }
+  if (row.kind === 'biscuits' || row.kind === 'treats') {
+    const count = row.count ?? 0;
+    if (count > 0) addToBag(ctx.db, userId, row.kind, count);
+    return { kind: row.kind, count };
   }
   const pool = SPECIES.filter((species) => !species.mythical);
   const species =

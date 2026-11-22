@@ -14,6 +14,7 @@ import {
 import type { Context } from '../context.ts';
 import { utcDay } from '../security/ids.ts';
 import type { OwlRow } from './model.ts';
+import { pruneUnready } from './pairs.ts';
 
 /** A day on which the owl was cared for (care bonus, 9.3). */
 export function markCareDay(ctx: Context, owlId: string, day: string): void {
@@ -108,4 +109,6 @@ export function pruneCareHistory(ctx: Context, now: number): void {
   const cutoff = now - (OWL.CARE_BONUS_LOOKBACK_DAYS + 1) * TIME.DAY;
   ctx.db.run('DELETE FROM owl_care_days WHERE day < ?', utcDay(cutoff));
   ctx.db.run('DELETE FROM owl_away WHERE until_at IS NOT NULL AND until_at < ?', cutoff);
+  // v1.3.1: times of sickness and brooding (pairs, 9.9).
+  pruneUnready(ctx, cutoff);
 }

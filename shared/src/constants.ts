@@ -49,6 +49,8 @@ export const LETTER = {
   RETENTION_MAX_DAYS: 365,
   /** Shorter periods a user can choose for their own copies (settings, v0.2). */
   RETENTION_CHOICES: [30, 90, 180, 365],
+  /** v1.3.1: preselected for new accounts (accounts from before keep their period). */
+  RETENTION_DEFAULT_DAYS: 180,
   /** v0.8.5: letters past their period are deleted once a week, on this weekday (1 = Monday). */
   RETENTION_WEEKDAY_UTC: 1,
   /**
@@ -106,6 +108,15 @@ export const OWL = {
   SICKNESS_GRACE_DAYS: 28,
   MENAGERIE_DAYS: 7,
   EGG_PROBABILITY: 1 / 100,
+  /**
+   * v1.3.1: pairs (9.9) – ×2 if a male of her species was ready at home with her for more than
+   * 6 hours on 2 of the last 7 days, ×2 if one was ready at home at a recipient while she
+   * rested there for at least 2 hours; both together ×3.
+   */
+  PAIR_WINDOW_DAYS: 7,
+  PAIR_MIN_DAYS: 2,
+  PAIR_MIN_HOURS: 6,
+  VISIT_MIN_HOURS: 2,
   BROODING_DAYS: 7,
   CHICKS_MIN: 1,
   CHICKS_MAX: 3,
@@ -121,17 +132,18 @@ export const OWL = {
 
 /**
  * The owl rescue centre (SPEC 8.13, 9.8): a sick own owl needs a random number of counted
- * interactions to get well (it only sees the progress in per cent); a wild sick owl needs
- * price × 3 × a random factor of 0.8–1.2. Three wild owls per account; a healed wild owl stays
- * with the player with this chance, otherwise it flies off into freedom.
+ * interactions to get well (it only sees the progress in per cent; v1.3.1: 6–25); a wild sick
+ * owl needs price × 4 × a random factor of 0.7–1.3 (v1.3.1, rolled when it comes in). One wild
+ * owl per account (v1.3.1); a healed wild owl stays with the player with this chance, otherwise
+ * it flies off into freedom.
  */
 export const RESCUE = {
-  OWN_MIN_CARE: 5,
-  OWN_MAX_CARE: 20,
-  WILD_SLOTS: 3,
-  WILD_PRICE_FACTOR: 3,
-  WILD_RANDOM_MIN: 0.8,
-  WILD_RANDOM_MAX: 1.2,
+  OWN_MIN_CARE: 6,
+  OWN_MAX_CARE: 25,
+  WILD_SLOTS: 1,
+  WILD_PRICE_FACTOR: 4,
+  WILD_RANDOM_MIN: 0.7,
+  WILD_RANDOM_MAX: 1.3,
   STAY_CHANCE: 0.5,
   /** Never as wild sick owls (SPEC 8.13). */
   WILD_EXCLUDED: ['phoenix', 'virginiauhu'],
@@ -306,6 +318,8 @@ export const CENTRAL_BOTS = {
   /** Gifts in events: like vouchers, 0.1 to 100 gold per player (tenths). */
   GIFT_GOLD_MIN: 1,
   GIFT_GOLD_MAX: 1000,
+  /** v1.3.1: owl biscuits or treats a bot puts into a letter (SPEC 10.8). */
+  GIFT_BAG_MAX: 10,
   /** Export/import (SPEC Anhang S). */
   EXPORT_FORMAT: 'posteulen-bots',
   EXPORT_VERSION: 1,
@@ -342,6 +356,8 @@ export const VOUCHER = {
   /** Gold in tenths: 0.1 to 100.0. */
   GOLD_MIN: 1,
   GOLD_MAX: 1000,
+  /** v1.3.1: owl biscuits or treats for the pouch: 1 to 50. */
+  BAG_MAX: 50,
 } as const;
 
 export const MAP = {

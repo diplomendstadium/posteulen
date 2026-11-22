@@ -250,10 +250,10 @@ describe('rescue centre: own owls (SPEC 8.13, 9.8)', () => {
 });
 
 describe('rescue centre: wild owls (SPEC 8.13)', () => {
-  it('three wild owls per account, never the phoenix or the Great Horned Owl, names suit the sex', async () => {
+  it('one wild owl per account (v1.3.1), never the phoenix or the Great Horned Owl, names suit the sex', async () => {
     setRandom(seeded());
     const wild = (await rescue(anna)).wild;
-    expect(wild).toHaveLength(3);
+    expect(wild).toHaveLength(1);
     for (const owl of wild) {
       expect(['phoenix', 'virginiauhu']).not.toContain(owl.species);
       const { owlNames } = await import('@posteulen/shared/names-data.ts');
@@ -264,16 +264,29 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
       )!;
       const { speciesById } = await import('@posteulen/shared/game/owls.ts');
       const price = speciesById(row.species)!.price;
-      expect(row.needed).toBeGreaterThanOrEqual(Math.round(price * 3 * 0.8));
-      expect(row.needed).toBeLessThanOrEqual(Math.round(price * 3 * 1.2));
+      // v1.3.1: price × 4 × 0.7–1.3.
+      expect(row.needed).toBeGreaterThanOrEqual(Math.round(price * 4 * 0.7));
+      expect(row.needed).toBeLessThanOrEqual(Math.round(price * 4 * 1.3));
     }
-    // Ben has his own three.
+    // Ben has his own.
     expect((await rescue(ben)).wild.map((owl) => owl.id)).not.toContain(wild[0]!.id);
     expect((await rescue(anna)).wild.map((owl) => owl.id)).toEqual(wild.map((owl) => owl.id));
   });
 
-  it('a healed wild owl joins as a post owl or flies off; a new one takes its place', async () => {
-    const [first, second] = (await rescue(anna)).wild;
+  it('a healed wild owl joins as a post owl or flies off; three from before are used up first (v1.3.1)', async () => {
+    const [first] = (await rescue(anna)).wild;
+    // Two more wild owls from v1.3.0 (three per account then); they keep their number.
+    for (const slot of [1, 2]) {
+      app.db.run(
+        `INSERT INTO rescue_wild (id, user_id, slot, species, sex, name, needed, created_at)
+         VALUES (?, ?, ?, 'waldkauz', 'f', 'Alt', 17, 0)`,
+        `legacyWild${slot}00000000000`,
+        anna.id,
+        slot,
+      );
+    }
+    const [, second, third] = (await rescue(anna)).wild;
+    expect(third).toMatchObject({ name: 'Alt' });
     app.db.run('UPDATE rescue_wild SET needed = 1 WHERE id IN (?, ?)', first!.id, second!.id);
     setRandom(0.2); // stays
     expect(
@@ -290,9 +303,8 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
     setRandom(0.7); // flies off
     await anna.agent.json('POST', `/api/rescue/wild/${second!.id}/water`, {});
     // Not healed yet: no release.
-    const third = (await rescue(anna)).wild[2]!;
     expect(
-      (await anna.agent.json('POST', `/api/rescue/wild/${third.id}/release`, {})).body,
+      (await anna.agent.json('POST', `/api/rescue/wild/${third!.id}/release`, {})).body,
     ).toMatchObject({
       code: 'rescue_not_healed',
     });
@@ -315,10 +327,15 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
       {},
     );
     expect(free.body).toEqual({ stays: false, owlId: null });
+    // One from before is still there: no new one yet.
+    expect((await rescue(anna)).wild.map((owl) => owl.id)).toEqual([third!.id]);
+    app.db.run('UPDATE rescue_wild SET needed = 1 WHERE id = ?', third!.id);
+    await anna.agent.json('POST', `/api/rescue/wild/${third!.id}/medicine`, {});
+    await anna.agent.json('POST', `/api/rescue/wild/${third!.id}/release`, {});
+    // All gone: exactly one new wild owl.
     const now = (await rescue(anna)).wild;
-    expect(now).toHaveLength(3);
-    expect(now.map((owl) => owl.id)).not.toContain(first!.id);
-    expect(now.map((owl) => owl.id)).not.toContain(second!.id);
+    expect(now).toHaveLength(1);
+    expect([first!.id, second!.id, third!.id]).not.toContain(now[0]!.id);
   });
 
   it('a joining owl may go beyond the limit of 50 owls', async () => {
@@ -568,7 +585,7 @@ describe('migration 0023 (v1.3.0)', () => {
     owl('self', 'self_care');
     owl('vet', 'vet');
     owl('phoenix', 'sick', 'phoenix');
-    expect(migrate(db, migrations)).toEqual([23]);
+    expect(migrate(db, migrations.slice(0, 23))).toEqual([23]);
     const state = (id: string) =>
       db.get<{ state: string }>('SELECT state FROM owls WHERE id = ?', id)?.state;
     expect(state('self')).toBe('home');

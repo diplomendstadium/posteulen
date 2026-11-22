@@ -1,4 +1,7 @@
-/** Admin API (SPEC 13). Never offers user lists, letters or changes to accounts. */
+/**
+ * Admin API (SPEC 13). Never offers user lists or letters; the only change to accounts is the
+ * privilege for players the admin names (v1.3.1, SPEC 9.1.7).
+ */
 import * as v from 'valibot';
 import type { FastifyInstance } from 'fastify';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
@@ -13,7 +16,12 @@ import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { createInvite, getRegistrationMode, listInvites, setRegistrationMode } from './settings.ts';
 import { createVoucher, listVouchers } from './vouchers.ts';
 import { listFeedback } from './feedback.ts';
-import { VoucherCreate } from '@posteulen/shared/schemas/vouchers.ts';
+import {
+  PrivilegeGrant,
+  PrivilegeRevoke,
+  VoucherCreate,
+} from '@posteulen/shared/schemas/vouchers.ts';
+import { grantPrivilege, listPrivileged, revokePrivilege } from '../gold/privilege.ts';
 import { registerAdminOperations } from './operations.ts';
 import { registerPanelAuth } from './panel-auth.ts';
 import { setTorEnabled, torOverview } from '../ops/tor.ts';
@@ -80,6 +88,31 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
     const id = parse(Id, (request.params as { id?: unknown }).id);
     const result = ctx.db.run('DELETE FROM vouchers WHERE id = ?', id);
     if (result.changes !== 1) throw new HttpError(404, 'not_found');
+    return { ok: true };
+  });
+
+  // ── Privilegierte Spieler (v1.3.1, SPEC 9.1.7, 13): Gold ohne Ende, keine Grenzen beim Schenken ──
+  app.get('/api/privileged', { preHandler: authenticated }, async () => ({
+    players: listPrivileged(ctx, ctx.now()),
+  }));
+
+  app.post('/api/privileged', { preHandler: authenticated }, async (request) => {
+    const body = parse(PrivilegeGrant, request.body);
+    const now = ctx.now();
+    const after: (() => void)[] = [];
+    const entry = ctx.db.transaction(() =>
+      grantPrivilege(ctx, body.name, body.until, now, (work) => after.push(work)),
+    );
+    for (const work of after) work();
+    return entry;
+  });
+
+  app.post('/api/privileged/revoke', { preHandler: authenticated }, async (request) => {
+    const body = parse(PrivilegeRevoke, request.body);
+    const now = ctx.now();
+    const after: (() => void)[] = [];
+    ctx.db.transaction(() => revokePrivilege(ctx, body.name, now, (work) => after.push(work)));
+    for (const work of after) work();
     return { ok: true };
   });
 

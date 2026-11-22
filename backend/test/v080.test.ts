@@ -486,6 +486,12 @@ describe('bots of the control centre (SPEC 10.6–10.10)', () => {
       TEXTS.de.first,
       'KI-Brief: Danke für deine Zeilen!',
     ]);
+    // v1.3.1: the AI learns which owl brought the player's letter (name, species, sex).
+    const asked = ai.calls.at(-1)!.messages;
+    expect(asked.at(-1)!.content).toMatch(/Brief 1 \(kam mit der Eule „[^“]+“ \([^)]+\)\):/);
+    expect(asked.some((message) => message.content.startsWith('Zu jedem Brief steht dabei'))).toBe(
+      true,
+    );
     // An event with an API error: the planned letter goes anyway, the player's letter stays open.
     const loan2 = app.clock.now + TIME.DAY;
     await settle(loan2);
@@ -643,6 +649,58 @@ describe('bots of the control centre (SPEC 10.6–10.10)', () => {
         anna.id,
       ),
     ).toEqual([{ type: 'gold_arrived' }, { type: 'bot_owl_gift' }]);
+  });
+
+  it('owl biscuits and treats in a letter go into the pouch (v1.3.1)', async () => {
+    const anna = await person(app, 'Anna', BERLIN);
+    const bot = await newBot('Kapitän Ahoi', { owlMode: 'loan', restHours: 0 });
+    await activate(bot);
+    // Only with a letter, at most 10.
+    expect(
+      (
+        await centre.json('POST', `/api/bots/${bot}/events`, {
+          dueAt: app.clock.now + TIME.HOUR,
+          move: null,
+          letter: null,
+          gift: { biscuits: 3 },
+          context: '',
+        })
+      ).body,
+    ).toMatchObject({ code: 'gift_needs_letter' });
+    expect(
+      (
+        await centre.json('POST', `/api/bots/${bot}/events`, {
+          dueAt: app.clock.now + TIME.HOUR,
+          move: null,
+          letter: { parchment: 'small', owlMode: 'default', texts: TEXTS, media: [] },
+          gift: { treats: 11 },
+          context: '',
+        })
+      ).status,
+    ).toBe(400);
+    await planLetter(bot, app.clock.now + TIME.HOUR, { gift: { biscuits: 7 } });
+    await planLetter(bot, app.clock.now + 2 * TIME.HOUR, { gift: { treats: 1 } });
+    const planned = await centre.json<{ planned: { gift: unknown }[] }>(
+      'GET',
+      `/api/bots/${bot}/events`,
+    );
+    expect(planned.body.planned.map((event) => event.gift)).toEqual(
+      expect.arrayContaining([{ biscuits: 7 }, { treats: 1 }]),
+    );
+    await settle(app.clock.now + 8 * TIME.HOUR);
+    expect(app.db.get('SELECT bag_biscuits, bag_treats FROM users WHERE id = ?', anna.id)).toEqual({
+      bag_biscuits: 7,
+      bag_treats: 1,
+    });
+    const messages = app.db.all<{ params: string }>(
+      "SELECT params FROM system_messages WHERE user_id = ? AND type = 'bag_gift' ORDER BY created_at",
+      anna.id,
+    );
+    expect(messages.map((message) => JSON.parse(message.params))).toEqual([
+      { name: 'Kapitän Ahoi', kind: 'biscuits', count: 7 },
+      { name: 'Kapitän Ahoi', kind: 'treats', count: 1 },
+    ]);
+    expect(lettersOf(bot, anna.id)).toHaveLength(2);
   });
 
   it('export and import: adds, never overwrites; past events are not sent again; conflicts first', async () => {

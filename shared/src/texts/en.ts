@@ -66,7 +66,8 @@ export const en: Texts = {
     userName: 'User name',
     userNameHint: '3–20 characters: letters (including umlauts and accents), digits, spaces.',
     password: 'Password',
-    passwordHint: 'At least 15 characters. A sentence only you know works best.',
+    passwordHint:
+      'At least 15 characters. A sentence only you know works best – not your user name and no well-known string.',
     passwordRepeat: 'Repeat password',
     inviteCode: 'Invitation code',
     home: 'Fictional home',
@@ -86,6 +87,12 @@ export const en: Texts = {
     mismatch: 'The two passwords are not the same.',
     tooShort: 'The password is too short (at least 15 characters).',
     tooLong: 'The password is too long (at most 256 characters).',
+    /** v1.3.1: too easy to guess (SPEC 7.2). */
+    containsName: 'Your password must not contain your user name.',
+    common:
+      'This password is on public lists of frequently used passwords and is therefore easy to guess. Please choose another one.',
+    pattern:
+      'This password is too easy to guess (for example 123456…, qwerty…, abcdef… or repetitions). Please choose another one – ideally a sentence only you know.',
     confirmRequired: 'Please confirm the note about the password.',
   },
   welcome: {
@@ -143,6 +150,8 @@ export const en: Texts = {
     voucherCode: 'Voucher code',
     voucherRedeem: 'Redeem',
     voucherGold: 'Redeemed: {amount} has been added to your account.',
+    /** v1.3.1: owl biscuits or treats for the pouch. */
+    voucherBiscuits: 'Redeemed: {count} are in your pouch now.',
     voucherOwl:
       'Redeemed: a new owl ({species}) has moved in with you and is waiting for its name.',
     voucherToOwls: 'To the owls',
@@ -153,12 +162,12 @@ export const en: Texts = {
     nameChanged: 'You are now called {name}.',
     lettersTitle: 'Letters',
     retentionIntro:
-      'All letters and system messages are deleted for good one year after delivery – for you and for everyone else. You can have your own copies (letters written and received) deleted sooner. The other person keeps their copy until their own period runs out. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer than its period.',
+      'All letters and system messages are deleted for good one year after delivery at the latest – for you and for everyone else. Here you choose the period for your own copies (letters written and received); new accounts start with 180 days. The other person keeps their copy until their own period runs out. Tidying up happens once a week, early on Mondays – so a letter may stay up to seven days longer than its period.',
     retentionLegend: 'Delete my letters after',
     retention30: '30 days',
     retention90: '90 days',
-    retention180: '180 days',
-    retention365: 'one year (default)',
+    retention180: '180 days (default)',
+    retention365: 'one year',
     retentionConfirm:
       'All your letters and system messages older than {days} days will be deleted for good at the next weekly tidy-up (early on Monday). Continue?',
     printLabel: 'Show letters in print instead of handwriting',
@@ -386,6 +395,31 @@ export const en: Texts = {
       'Your account will be deleted in 30 days if you do not sign in. Any use of the app prevents this.',
     deletion_cancelled: 'The deletion of your account has been cancelled.',
     broadcast: '{text}',
+    /** v1.3.1: owl biscuits or treats of a bot (in the pouch). */
+    bag_gift_biscuits:
+      '{name} put {count} owl biscuits into the letter for you. They are in your pouch now – while there are some left, feeding costs nothing.',
+    bag_gift_biscuits_one:
+      '{name} put an owl biscuit into the letter for you. It is in your pouch now – one feed costs you nothing.',
+    bag_gift_treats:
+      '{name} put {count} treats into the letter for you. They are in your pouch now and every owl likes them – while there are some left, treats cost nothing.',
+    bag_gift_treats_one:
+      '{name} put a treat into the letter for you. It is in your pouch now and every owl likes it – one treat costs you nothing.',
+    /** v1.3.1: the privilege set by the admin (SPEC 9.1.7). */
+    privilege_granted:
+      'The admin has given you a special status: from now on you have unlimited gold and may give away as much gold and as many owls as you like.',
+    privilege_granted_until:
+      'The admin has given you a special status until {until}: until then you have unlimited gold and may give away as much gold and as many owls as you like.',
+    privilege_ended:
+      'Your special status has ended. Your usual balance counts again, and the usual rules for gifts apply again.',
+  },
+  /** v1.3.1: the pouch with owl biscuits and treats (post office, My owls, rescue centre). */
+  bag: {
+    text: 'Your pouch still holds {items}.',
+    and: ' and ',
+    biscuits: '{count} owl biscuits',
+    biscuitsOne: '1 owl biscuit',
+    treats: '{count} treats',
+    treatsOne: '1 treat',
   },
   duration: {
     minute: '1 minute',
@@ -553,11 +587,19 @@ export const en: Texts = {
     and: ' and ',
     pet: 'Pet',
     water: 'Give water',
-    wateredToday: 'Already had a drink today',
-    feed: 'Owl biscuit (0.1 gold)',
-    fedToday: 'Full – already fed today',
-    snack: 'Give {snack} (0.2 gold)',
-    snackedToday: 'Full – already had a treat today',
+    /**
+     * v1.3.1: a care button already used today keeps its text, crossed out and greyed; the
+     * reason is only read out (`doneAria`).
+     */
+    wateredToday: 'already had a drink today',
+    feed: 'Owl biscuit ({price})',
+    fedToday: 'full, already fed today',
+    snack: 'Give {snack} ({price})',
+    snackedToday: 'full, already had a treat today',
+    doneAria: '{action} – {why}',
+    /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
+    fromBag: 'from your pouch',
+    free: 'free',
     /** v0.10: send gold with this owl (only owls that carry gold). */
     sendGold: 'Send gold',
     /** v0.10: carrying capacity of the species (purchase, loan offers, owl cards). */
@@ -588,8 +630,6 @@ export const en: Texts = {
     guestReply: 'Give it a reply to {name}',
     guestSendOn: 'Send on its way',
     guestSendOnConfirm: 'Send {name} on its way now without a reply?',
-    feedFree: 'Owl biscuit (free)',
-    snackFree: 'Give {snack} (free)',
     restingAt: 'Resting with {name} until {until}.',
     /** v1.2.1: owls ready for post on top (by energy), then the others (by return). */
     readyGroup: 'Ready for post',
@@ -656,7 +696,7 @@ export const en: Texts = {
     insideOwn:
       'If you nurse your own sick owl here, it will of course come home with you afterwards.',
     rules:
-      'Every kind of help counts once a day: medicine, feeding, a snack, stroking and water. The owls like being stroked as often as you like. Medicine, water and stroking are free.',
+      'Every kind of help counts once a day: water, stroking, medicine, feeding and a snack. The owls like being stroked as often as you like. Water, stroking and medicine are free.',
     ownTitle: 'Your owls being nursed',
     wildTitle: 'Sick owls',
     progress: 'Well again: {progress} %',
@@ -665,7 +705,7 @@ export const en: Texts = {
     snack: 'Give {snack} ({price})',
     pet: 'Stroke',
     water: 'Give water',
-    doneToday: '{action} – done today',
+    doneToday: 'done today',
     medicineCaption: '{name} is getting medicine.',
     healed: '{name} is well again. Thank you for looking after {name}.',
     goHome: '{name} may go home again.',
@@ -746,6 +786,12 @@ export const en: Texts = {
     /** v0.10: in the settings (the overview “Finances” is gone). */
     title: 'Gold and bookings',
     balance: 'Your gold: {amount}',
+    /** v1.3.1: privileged players (SPEC 9.1.7). */
+    endless: 'unlimited',
+    privileged:
+      'Special status: you have unlimited gold and may give away gold and owls without the usual limits. Your usual balance ({amount}) stays untouched meanwhile.',
+    privilegedUntil:
+      'Special status until {until}: until then you have unlimited gold and may give away gold and owls without the usual limits. Your usual balance ({amount}) stays untouched meanwhile.',
     daily: 'Every day at {time} you get {amount}, as long as you are active.',
     dailyRule:
       'During the first 30 days after creating your account it is 3.0 gold a day, then 2.0 gold.',
@@ -852,6 +898,8 @@ export const en: Texts = {
   },
   units: {
     gold: (tenths: number): string => `${formatGold(tenths, '.')} gold`,
+    /** v1.3.1: the special status (SPEC 9.1.7). */
+    goldEndless: '∞ gold',
   },
   pages: {
     helpTitle: 'Help',
@@ -911,10 +959,17 @@ export const en: Texts = {
     invitesNone: 'No open codes.',
     vouchersTitle: 'Vouchers',
     vouchersIntro:
-      'A voucher for gold or an owl, redeemable once (in the settings of the app), valid for 90 days. The code is only shown now; whoever redeems it stays unknown.',
+      'A voucher for gold, an owl, owl biscuits or treats, redeemable once (in the settings of the app), valid for 90 days. Biscuits and treats go into the player’s pouch. The code is only shown now; whoever redeems it stays unknown.',
     voucherKind: 'Kind of voucher',
     voucherGold: 'Gold',
     voucherOwl: 'Owl',
+    /** v1.3.1 */
+    voucherBiscuits: 'Owl biscuits',
+    voucherTreats: 'Treats',
+    voucherCount: 'Number (1 to 50)',
+    voucherCountRange: 'Please enter a number from 1 to 50.',
+    voucherBiscuitsWhat: '{count} owl biscuits',
+    voucherTreatsWhat: '{count} treats',
     voucherAmount: 'Amount in gold (0.1 to 100)',
     voucherGoldRange: 'Please enter an amount of 0.1 to 100 gold.',
     voucherSpecies: 'Species of the owl',
@@ -924,6 +979,24 @@ export const en: Texts = {
     voucherHint: 'Voucher …{hint}: {what}, valid until {until}',
     voucherHintRedeemed: 'Voucher …{hint}: {what} – redeemed',
     vouchersNone: 'No vouchers.',
+    /** v1.3.1: privileged players (SPEC 9.1.7, 13). */
+    privilegedTitle: 'Special status for players',
+    privilegedIntro:
+      'Players with the special status have unlimited gold and may give away gold and owls without the usual limits (no two-week rule, no minimum left, more than 50 owls). Their usual balance stays untouched and counts again afterwards. The player gets a system message when it is granted and when it ends.',
+    privilegedName: 'User name',
+    privilegedDuration: 'Duration',
+    privilegedForever: 'For good',
+    privilegedUntilOption: 'Until',
+    privilegedUntil: 'End (date and time)',
+    privilegedGrant: 'Grant special status',
+    privilegedGranted: '{name} now has the special status.',
+    privilegedEntry: '{name} – since {since}, {until}',
+    privilegedEntryForever: 'for good',
+    privilegedEntryUntil: 'until {until}',
+    privilegedRevoke: 'Revoke',
+    privilegedRevokeConfirm: 'Revoke the special status of {name} now?',
+    privilegedNone: 'Nobody has the special status right now.',
+    privilegedPast: 'Please choose an end in the future.',
     feedbackTitle: 'Messages from users',
     feedbackIntro:
       'Short messages from the settings of the app (at most 300 characters, one per account and day), without sender. They are deleted automatically after 90 days.',
@@ -1129,6 +1202,11 @@ export const en: Texts = {
     giftOwl: 'Owl',
     giftAmount: 'Gold per player (0.1 to 100)',
     giftSpecies: 'Species of the owl (the player names it)',
+    /** v1.3.1: owl biscuits or treats in the letter (pouch of the player). */
+    giftBiscuits: 'Owl biscuits',
+    giftTreats: 'Treats',
+    giftCount: 'Number per player (1 to 10)',
+    giftNeedsLetter: 'Owl biscuits and treats come with a letter – please add a letter.',
     context: 'Additional context for the AI (background for replies after this event)',
     preview: 'Preview',
     previewTitle: 'This is how the letter looks for players',
@@ -1158,6 +1236,8 @@ export const en: Texts = {
     summaryLetter: 'Letter',
     summaryGold: '{amount} gold',
     summaryOwl: 'Owl ({species})',
+    summaryBiscuits: '{count} owl biscuits',
+    summaryTreats: '{count} treats',
     select: 'Select for export',
     exportSelected: 'Export selected events',
     pastTitle: 'Past events (archive)',
@@ -1200,6 +1280,11 @@ export const en: Texts = {
     rescue_done_today: 'This owl has already had that today. Again tomorrow!',
     rescue_healed: 'This owl is already well again.',
     rescue_not_healed: 'This owl is not well yet.',
+    /** v1.3.1 */
+    user_not_found: 'There is no account with this name.',
+    privilege_until: 'Please choose an end in the future.',
+    privilege_not_found: 'This player has no special status.',
+    gift_needs_letter: 'Owl biscuits and treats come with a letter – please add a letter.',
     stale: 'A different account is signed in here now. Please reload the page.',
     account_mismatch: 'A different account is signed in here now. Please reload the page.',
     banner_invalid:

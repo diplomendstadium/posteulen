@@ -12,7 +12,7 @@ import type { Context } from '../context.ts';
 import { logError } from '../ops/error-log.ts';
 import { utcDay } from '../security/ids.ts';
 import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from './ai.ts';
-import { SUMMARY_PROMPT, systemPrompt } from './prompts.ts';
+import { carrierNote, SUMMARY_PROMPT, systemPrompt, type CarrierOwl } from './prompts.ts';
 import { languageOf } from '../accounts/language.ts';
 import { botById, dispatchBotLetter, type BotRow } from './service.ts';
 
@@ -56,6 +56,16 @@ interface Letter {
   readonly sender_id: string;
   readonly sent_at: number;
   readonly plaintext: string | null;
+}
+
+/** v1.3.1: the owl that brought the letter (name, species, sex of its flight). */
+function carrierOf(ctx: Context, letterId: string): CarrierOwl | null {
+  const row = ctx.db.get<{ owl_name: string; owl_species: string; owl_sex: 'f' | 'm' | null }>(
+    `SELECT l.owl_name, l.owl_species, f.owl_sex FROM letters l
+       LEFT JOIN flights f ON f.id = l.flight_id WHERE l.id = ?`,
+    letterId,
+  );
+  return row ? { name: row.owl_name, species: row.owl_species, sex: row.owl_sex ?? null } : null;
 }
 
 type Outcome = 'done' | 'gone' | 'limit' | { error: string };
@@ -190,6 +200,7 @@ export class BotReplies {
       history = history.slice(-BOTS.CONTEXT_LETTERS);
     }
     if (!reserveCall(ctx.db, ctx.now())) return 'limit';
+    const carrier = carrierOf(ctx, letter.id);
     let raw: string;
     try {
       raw = await this.client.complete(
@@ -201,6 +212,8 @@ export class BotReplies {
             ? [{ role: 'system' as const, content: `Bisheriger Briefwechsel in Kürze: ${summary}` }]
             : []),
           ...history.map((item) => this.asMessage(bot, item)),
+          // v1.3.1: which owl brought the letter (SPEC 10.5).
+          ...(carrier ? [{ role: 'system' as const, content: carrierNote(carrier) }] : []),
           { role: 'user', content: letter.plaintext },
         ],
         REPLY_TOKENS,

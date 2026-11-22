@@ -85,6 +85,8 @@ const settings = (who: Person, retentionDays: number, print = false) =>
 
 describe('deletion of old letters (v0.2)', () => {
   it('everything older than one year disappears at 04:00 – also bot letters and system messages', async () => {
+    // v1.3.1: accounts from before keep 365 days (new ones start with 180).
+    app.db.run('UPDATE users SET letter_retention_days = 365');
     const old = letter(anna, ben, 366);
     const young = letter(anna, ben, 364);
     const botLetters = () =>
@@ -219,7 +221,7 @@ describe('migration 0007 (v0.2)', () => {
     );
 
     expect(migrate(db, migrations)).toEqual([
-      7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
     ]);
     expect(db.all('SELECT id, state FROM owls ORDER BY id')).toEqual([
       { id: 'o1', state: 'menagerie' },

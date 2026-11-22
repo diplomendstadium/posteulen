@@ -386,8 +386,11 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
       role: 'system',
       content: 'Bisheriger Briefwechsel in Kürze: Zusammenfassung: Es ging um Eulen.',
     });
-    // System prompt, summary, 6 letters, the new letter.
-    expect(replyMessages).toHaveLength(1 + 1 + BOTS.CONTEXT_LETTERS + 1);
+    // System prompt, summary, 6 letters, the owl that brought it (v1.3.1), the new letter.
+    expect(replyMessages).toHaveLength(1 + 1 + BOTS.CONTEXT_LETTERS + 1 + 1);
+    expect(replyMessages.at(-2)?.content).toMatch(
+      /^Der Brief deines Gegenübers kam mit der Eule „/,
+    );
     const chat = app.db.get<{ bot_summary: string }>(
       'SELECT bot_summary FROM chats WHERE peer_id = ?',
       explainer.id,

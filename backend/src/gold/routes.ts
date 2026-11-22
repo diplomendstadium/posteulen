@@ -24,7 +24,8 @@ import {
   publicKeys,
   TOKEN_MS,
 } from '../flights/transport.ts';
-import { balance, debit } from './ledger.ts';
+import { balance } from './ledger.ts';
+import { isPrivileged, pay } from './privilege.ts';
 import { redeemVoucher } from '../admin/vouchers.ts';
 import { VoucherRedeem } from '@posteulen/shared/schemas/vouchers.ts';
 
@@ -73,6 +74,11 @@ export function registerGoldJobs(ctx: Context): void {
       tools.after(() => ctx.hub.notifyAll('profile', 'finance'));
     },
   });
+}
+
+/** The gold a player can spend: endless for a privileged player (SPEC 9.1.7). */
+function spendable(ctx: Context, userId: string, now: number): number {
+  return isPrivileged(ctx.db, userId, now) ? Number.POSITIVE_INFINITY : balance(ctx.db, userId);
 }
 
 export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
@@ -132,7 +138,7 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     // v1.3: only active players, one gift of gold or an owl in two weeks (SPEC 9.1.5).
     requireGiftAllowed(ctx, me, now);
     checkRecipients(ctx, me, [body.recipient], now);
-    const problem = transferProblem(balance(ctx.db, me), body.amount);
+    const problem = transferProblem(spendable(ctx, me, now), body.amount);
     if (problem) throw new HttpError(400, problem);
     // v0.10: only species that carry gold (SPEC 9.2.1).
     const owl = chooseOwl(ctx, me, body.owlId, now, { parchment: 'small', gold: true });
@@ -183,11 +189,13 @@ export function registerGoldRoutes(app: FastifyInstance, ctx: Context): void {
     const result = ctx.db.transaction(() => {
       // Checked again inside the transaction: the balance may have changed meanwhile.
       requireGiftAllowed(ctx, me, now);
-      const problem = transferProblem(balance(ctx.db, me), token.gold);
+      const problem = transferProblem(spendable(ctx, me, now), token.gold);
       if (problem) throw new HttpError(400, problem);
-      debit(ctx.db, me, 'transfer_out', token.gold, now, token.recipients[0] ?? null);
+      const paid = pay(ctx.db, me, 'transfer_out', token.gold, now, token.recipients[0] ?? null);
       recordGift(ctx, me, now);
-      const { route, owl } = depart(ctx, token, letters, now);
+      const { route, owl, flightId } = depart(ctx, token, letters, now);
+      // v1.3.1: gold a privileged player sent for free is not refunded if the owl turns back.
+      if (!paid) ctx.db.run('UPDATE flights SET gold_paid = 0 WHERE id = ?', flightId);
       return {
         owl: { name: owl.name, species: owl.species },
         arrivesAt: route.find((stop) => stop.type === 'deliver')?.arrivesAt ?? now,

@@ -48,6 +48,21 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.3.1',
+    title: 'Nachtwache im Nest und ein Beutel voller Kekse: Version 1.3.1',
+    paragraphs: [
+      'Die Eulen haben die Nacht durchgemacht – und dabei einiges verbessert:',
+      '• Brütet eine Eule, während es bei dir dunkel ist, siehst du sie jetzt im nächtlichen Nest. Und wird eine Eule in der Rettungsstation nachts gesund, zeigt das Bild auch den Nachthimmel.',
+      '• Manchmal legen Bots dir Eulenkekse oder Leckerlis in den Brief. Sie landen in deinem Beutel, und solange darin etwas liegt, kosten Füttern und Leckerlis nichts – Leckerlis schmecken jeder Eule. Im Postamt, bei „Meine Eulen“ und in der Rettungsstation steht oben, was noch im Beutel ist.',
+      '• Wohnen bei dir ein Eulenmann und eine Eulenfrau derselben Art, die oft gemeinsam zu Hause sind, legt die Eulenfrau nach ihrer Rückkehr eher Eier. Auch ein Besuch kann helfen: Rastet sie bei jemandem, bei dem ein passender Eulenmann zu Hause ist, steigen die Chancen ebenfalls.',
+      '• In der Rettungsstation wartet jetzt immer eine wilde Eule auf dich – wer gerade noch drei pflegt, bekommt erst wieder eine neue, wenn alle drei versorgt sind. Die kostenlosen Hilfen stehen oben, Futter und Leckerli darunter.',
+      '• Die Knöpfe unter den Eulen sitzen jetzt ordentlich in einem Block über die ganze Breite. Was heute schon erledigt ist, wird einfach durchgestrichen.',
+      '• Neue Passwörter dürfen deinen Nutzernamen nicht mehr enthalten und keine bekannten Allerwelts-Passwörter wie „123456789012345“ sein. Dein bisheriges Passwort bleibt gültig.',
+      '• Und ein paar kleine Dinge: Auf der Hilfeseite fehlt der überflüssige Hilfe-Knopf oben rechts, und in der Rettungsstation hat die Überschrift „Kranke Eulen“ wieder Luft zum Atmen.',
+      'Gute Nacht und gute Flüge!',
+    ],
+  },
+  {
     version: '1.3.0',
     title: 'Die Eulenrettungsstation öffnet ihr Tor: Version 1.3.0',
     paragraphs: [
@@ -444,6 +459,21 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.3.1',
+    title: 'Night watch in the nest and a pouch full of biscuits: version 1.3.1',
+    paragraphs: [
+      'The owls stayed up all night – and improved a few things:',
+      '• If an owl broods while it is dark where you live, you now see it in its nest at night. And if an owl in the rescue centre gets well at night, the picture shows the night sky too.',
+      '• Sometimes bots put owl biscuits or treats into their letters for you. They go into your pouch, and while there is something in it, feeding and treats cost nothing – every owl likes the treats. The post office, “My owls” and the rescue centre show at the top what is still in your pouch.',
+      '• If a male and a female owl of the same species live with you and are often at home together, the female is more likely to lay eggs after coming home. A visit can help too: if she rests with someone who has a matching male at home, her chances rise as well.',
+      '• The rescue centre now always has one wild owl waiting for you – if you are still caring for three, a new one only comes once all three are looked after. The free kinds of help are at the top, food and treat below.',
+      '• The buttons under the owls now sit neatly in a block across the whole width. What has already been done today is simply crossed out.',
+      '• New passwords may no longer contain your user name or be well-known everyday passwords like “123456789012345”. Your current password stays valid.',
+      '• And a few small things: the help page no longer has the needless help button at the top right, and in the rescue centre the heading “Sick owls” has room to breathe again.',
+      'Good night and good flights!',
+    ],
+  },
   {
     version: '1.3.0',
     title: 'The owl rescue centre opens its gate: version 1.3.0',

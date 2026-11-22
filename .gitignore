@@ -16,3 +16,4 @@ web/src/generated/
 web/public/icons/
 tools/map/.cache/
 .claude/
+tools/passwords/.cache/

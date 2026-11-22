@@ -9,14 +9,14 @@ export const OWL_NAMES_M: readonly string[] = [
   'Abel', 'Adalbert', 'Alarich', 'Albert', 'Alex', 'Alfred', 'Ambrosius', 'Anselm', 'Anton', 'Arcturus',
   'Ari', 'Armando', 'Arnold', 'Arthur', 'Asche', 'Augustin', 'Aurel', 'Auri', 'Balduin', 'Balthasar',
   'Benno', 'Bruno', 'Caspar', 'Clemens', 'Cosmo', 'Cuthbert', 'Dougal', 'Echo', 'Edgar', 'Edmund',
-  'Eli', 'Emil', 'Erasmus', 'Erik', 'Everard', 'Felix', 'Ferdinand', 'Florian', 'Friedrich', 'Frost',
-  'Garrick', 'Gregor', 'Gustav', 'Hektor', 'Henrik', 'Hermes', 'Hugo', 'Ivo', 'Jakob', 'Jasper',
-  'Jona', 'Julius', 'Juno', 'Karl', 'Kiki', 'Kim', 'Kismet', 'Konrad', 'Leander', 'Lennart',
-  'Leopold', 'Lio', 'Lou', 'Lumi', 'Magnus', 'Marius', 'Merlin', 'Mika', 'Miso', 'Momo',
-  'Moos', 'Moritz', 'Nalu', 'Neo', 'Niko', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odin',
-  'Onyx', 'Orion', 'Oskar', 'Otto', 'Phineas', 'Pino', 'Quinn', 'Remy', 'Rio', 'Robin',
-  'Rune', 'Ruppert', 'Salem', 'Sam', 'Septimus', 'Severin', 'Silvanus', 'Sky', 'Sturm', 'Tanne',
-  'Tau', 'Theodor', 'Toni', 'Vesper', 'Viktor', 'Vincent', 'Wendelin', 'Wilhelm', 'Yuki',
+  'Emil', 'Erasmus', 'Erik', 'Everard', 'Felix', 'Ferdinand', 'Florian', 'Friedrich', 'Frost', 'Garrick',
+  'Gregor', 'Gustav', 'Hektor', 'Henrik', 'Hermes', 'Hugo', 'Ivo', 'Jakob', 'Jasper', 'Jona',
+  'Julius', 'Juno', 'Karl', 'Kim', 'Kismet', 'Konrad', 'Leander', 'Lennart', 'Leopold', 'Lio',
+  'Lou', 'Lumi', 'Magnus', 'Marius', 'Merlin', 'Mika', 'Miso', 'Momo', 'Moos', 'Moritz',
+  'Nalu', 'Neo', 'Niko', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odin', 'Onyx', 'Orion',
+  'Oskar', 'Otto', 'Phineas', 'Pino', 'Quinn', 'Remy', 'Rio', 'Robin', 'Rune', 'Ruppert',
+  'Salem', 'Sam', 'Septimus', 'Severin', 'Silvanus', 'Sky', 'Sturm', 'Tanne', 'Tau', 'Theodor',
+  'Toni', 'Vesper', 'Viktor', 'Vincent', 'Wendelin', 'Wilhelm', 'Yuki',
 ];
 
 /** Female owls, German view. */
@@ -29,10 +29,10 @@ export const OWL_NAMES_F: readonly string[] = [
   'Greta', 'Gunhilda', 'Helena', 'Henriette', 'Hepzibah', 'Hestia', 'Ida', 'Ingrid', 'Iris', 'Irma',
   'Johanna', 'Jona', 'Juno', 'Jutta', 'Kendra', 'Kiki', 'Kim', 'Kismet', 'Leonora', 'Lio',
   'Livia', 'Lou', 'Luise', 'Lumi', 'Luna', 'Mathilda', 'Merope', 'Mika', 'Minerva', 'Miso',
-  'Momo', 'Nalu', 'Neo', 'Niko', 'Nora', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odilia',
-  'Onyx', 'Ophelia', 'Perenelle', 'Pino', 'Quinn', 'Remy', 'Rio', 'Robin', 'Rolanda', 'Rosmerta',
-  'Rune', 'Salem', 'Sam', 'Selene', 'Selma', 'Septima', 'Sky', 'Tanne', 'Theodora', 'Toni',
-  'Vesper', 'Viola', 'Walburga', 'Wendelin', 'Wilhelmina', 'Yuki', 'Zora',
+  'Momo', 'Nalu', 'Nora', 'Nori', 'Nova', 'Nox', 'Nyx', 'Odilia', 'Onyx', 'Ophelia',
+  'Perenelle', 'Quinn', 'Remy', 'Robin', 'Rolanda', 'Rosmerta', 'Rune', 'Salem', 'Sam', 'Selene',
+  'Selma', 'Septima', 'Sky', 'Tanne', 'Theodora', 'Toni', 'Vesper', 'Viola', 'Walburga', 'Wilhelmina',
+  'Yuki', 'Zora',
 ];
 
 /** Male owls, English view. */

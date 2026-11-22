@@ -164,6 +164,9 @@ export function eventColumns(
   }
   if (input.gift && 'species' in input.gift && !botSpeciesAllowed(input.gift.species))
     throw new HttpError(400, 'bad_request');
+  // v1.3.1: owl biscuits and treats are put into a letter (SPEC 10.8).
+  if (input.gift && ('biscuits' in input.gift || 'treats' in input.gift) && !input.letter)
+    throw new HttpError(400, 'gift_needs_letter');
   return {
     move_lat: input.move ? Math.round(input.move.lat * 100) : null,
     move_lon: input.move ? Math.round(input.move.lon * 100) : null,
@@ -177,6 +180,8 @@ export function eventColumns(
     owl_mode: input.letter?.owlMode ?? 'default',
     gift_gold: input.gift && 'gold' in input.gift ? input.gift.gold : null,
     gift_species: input.gift && 'species' in input.gift ? input.gift.species : null,
+    gift_biscuits: input.gift && 'biscuits' in input.gift ? input.gift.biscuits : null,
+    gift_treats: input.gift && 'treats' in input.gift ? input.gift.treats : null,
     media: JSON.stringify(input.letter?.media ?? []),
   };
 }
@@ -194,8 +199,9 @@ export function insertEvent(
   ctx.db.run(
     `INSERT INTO central_bot_events (id, bot_id, due_at, state, move_lat, move_lon, has_letter, parchment,
                                      text_first_de, text_first_en, text_follow_de, text_follow_en, context,
-                                     owl_mode, gift_gold, gift_species, media, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                     owl_mode, gift_gold, gift_species, gift_biscuits, gift_treats, media,
+                                     created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     botId,
     input.dueAt,
@@ -212,6 +218,8 @@ export function insertEvent(
     columns.owl_mode,
     columns.gift_gold,
     columns.gift_species,
+    columns.gift_biscuits,
+    columns.gift_treats,
     columns.media,
     now,
     now,
@@ -247,7 +255,8 @@ export function updateEvent(
   ctx.db.run(
     `UPDATE central_bot_events SET due_at = ?, move_lat = ?, move_lon = ?, has_letter = ?, parchment = ?,
             text_first_de = ?, text_first_en = ?, text_follow_de = ?, text_follow_en = ?, context = ?,
-            owl_mode = ?, gift_gold = ?, gift_species = ?, media = ?, updated_at = ?
+            owl_mode = ?, gift_gold = ?, gift_species = ?, gift_biscuits = ?, gift_treats = ?, media = ?,
+            updated_at = ?
       WHERE id = ? AND state = 'planned'`,
     input.dueAt,
     columns.move_lat,
@@ -262,6 +271,8 @@ export function updateEvent(
     columns.owl_mode,
     columns.gift_gold,
     columns.gift_species,
+    columns.gift_biscuits,
+    columns.gift_treats,
     columns.media,
     now,
     eventId,
@@ -281,6 +292,17 @@ export function deleteEvent(ctx: Context, bot: CentralBotRow, eventId: string, n
   // Letters that waited for this event may need a reply of their own now.
   reconsiderReplies(ctx, bot.id, now);
   pruneMedia(ctx, now, bot.id);
+}
+
+/** The gift of an event: gold, an owl, owl biscuits or treats (v1.3.1), or none. */
+export function eventGift(
+  event: Pick<EventRow, 'gift_gold' | 'gift_species' | 'gift_biscuits' | 'gift_treats'>,
+): { gold: number } | { species: string } | { biscuits: number } | { treats: number } | null {
+  if (event.gift_gold !== null) return { gold: event.gift_gold };
+  if (event.gift_species !== null) return { species: event.gift_species };
+  if (event.gift_biscuits !== null) return { biscuits: event.gift_biscuits };
+  if (event.gift_treats !== null) return { treats: event.gift_treats };
+  return null;
 }
 
 /** The event as the control centre shows it. */
@@ -305,12 +327,7 @@ export function eventView(event: EventRow): Record<string, unknown> {
             media: mediaOf(event),
           }
         : null,
-    gift:
-      event.gift_gold !== null
-        ? { gold: event.gift_gold }
-        : event.gift_species !== null
-          ? { species: event.gift_species }
-          : null,
+    gift: eventGift(event),
     context: event.context,
     startedAt: event.started_at,
     archivedAt: event.archived_at,

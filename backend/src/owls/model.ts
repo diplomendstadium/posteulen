@@ -56,6 +56,8 @@ export interface OwlRow {
   readonly clutch_id: string | null;
   readonly hatched_at: number | null;
   readonly created_at: number;
+  /** v1.3.1: rested with a male of her species at a recipient (pair rule, 9.9). */
+  readonly mate_met?: number;
   /** v1.2.4: kilometres flown in all. */
   readonly km_flown: number;
   /** v1.3: the 🌍 badge was announced. */

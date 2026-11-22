@@ -57,7 +57,8 @@ import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
-import { balance, debit } from '../gold/ledger.ts';
+import { balance } from '../gold/ledger.ts';
+import { isPrivileged, pay, payCare } from '../gold/privilege.ts';
 import {
   endRest,
   loadFlight,
@@ -123,7 +124,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return {
       owls: rows.map((owl) => owlView(ctx, owl, now, count)),
       guests,
-      canBuy: canBuyMore(ownOwlCount(ctx, me)),
+      // v1.3.1: privileged players may own more than 50 owls (SPEC 9.1.7).
+      canBuy: canBuyMore(ownOwlCount(ctx, me)) || isPrivileged(ctx.db, me, now),
       // Chicks of which one must be given away within 24 hours (9.9).
       clutches: clutches.map((clutch) => ({
         id: clutch.id,
@@ -141,8 +143,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     // v0.8.4: the Virginiauhu comes only from bots and vouchers.
     if (species.notForSale) throw new HttpError(400, 'owl_not_for_sale');
     const owl = ctx.db.transaction(() => {
-      if (!canBuyMore(ownOwlCount(ctx, me))) throw new HttpError(400, 'owl_limit');
-      debit(ctx.db, me, 'owl_purchase', priceTenths(species.price), now);
+      if (!canBuyMore(ownOwlCount(ctx, me)) && !isPrivileged(ctx.db, me, now))
+        throw new HttpError(400, 'owl_limit');
+      pay(ctx.db, me, 'owl_purchase', priceTenths(species.price), now);
       const id = randomId();
       ctx.db.run(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
@@ -234,8 +237,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         throw new HttpError(400, 'owl_watered_today');
       if (kind === 'snack' && owl.snacked_on === today && fullNow())
         throw new HttpError(400, 'owl_snacked_today');
-      if (kind === 'feed') debit(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
-      if (kind === 'snack') debit(ctx.db, me, 'snack', GOLD.SNACK_PRICE, now);
+      // v1.3.1: from the pouch while it holds some, free for privileged players (9.1.6, 9.1.7).
+      if (kind === 'feed') payCare(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
+      if (kind === 'snack') payCare(ctx.db, me, 'snack', GOLD.SNACK_PRICE, now);
       const energy =
         kind === 'feed'
           ? energyAfterFeeding(currentEnergy(ctx, owl, now), species)
@@ -337,7 +341,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     // The loan owls of the day, borrowed only on sending (8.4 step 4, 9.6). Since v0.4 also for
     // several recipients; v0.8.5 always, not only when no owl is ready.
     // v0.10: the price depends on the species (0.2 gold for gold carriers).
-    const gold = balance(ctx.db, me);
+    const gold = isPrivileged(ctx.db, me, now) ? Number.POSITIVE_INFINITY : balance(ctx.db, me);
     const offers = offerOf(ctx, me, utcDay(now))
       .filter((species) => canAfford(gold, loanPrice(species)))
       .filter((species) => loanProblem(ctx, me, species, now) === null)

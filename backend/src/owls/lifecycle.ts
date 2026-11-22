@@ -28,7 +28,9 @@ import { admit } from '../rescue/service.ts';
 import { languageOf } from '../accounts/language.ts';
 import type { Context } from '../context.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
-import { credit, debit } from '../gold/ledger.ts';
+import { credit } from '../gold/ledger.ts';
+import { pay } from '../gold/privilege.ts';
+import { eggChanceOf, markReady, markUnready } from './pairs.ts';
 import { HttpError } from '../http/errors.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { isActiveDate } from '../contacts/model.ts';
@@ -187,7 +189,7 @@ export function borrow(ctx: Context, userId: string, species: string, now: numbe
   const problem = loanProblem(ctx, userId, species, now);
   if (problem) throw new HttpError(400, problem);
   // v0.10: 0.2 gold for species that carry gold, otherwise 0.1 gold.
-  debit(ctx.db, userId, 'loan', loanPrice(species), now);
+  pay(ctx.db, userId, 'loan', loanPrice(species), now);
   const day = utcDay(now);
   ctx.db.run('DELETE FROM loan_days WHERE user_id = ? AND day < ?', userId, day);
   ctx.db.run(
@@ -228,12 +230,16 @@ export function loanOwl(ctx: Context, userId: string, species: string, now: numb
 
 // ── Gelege und Küken (9.9) ───────────────────────────────────────────────────────────────
 
-/** After every return home of a female own adult owl: eggs (1/100), else a pending sickness. */
+/**
+ * After every return home of a female own adult owl: eggs (1/100; v1.3.1 twice or three times
+ * as likely with a partner, 9.9), else a pending sickness.
+ */
 export function afterReturnHome(ctx: Context, owlId: string, at: number, after: After): void {
   const owl = loadOwl(ctx, owlId);
   if (!owl || owl.kind !== 'own' || owl.is_chick === 1) return;
   // The phoenix never lays eggs (v0.5).
-  if (owl.sex === 'f' && !isMythical(owl.species) && laysEggs(ctx.random())) {
+  const chance = owl.sex === 'f' && !isMythical(owl.species) ? eggChanceOf(ctx, owl, at) : 0;
+  if (chance > 0 && laysEggs(ctx.random(), chance)) {
     // Brooding wins over a sickness rolled during the flight (9.8).
     ctx.db.run(
       "UPDATE owls SET state = 'brooding', state_until = ?, pending_sickness = 0 WHERE id = ?",
@@ -241,6 +247,7 @@ export function afterReturnHome(ctx: Context, owlId: string, at: number, after: 
       owlId,
     );
     ctx.queue.schedule('hatch', owlId, at + OWL.BROODING_DAYS * TIME.DAY);
+    markUnready(ctx, owlId, at);
     addSystemMessage(ctx, owl.owner_id, 'eggs_laid', { owl: owlLabel(owl) }, at, after);
     ctx.push.notify(owl.owner_id, 'eggs_laid', owlId, at, after);
     return;
@@ -260,6 +267,7 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
     at,
     motherId,
   );
+  markReady(ctx, motherId, at);
   const count = chickCount(ctx.random());
   const clutchId = randomId();
   ctx.db.run(

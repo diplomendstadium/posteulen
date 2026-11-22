@@ -14,7 +14,7 @@ import type { Context } from '../context.ts';
 import { HttpError } from '../http/errors.ts';
 import { randomId } from '../security/ids.ts';
 import { centralBot, mediaOf, type CentralBotRow, type EventRow } from './model.ts';
-import { checkNewBotName, insertEvent } from './admin.ts';
+import { checkNewBotName, eventGift, insertEvent } from './admin.ts';
 import { readZip, writeZip, ZipError, type ZipEntry } from './zip.ts';
 
 const JSON_FILE = 'bots.json';
@@ -44,12 +44,7 @@ function exportEvent(event: EventRow): ExportFileType['bots'][number]['events'][
             media: mediaOf(event),
           }
         : null,
-    gift:
-      event.gift_gold !== null
-        ? { gold: event.gift_gold }
-        : event.gift_species !== null
-          ? { species: event.gift_species }
-          : null,
+    gift: eventGift(event),
     context: event.context,
     archive:
       event.state === 'planned'

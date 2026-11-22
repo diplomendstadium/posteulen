@@ -6,21 +6,25 @@ import { SPECIES, type Species } from '../species.ts';
 
 /** The five interactions in the rescue centre. */
 export type RescueAction = 'medicine' | 'feed' | 'snack' | 'pet' | 'water';
+/** v1.3.1: the free ones first – water, stroking, medicine – then biscuit and snack. */
 export const RESCUE_ACTIONS: readonly RescueAction[] = [
+  'water',
+  'pet',
   'medicine',
   'feed',
   'snack',
-  'pet',
-  'water',
 ];
 
-/** Interactions a sick own owl needs to get well: 5–20, equally likely. */
+/** Interactions a sick own owl needs to get well: 6–25 (v1.3.1), equally likely. */
 export function ownCareNeeded(random: number): number {
   const span = RESCUE.OWN_MAX_CARE - RESCUE.OWN_MIN_CARE + 1;
   return RESCUE.OWN_MIN_CARE + Math.min(span - 1, Math.floor(random * span));
 }
 
-/** Interactions a wild sick owl needs: price × 3 × a factor of 0.8–1.2 (rounded, at least 1). */
+/**
+ * Interactions a wild sick owl needs: price × 4 × a factor of 0.7–1.3 (v1.3.1; rounded, at
+ * least 1). Rolled once when it comes in – wild owls from before keep their number.
+ */
 export function wildCareNeeded(price: number, random: number): number {
   const factor =
     RESCUE.WILD_RANDOM_MIN + (RESCUE.WILD_RANDOM_MAX - RESCUE.WILD_RANDOM_MIN) * random;

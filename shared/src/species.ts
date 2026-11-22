@@ -100,16 +100,22 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'sickNight', suffix: 'Krank-Nacht' },
   { kind: 'medicine', suffix: 'Medizin' },
   { kind: 'healthy', suffix: 'Gesund' },
+  // v1.3.1: brooding at night and healthy again at night – shown instead of the brooding and
+  // healthy pictures while it is dark at the viewer's home (28 kinds; the phoenix has 20).
+  { kind: 'broodingNight', suffix: 'Brueten-Nacht' },
+  { kind: 'healthyNight', suffix: 'Gesund-Nacht' },
 ] as const;
 
 /** Picture kinds a mythical species does not have: no eggs, no chicks, never sick. */
 const NOT_MYTHICAL: readonly string[] = [
   'chick',
   'brooding',
+  'broodingNight',
   'sick',
   'sickNight',
   'medicine',
   'healthy',
+  'healthyNight',
 ];
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */

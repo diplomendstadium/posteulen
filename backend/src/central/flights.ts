@@ -12,6 +12,7 @@ import { SPECIES } from '@posteulen/shared/species.ts';
 import type { Context } from '../context.ts';
 import { languageOf } from '../accounts/language.ts';
 import { credit } from '../gold/ledger.ts';
+import { addToBag } from '../gold/privilege.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import {
@@ -79,6 +80,8 @@ export function startBotFlight(
       species,
       energy: maxEnergy,
       motivation: bot.motivation,
+      // v1.3.1: the bot's own owl has a sex (the AI may mention it), a loan owl of a bot none.
+      ...(own && bot.owl_sex ? { sex: bot.owl_sex } : {}),
     },
     recipients: [userId],
     returnsHome: Boolean(own),
@@ -188,6 +191,24 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       push = 'owl_gift';
       after(() => ctx.hub.notify(userId, 'owls'));
     }
+  }
+  // v1.3.1: owl biscuits or treats go into the player's pouch (SPEC 9.1.6, 10.8).
+  const bag = event?.gift_biscuits
+    ? { kind: 'biscuits' as const, count: event.gift_biscuits }
+    : event?.gift_treats
+      ? { kind: 'treats' as const, count: event.gift_treats }
+      : null;
+  if (bag) {
+    addToBag(ctx.db, userId, bag.kind, bag.count);
+    addSystemMessage(
+      ctx,
+      userId,
+      'bag_gift',
+      { name: bot.name, kind: bag.kind, count: bag.count },
+      at,
+      after,
+    );
+    after(() => ctx.hub.notify(userId, 'profile'));
   }
   if (delivery) {
     ctx.db.run(

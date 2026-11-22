@@ -8,6 +8,7 @@ import { flownKm, type Segment } from '@posteulen/shared/game/flight.ts';
 import { giftBlock, giftWindow, type GiftBlock } from '@posteulen/shared/game/gifts.ts';
 import type { RescueAction } from '@posteulen/shared/game/rescue.ts';
 import type { Context } from '../context.ts';
+import { isPrivileged } from '../gold/privilege.ts';
 import { HttpError } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
 
@@ -70,6 +71,8 @@ export function recordGift(ctx: Context, userId: string, now: number): void {
 
 /** Why this player may not give gold or an owl now, or null (SPEC 9.1.5). */
 export function giftBlockOf(ctx: Context, userId: string, now: number): GiftBlock | null {
+  // v1.3.1: privileged players may give as often as they like (SPEC 9.1.7).
+  if (isPrivileged(ctx.db, userId, now)) return null;
   const today = utcDay(now);
   const window = giftWindow(today);
   const user = ctx.db.get<{ last_gift_day: string | null }>(

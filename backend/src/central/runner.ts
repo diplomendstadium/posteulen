@@ -24,6 +24,7 @@ import { randomId, utcDay } from '../security/ids.ts';
 import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from '../bots/ai.ts';
 import { finishReply } from '../bots/replies.ts';
 import {
+  carrierText,
   centralBotPrompt,
   personalizeInstruction,
   spontaneousInstruction,
@@ -53,7 +54,15 @@ interface ConversationLetter {
   readonly sender_id: string;
   readonly sent_at: number;
   readonly plaintext: string | null;
+  /** v1.3.1: the owl that brought the letter (unanswered letters of the player only). */
+  readonly owl_name?: string;
+  readonly owl_species?: string;
+  readonly owl_sex?: 'f' | 'm' | null;
 }
+
+/** v1.3.1: the owls of the player's letters may be mentioned (SPEC 10.5). */
+const CARRIER_HINT =
+  'Zu jedem Brief steht dabei, mit welcher Eule er bei dir ankam. Wenn es passt, darfst du darauf eingehen (z. B. die Eule grüßen), musst es aber nicht. Erfinde nichts über die Eule.';
 
 /** Result of asking the AI: a text, or why not. */
 type AiResult = { text: string } | { problem: 'no_key' | 'limit' | 'error'; detail: string };
@@ -223,8 +232,10 @@ export class CentralRunner {
 
   private unanswered(botId: string, userId: string): ConversationLetter[] {
     return this.ctx.db.all<ConversationLetter>(
-      `SELECT l.id, l.sender_id, l.sent_at, l.plaintext FROM central_bot_inbox i
+      `SELECT l.id, l.sender_id, l.sent_at, l.plaintext, l.owl_name, l.owl_species, f.owl_sex
+         FROM central_bot_inbox i
          JOIN letters l ON l.id = i.letter_id
+         LEFT JOIN flights f ON f.id = l.flight_id
         WHERE i.bot_id = ? AND i.user_id = ? AND i.state = 'arrived' AND l.plaintext IS NOT NULL
         ORDER BY l.sent_at, l.id`,
       botId,
@@ -277,7 +288,10 @@ export class CentralRunner {
     context: string,
     request: {
       planned?: string;
-      letters: readonly Pick<ConversationLetter, 'plaintext'>[];
+      letters: readonly Pick<
+        ConversationLetter,
+        'plaintext' | 'owl_name' | 'owl_species' | 'owl_sex'
+      >[];
       /** v0.8.3: the test of the control centre brings the bot's previous letter as history. */
       history?: readonly AiMessage[];
     },
@@ -295,8 +309,15 @@ export class CentralRunner {
     const instruction = request.planned
       ? personalizeInstruction(language, request.planned)
       : spontaneousInstruction(language);
+    // v1.3.1: each letter with the owl that brought it (the AI may mention it, SPEC 10.5).
     const letters = request.letters
-      .map((letter, index) => `Brief ${index + 1}:\n${letter.plaintext ?? ''}`)
+      .map((letter, index) => {
+        const owl =
+          letter.owl_name && letter.owl_species
+            ? ` (kam mit ${carrierText({ name: letter.owl_name, species: letter.owl_species, sex: letter.owl_sex ?? null })})`
+            : '';
+        return `Brief ${index + 1}${owl}:\n${letter.plaintext ?? ''}`;
+      })
       .join('\n\n');
     const messages: AiMessage[] = [
       { role: 'system', content: centralBotPrompt(language, bot, context) },
@@ -310,7 +331,13 @@ export class CentralRunner {
         : []),
       ...memory.history,
       { role: 'system', content: instruction },
-      { role: 'user', content: `Noch unbeantwortete Briefe deines Gegenübers:\n\n${letters}` },
+      ...(request.letters.some((letter) => letter.owl_name)
+        ? [{ role: 'system' as const, content: CARRIER_HINT }]
+        : []),
+      {
+        role: 'user',
+        content: `Noch unbeantwortete Briefe deines Gegenübers:\n\n${letters}`,
+      },
     ];
     try {
       const raw = await this.client.complete(key, model, messages, REPLY_TOKENS);

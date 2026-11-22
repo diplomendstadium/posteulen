@@ -67,7 +67,8 @@ export const de = {
     userName: 'Nutzername',
     userNameHint: '3–20 Zeichen: Buchstaben (auch Umlaute und Akzente), Ziffern, Leerzeichen.',
     password: 'Passwort',
-    passwordHint: 'Mindestens 15 Zeichen. Am besten ein Satz, den nur du kennst.',
+    passwordHint:
+      'Mindestens 15 Zeichen. Am besten ein Satz, den nur du kennst – nicht dein Nutzername und keine bekannte Zeichenfolge.',
     passwordRepeat: 'Passwort wiederholen',
     inviteCode: 'Einladungscode',
     home: 'Fiktiver Wohnort',
@@ -88,6 +89,12 @@ export const de = {
     mismatch: 'Die beiden Passwörter sind nicht gleich.',
     tooShort: 'Das Passwort ist zu kurz (mindestens 15 Zeichen).',
     tooLong: 'Das Passwort ist zu lang (höchstens 256 Zeichen).',
+    /** v1.3.1: too easy to guess (SPEC 7.2). */
+    containsName: 'Dein Passwort darf deinen Nutzernamen nicht enthalten.',
+    common:
+      'Dieses Passwort steht auf öffentlichen Listen oft benutzter Passwörter und ist deshalb leicht zu erraten. Bitte wähle ein anderes.',
+    pattern:
+      'Dieses Passwort ist zu leicht zu erraten (zum Beispiel 123456…, qwertz…, abcdef… oder Wiederholungen). Bitte wähle ein anderes – am besten einen Satz, den nur du kennst.',
     confirmRequired: 'Bitte bestätige den Hinweis zum Passwort.',
   },
   welcome: {
@@ -148,6 +155,8 @@ export const de = {
     voucherOwl:
       'Eingelöst: Eine neue Eule ({species}) ist bei dir eingezogen und wartet auf ihren Namen.',
     voucherToOwls: 'Zu den Eulen',
+    /** v1.3.1: owl biscuits or treats for the pouch. */
+    voucherBiscuits: 'Eingelöst: {count} liegen jetzt in deinem Beutel.',
     nameIntro: 'Einmal pro Kalenderjahr. Deine Kontakte erfahren es per Systemnachricht.',
     nameBlocked: 'Du kannst deinen Namen erst im nächsten Kalenderjahr wieder ändern.',
     newName: 'Neuer Name',
@@ -155,12 +164,12 @@ export const de = {
     nameChanged: 'Du heißt jetzt {name}.',
     lettersTitle: 'Briefe',
     retentionIntro:
-      'Alle Briefe und Systemnachrichten werden ein Jahr nach ihrer Zustellung unwiderruflich gelöscht – bei dir und bei allen anderen. Deine eigenen Kopien (geschriebene und erhaltene Briefe) kannst du auch früher löschen lassen. Dein Gegenüber behält seine Kopie, bis seine eigene Frist abläuft. Aufgeräumt wird einmal in der Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben als seine Frist.',
+      'Alle Briefe und Systemnachrichten werden spätestens ein Jahr nach ihrer Zustellung unwiderruflich gelöscht – bei dir und bei allen anderen. Für deine eigenen Kopien (geschriebene und erhaltene Briefe) wählst du hier die Frist; neue Konten beginnen mit 180 Tagen. Dein Gegenüber behält seine Kopie, bis seine eigene Frist abläuft. Aufgeräumt wird einmal in der Woche, montags früh – ein Brief kann also bis zu sieben Tage länger liegen bleiben als seine Frist.',
     retentionLegend: 'Meine Briefe löschen nach',
     retention30: '30 Tagen',
     retention90: '90 Tagen',
-    retention180: '180 Tagen',
-    retention365: 'einem Jahr (Standard)',
+    retention180: '180 Tagen (Standard)',
+    retention365: 'einem Jahr',
     retentionConfirm:
       'Alle deine Briefe und Systemnachrichten, die älter als {days} Tage sind, werden beim nächsten wöchentlichen Aufräumen (montags früh) unwiderruflich gelöscht. Fortfahren?',
     printLabel: 'Briefe in Druckschrift statt Handschrift anzeigen',
@@ -400,6 +409,31 @@ export const de = {
       'Dein Konto wird in 30 Tagen gelöscht, wenn du dich nicht anmeldest. Jede Nutzung der App verhindert das.',
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
     broadcast: '{text}',
+    /** v1.3.1: owl biscuits or treats of a bot (in the pouch). */
+    bag_gift_biscuits:
+      '{name} hat dir {count} Eulenkekse in den Brief gelegt. Sie liegen jetzt in deinem Beutel – solange welche darin sind, kostet Füttern nichts.',
+    bag_gift_biscuits_one:
+      '{name} hat dir einen Eulenkeks in den Brief gelegt. Er liegt jetzt in deinem Beutel – einmal Füttern kostet dich nichts.',
+    bag_gift_treats:
+      '{name} hat dir {count} Leckerlis in den Brief gelegt. Sie liegen jetzt in deinem Beutel und schmecken jeder Eule – solange welche darin sind, kosten Leckerlis nichts.',
+    bag_gift_treats_one:
+      '{name} hat dir ein Leckerli in den Brief gelegt. Es liegt jetzt in deinem Beutel und schmeckt jeder Eule – einmal Naschen kostet dich nichts.',
+    /** v1.3.1: the privilege set by the admin (SPEC 9.1.7). */
+    privilege_granted:
+      'Der Admin hat dir einen Sonderstatus gegeben: Ab sofort hast du unbegrenzt Gold und darfst so viel Gold und so viele Eulen verschenken, wie du möchtest.',
+    privilege_granted_until:
+      'Der Admin hat dir bis {until} einen Sonderstatus gegeben: Bis dahin hast du unbegrenzt Gold und darfst so viel Gold und so viele Eulen verschenken, wie du möchtest.',
+    privilege_ended:
+      'Dein Sonderstatus ist beendet. Ab jetzt gilt wieder dein gewohnter Kontostand, und fürs Verschenken gelten wieder die üblichen Regeln.',
+  },
+  /** v1.3.1: the pouch with owl biscuits and treats (Postamt, Meine Eulen, Rettungsstation). */
+  bag: {
+    text: 'In deinem Beutel befinden sich noch {items}.',
+    and: ' und ',
+    biscuits: '{count} Eulenkekse',
+    biscuitsOne: '1 Eulenkeks',
+    treats: '{count} Leckerlis',
+    treatsOne: '1 Leckerli',
   },
   /** v0.7.2: remaining times – under an hour in minutes; v0.8.5 written out (no "Min.."). */
   duration: {
@@ -574,11 +608,19 @@ export const de = {
     and: ' und ',
     pet: 'Streicheln',
     water: 'Wasser geben',
-    wateredToday: 'Heute schon getrunken',
-    feed: 'Eulenkeks (0,1 Gold)',
-    fedToday: 'Satt – heute schon gefüttert',
-    snack: '{snack} geben (0,2 Gold)',
-    snackedToday: 'Satt – heute schon genascht',
+    /**
+     * v1.3.1: a care button already used today keeps its text, crossed out and greyed; the
+     * reason is only read out (`doneAria`).
+     */
+    wateredToday: 'heute schon getrunken',
+    feed: 'Eulenkeks ({price})',
+    fedToday: 'satt, heute schon gefüttert',
+    snack: '{snack} geben ({price})',
+    snackedToday: 'satt, heute schon genascht',
+    doneAria: '{action} – {why}',
+    /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
+    fromBag: 'aus dem Beutel',
+    free: 'kostenlos',
     /** v0.10: send gold with this owl (only owls that carry gold). */
     sendGold: 'Gold verschicken',
     /** v0.10: carrying capacity of the species (purchase, loan offers, owl cards). */
@@ -617,9 +659,6 @@ export const de = {
     /** v0.8.2 */
     guestSendOn: 'Weiterfliegen lassen',
     guestSendOnConfirm: '{name} jetzt ohne Antwort weiterfliegen lassen?',
-    /** v0.8.3: caring for a visiting bot owl costs nothing. */
-    feedFree: 'Eulenkeks (kostenlos)',
-    snackFree: '{snack} geben (kostenlos)',
     restingAt: 'Rastet bei {name} bis {until}.',
     flyingDayAlt: '{name} im Flug bei Tag',
     flyingNightAlt: '{name} im Flug bei Nacht',
@@ -684,7 +723,7 @@ export const de = {
     insideOwn:
       'Wenn du deine eigene kranke Eule hier pflegst, kommt sie anschließend selbstverständlich wieder mit dir nach Hause.',
     rules:
-      'Jede Hilfe zählt einmal am Tag: Medizin, Füttern, Leckerli, Streicheln und Wasser. Gestreichelt werden möchten die Eulen so oft du magst. Medizin, Wasser und Streicheln kosten nichts.',
+      'Jede Hilfe zählt einmal am Tag: Wasser, Streicheln, Medizin, Füttern und Leckerli. Gestreichelt werden möchten die Eulen so oft du magst. Wasser, Streicheln und Medizin kosten nichts.',
     ownTitle: 'Deine Eulen in Pflege',
     wildTitle: 'Kranke Eulen',
     progress: 'Wieder gesund: {progress} %',
@@ -693,7 +732,7 @@ export const de = {
     snack: '{snack} geben ({price})',
     pet: 'Streicheln',
     water: 'Wasser geben',
-    doneToday: '{action} – heute schon',
+    doneToday: 'heute schon erledigt',
     medicineCaption: '{name} bekommt Medizin.',
     healed: '{name} ist wieder gesund. Danke, dass du dich um {name} gekümmert hast.',
     goHome: '{name} darf wieder nach Hause.',
@@ -777,6 +816,12 @@ export const de = {
     /** v0.10: in the settings (the overview „Finanzen“ is gone). */
     title: 'Gold und Buchungen',
     balance: 'Dein Gold: {amount}',
+    /** v1.3.1: privileged players (SPEC 9.1.7). */
+    endless: 'unbegrenzt',
+    privileged:
+      'Sonderstatus: Du hast unbegrenzt Gold und darfst Gold und Eulen ohne die üblichen Grenzen verschenken. Dein gewohnter Kontostand ({amount}) bleibt solange unberührt.',
+    privilegedUntil:
+      'Sonderstatus bis {until}: Bis dahin hast du unbegrenzt Gold und darfst Gold und Eulen ohne die üblichen Grenzen verschenken. Dein gewohnter Kontostand ({amount}) bleibt solange unberührt.',
     daily: 'Jeden Tag um {time} Uhr bekommst du {amount}, solange du aktiv bist.',
     dailyRule:
       'In den ersten 30 Tagen nach der Kontoerstellung gibt es 3,0 Gold am Tag, danach 2,0 Gold.',
@@ -889,6 +934,8 @@ export const de = {
   units: {
     // v1.3: thousands grouped ("1.234,5 Gold", SPEC 8.12).
     gold: (tenths: number): string => `${formatGold(tenths, ',')} Gold`,
+    /** v1.3.1: the special status (SPEC 9.1.7). */
+    goldEndless: '∞ Gold',
   },
   pages: {
     helpTitle: 'Hilfe',
@@ -951,10 +998,17 @@ export const de = {
     invitesNone: 'Keine offenen Codes.',
     vouchersTitle: 'Gutscheine',
     vouchersIntro:
-      'Ein Gutschein über Gold oder eine Eule, einmal einlösbar (in den Einstellungen der App), 90 Tage gültig. Der Code wird nur jetzt angezeigt; wer ihn einlöst, bleibt unbekannt.',
+      'Ein Gutschein über Gold, eine Eule, Eulenkekse oder Leckerlis, einmal einlösbar (in den Einstellungen der App), 90 Tage gültig. Kekse und Leckerlis kommen in den Beutel des Spielers. Der Code wird nur jetzt angezeigt; wer ihn einlöst, bleibt unbekannt.',
     voucherKind: 'Art des Gutscheins',
     voucherGold: 'Gold',
     voucherOwl: 'Eule',
+    /** v1.3.1 */
+    voucherBiscuits: 'Eulenkekse',
+    voucherTreats: 'Leckerlis',
+    voucherCount: 'Anzahl (1 bis 50)',
+    voucherCountRange: 'Bitte eine Anzahl von 1 bis 50 angeben.',
+    voucherBiscuitsWhat: '{count} Eulenkekse',
+    voucherTreatsWhat: '{count} Leckerlis',
     voucherAmount: 'Betrag in Gold (0,1 bis 100)',
     voucherGoldRange: 'Bitte einen Betrag von 0,1 bis 100 Gold angeben.',
     voucherSpecies: 'Art der Eule',
@@ -964,6 +1018,24 @@ export const de = {
     voucherHint: 'Gutschein …{hint}: {what}, gültig bis {until}',
     voucherHintRedeemed: 'Gutschein …{hint}: {what} – eingelöst',
     vouchersNone: 'Keine Gutscheine.',
+    /** v1.3.1: privileged players (SPEC 9.1.7, 13). */
+    privilegedTitle: 'Sonderstatus für Spieler',
+    privilegedIntro:
+      'Spieler mit Sonderstatus haben unbegrenzt Gold und dürfen Gold und Eulen ohne die üblichen Grenzen verschenken (keine Zwei-Wochen-Regel, kein Mindestrest, mehr als 50 Eulen). Ihr gewohnter Kontostand bleibt unberührt und gilt nach dem Ende wieder. Der Spieler bekommt beim Erteilen und beim Ende eine Systemnachricht.',
+    privilegedName: 'Nutzername',
+    privilegedDuration: 'Dauer',
+    privilegedForever: 'Dauerhaft',
+    privilegedUntilOption: 'Befristet bis',
+    privilegedUntil: 'Ende (Datum und Uhrzeit)',
+    privilegedGrant: 'Sonderstatus erteilen',
+    privilegedGranted: '{name} hat jetzt den Sonderstatus.',
+    privilegedEntry: '{name} – seit {since}, {until}',
+    privilegedEntryForever: 'dauerhaft',
+    privilegedEntryUntil: 'bis {until}',
+    privilegedRevoke: 'Widerrufen',
+    privilegedRevokeConfirm: 'Sonderstatus von {name} jetzt widerrufen?',
+    privilegedNone: 'Niemand hat gerade den Sonderstatus.',
+    privilegedPast: 'Bitte ein Ende in der Zukunft wählen.',
     feedbackTitle: 'Nachrichten der Nutzer',
     feedbackIntro:
       'Kurze Nachrichten aus den Einstellungen der App (höchstens 300 Zeichen, eine pro Konto und Tag), ohne Absender. Sie werden nach 90 Tagen automatisch gelöscht.',
@@ -1175,6 +1247,11 @@ export const de = {
     giftOwl: 'Eule',
     giftAmount: 'Gold pro Spieler (0,1 bis 100)',
     giftSpecies: 'Art der Eule (der Spieler gibt ihr einen Namen)',
+    /** v1.3.1: owl biscuits or treats in the letter (pouch of the player). */
+    giftBiscuits: 'Eulenkekse',
+    giftTreats: 'Leckerlis',
+    giftCount: 'Anzahl pro Spieler (1 bis 10)',
+    giftNeedsLetter: 'Eulenkekse und Leckerlis liegen einem Brief bei – bitte einen Brief anlegen.',
     context: 'Zusätzlicher Kontext für die KI (Hintergrund für Antworten nach diesem Event)',
     preview: 'Vorschau',
     previewTitle: 'So sieht der Brief bei den Spielern aus',
@@ -1204,6 +1281,8 @@ export const de = {
     summaryLetter: 'Brief',
     summaryGold: '{amount} Gold',
     summaryOwl: 'Eule ({species})',
+    summaryBiscuits: '{count} Eulenkekse',
+    summaryTreats: '{count} Leckerlis',
     select: 'Für den Export auswählen',
     exportSelected: 'Ausgewählte Events exportieren',
     pastTitle: 'Vergangene Events (Archiv)',
@@ -1247,6 +1326,12 @@ export const de = {
     rescue_done_today: 'Das hat diese Eule heute schon bekommen. Morgen wieder!',
     rescue_healed: 'Diese Eule ist schon wieder gesund.',
     rescue_not_healed: 'Diese Eule ist noch nicht wieder gesund.',
+    /** v1.3.1 */
+    user_not_found: 'Ein Konto mit diesem Namen gibt es nicht.',
+    privilege_until: 'Bitte ein Ende in der Zukunft wählen.',
+    privilege_not_found: 'Dieser Spieler hat keinen Sonderstatus.',
+    gift_needs_letter:
+      'Eulenkekse und Leckerlis liegen einem Brief bei – bitte einen Brief anlegen.',
     stale: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
     account_mismatch: 'Inzwischen ist hier ein anderes Konto angemeldet. Bitte lade die Seite neu.',
     banner_invalid:

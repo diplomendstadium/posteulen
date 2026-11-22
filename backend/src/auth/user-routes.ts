@@ -7,7 +7,8 @@ import { giftBlockOf } from '../accounts/stats.ts';
 import { dailyWage } from '@posteulen/shared/game/gold.ts';
 import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { ACCOUNT, GOLD, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, GOLD, LETTER, TIME } from '@posteulen/shared/constants.ts';
+import { privilegeOf } from '../gold/privilege.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { isLand, roundHome } from '@posteulen/shared/map/landmask.ts';
 import { checkUserName, normalizeName } from '@posteulen/shared/names.ts';
@@ -237,8 +238,9 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ctx.db.run(
         `INSERT INTO users (id, name_display, name_key, created_on, opaque_record, ed25519_pub, x25519_pub,
                             key_format, wrapped_master_key, private_keys, home_lat, home_lon,
-                            home_changed_on, gold, last_active_date, language, via_onion)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            home_changed_on, gold, last_active_date, language, via_onion,
+                            letter_retention_days)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         reservation.userId,
         reservation.display,
         reservation.key,
@@ -257,6 +259,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
         body.language ?? DEFAULT_LANGUAGE,
         // v1.1: created through the onion service (admin statistics only, SPEC 13).
         request.viaTor === true ? 1 : 0,
+        // v1.3.1: new accounts keep letters 180 days (older accounts keep their choice, 8.4.1).
+        LETTER.RETENTION_DEFAULT_DAYS,
       );
       ctx.db.run(
         "UPDATE stats_counters SET value = value + 1 WHERE key = 'accounts_created_total'",
@@ -580,10 +584,12 @@ export function profileOf(ctx: Context, userId: string) {
     feedback_sent_on: string | null;
     links_clickable: number;
     ascii_mode: number;
+    bag_biscuits: number;
+    bag_treats: number;
   }>(
     `SELECT name_display, gold, home_lat, home_lon, created_on, home_moves_month, home_moves_count,
             name_changed_year, letter_retention_days, letters_print, language, feedback_sent_on,
-            links_clickable, ascii_mode
+            links_clickable, ascii_mode, bag_biscuits, bag_treats
        FROM users WHERE id = ?`,
     userId,
   );
@@ -609,5 +615,8 @@ export function profileOf(ctx: Context, userId: string) {
     // v1.3: ASCII mode (SPEC 8.10) and whether gold or an owl may be given now (SPEC 9.1.5).
     asciiMode: row.ascii_mode === 1,
     canGift: giftBlockOf(ctx, userId, ctx.now()) === null,
+    // v1.3.1: the pouch (SPEC 9.1.6) and the privilege set by the admin (SPEC 9.1.7).
+    bag: { biscuits: row.bag_biscuits, treats: row.bag_treats },
+    privileged: privilegeOf(ctx.db, userId, ctx.now()),
   };
 }

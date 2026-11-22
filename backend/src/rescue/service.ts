@@ -25,7 +25,8 @@ import { owlNames } from '@posteulen/shared/names-data.ts';
 import type { Context } from '../context.ts';
 import { languageOf } from '../accounts/language.ts';
 import { countInteraction } from '../accounts/stats.ts';
-import { debit } from '../gold/ledger.ts';
+import { payCare } from '../gold/privilege.ts';
+import { markReady, markUnready } from '../owls/pairs.ts';
 import { HttpError } from '../http/errors.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -90,11 +91,12 @@ function todayOf(row: CareDays, today: string) {
 // ── Admission ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * A sick own owl goes to the rescue centre (SPEC 9.8): it needs 5–20 interactions, rolled now;
+ * A sick own owl goes to the rescue centre (SPEC 9.8): it needs 6–25 interactions, rolled now;
  * the player only ever sees the progress in per cent.
  */
 export function admit(ctx: Context, owl: OwlRow, at: number, after: After): void {
   ctx.db.run("UPDATE owls SET state = 'sick', pending_sickness = 0 WHERE id = ?", owl.id);
+  markUnready(ctx, owl.id, at);
   ctx.db.run(
     'INSERT OR IGNORE INTO rescue_cases (owl_id, needed, admitted_at) VALUES (?, ?, ?)',
     owl.id,
@@ -136,16 +138,16 @@ function rollWild(ctx: Context, userId: string, slot: number, now: number): void
   );
 }
 
-/** There are always three wild sick owls (rolled on the first visit and after each leaves). */
+/**
+ * v1.3.1: there is one wild sick owl (rolled on the first visit and after it leaves). Accounts
+ * that still have wild owls from before (three until v1.3.0) get a new one only once all of
+ * them have left.
+ */
 export function ensureWild(ctx: Context, userId: string, now: number): void {
-  const taken = new Set(
-    ctx.db
-      .all<{ slot: number }>('SELECT slot FROM rescue_wild WHERE user_id = ?', userId)
-      .map((row) => row.slot),
-  );
-  for (let slot = 0; slot < RESCUE.WILD_SLOTS; slot++) {
-    if (!taken.has(slot)) rollWild(ctx, userId, slot, now);
-  }
+  const count =
+    ctx.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM rescue_wild WHERE user_id = ?', userId)
+      ?.n ?? 0;
+  for (let slot = count; slot < RESCUE.WILD_SLOTS; slot++) rollWild(ctx, userId, slot, now);
 }
 
 // ── View ──────────────────────────────────────────────────────────────────────────────────
@@ -210,8 +212,9 @@ export interface CareResult {
 }
 
 function chargeFor(ctx: Context, userId: string, action: RescueAction, now: number): void {
-  if (action === 'feed') debit(ctx.db, userId, 'feed', GOLD.FEED_PRICE, now);
-  if (action === 'snack') debit(ctx.db, userId, 'snack', GOLD.SNACK_PRICE, now);
+  // v1.3.1: from the pouch while it holds some, free for privileged players (9.1.6, 9.1.7).
+  if (action === 'feed') payCare(ctx.db, userId, 'feed', GOLD.FEED_PRICE, now);
+  if (action === 'snack') payCare(ctx.db, userId, 'snack', GOLD.SNACK_PRICE, now);
 }
 
 /** An interaction with an own sick owl in the rescue centre (inside the caller's transaction). */
@@ -278,6 +281,7 @@ function heal(ctx: Context, owl: OwlRow, now: number, after: After): void {
     owl.id,
   );
   backHome(ctx, owl.id, now);
+  markReady(ctx, owl.id, now);
   addSystemMessage(ctx, owl.owner_id, 'owl_healthy', { owl: owlLabel(owl) }, now, after);
   after(() => ctx.hub.notify(owl.owner_id, 'owls'));
 }
@@ -320,7 +324,7 @@ export function careForWild(
 /**
  * "Find out where [name] flies": a healed wild owl leaves the rescue centre – back into freedom,
  * or it stays with the player as a post owl (may exceed the limit of 50 owls, like a gift). A new
- * wild owl takes its place.
+ * wild owl comes once none is left (v1.3.1).
  */
 export function releaseWild(
   ctx: Context,
@@ -357,7 +361,7 @@ export function releaseWild(
     );
     addSystemMessage(ctx, userId, 'rescue_joined', { owl: wild.name }, now, after);
   }
-  rollWild(ctx, userId, wild.slot, now);
+  ensureWild(ctx, userId, now);
   after(() => ctx.hub.notify(userId, 'owls'));
   return { stays: wild.stays === 1, owlId };
 }

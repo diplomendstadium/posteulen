@@ -17,7 +17,7 @@ Ich bin der Erklärbär und schreibe dir in den nächsten Tagen ein paar kurze B
 
 Unten findest du die wichtigsten Bereiche: Briefwechsel, Eulen, Adressbuch und Karte. Du startest mit 3 Gold. Eine eigene Eule kostet ab 6 Gold, aber in deinen ersten 30 Tagen gibt es jeden Tag 3 Gold dazu, danach 2 Gold. Bis dahin leihst du dir eine Leiheule – im Postamt oder direkt beim Briefschreiben.
 
-Wichtig: Alle Briefe werden spätestens ein Jahr nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen kannst du deine Briefe auch schon früher löschen lassen.
+Wichtig: Deine Briefe werden 180 Tage nach der Zustellung automatisch und unwiderruflich gelöscht, auch dieser hier. In den Einstellungen wählst du 30, 90, 180 Tage oder ein Jahr.
 
 Fragen zu PostEulen? Schreib mir einfach – du findest mich im Briefwechsel! Sobald du mir geschrieben hast, findest du mich auch auf deiner Karte.`,
   day1: `Hallo, heute verrate ich dir einen kleinen Zaubertrick!
@@ -60,9 +60,9 @@ Briefe an Bots wie mich sind übrigens nicht verschlüsselt. Im Advent und an We
 Dein Erklärbär`,
   day7: `Hallo, heute geht es um Pflege!
 
-Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und mit Motivation fliegen sie die nächste Strecke schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Wird eine Eule krank, kommt sie in die Rettungsstation – dort pflegst du sie mit Medizin, Futter, Wasser und Streicheleinheiten wieder gesund.
+Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und motiviert fliegen sie schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Wird eine Eule krank, pflegst du sie in der Rettungsstation wieder gesund.
 
-Manchmal legt eine Eule Eier. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
+Manchmal legt eine Eule Eier – öfter, wenn ein Eulenmann ihrer Art bei dir wohnt. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
 
 Das war mein letzter Brief der Reihe. Fragen beantworte ich gern!
 

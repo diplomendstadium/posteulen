@@ -41,7 +41,11 @@ export type SystemMessageType =
   | 'bot_owl_gift'
   | 'bot_deleted'
   /** v0.8.2: a visiting owl rests with the user until a time. */
-  | 'owl_resting';
+  | 'owl_resting'
+  /** v1.3.1: owl biscuits or treats of a bot in the pouch; the privilege set by the admin. */
+  | 'bag_gift'
+  | 'privilege_granted'
+  | 'privilege_ended';
 
 export function addSystemMessage(
   ctx: Context,

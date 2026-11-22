@@ -17,6 +17,7 @@ import { registerFlightHandlers } from './flights/service.ts';
 import { registerFlightRoutes } from './flights/routes.ts';
 import { registerOwlRoutes } from './owls/routes.ts';
 import { registerRescueRoutes } from './rescue/routes.ts';
+import { registerPrivilegeHandlers } from './gold/privilege.ts';
 import { registerLifecycleHandlers } from './owls/lifecycle.ts';
 import { registerAccountHandlers } from './accounts/lifecycle.ts';
 import { registerAccountRoutes } from './accounts/routes.ts';
@@ -120,6 +121,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   registerBotHandlers(ctx);
   registerReplyHandler(ctx);
   registerCentralHandlers(ctx);
+  registerPrivilegeHandlers(ctx);
   // v0.8: aunt and uncle are gone – at every start, so also again after a rollback (SPEC Anhang T).
   // v0.8.1: a failure here must never keep the server from starting – it is logged and tried
   // again at the next start (the whole clean-up is one transaction).

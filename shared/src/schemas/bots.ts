@@ -74,6 +74,13 @@ export const EventGift = v.union([
     ),
   }),
   v.strictObject({ species: SpeciesId }),
+  // v1.3.1: owl biscuits or treats for the pouch (1–10, SPEC 10.8).
+  v.strictObject({
+    biscuits: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(CENTRAL_BOTS.GIFT_BAG_MAX)),
+  }),
+  v.strictObject({
+    treats: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(CENTRAL_BOTS.GIFT_BAG_MAX)),
+  }),
 ]);
 
 export const EventInput = v.strictObject({

@@ -30,6 +30,7 @@ import { addSystemMessage } from '../messages/system.ts';
 import { displayName } from '../contacts/model.ts';
 import type { NotificationType } from '../push/service.ts';
 import { afterReturnHome, scheduleAdult } from '../owls/lifecycle.ts';
+import { noteVisit } from '../owls/pairs.ts';
 import { addFlownKm, afterFlownKm } from '../owls/distance.ts';
 import { flightOwlLabel } from '../owls/globe.ts';
 import { countFlightKm } from '../accounts/stats.ts';
@@ -66,6 +67,10 @@ export interface FlightRow {
   readonly purpose: Purpose;
   readonly gold: number;
   readonly gold_state: 'none' | 'carried' | 'delivered' | 'returning' | 'refunded';
+  /** v1.3.1: 0 – a privileged player sent the gold for free (no refund, SPEC 9.1.7). */
+  readonly gold_paid?: number;
+  /** v1.3.1: sex of the owl carrying the flight (null for flights from before). */
+  readonly owl_sex?: 'f' | 'm' | null;
   readonly profile: string;
   readonly route: string;
   readonly plan: string;
@@ -158,6 +163,8 @@ export interface FlightOwl {
   readonly energy: number;
   /** v0.5: motivation in tenths (8–12) at departure. */
   readonly motivation: number;
+  /** v1.3.1: the sex, if the owl has no row (bot owls); otherwise read from its row. */
+  readonly sex?: 'f' | 'm';
 }
 
 export interface PlanRequest {
@@ -269,8 +276,8 @@ export function startFlight(
   const id = randomId();
   ctx.db.run(
     `INSERT INTO flights (id, holder_id, holder_kind, bot_peer_id, owl_id, owl_kind, owl_name, owl_species,
-                          purpose, gold, gold_state, profile, route, plan, started_at, ends_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                          purpose, gold, gold_state, profile, route, plan, started_at, ends_at, owl_sex)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     request.holderId,
     request.botPeerId ? 'bot' : 'user',
@@ -287,6 +294,11 @@ export function startFlight(
     JSON.stringify(planned.simulation.segments),
     request.now,
     endOf(planned.route, planned.simulation),
+    request.owl.sex ??
+      (request.owl.id
+        ? (ctx.db.get<{ sex: 'f' | 'm' }>('SELECT sex FROM owls WHERE id = ?', request.owl.id)
+            ?.sex ?? null)
+        : null),
   );
   scheduleStops(ctx, id, planned.route);
   return { id, route: planned.route };
@@ -532,7 +544,9 @@ function arriveHome(
     backHome(ctx, flight.owl_id, at);
   }
   if (flight.gold_state === 'returning') {
-    credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
+    // v1.3.1: gold a privileged player sent for free is not refunded (SPEC 9.1.7).
+    if (flight.gold_paid !== 0)
+      credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, at);
     ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
   }
   // v0.7.2: no system message any more – the homecoming waits until the app shows it as an
@@ -747,6 +761,8 @@ export function endRest(
   const route = routeOf(flight);
   const stop = route[index];
   if (!stop || stop.status !== 'resting') return;
+  // v1.3.1: a female that rested here with a male of her species (pair rule, 9.9).
+  if (flight.owl_kind === 'own') noteVisit(ctx, flight.owl_id, stop.userId, stop.arrivesAt, at);
   stop.status = 'done';
   delete stop.restUntil;
   ctx.queue.cancel('flight_rest_end', restEventRef(flight.id, index));
@@ -938,7 +954,8 @@ export function turnBack(
     if (hasHome) {
       ctx.db.run("UPDATE flights SET gold_state = 'returning' WHERE id = ?", flight.id);
     } else {
-      credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, now);
+      if (flight.gold_paid !== 0)
+        credit(ctx.db, flight.holder_id, 'transfer_refund', flight.gold, now);
       ctx.db.run("UPDATE flights SET gold_state = 'refunded' WHERE id = ?", flight.id);
     }
   }
