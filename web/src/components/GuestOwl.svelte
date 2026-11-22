@@ -21,6 +21,8 @@
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
   import type { GuestOwl } from '../lib/owls.ts';
+  import { careCost } from '../lib/purse.ts';
+  import { GOLD } from '@posteulen/shared/constants.ts';
 
   let { guest, onchanged }: { guest: GuestOwl; onchanged: () => void } = $props();
 
@@ -50,10 +52,17 @@
     }
   }
 
+  /** v1.3.1: free for bot owls, otherwise from the pouch or with gold (SPEC 9.1.6). */
+  const cost = (kind: 'feed' | 'snack'): string =>
+    guest.bot ? t.owls.free : careCost(kind, kind === 'feed' ? GOLD.FEED_PRICE : GOLD.SNACK_PRICE);
+  const feedText = $derived(fill(t.owls.feed, { price: cost('feed') }));
+
   function snackButton(): string {
-    const text = fill(guest.bot ? t.owls.snackFree : t.owls.snack, { snack });
+    const text = fill(t.owls.snack, { snack, price: cost('snack') });
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
+
+  const doneAria = (action: string, why: string): string => fill(t.owls.doneAria, { action, why });
 
   /** v0.8.2: the owl takes off at once – to its next recipient or home. */
   async function sendOn(): Promise<void> {
@@ -108,13 +117,15 @@
       {fill(guest.moreStops ? t.owls.guestHintOnward : t.owls.guestHint, { name: holder })}
     </p>
     <ErrorText message={error} />
-    <div class="actions">
+    <div class="actions owl-actions">
       <button
         class="button secondary"
+        class:done={guest.wateredToday}
         type="button"
+        aria-label={guest.wateredToday ? doneAria(t.owls.water, t.owls.wateredToday) : undefined}
         disabled={busy || guest.wateredToday || !status.online}
         onclick={() => void care('water', 'drinking', fill(t.owls.drinking, { name: guest.name }))}
-        >{guest.wateredToday ? t.owls.wateredToday : t.owls.water}</button
+        >{t.owls.water}</button
       >
       <button
         class="button secondary"
@@ -125,18 +136,22 @@
       >
       <button
         class="button secondary"
+        class:done={!guest.feedable}
         type="button"
+        aria-label={guest.feedable ? undefined : doneAria(feedText, t.owls.fedToday)}
         disabled={busy || !guest.feedable || !status.online}
         onclick={() => void care('feed', 'feeding', fill(t.owls.feeding, { name: guest.name }))}
-        >{!guest.feedable ? t.owls.fedToday : guest.bot ? t.owls.feedFree : t.owls.feed}</button
+        >{feedText}</button
       >
       <button
         class="button secondary"
+        class:done={!guest.snackable}
         type="button"
+        aria-label={guest.snackable ? undefined : doneAria(snackButton(), t.owls.snackedToday)}
         disabled={busy || !guest.snackable || !status.online}
         onclick={() =>
           void care('snack', 'snack', fill(t.owls.snacking, { name: guest.name, snack }))}
-        >{!guest.snackable ? t.owls.snackedToday : snackButton()}</button
+        >{snackButton()}</button
       >
       {#if guest.holderName !== null}
         <!-- v0.7.1: opens the chat with exactly this owl chosen. -->

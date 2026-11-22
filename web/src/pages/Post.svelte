@@ -16,7 +16,8 @@
   import OwlCards from '../components/OwlCards.svelte';
   import PlaceImage from '../components/PlaceImage.svelte';
   import ErrorText from '../components/ErrorText.svelte';
-  import { account } from '../lib/auth.svelte.ts';
+  import BagNotice from '../components/BagNotice.svelte';
+  import { spendableGold } from '../lib/purse.ts';
   import { borrow, listOwls, menagerie, type Offer, type Owl } from '../lib/owls.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
@@ -66,7 +67,7 @@
 
   /** Borrowed owls that already have their name (loan owls always have one). */
   const borrowed = $derived(owls.filter((owl) => owl.kind === 'loan' && owl.name !== null));
-  const gold = $derived(account.profile?.gold ?? 0);
+  const gold = $derived(spendableGold());
   const number = (value: number): string => value.toLocaleString(locale());
 
   function stats(speciesId: string): string {
@@ -101,6 +102,8 @@
   }
 </script>
 
+<!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). -->
+<BagNotice />
 {#if !inside}
   <!-- v1.2: the entrance – picture, intro and the door. -->
   <PlaceImage place="post" />
@@ -165,23 +168,25 @@
             {#if loanDescription(item.species, i18n.lang)}<p class="description">
                 {loanDescription(item.species, i18n.lang)}
               </p>{/if}
-            <button
-              class="button"
-              type="button"
-              disabled={busy ||
-                item.loaned ||
-                offer.loans >= offer.maxLoans ||
-                !status.online ||
-                !canAfford(gold, item.price)}
-              onclick={() => void loan(item)}
-              >{item.loaned
-                ? t.post.loaned
-                : fill(t.post.loan, {
-                    name: item.name,
-                    species: speciesName(item.species),
-                    sex: item.sex === 'f' ? t.owls.female : t.owls.male,
-                  })}</button
-            >
+            <div class="owl-actions">
+              <button
+                class="button"
+                type="button"
+                disabled={busy ||
+                  item.loaned ||
+                  offer.loans >= offer.maxLoans ||
+                  !status.online ||
+                  !canAfford(gold, item.price)}
+                onclick={() => void loan(item)}
+                >{item.loaned
+                  ? t.post.loaned
+                  : fill(t.post.loan, {
+                      name: item.name,
+                      species: speciesName(item.species),
+                      sex: item.sex === 'f' ? t.owls.female : t.owls.male,
+                    })}</button
+              >
+            </div>
           </li>
         {/each}
       </ul>

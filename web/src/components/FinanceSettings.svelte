@@ -10,6 +10,7 @@
   import { dateTime, time } from '../lib/format.ts';
   import { live } from '../lib/live.svelte.ts';
   import { account } from '../lib/auth.svelte.ts';
+  import { privileged } from '../lib/purse.ts';
 
   let gold = $state(0);
   let transactions = $state<Transaction[]>([]);
@@ -39,7 +40,22 @@
 
 <section class="card" aria-labelledby="finance-title" data-testid="finance">
   <h2 id="finance-title">{t.finance.title}</h2>
-  <p class="balance">{fill(t.finance.balance, { amount: goldText(gold) })}</p>
+  <p class="balance">
+    {fill(t.finance.balance, { amount: privileged() ? t.finance.endless : goldText(gold) })}
+  </p>
+  {#if privileged()}
+    <!-- v1.3.1: the special status set by the admin (SPEC 9.1.7). -->
+    <p class="notice" data-testid="privileged">
+      <span aria-hidden="true">✨</span><span
+        >{account.profile?.privileged?.until
+          ? fill(t.finance.privilegedUntil, {
+              until: dateTime(account.profile.privileged.until),
+              amount: goldText(gold),
+            })
+          : fill(t.finance.privileged, { amount: goldText(gold) })}</span
+      >
+    </p>
+  {/if}
   <p class="hint">
     {fill(t.finance.daily, {
       time: dailyTime,

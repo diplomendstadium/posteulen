@@ -39,8 +39,24 @@
       },
     ) as EventLetter,
   );
-  let giftKind = $state<'none' | 'gold' | 'owl'>(
-    start?.gift ? ('gold' in start.gift ? 'gold' : 'owl') : 'none',
+  let giftKind = $state<'none' | 'gold' | 'owl' | 'biscuits' | 'treats'>(
+    !start?.gift
+      ? 'none'
+      : 'gold' in start.gift
+        ? 'gold'
+        : 'species' in start.gift
+          ? 'owl'
+          : 'biscuits' in start.gift
+            ? 'biscuits'
+            : 'treats',
+  );
+  // v1.3.1: owl biscuits or treats for the pouch of every player (1–10, with a letter).
+  let giftCount = $state(
+    start?.gift && 'biscuits' in start.gift
+      ? start.gift.biscuits
+      : start?.gift && 'treats' in start.gift
+        ? start.gift.treats
+        : 5,
   );
   let giftGold = $state(start?.gift && 'gold' in start.gift ? start.gift.gold / 10 : 1);
   let giftSpecies = $state(
@@ -65,7 +81,11 @@
       ? fill(t.centre.summaryGold, { amount: String(giftGold) })
       : giftKind === 'owl'
         ? fill(t.centre.summaryOwl, { species: speciesName(giftSpecies) })
-        : null,
+        : giftKind === 'biscuits'
+          ? fill(t.centre.summaryBiscuits, { count: giftCount })
+          : giftKind === 'treats'
+            ? fill(t.centre.summaryTreats, { count: giftCount })
+            : null,
   );
 
   function body() {
@@ -81,7 +101,11 @@
           ? { gold: Math.round(Number(giftGold) * 10) }
           : giftKind === 'owl'
             ? { species: giftSpecies }
-            : null,
+            : giftKind === 'biscuits'
+              ? { biscuits: Math.round(Number(giftCount)) }
+              : giftKind === 'treats'
+                ? { treats: Math.round(Number(giftCount)) }
+                : null,
       context,
     };
   }
@@ -252,6 +276,12 @@
     <label class="choice"
       ><input type="radio" value="owl" bind:group={giftKind} /> {t.centre.giftOwl}</label
     >
+    <label class="choice"
+      ><input type="radio" value="biscuits" bind:group={giftKind} /> {t.centre.giftBiscuits}</label
+    >
+    <label class="choice"
+      ><input type="radio" value="treats" bind:group={giftKind} /> {t.centre.giftTreats}</label
+    >
     {#if giftKind === 'gold'}
       <label for="gift-gold">{t.centre.giftAmount}</label>
       <input id="gift-gold" type="number" min="0.1" max="100" step="0.1" bind:value={giftGold} />
@@ -261,6 +291,17 @@
         {#each species as item (item.id)}<option value={item.id}>{speciesName(item.id)}</option
           >{/each}
       </select>
+    {:else if giftKind === 'biscuits' || giftKind === 'treats'}
+      <label for="gift-count">{t.centre.giftCount}</label>
+      <input
+        id="gift-count"
+        type="number"
+        min="1"
+        max={CENTRAL_BOTS.GIFT_BAG_MAX}
+        step="1"
+        bind:value={giftCount}
+      />
+      {#if !withLetter}<p class="hint" role="note">{t.centre.giftNeedsLetter}</p>{/if}
     {/if}
   </fieldset>
 

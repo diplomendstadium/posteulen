@@ -26,6 +26,10 @@
       parts.push(fill(t.centre.summaryGold, { amount: gold(event.gift.gold) }));
     if (event.gift && 'species' in event.gift)
       parts.push(fill(t.centre.summaryOwl, { species: speciesName(event.gift.species) }));
+    if (event.gift && 'biscuits' in event.gift)
+      parts.push(fill(t.centre.summaryBiscuits, { count: event.gift.biscuits }));
+    if (event.gift && 'treats' in event.gift)
+      parts.push(fill(t.centre.summaryTreats, { count: event.gift.treats }));
     return parts.join(' · ');
   }
 

@@ -12,7 +12,7 @@
   import { canAfford, priceTenths } from '@posteulen/shared/game/gold.ts';
   import OwlPicture from '../components/OwlPicture.svelte';
   import ErrorText from '../components/ErrorText.svelte';
-  import { account } from '../lib/auth.svelte.ts';
+  import { spendableGold } from '../lib/purse.ts';
   import PlaceImage from '../components/PlaceImage.svelte';
   import { buyOwl, listOwls } from '../lib/owls.ts';
   import { OWL } from '@posteulen/shared/constants.ts';
@@ -42,7 +42,8 @@
     .map((species) => ({ ...species, name: speciesName(species.id) }))
     .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, i18n.lang));
 
-  const gold = $derived(account.profile?.gold ?? 0);
+  // v1.3.1: unlimited with the special status (SPEC 9.1.7).
+  const gold = $derived(spendableGold());
   const number = (value: number): string => value.toLocaleString(locale());
 
   async function buy(speciesId: string, name: string, price: number): Promise<void> {
@@ -98,16 +99,18 @@
           {#if speciesDescription(species.id, i18n.lang)}<p class="description">
               {speciesDescription(species.id, i18n.lang)}
             </p>{/if}
-          <button
-            class="button"
-            type="button"
-            disabled={busy ||
-              !canBuy ||
-              !status.online ||
-              !canAfford(gold, priceTenths(species.price))}
-            onclick={() => void buy(species.id, species.name, priceTenths(species.price))}
-            >{fill(t.menagerie.buy, { species: species.name })}</button
-          >
+          <div class="owl-actions">
+            <button
+              class="button"
+              type="button"
+              disabled={busy ||
+                !canBuy ||
+                !status.online ||
+                !canAfford(gold, priceTenths(species.price))}
+              onclick={() => void buy(species.id, species.name, priceTenths(species.price))}
+              >{fill(t.menagerie.buy, { species: species.name })}</button
+            >
+          </div>
         </li>
       {/each}
     </ul>

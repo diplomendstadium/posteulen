@@ -61,7 +61,8 @@ test.describe('Version 0.2', () => {
     expect(await sheet.locator('p.text').evaluate((el) => getComputedStyle(el).fontFamily)).toMatch(
       /Playwrite DE VA/,
     );
-    await expect(other.getByText(/ein Jahr nach der Zustellung beim wöchentlichen/)).toBeVisible();
+    // v1.3.1: new accounts keep letters 180 days.
+    await expect(other.getByText(/180 Tage nach der Zustellung beim wöchentlichen/)).toBeVisible();
     expect(ben.name).not.toBe(anna.name);
     await otherContext.close();
   });
@@ -78,7 +79,8 @@ test.describe('Version 0.2', () => {
     await expect(page.locator('header').getByRole('link', { name: `v${VERSION}` })).toHaveCount(0);
 
     await page.goto('/app/einstellungen');
-    await expect(page.getByRole('radio', { name: 'einem Jahr (Standard)' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: '180 Tagen (Standard)' })).toBeChecked();
+    await expect(page.getByRole('radio', { name: 'einem Jahr' })).not.toBeChecked();
     await page.getByRole('radio', { name: '90 Tagen' }).check();
     await page.getByLabel('Briefe in Druckschrift statt Handschrift anzeigen').check();
     page.once('dialog', (dialog) => void dialog.accept());

@@ -14,9 +14,12 @@
   let code = $state('');
   let busy = $state(false);
   let error = $state<string | null>(null);
-  let done = $state<{ kind: 'gold'; amount: number } | { kind: 'owl'; species: string } | null>(
-    null,
-  );
+  let done = $state<
+    | { kind: 'gold'; amount: number }
+    | { kind: 'owl'; species: string }
+    | { kind: 'biscuits' | 'treats'; count: number }
+    | null
+  >(null);
 
   async function redeem(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -61,7 +64,18 @@
       <span>
         {done.kind === 'gold'
           ? fill(t.settings.voucherGold, { amount: goldText(done.amount) })
-          : fill(t.settings.voucherOwl, { species: speciesName(done.species) })}
+          : done.kind === 'owl'
+            ? fill(t.settings.voucherOwl, { species: speciesName(done.species) })
+            : fill(t.settings.voucherBiscuits, {
+                count:
+                  done.count === 1
+                    ? done.kind === 'biscuits'
+                      ? t.bag.biscuitsOne
+                      : t.bag.treatsOne
+                    : fill(done.kind === 'biscuits' ? t.bag.biscuits : t.bag.treats, {
+                        count: done.count,
+                      }),
+              })}
         {#if done.kind === 'owl'}<Link href="/app/eulen">{t.settings.voucherToOwls}</Link>{/if}
       </span>
     </p>

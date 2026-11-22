@@ -36,7 +36,9 @@ export interface EventLetter {
   media: string[];
 }
 
-export type EventGift = { gold: number } | { species: string } | null;
+/** v1.3.1: also owl biscuits or treats (1–10) put into the letter. */
+export type EventGift =
+  { gold: number } | { species: string } | { biscuits: number } | { treats: number } | null;
 
 export interface EventView {
   readonly id: string;

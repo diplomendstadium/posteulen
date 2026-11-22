@@ -12,6 +12,7 @@
   import ErrorText from '../components/ErrorText.svelte';
   import ChickGift from '../components/ChickGift.svelte';
   import OwlCards from '../components/OwlCards.svelte';
+  import BagNotice from '../components/BagNotice.svelte';
   import { listOwls, nameOwl, type Clutch, type GuestOwl, type Owl } from '../lib/owls.ts';
   import GuestOwlCard from '../components/GuestOwl.svelte';
   import { errorMessage } from '../lib/messages.ts';
@@ -95,6 +96,8 @@
   });
 </script>
 
+<!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). -->
+<BagNotice />
 <ErrorText message={error} />
 
 {#if unnamed}

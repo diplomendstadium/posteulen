@@ -68,7 +68,13 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(overlay).toHaveAttribute('data-kind', 'feeding');
     await overlay.getByRole('button', { name: 'Bild schließen' }).click();
     await expect(overlay).toBeHidden();
-    await expect(card.getByRole('button', { name: 'Satt – heute schon gefüttert' })).toBeDisabled();
+    // v1.3.1: the same text, crossed out; the reason is read out.
+    const fed = card.getByRole('button', {
+      name: 'Eulenkeks (0,1 Gold) – satt, heute schon gefüttert',
+    });
+    await expect(fed).toBeDisabled();
+    await expect(fed).toHaveText('Eulenkeks (0,1 Gold)');
+    await expect(fed).toHaveCSS('text-decoration-line', 'line-through');
     await expect(page.locator('.gold')).toContainText('3,9 Gold');
 
     // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
@@ -77,11 +83,17 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await card.getByRole('button', { name: 'Wasser geben' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'drinking');
     await page.keyboard.press('Escape');
-    await expect(card.getByRole('button', { name: 'Heute schon getrunken' })).toBeDisabled();
+    await expect(
+      card.getByRole('button', { name: 'Wasser geben – heute schon getrunken' }),
+    ).toBeDisabled();
     await card.getByRole('button', { name: 'Haselnüsse geben (0,2 Gold)' }).click();
     await expect(overlay).toHaveAttribute('data-kind', 'snack');
     await page.keyboard.press('Escape');
-    await expect(card.getByRole('button', { name: 'Satt – heute schon genascht' })).toBeDisabled();
+    await expect(
+      card.getByRole('button', {
+        name: 'Haselnüsse geben (0,2 Gold) – satt, heute schon genascht',
+      }),
+    ).toBeDisabled();
     await expect(page.locator('.gold')).toContainText('3,7 Gold');
     // v0.10: hungry again (e.g. after a flight) – another biscuit, paid again.
     setOwlEnergy(me.name, 0.5);

@@ -8,6 +8,7 @@
   import Operations from './Operations.svelte';
   import OpenAi from './OpenAi.svelte';
   import Vouchers from './Vouchers.svelte';
+  import Privileged from './Privileged.svelte';
   import Feedback from './Feedback.svelte';
   import Banners from './Banners.svelte';
   import Tor from './Tor.svelte';
@@ -150,6 +151,7 @@
 </section>
 
 <Vouchers />
+<Privileged />
 
 <section class="card" aria-labelledby="err-title">
   <h2 id="err-title">{t.admin.errorsTitle}</h2>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { t, fill } from '../lib/i18n.svelte.ts';
   import { checkPassword } from '@posteulen/shared/names.ts';
+  import { weakError } from '../lib/password-check.ts';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
   import PushSettings from '../components/PushSettings.svelte';
@@ -13,7 +14,7 @@
   import FinanceSettings from '../components/FinanceSettings.svelte';
   import StatsSettings from '../components/StatsSettings.svelte';
   import Link from '../components/Link.svelte';
-  import { changePassword, logout } from '../lib/auth.svelte.ts';
+  import { account, changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
@@ -37,7 +38,7 @@
           ? t.register.tooLong
           : newPassword !== repeat
             ? t.register.mismatch
-            : null;
+            : await weakError(newPassword, account.profile?.name ?? '');
     if (error) return;
     busy = t.settings.stepOld;
     try {

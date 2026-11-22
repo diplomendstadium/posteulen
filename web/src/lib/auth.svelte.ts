@@ -42,6 +42,10 @@ export interface Profile {
   readonly asciiMode?: boolean;
   /** v1.3: gold or an owl may be given right now (SPEC 9.1.5). */
   readonly canGift?: boolean;
+  /** v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). */
+  readonly bag?: { readonly biscuits: number; readonly treats: number };
+  /** v1.3.1: special status set by the admin – unlimited gold (SPEC 9.1.7). */
+  readonly privileged?: { readonly until: number | null } | null;
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */

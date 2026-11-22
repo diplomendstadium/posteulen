@@ -13,7 +13,7 @@
   import { errorMessage } from '../lib/messages.ts';
   import { dateTime } from '../lib/format.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
-  import { account } from '../lib/auth.svelte.ts';
+  import { spendableGold } from '../lib/purse.ts';
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
 
@@ -27,7 +27,8 @@
   let busy = $state(false);
   let error = $state<string | null>(null);
 
-  const gold = $derived(account.profile?.gold ?? 0);
+  // v1.3.1: unlimited with the special status (SPEC 9.1.7).
+  const gold = $derived(spendableGold());
   const possible = $derived(maxTransfer(gold));
   const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
   const nameOf = (id: string): string =>

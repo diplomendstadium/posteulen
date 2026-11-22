@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * v1.3: the question mark next to the language flag – a link to the help (SPEC 8.11), in the
-   * wooden top bar of the app and above the public pages.
+   * wooden top bar of the app and above the public pages. v1.3.1: not on the help page itself.
    */
   import { t } from '../lib/i18n.svelte.ts';
   import { linkHandler, route } from '../lib/router.svelte.ts';
@@ -9,16 +9,17 @@
   let { onwood = false }: { onwood?: boolean } = $props();
 </script>
 
-<a
-  href="/hilfe"
-  class="help"
-  class:onwood
-  aria-label={t.nav.help}
-  title={t.nav.help}
-  data-testid="help-link"
-  aria-current={route.path === '/hilfe' ? 'page' : undefined}
-  onclick={linkHandler}><span aria-hidden="true">?</span></a
->
+{#if route.path !== '/hilfe'}
+  <a
+    href="/hilfe"
+    class="help"
+    class:onwood
+    aria-label={t.nav.help}
+    title={t.nav.help}
+    data-testid="help-link"
+    onclick={linkHandler}><span aria-hidden="true">?</span></a
+  >
+{/if}
 
 <style>
   .help {

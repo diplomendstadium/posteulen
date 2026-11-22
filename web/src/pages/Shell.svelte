@@ -10,6 +10,7 @@
   import { sceneImage } from '../lib/owl-image.ts';
   import { groupScene, homeLight } from '../lib/season.ts';
   import { account, setPushHintHidden } from '../lib/auth.svelte.ts';
+  import { privileged } from '../lib/purse.ts';
   import { live, startLive, stopLive } from '../lib/live.svelte.ts';
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
@@ -132,7 +133,8 @@
     <div class="topbar-end">
       <p class="gold">
         <span aria-hidden="true">⛀</span>
-        <span>{t.units.gold(account.profile?.gold ?? 0)}</span>
+        <!-- v1.3.1: unlimited with the special status (SPEC 9.1.7). -->
+        <span>{privileged() ? t.units.goldEndless : t.units.gold(account.profile?.gold ?? 0)}</span>
       </p>
       <LanguageFlag onwood />
       <HelpLink onwood />

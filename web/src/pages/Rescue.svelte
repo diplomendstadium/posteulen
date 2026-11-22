@@ -2,11 +2,14 @@
   /**
    * v1.3: the owl rescue centre (SPEC 8.13). At the entrance (`/app/rettungsstation`) the
    * picture of the place for the season and light at home, the welcome and a door; inside
-   * (`/app/rettungsstation/innen`) the own sick owls on top, then three wild sick owls. Five
+   * (`/app/rettungsstation/innen`) the own sick owls on top, then one wild sick owl. Five
    * interactions – medicine, biscuit, snack, stroking, water – each counted once a day; the
    * progress bar moves at once. At 100 % an own owl goes home; a wild one flies off or stays.
    */
-  import { t, fill, speciesName, goldText, i18n } from '../lib/i18n.svelte.ts';
+  import { t, fill, speciesName, i18n } from '../lib/i18n.svelte.ts';
+  import { RESCUE_ACTIONS } from '@posteulen/shared/game/rescue.ts';
+  import BagNotice from '../components/BagNotice.svelte';
+  import { careCost } from '../lib/purse.ts';
   import { owlDisplayName } from '@posteulen/shared/game/gifts.ts';
   import { speciesSnack } from '@posteulen/shared/texts/species.ts';
   import PlaceImage from '../components/PlaceImage.svelte';
@@ -25,7 +28,7 @@
   import { errorMessage } from '../lib/messages.ts';
   import { live, refreshTopics } from '../lib/live.svelte.ts';
   import { queueOwlImage, showOwlImage } from '../lib/overlay.svelte.ts';
-  import { homeLight } from '../lib/season.ts';
+  import { homeLight, standardKind } from '../lib/season.ts';
   import { status } from '../lib/status.svelte.ts';
 
   const INSIDE = '/app/rettungsstation/innen';
@@ -58,7 +61,8 @@
 
   const nameOf = (owl: RescueOwl): string => owlDisplayName(owl.name, owl.globetrotter === true);
 
-  const ACTIONS: readonly RescueAction[] = ['medicine', 'feed', 'snack', 'pet', 'water'];
+  /** v1.3.1: the free ones first – water, stroking, medicine – then biscuit and snack. */
+  const ACTIONS = RESCUE_ACTIONS;
 
   /** The picture shown after each interaction (SPEC 9.2.6, 8.13). */
   const PICTURE = {
@@ -74,11 +78,11 @@
       case 'medicine':
         return t.rescue.medicine;
       case 'feed':
-        return fill(t.rescue.feed, { price: goldText(prices.feed) });
+        return fill(t.rescue.feed, { price: careCost('feed', prices.feed) });
       case 'snack': {
         const text = fill(t.rescue.snack, {
           snack: speciesSnack(owl.species, i18n.lang),
-          price: goldText(prices.snack),
+          price: careCost('snack', prices.snack),
         });
         return text.charAt(0).toUpperCase() + text.slice(1);
       }
@@ -132,7 +136,7 @@
         const name = nameOf(owl);
         queueOwlImage(() => ({
           species: owl.species,
-          kind: 'healthy',
+          kind: standardKind('healthy', homeLight()),
           caption: fill(t.rescue.healed, { name }),
         }));
         if (who === 'own') {
@@ -203,25 +207,29 @@
           >{fill(t.rescue.healedHint, { name: owl.name })}</span
         >
       </p>
-      <button
-        class="button"
-        type="button"
-        disabled={busy || !status.online}
-        onclick={() => void findOut(owl)}>{fill(t.rescue.findOut, { name: owl.name })}</button
-      >
+      <div class="owl-actions">
+        <button
+          class="button"
+          type="button"
+          disabled={busy || !status.online}
+          onclick={() => void findOut(owl)}>{fill(t.rescue.findOut, { name: owl.name })}</button
+        >
+      </div>
     {:else}
-      <div class="actions">
+      <div class="actions owl-actions">
         {#each ACTIONS as action (action)}
           {@const done = action !== 'pet' && owl.today[action]}
+          <!-- v1.3.1: done today – the same text, crossed out and greyed. -->
           <button
             class="button secondary"
+            class:done
             type="button"
             data-action={action}
+            aria-label={done
+              ? fill(t.owls.doneAria, { action: label(owl, action), why: t.rescue.doneToday })
+              : undefined}
             disabled={busy || done || !status.online}
-            onclick={() => void care(who, owl, action)}
-            >{done
-              ? fill(t.rescue.doneToday, { action: label(owl, action) })
-              : label(owl, action)}</button
+            onclick={() => void care(who, owl, action)}>{label(owl, action)}</button
           >
         {/each}
       </div>
@@ -229,6 +237,7 @@
   </li>
 {/snippet}
 
+<BagNotice />
 {#if !inside}
   <PlaceImage place="rescue" />
   <p class="card intro">{t.rescue.intro}</p>
@@ -266,6 +275,11 @@
     margin: 0 0 0.75rem;
   }
 
+  /* v1.3.1: room between the intro and the plates below, as in the post office. */
+  .intro {
+    margin: 0 0 1rem;
+  }
+
   .intro p:last-child {
     margin-bottom: 0;
   }
@@ -299,12 +313,6 @@
   .progress {
     display: grid;
     gap: 0.25rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 
   .loading {

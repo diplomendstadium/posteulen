@@ -81,6 +81,9 @@ export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind
   if (kind === 'grumpy' && !light.day) return 'grumpyNight';
   // v1.3: a sick owl in the rescue centre at night.
   if (kind === 'sick' && !light.day) return 'sickNight';
+  // v1.3.1: brooding on the eggs and healthy again in the dark.
+  if (kind === 'brooding' && !light.day) return 'broodingNight';
+  if (kind === 'healthy' && !light.day) return 'healthyNight';
   return kind;
 }
 

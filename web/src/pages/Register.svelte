@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { t, chosenHome } from '../lib/i18n.svelte.ts';
   import { checkPassword, checkUserName } from '@posteulen/shared/names.ts';
+  import { weakError } from '../lib/password-check.ts';
   import { isLand } from '@posteulen/shared/map/landmask.ts';
   import Link from '../components/Link.svelte';
   import ErrorText from '../components/ErrorText.svelte';
@@ -63,7 +64,7 @@
   async function submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     if (busy || !status.online) return;
-    error = localError();
+    error = localError() ?? (await weakError(password, name));
     if (error || !home) return;
     busy = t.register.stepCaptcha;
     try {

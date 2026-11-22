@@ -36,6 +36,12 @@
         {#if event.gift && 'species' in event.gift}<p>
             {fill(t.centre.summaryOwl, { species: speciesName(event.gift.species) })}
           </p>{/if}
+        {#if event.gift && 'biscuits' in event.gift}<p>
+            {fill(t.centre.summaryBiscuits, { count: event.gift.biscuits })}
+          </p>{/if}
+        {#if event.gift && 'treats' in event.gift}<p>
+            {fill(t.centre.summaryTreats, { count: event.gift.treats })}
+          </p>{/if}
         {#if event.letter}
           <details>
             <summary>{t.centre.summaryLetter}</summary>

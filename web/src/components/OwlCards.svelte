@@ -7,6 +7,7 @@
    */
   import { t, fill, speciesName, goldText, decimal, i18n } from '../lib/i18n.svelte.ts';
   import {
+    GOLD,
     OWL,
     OWL_NAP_AFTER_CARE_MS,
     OWL_NAP_SHARE,
@@ -33,6 +34,7 @@
   import WriteDialog from './WriteDialog.svelte';
   import GoldDialog from './GoldDialog.svelte';
   import { account } from '../lib/auth.svelte.ts';
+  import { careCost, spendableGold } from '../lib/purse.ts';
   import {
     feedOwl,
     lendToMenagerie,
@@ -84,7 +86,7 @@
    * transfer (more than 10.1) and at least one contact to send it to.
    */
   const goldPossible = $derived(
-    maxTransfer(account.profile?.gold ?? 0) > 0 &&
+    maxTransfer(spendableGold()) > 0 &&
       live.contacts.some((contact) => contact.active && !contact.keyWarning),
   );
   const canSendGold = (owl: Owl): boolean =>
@@ -143,9 +145,15 @@
   const snackOf = (owl: Owl): string => speciesSnack(owl.species, i18n.lang);
   /** "Getrocknete Mango geben (0,2 Gold)": the button starts with a capital letter (v0.6). */
   function snackButton(owl: Owl): string {
-    const text = fill(t.owls.snack, { snack: snackOf(owl) });
+    const text = fill(t.owls.snack, {
+      snack: snackOf(owl),
+      price: careCost('snack', GOLD.SNACK_PRICE),
+    });
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
+
+  /** v1.3.1: the reason a care button is off today – read out only (SPEC 8.5). */
+  const doneAria = (action: string, why: string): string => fill(t.owls.doneAria, { action, why });
 
   /** Speed (km/h) and recovery (% per hour) of the species, as on the Menagerie (v0.5). */
   function speedOf(owl: Owl): string {
@@ -393,11 +401,11 @@
         </p>
         {#if owl.state === 'sick'}
           <!-- v1.3: cared for in the rescue centre only (SPEC 8.13). -->
-          <p class="rescue-link">
+          <p class="rescue-link owl-actions">
             <Link href="/app/rettungsstation" class="button secondary">{t.owls.toRescue}</Link>
           </p>
         {/if}
-        <div class="actions">
+        <div class="actions owl-actions">
           {#if owl.ready}
             <!-- v0.8.5: write a letter with exactly this owl. -->
             <button
@@ -417,12 +425,17 @@
             >
           {/if}
           {#if owl.actions.care}
+            {@const feedText = fill(t.owls.feed, { price: careCost('feed', GOLD.FEED_PRICE) })}
+            <!-- v1.3.1: used today – the same text, crossed out and greyed (SPEC 8.5). -->
             <button
               class="button secondary"
+              class:done={owl.wateredToday}
               type="button"
+              aria-label={owl.wateredToday
+                ? doneAria(t.owls.water, t.owls.wateredToday)
+                : undefined}
               disabled={busy || owl.wateredToday || !status.online}
-              onclick={() => void water(owl)}
-              >{owl.wateredToday ? t.owls.wateredToday : t.owls.water}</button
+              onclick={() => void water(owl)}>{t.owls.water}</button
             >
             <button
               class="button secondary"
@@ -433,16 +446,21 @@
             <!-- v0.10: again and again while the energy is not full (each time paid). -->
             <button
               class="button secondary"
+              class:done={!owl.feedable}
               type="button"
+              aria-label={owl.feedable ? undefined : doneAria(feedText, t.owls.fedToday)}
               disabled={busy || !owl.feedable || !status.online}
-              onclick={() => void feed(owl)}>{owl.feedable ? t.owls.feed : t.owls.fedToday}</button
+              onclick={() => void feed(owl)}>{feedText}</button
             >
             <button
               class="button secondary"
+              class:done={!owl.snackable}
               type="button"
+              aria-label={owl.snackable
+                ? undefined
+                : doneAria(snackButton(owl), t.owls.snackedToday)}
               disabled={busy || !owl.snackable || !status.online}
-              onclick={() => void snack(owl)}
-              >{owl.snackable ? snackButton(owl) : t.owls.snackedToday}</button
+              onclick={() => void snack(owl)}>{snackButton(owl)}</button
             >
           {/if}
           {#if owl.actions.menagerie}
@@ -462,8 +480,6 @@
                 newName = owl.name ?? '';
               }}>{t.owls.rename}</button
             >
-          {:else if owl.kind === 'own'}
-            <p class="hint">{t.owls.renameBlocked}</p>
           {/if}
           {#if owl.actions.gift}
             <button
@@ -472,10 +488,6 @@
               disabled={!giftAllowed}
               onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{t.owls.gift}</button
             >
-          {/if}
-          {#if !giftAllowed && (owl.actions.gift || canSendGold(owl))}
-            <!-- v1.3: only "active players" may give something, every two weeks (SPEC 9.1.5). -->
-            <p class="hint" data-testid="gift-rule">{t.owls.giftRule}</p>
           {/if}
           {#if owl.actions.release}
             <button
@@ -486,6 +498,14 @@
             >
           {/if}
         </div>
+        <!-- v1.3.1: notes below the buttons, so that they stay a neat rectangle. -->
+        {#if !owl.actions.rename && owl.kind === 'own'}
+          <p class="hint">{t.owls.renameBlocked}</p>
+        {/if}
+        {#if !giftAllowed && (owl.actions.gift || canSendGold(owl))}
+          <!-- v1.3: only "active players" may give something, every two weeks (SPEC 9.1.5). -->
+          <p class="hint" data-testid="gift-rule">{t.owls.giftRule}</p>
+        {/if}
         {#if renaming === owl.id}
           <form
             class="rename"
@@ -622,12 +642,6 @@
 
   .state.away {
     font-style: italic;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 
   .hint {

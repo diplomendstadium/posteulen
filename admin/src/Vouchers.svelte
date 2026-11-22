@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * v0.7: vouchers for gold or an owl (SPEC 13): once redeemable, 90 days valid. The code is
-   * shown only once; the server keeps its HMAC and the last four characters.
+   * shown only once; the server keeps its HMAC and the last four characters. v1.3.1: also 1–50
+   * owl biscuits or treats for the pouch of the player.
    */
   import { onMount } from 'svelte';
   import { t, fill } from './lib/i18n.svelte.ts';
@@ -14,16 +15,18 @@
   interface Voucher {
     id: string;
     hint: string;
-    kind: 'gold' | 'owl';
+    kind: 'gold' | 'owl' | 'biscuits' | 'treats';
     gold: number | null;
     species: string | null;
+    count: number | null;
     expiresAt: number;
     redeemed: boolean;
   }
 
   let vouchers = $state<Voucher[]>([]);
-  let kind = $state<'gold' | 'owl'>('gold');
+  let kind = $state<'gold' | 'owl' | 'biscuits' | 'treats'>('gold');
   let gold = $state('5');
+  let count = $state('10');
   let species = $state('random');
   let fresh = $state<{ code: string; expiresAt: number } | null>(null);
   let error = $state<string | null>(null);
@@ -37,9 +40,13 @@
   const contentOf = (voucher: Voucher): string =>
     voucher.kind === 'gold'
       ? goldText(voucher.gold ?? 0)
-      : voucher.species === 'random'
-        ? t.admin.voucherRandom
-        : speciesName(voucher.species ?? '');
+      : voucher.kind === 'biscuits'
+        ? fill(t.admin.voucherBiscuitsWhat, { count: voucher.count ?? 0 })
+        : voucher.kind === 'treats'
+          ? fill(t.admin.voucherTreatsWhat, { count: voucher.count ?? 0 })
+          : voucher.species === 'random'
+            ? t.admin.voucherRandom
+            : speciesName(voucher.species ?? '');
 
   async function load(): Promise<void> {
     try {
@@ -61,11 +68,21 @@
       error = t.admin.voucherGoldRange;
       return;
     }
+    const number = Number(count);
+    const bag = kind === 'biscuits' || kind === 'treats';
+    if (bag && !(Number.isInteger(number) && number >= 1 && number <= VOUCHER.BAG_MAX)) {
+      error = t.admin.voucherCountRange;
+      return;
+    }
     try {
       fresh = await api<{ code: string; expiresAt: number }>(
         'POST',
         '/api/vouchers',
-        kind === 'gold' ? { kind, gold: tenths } : { kind, species },
+        kind === 'gold'
+          ? { kind, gold: tenths }
+          : kind === 'owl'
+            ? { kind, species }
+            : { kind, count: number },
       );
       await load();
     } catch (caught) {
@@ -89,10 +106,17 @@
       <legend>{t.admin.voucherKind}</legend>
       <label><input type="radio" value="gold" bind:group={kind} /> {t.admin.voucherGold}</label>
       <label><input type="radio" value="owl" bind:group={kind} /> {t.admin.voucherOwl}</label>
+      <label
+        ><input type="radio" value="biscuits" bind:group={kind} /> {t.admin.voucherBiscuits}</label
+      >
+      <label><input type="radio" value="treats" bind:group={kind} /> {t.admin.voucherTreats}</label>
     </fieldset>
     {#if kind === 'gold'}
       <label for="voucher-gold">{t.admin.voucherAmount}</label>
       <input id="voucher-gold" type="text" inputmode="decimal" bind:value={gold} />
+    {:else if kind === 'biscuits' || kind === 'treats'}
+      <label for="voucher-count">{t.admin.voucherCount}</label>
+      <input id="voucher-count" type="number" min="1" max="50" step="1" bind:value={count} />
     {:else}
       <label for="voucher-species">{t.admin.voucherSpecies}</label>
       <select id="voucher-species" bind:value={species}>

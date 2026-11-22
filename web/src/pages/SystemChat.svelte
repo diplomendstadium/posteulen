@@ -66,6 +66,17 @@
             : 'loan_back';
       return fill(texts[key] ?? message.type, params);
     }
+    // v1.3.1: owl biscuits or treats of a bot; the special status (with or without an end).
+    if (message.type === 'bag_gift') {
+      const kind = params['kind'] === 'treats' ? 'treats' : 'biscuits';
+      const one = Number(params['count']) === 1;
+      return fill(texts[`bag_gift_${kind}${one ? '_one' : ''}`] ?? message.type, params);
+    }
+    if (message.type === 'privilege_granted' && typeof params['until'] === 'number') {
+      return fill(texts['privilege_granted_until'] ?? message.type, {
+        until: dateTime(params['until']),
+      });
+    }
     if (typeof params['amount'] === 'number') params['amount'] = goldText(params['amount']);
     // v0.8.2: a visiting owl – its species and the end of its rest (local time at home).
     if (message.type === 'owl_resting') {

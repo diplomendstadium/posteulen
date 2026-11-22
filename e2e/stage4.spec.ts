@@ -67,10 +67,19 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     const card = page.getByTestId('rescue-own').filter({ hasText: 'Kränkel' });
     await expect(card.getByRole('img')).toHaveAttribute('src', /sick/);
     await card.getByRole('button', { name: 'Medizin geben' }).click();
-    await expect(card.getByRole('button', { name: 'Medizin geben – heute schon' })).toBeDisabled();
+    await expect(
+      card.getByRole('button', { name: 'Medizin geben – heute schon erledigt' }),
+    ).toBeDisabled();
     await expect(card.getByTestId('rescue-progress')).not.toContainText('Wieder gesund: 0 %');
-    // Three wild sick owls wait as well.
-    await expect(page.getByTestId('rescue-wild')).toHaveCount(3);
+    // v1.3.1: one wild sick owl waits as well; the free kinds of help come first.
+    await expect(page.getByTestId('rescue-wild')).toHaveCount(1);
+    await expect(card.locator('button[data-action]')).toHaveText([
+      'Wasser geben',
+      'Streicheln',
+      'Medizin geben',
+      /^Füttern/,
+      /geben \(0,2 Gold\)$/,
+    ]);
   });
 
   test('Küken benennen und eines mit Begleitbrief verschenken', async ({ browser, page }) => {

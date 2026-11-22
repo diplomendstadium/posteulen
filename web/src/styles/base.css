@@ -226,6 +226,33 @@ h2.plate {
   cursor: not-allowed;
 }
 
+/*
+ * v1.3.1: a care button already used today keeps its text, crossed out and greyed (the reason
+ * is read out by screen readers via aria-label).
+ */
+.button.done {
+  text-decoration: line-through;
+}
+
+/*
+ * v1.3.1: the buttons under an owl form a neat rectangle: every row fills the whole width –
+ * a single button stretches across, several share the row – with the text centred.
+ */
+.owl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.owl-actions > .button {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.owl-actions > :not(.button) {
+  flex: 1 1 100%;
+}
+
 select,
 textarea,
 input[type='number'],

@@ -23,6 +23,9 @@ const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
   sick: 'grumpy',
   medicine: 'feeding',
   healthy: 'normal',
+  // v1.3.1: by night – the picture by day if one is missing.
+  broodingNight: 'brooding',
+  healthyNight: 'healthy',
 };
 
 export function owlImage(
