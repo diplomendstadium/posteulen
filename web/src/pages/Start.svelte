@@ -13,8 +13,10 @@
   import { groupScene, homeLight } from '../lib/season.ts';
   import { groupAlt as groupAltOf } from '../lib/places.ts';
   import AboutText from '../components/AboutText.svelte';
+  import InstanceStats from '../components/InstanceStats.svelte';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.ts';
+  import { autofocus } from '@posteulen/shared/autofocus.ts';
 
   /** The whole menagerie on its perches, next to the login (v0.3.1: instead of the tawny owl). */
   // v1.1: by day or night and in the Christmas season at home (Berlin when signed out).
@@ -85,6 +87,7 @@
             autocomplete="username"
             maxlength="100"
             bind:value={name}
+            use:autofocus
           />
         </div>
         <PasswordInput
@@ -139,6 +142,7 @@
   </nav>
 
   <AboutText />
+  <InstanceStats />
 </div>
 
 <style>

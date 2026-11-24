@@ -1,4 +1,5 @@
 /** Owls, flights, gold and the map – thin wrappers around the API (SPEC 8.5–8.9). */
+import type { OwlBadge } from '@posteulen/shared/game/badges.ts';
 import type { Segment } from '@posteulen/shared/game/flight.ts';
 import type { Cargo } from '@posteulen/shared/species.ts';
 import { api } from './api.ts';
@@ -35,8 +36,8 @@ export interface Owl {
   readonly clutchId: string | null;
   /** v1.2.4: kilometres flown in all (own owls; null for loan owls). */
   readonly km: number | null;
-  /** v1.3: 🌍 after the name (SPEC 9.2.1). */
-  readonly globetrotter: boolean;
+  /** Badge after the name by the kilometres flown – 🌍, 🌙 or 👑 (SPEC 9.2.1). */
+  readonly badge: OwlBadge | null;
   /** v1.3: order of the overview (SPEC 8.5). */
   readonly ownedSince: string;
   readonly createdAt: number;
@@ -83,8 +84,8 @@ export interface GuestOwl {
   readonly feedable: boolean;
   readonly snackable: boolean;
   readonly caredAt: number | null;
-  /** v1.3: 🌍 after the name. */
-  readonly globetrotter?: boolean;
+  /** Badge after the name (SPEC 9.2.1). */
+  readonly badge?: OwlBadge | null;
   readonly holderId: string;
   readonly holderName: string | null;
   readonly restUntil: number;
@@ -328,7 +329,8 @@ export interface RescueOwl {
   readonly progress: number;
   readonly today: Readonly<Record<RescueAction, boolean>>;
   readonly healed: boolean;
-  readonly globetrotter?: boolean;
+  /** Badge after the name (SPEC 9.2.1). */
+  readonly badge?: OwlBadge | null;
 }
 
 export type RescueAction = 'medicine' | 'feed' | 'snack' | 'pet' | 'water';

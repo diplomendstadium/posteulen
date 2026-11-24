@@ -85,7 +85,7 @@ test.describe('Version 1.3.1', () => {
       me.name,
     );
     await page.goto('/app/einstellungen');
-    await expect(page.locator('.gold')).toContainText('∞ Gold');
+    await expect(page.locator('.gold')).toContainText('∞');
     await expect(page.getByTestId('privileged')).toContainText('Sonderstatus');
   });
 

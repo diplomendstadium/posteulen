@@ -14,6 +14,7 @@
   import Overview from './Overview.svelte';
   import BotPage from './BotPage.svelte';
   import { deviceTimeZone } from '../../admin/src/lib/time.ts';
+  import { autofocus } from '@posteulen/shared/autofocus.ts';
 
   setIdleTime(ACCOUNT.BOTS_SESSION_IDLE_HOURS * TIME.HOUR);
 
@@ -103,6 +104,7 @@
             type="password"
             autocomplete="current-password"
             bind:value={password}
+            use:autofocus
           />
           {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
           <p class="actions">

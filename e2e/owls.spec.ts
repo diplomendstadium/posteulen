@@ -48,7 +48,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     setGold(me.name, 100);
     await page.reload();
     await buyAndName(page, 'Waldkauz', 'Waldi');
-    await expect(page.locator('.gold')).toContainText('4,0 Gold');
+    await expect(page.locator('.gold')).toContainText('4,0');
     const card = page.getByTestId('owl-card');
     await expect(card).toContainText('Waldkauz');
     await expect(card).toContainText(/Energie \d+ von 430/);
@@ -75,7 +75,7 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
     await expect(fed).toBeDisabled();
     await expect(fed).toHaveText('Eulenkeks (0,1 Gold)');
     await expect(fed).toHaveCSS('text-decoration-line', 'line-through');
-    await expect(page.locator('.gold')).toContainText('3,9 Gold');
+    await expect(page.locator('.gold')).toContainText('3,9');
 
     // v0.5: water and the favourite snack, motivation with its effect on speed and recovery.
     await expect(card.getByTestId('owl-motivation')).toContainText('Motivation 120 %');
@@ -94,13 +94,13 @@ test.describe('Eulen (Stufe 3, SPEC 8.5, 8.7, 9.2, 9.3, 17.4)', () => {
         name: 'Haselnüsse geben (0,2 Gold) – satt, heute schon genascht',
       }),
     ).toBeDisabled();
-    await expect(page.locator('.gold')).toContainText('3,7 Gold');
+    await expect(page.locator('.gold')).toContainText('3,7');
     // v0.10: hungry again (e.g. after a flight) – another biscuit, paid again.
     setOwlEnergy(me.name, 0.5);
     await page.reload();
     await card.getByRole('button', { name: 'Eulenkeks (0,1 Gold)' }).click();
     await page.keyboard.press('Escape');
-    await expect(page.locator('.gold')).toContainText('3,6 Gold');
+    await expect(page.locator('.gold')).toContainText('3,6');
 
     await page.goto('/app/einstellungen');
     await expect(page.getByRole('cell', { name: 'Eulenkauf' })).toBeVisible();

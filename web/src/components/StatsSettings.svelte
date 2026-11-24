@@ -87,6 +87,11 @@
 </section>
 
 <style>
+  /* v1.3.2: the gap to "Gold und Buchungen" below, like every card of the settings. */
+  section {
+    margin-bottom: 1.5rem;
+  }
+
   .values {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

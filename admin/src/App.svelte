@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { autofocus } from '@posteulen/shared/autofocus.ts';
   import { onMount } from 'svelte';
   import { t, fill } from './lib/i18n.svelte.ts';
   import { api, SESSION_ENDED_EVENT, touchSession } from './lib/api.ts';
@@ -92,6 +93,7 @@
             type="password"
             autocomplete="current-password"
             bind:value={password}
+            use:autofocus
           />
           {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
           <p class="actions">

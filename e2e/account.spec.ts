@@ -13,14 +13,14 @@ test.describe('Konto (Stufe 1, SPEC 5, 17.1, 17.4)', () => {
 
     const { name } = await registerViaUi(page);
     await page.getByRole('link', { name: 'Weiter zur Übersicht' }).click();
-    await expect(page.getByText('3,0 Gold')).toBeVisible();
+    await expect(page.getByTestId('topbar-gold')).toContainText('3,0');
 
     const secrets = await localSecrets(page);
     expect(secrets.length).toBeGreaterThan(0);
 
     // Reload: the session and the local keys survive (SPEC 5.5).
     await page.reload();
-    await expect(page.getByText('3,0 Gold')).toBeVisible();
+    await expect(page.getByTestId('topbar-gold')).toContainText('3,0');
 
     await page.goto('/app/einstellungen');
     const newPassword = 'ein neues langes Passwort fuer Tests';

@@ -13,10 +13,19 @@
   let list = $state<HTMLUListElement>();
   /** Opening the system chat shows the latest message (v0.4). */
   let jumped = false;
+  /** v1.3.2: like a long conversation – the latest messages first (SPEC 8.4). */
+  let showAll = false;
+  let older = $state(0);
+  let digging = $state(false);
 
   async function load(): Promise<void> {
     try {
-      messages = (await api<{ messages: Message[] }>('GET', '/api/system-messages')).messages;
+      const result = await api<{ messages: Message[]; older?: number }>(
+        'GET',
+        `/api/system-messages${showAll ? '?all=1' : ''}`,
+      );
+      messages = result.messages;
+      older = result.older ?? 0;
       if (!jumped && messages.length > 0) {
         jumped = true;
         await tick();
@@ -40,6 +49,21 @@
   onMount(() => {
     void load();
   });
+
+  /** v1.3.2: loads the older messages and keeps the message that was at the top in view. */
+  async function digOlder(): Promise<void> {
+    if (digging) return;
+    const first = messages[0]?.id;
+    showAll = true;
+    digging = true;
+    try {
+      await load();
+      await tick();
+      if (first) await scrollToLetter(list, first);
+    } finally {
+      digging = false;
+    }
+  }
 
   $effect(() => {
     void live.systemUnread;
@@ -129,6 +153,18 @@
   }
 </script>
 
+{#if older > 0}
+  <p class="older">
+    <button
+      class="button secondary"
+      type="button"
+      disabled={digging}
+      data-testid="older-letters"
+      onclick={() => void digOlder()}>{digging ? t.letters.olderLoading : t.letters.older}</button
+    >
+  </p>
+{/if}
+
 <ul class="messages" aria-live="polite" bind:this={list}>
   {#each messages as message (message.id)}
     {@const long = longMessage(message)}
@@ -168,6 +204,11 @@
 <p class="hint plate">{t.letters.noReply}</p>
 
 <style>
+  .older {
+    margin: 0 0 1rem;
+    text-align: center;
+  }
+
   .messages {
     list-style: none;
     padding: 0;

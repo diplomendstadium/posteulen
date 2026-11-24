@@ -171,6 +171,8 @@ export interface Conversation {
    * counted as read; the chat checks again once the vault is ready.
    */
   readonly keysPending: boolean;
+  /** v1.3.2: older letters not loaded yet (0: the whole conversation, SPEC 8.4). */
+  readonly older: number;
 }
 
 /**
@@ -181,10 +183,12 @@ export interface Conversation {
 export async function loadConversation(
   peerId: string,
   context: AccountContext | null = currentContext(),
+  /** v1.3.2: the whole conversation, not only its latest letters (SPEC 8.4). */
+  all = false,
 ): Promise<Conversation> {
   const own = account.keys;
   if (!context || !own || own.userId !== context.accountId) {
-    return { letters: [], christmasPaper: 1, keysPending: true };
+    return { letters: [], christmasPaper: 1, keysPending: true, older: 0 };
   }
   const me = context.accountId;
   const ownKeys = own;
@@ -193,10 +197,11 @@ export async function loadConversation(
     import('@posteulen/shared/crypto/encoding.ts'),
   ]);
   assertCurrent(context);
-  const { letters, christmasPaper } = await api<{
+  const { letters, christmasPaper, older } = await api<{
     letters: ApiLetter[];
     christmasPaper?: number;
-  }>('GET', `/api/chats/${peerId}/letters`, undefined, { context });
+    older?: number;
+  }>('GET', `/api/chats/${peerId}/letters${all ? '?all=1' : ''}`, undefined, { context });
   // Received letters of a person need the bound keys: wait for the complete synchronisation
   // of the vault in this context (with a timeout – then the letters wait visibly).
   const needsKeys = letters.some(
@@ -219,6 +224,7 @@ export async function loadConversation(
     letters: shown,
     christmasPaper: christmasPaper ?? 1,
     keysPending: needsKeys && !synced,
+    older: older ?? 0,
   };
 
   async function openOne(letter: ApiLetter): Promise<ShownLetter> {

@@ -1,10 +1,11 @@
 <script lang="ts">
   import Banners from '../components/Banners.svelte';
-  import { t, fill } from '../lib/i18n.svelte.ts';
+  import { t, fill, formatGold } from '../lib/i18n.svelte.ts';
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
   import LanguageFlag from '../components/LanguageFlag.svelte';
   import HelpLink from '../components/HelpLink.svelte';
+  import LogoutButton from '../components/LogoutButton.svelte';
   import { route } from '../lib/router.svelte.ts';
   import { onDestroy, onMount } from 'svelte';
   import { sceneImage } from '../lib/owl-image.ts';
@@ -131,13 +132,16 @@
       {/key}
     {/if}
     <div class="topbar-end">
-      <p class="gold">
+      <!-- v1.3.2: only the amount (the coin says "gold"); ∞ with the special status (9.1.7). -->
+      <p class="gold" data-testid="topbar-gold">
         <span aria-hidden="true">⛀</span>
-        <!-- v1.3.1: unlimited with the special status (SPEC 9.1.7). -->
-        <span>{privileged() ? t.units.goldEndless : t.units.gold(account.profile?.gold ?? 0)}</span>
+        <span>{privileged() ? '∞' : formatGold(account.profile?.gold ?? 0)}</span><span
+          class="visually-hidden">{t.app.goldLabel}</span
+        >
       </p>
       <LanguageFlag onwood />
       <HelpLink onwood />
+      <LogoutButton />
     </div>
   </header>
   {#if live.pushState !== 'confirmed' && !account.pushHintHidden}

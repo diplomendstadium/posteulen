@@ -47,7 +47,7 @@ test.describe('Version 0.2', () => {
     await offers.first().check();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(/4,[89] Gold/).first()).toBeVisible();
+    await expect(page.getByTestId('topbar-gold')).toContainText(/4,[89]/);
     // (In the test time-lapse the loan owl may already have delivered and vanished.)
 
     // The letter arrives as a scroll in handwriting; Ben's top bar says "Neue Post!".

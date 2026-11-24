@@ -14,7 +14,7 @@
     MOTIVATION,
   } from '@posteulen/shared/constants.ts';
   import { cargoCovers, speciesById } from '@posteulen/shared/game/owls.ts';
-  import { owlDisplayName } from '@posteulen/shared/game/gifts.ts';
+  import { owlDisplayName } from '@posteulen/shared/game/badges.ts';
   import Link from './Link.svelte';
   import { owlSpeedKmh } from '@posteulen/shared/game/flight.ts';
   import { maxTransfer } from '@posteulen/shared/game/gold.ts';
@@ -97,7 +97,7 @@
    */
   const giftAllowed = $derived(account.profile?.canGift ?? true);
   /** v1.3: the name as shown everywhere – with 🌍 after more than 40 030 km (SPEC 9.2.1). */
-  const label = (owl: Owl): string => owlDisplayName(owl.name ?? '', owl.globetrotter);
+  const label = (owl: Owl): string => owlDisplayName(owl.name ?? '', owl.badge);
 
   async function act(work: () => Promise<void>): Promise<void> {
     if (busy) return;

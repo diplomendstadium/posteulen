@@ -16,9 +16,21 @@
   import { homeLight } from '../lib/season.ts';
   import { placeAlt, placeScene } from '../lib/places.ts';
   import Link from './Link.svelte';
+  import { onMount } from 'svelte';
+  import { installHost, instanceInfo } from '../lib/instance.ts';
 
   const light = homeLight();
-  const host = typeof location === 'undefined' ? 'posteulen.de' : location.host;
+  const pageHost = typeof location === 'undefined' ? 'posteulen.de' : location.host;
+  /**
+   * v1.3.2: the installation hint names the address on the web – also when the page was opened
+   * through the onion address (a phone adds the app from there, not through Tor).
+   */
+  let webHost = $state<string | null>(null);
+  onMount(() => {
+    if (!pageHost.endsWith('.onion')) return;
+    void instanceInfo().then((info) => (webHost = info?.host ?? null));
+  });
+  const host = $derived(installHost(pageHost, webHost) ?? '…');
   const blocks = $derived(
     parseMarkdown((i18n.lang === 'en' ? ABOUT_EN : ABOUT_DE).replaceAll('{host}', host)),
   );

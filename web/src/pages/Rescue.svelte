@@ -10,7 +10,7 @@
   import { RESCUE_ACTIONS } from '@posteulen/shared/game/rescue.ts';
   import BagNotice from '../components/BagNotice.svelte';
   import { careCost } from '../lib/purse.ts';
-  import { owlDisplayName } from '@posteulen/shared/game/gifts.ts';
+  import { owlDisplayName } from '@posteulen/shared/game/badges.ts';
   import { speciesSnack } from '@posteulen/shared/texts/species.ts';
   import PlaceImage from '../components/PlaceImage.svelte';
   import PlaceDoor from '../components/PlaceDoor.svelte';
@@ -59,7 +59,7 @@
     void load();
   });
 
-  const nameOf = (owl: RescueOwl): string => owlDisplayName(owl.name, owl.globetrotter === true);
+  const nameOf = (owl: RescueOwl): string => owlDisplayName(owl.name, owl.badge);
 
   /** v1.3.1: the free ones first – water, stroking, medicine – then biscuit and snack. */
   const ACTIONS = RESCUE_ACTIONS;

@@ -223,7 +223,7 @@ test.describe('Version 1.3.0: Oberfläche', () => {
     await expect(tiles.getByRole('link', { name: 'Meine Eulen' })).toBeVisible();
     await expect(tiles.getByRole('link', { name: 'Rettungsstation' })).toBeVisible();
     await expect(tiles.getByRole('link', { name: 'Hilfe' })).toHaveCount(0);
-    await expect(page.getByText('1.234,5 Gold')).toBeVisible();
+    await expect(page.getByTestId('topbar-gold')).toContainText('1.234,5');
     // The question mark next to the flag leads to the help.
     await page.getByTestId('help-link').first().click();
     await expect(page).toHaveURL(/\/hilfe$/);
@@ -295,13 +295,13 @@ test.describe('Version 1.3.0: Oberfläche', () => {
     await page.goto(`/app/briefe/${idOf(ben.name)}`);
     const art = ' /\\_/\\\n( o.o )\n > ^ <';
     await page.getByLabel('Text').fill(art);
-    await page.getByTestId('letter-mono').check();
+    await page.locator('input[data-testid="letter-mono"]').check();
     const group = page.getByRole('group', { name: 'Welche Eule soll fliegen?' });
     await group.getByRole('radio', { name: /Helfer 1/ }).check();
     await page.getByRole('button', { name: 'Absenden' }).click();
     await expect(page.getByText('Die Eule ist losgeflogen.')).toBeVisible({ timeout: 30_000 });
     // Chosen anew for every letter.
-    await expect(page.getByTestId('letter-mono')).not.toBeChecked();
+    await expect(page.locator('input[data-testid="letter-mono"]')).not.toBeChecked();
     await expect(page.locator('p.text.mono')).toHaveCount(1);
     await expect
       .poll(

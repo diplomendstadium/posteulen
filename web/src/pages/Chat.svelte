@@ -27,6 +27,13 @@
   let enlarged = $state<{ src: string; alt: string } | null>(null);
   let loading = $state(true);
   let list = $state<HTMLOListElement>();
+  /**
+   * v1.3.2: a long conversation shows its latest letters first; "Ältere Briefe im Keller
+   * suchen" loads the whole conversation, which then stays loaded (SPEC 8.4).
+   */
+  let showAll = false;
+  let older = $state(0);
+  let digging = $state(false);
   /** The first load jumps to the latest letter, a sent letter scrolls to it (v0.4). */
   let jump: 'instant' | 'smooth' | null = 'instant';
 
@@ -62,9 +69,10 @@
     const context = currentContext();
     if (!context) return;
     try {
-      const conversation = await loadConversation(peerId, context);
+      const conversation = await loadConversation(peerId, context, showAll);
       if (ticket !== latestLoad || !isCurrent(context)) return;
       letters = conversation.letters;
+      older = conversation.older;
       christmasPaper = conversation.christmasPaper;
       loading = false;
       if (jump !== null && letters.length > 0) {
@@ -117,6 +125,21 @@
     void vault.synced;
     void load();
   });
+
+  /** v1.3.2: loads the older letters and keeps the letter that was at the top in view. */
+  async function digOlder(): Promise<void> {
+    if (digging) return;
+    const first = letters[0]?.id;
+    showAll = true;
+    digging = true;
+    try {
+      await load();
+      await tick();
+      if (first) await scrollToLetter(list, first);
+    } finally {
+      digging = false;
+    }
+  }
 
   function coverText(letter: ShownLetter): string | null {
     if (letter.kind === 'cover_gold')
@@ -232,6 +255,18 @@
   </p>{/if}
 
 <p class="hint retention plate">{retention}</p>
+
+{#if older > 0}
+  <p class="older">
+    <button
+      class="button secondary"
+      type="button"
+      disabled={digging}
+      data-testid="older-letters"
+      onclick={() => void digOlder()}>{digging ? t.letters.olderLoading : t.letters.older}</button
+    >
+  </p>
+{/if}
 
 <ol class="letters" class:print aria-live="polite" bind:this={list}>
   {#each letters as letter (letter.id)}
@@ -372,6 +407,12 @@
 </p>
 
 <style>
+  /* v1.3.2: "Ältere Briefe im Keller suchen" above the oldest letter shown (SPEC 8.4). */
+  .older {
+    margin: 0 0 1.5rem;
+    text-align: center;
+  }
+
   .pictures {
     display: flex;
     flex-wrap: wrap;
