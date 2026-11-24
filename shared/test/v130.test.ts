@@ -3,8 +3,9 @@
  * the 🌍 badge and the season of the rescue centre pictures.
  */
 import { describe, expect, it } from 'vitest';
-import { GIFTS, GLOBE, RESCUE } from '../src/constants.ts';
-import { giftBlock, giftWindow, isGlobetrotter, owlDisplayName } from '../src/game/gifts.ts';
+import { BADGES, GIFTS, RESCUE } from '../src/constants.ts';
+import { giftBlock, giftWindow } from '../src/game/gifts.ts';
+import { owlBadge, owlDisplayName } from '../src/game/badges.ts';
 import { overviewOrder, canCare, regenerates, type OverviewOwl } from '../src/game/owls.ts';
 import {
   ownCareNeeded,
@@ -208,11 +209,11 @@ describe('giving gold and owls (SPEC 9.1.5)', () => {
 
 describe('🌍 badge (SPEC 9.2.1)', () => {
   it('after more than the Earth’s circumference', () => {
-    expect(GLOBE.KM).toBe(40_030);
-    expect(isGlobetrotter(40_030)).toBe(false);
-    expect(isGlobetrotter(40_030.5)).toBe(true);
-    expect(owlDisplayName('Waldi', true)).toBe('Waldi 🌍');
-    expect(owlDisplayName('Waldi', false)).toBe('Waldi');
+    expect(BADGES.globe.KM).toBe(40_030);
+    expect(owlBadge(40_030)).toBeNull();
+    expect(owlBadge(40_030.5)).toBe('globe');
+    expect(owlDisplayName('Waldi', 'globe')).toBe('Waldi 🌍');
+    expect(owlDisplayName('Waldi', null)).toBe('Waldi');
   });
 });
 

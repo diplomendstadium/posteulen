@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, RESCUE, TIME } from '@posteulen/shared/constants.ts';
 import { utcDay } from '../src/security/ids.ts';
 import { admit } from '../src/rescue/service.ts';
-import { announceAllGlobetrotters } from '../src/owls/globe.ts';
+import { announceAllBadges } from '../src/owls/globe.ts';
 import { backfillStats } from '../src/accounts/stats.ts';
 import { openDatabase } from '../src/db/database.ts';
 import { loadMigrations, migrate } from '../src/db/migrate.ts';
@@ -522,18 +522,18 @@ describe('🌍 badge (SPEC 9.2.1)', () => {
     setGold(app, anna, 500);
     const id = await buyOwl(app, anna, 'waldkauz');
     app.db.run('UPDATE owls SET km_flown = 40030 WHERE id = ?', id);
-    expect(announceAllGlobetrotters(app.ctx, app.clock.now)).toBe(0);
+    expect(announceAllBadges(app.ctx, app.clock.now)).toBe(0);
     app.db.run('UPDATE owls SET km_flown = 40031 WHERE id = ?', id);
-    expect(announceAllGlobetrotters(app.ctx, app.clock.now)).toBe(1);
-    expect(announceAllGlobetrotters(app.ctx, app.clock.now)).toBe(0);
+    expect(announceAllBadges(app.ctx, app.clock.now)).toBe(1);
+    expect(announceAllBadges(app.ctx, app.clock.now)).toBe(0);
     expect((await systemTypes(anna)).filter((type) => type === 'owl_globe')).toHaveLength(1);
     const list = await anna.agent.json<{
-      owls: { id: string; name: string; globetrotter: boolean }[];
+      owls: { id: string; name: string; badge: string | null }[];
     }>('GET', '/api/owls');
-    // The name stays as it is (renaming, releasing); the flag adds the badge.
+    // The name stays as it is (renaming, releasing); the badge is added when shown.
     expect(list.body.owls.find((owl) => owl.id === id)).toMatchObject({
       name: 'Waldi',
-      globetrotter: true,
+      badge: 'globe',
     });
   });
 });

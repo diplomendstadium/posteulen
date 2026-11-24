@@ -26,6 +26,7 @@ import { isMythical, loanPrice, randomSex, speciesById } from '@posteulen/shared
 import { owlNames } from '@posteulen/shared/names-data.ts';
 import { admit } from '../rescue/service.ts';
 import { languageOf } from '../accounts/language.ts';
+import type { Language } from '@posteulen/shared/i18n.ts';
 import type { Context } from '../context.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
@@ -85,12 +86,14 @@ export function offerOf(ctx: Context, userId: string, day: string): string[] {
   const start = Date.parse(`${day}T00:00:00Z`);
   const previous = storedOffer(ctx, userId, utcDay(start - TIME.DAY))?.team ?? null;
   const team = pickTeam(ctx.random, previous);
+  // v1.3.2: the names are rolled in the language of this moment and keep it (9.6).
   ctx.db.run(
-    'INSERT OR IGNORE INTO menagerie_user_offers (user_id, day, species, team) VALUES (?, ?, ?, ?)',
+    'INSERT OR IGNORE INTO menagerie_user_offers (user_id, day, species, team, language) VALUES (?, ?, ?, ?, ?)',
     userId,
     day,
     JSON.stringify(teamSpecies(team)),
     team,
+    languageOf(ctx, userId),
   );
   // Only the day before is needed for the exclusion (two days are kept, as before).
   ctx.db.run(
@@ -115,8 +118,32 @@ export function cleanUpOffers(ctx: Context, now: number): void {
 }
 
 /**
+ * v1.3.2: the language the names of a day's offer were rolled in – kept for the whole day, so
+ * changing the language does not rename the owls on offer (9.6). An offer from before the
+ * update (or the shared offer of v0.8.5) takes the account's language once.
+ */
+function offerLanguage(ctx: Context, userId: string, day: string): Language {
+  const row = ctx.db.get<{ language: string | null }>(
+    'SELECT language FROM menagerie_user_offers WHERE user_id = ? AND day = ?',
+    userId,
+    day,
+  );
+  if (row?.language === 'de' || row?.language === 'en') return row.language;
+  const language = languageOf(ctx, userId);
+  if (row) {
+    ctx.db.run(
+      'UPDATE menagerie_user_offers SET language = ? WHERE user_id = ? AND day = ? AND language IS NULL',
+      language,
+      userId,
+      day,
+    );
+  }
+  return language;
+}
+
+/**
  * Name, sex and start energy of the loan owls of a day for this user – derived, never stored;
- * the three names differ (9.6).
+ * the three names differ (9.6). The names come from the lists of the offer's language.
  */
 export function loanIdentitiesFor(
   ctx: Context,
@@ -124,14 +151,15 @@ export function loanIdentitiesFor(
   day: string,
 ): Map<string, LoanIdentity> {
   const offer = offerOf(ctx, userId, day);
-  // v0.4: same derivation, names from the list of the account's language.
+  // Same derivation in both languages; the names from the lists of the offer's language.
+  const language = offerLanguage(ctx, userId, day);
   const identities = loanIdentities(
     offer,
     (species, attempt) =>
       hmac(ctx.keys.loanName, `${userId}|${day}|${species}${attempt === 0 ? '' : `|${attempt}`}`),
     // Names suit the sex and rotate in groups by day, so none comes back on the two
     // following days (Anhang D).
-    (sex) => loanNamesOn(day, owlNames(languageOf(ctx, userId), sex)),
+    (sex) => loanNamesOn(day, owlNames(language, sex)),
   );
   return new Map(offer.map((species, index) => [species, identities[index] as LoanIdentity]));
 }

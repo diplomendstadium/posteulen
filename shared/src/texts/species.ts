@@ -33,7 +33,7 @@ export const SPECIES_DESCRIPTIONS: Readonly<Record<string, string>> = {
   schneeeule:
     'Unsere Schneeeule stammt aus der arktischen Tundra, ist ungefähr 60 cm lang und wiegt grob 2 kg. Auf langen Postflügen bleibt sie selbst bei Schneetreiben und eisigen Temperaturen gelassen, doch beim Abflug hat sie ihren eigenen Kopf. Wer drängelt, muss warten. In ihrer Heimat jagen Schneeeulen besonders gern Lemminge. Unsere Posteule sagt auch zu gefrorenen Birnensplittern nicht nein, sofern sie beim Hineinbeißen noch knacken.',
   sperbereule:
-    'Unsere Sperbereule ist etwa 40 cm lang, wiegt etwa 350 g und jagt in nördlichen Wäldern und auf Lichtungen kleine Säuger und gelegentlich Vögel. Sie ist forsch, ungeduldig und liebt kurze, schnelle Zustellungen. Wer beim Binden der Briefschnur trödelt, bekommt einen aufmunternden Schnabelklopfer auf den Tisch. Beim Klappern einer Dose mit Wachtelstücken ist sie genauso schnell zur Stelle. Aber Vorsicht, bekommt sie nicht genug Streicheleinheiten, drückt sie ihre Unzufriedenheit gerne auch mit einem kleinen Schnabelhieb aus.',
+    'Unsere Sperbereule ist etwa 40 cm lang, wiegt etwa 350 g und jagt in nördlichen Wäldern und auf Lichtungen kleine Säuger und gelegentlich Vögel. Sie ist forsch, ungeduldig und liebt kurze, schnelle Zustellungen. Wer beim Binden der Briefschnur trödelt, bekommt einen aufmunternden Schnabelklopfer auf den Tisch. Beim Klappern einer Dose mit gefrorenen Moosbeeren ist sie genauso schnell zur Stelle. Aber Vorsicht, bekommt sie nicht genug Streicheleinheiten, drückt sie ihre Unzufriedenheit gerne auch mit einem kleinen Schnabelhieb aus.',
   'suedliche-weissgesichtseule':
     'Die Südliche Weißgesichtseule aus den Savannen und lichten Gehölzen des südlichen Afrikas ist rund 24 cm lang, wiegt um die 200 g und jagt unter anderem große Insekten und kleine Nagetiere. Sie ist wachsam und leicht zu beeindrucken, gibt sich bei Überraschungen aber gern besonders groß. Kurze Etappen mit vertrauten Zwischenstopps liegen ihr. Bei einer besonders großen Knusperheuschrecke plustert sie sich auf, selbst wenn die anderen Eulen längst satt sind. Sie lässt sich gern und ausdauernd streicheln und genießt die Zuwendung von Menschen.',
   // v1.1: texts of the client, lightly revised.
@@ -80,7 +80,7 @@ export const SPECIES_DESCRIPTIONS_EN: Readonly<Record<string, string>> = {
   schneeeule:
     'Our Snowy Owl comes from the Arctic tundra, is about 60 cm long and weighs roughly 2 kg. On long post flights it stays calm even in driving snow and icy temperatures, but when it comes to taking off it has a mind of its own. Anyone who rushes it has to wait. In their homeland, Snowy Owls particularly like hunting lemmings. Our post owl will not say no to frozen pear slivers either, as long as they still crunch when bitten.',
   sperbereule:
-    'Our Northern Hawk Owl is about 40 cm long, weighs about 350 g and hunts small mammals and occasionally birds in northern forests and clearings. It is brisk, impatient and loves short, quick deliveries. Anyone who dawdles while tying the letter string gets an encouraging peck on the table. When a tin of quail pieces rattles, it is just as quick to turn up. But beware: if it does not get enough cuddles, it likes to show its displeasure with a little peck too.',
+    'Our Northern Hawk Owl is about 40 cm long, weighs about 350 g and hunts small mammals and occasionally birds in northern forests and clearings. It is brisk, impatient and loves short, quick deliveries. Anyone who dawdles while tying the letter string gets an encouraging peck on the table. When a tin of frosted cranberries rattles, it is just as quick to turn up. But beware: if it does not get enough cuddles, it likes to show its displeasure with a little peck too.',
   'suedliche-weissgesichtseule':
     'The Southern White-faced Owl from the savannahs and open woodland of southern Africa is around 24 cm long, weighs about 200 g and hunts large insects and small rodents, among other things. It is watchful and easily impressed, but when surprised it likes to make itself look particularly big. Short stages with familiar stopovers suit it. For an especially large crunchy grasshopper it puffs itself up, even when the other owls have long had enough. It enjoys being petted for a long time and loves attention from people.',
   // v1.1
@@ -112,7 +112,7 @@ export const SPECIES_SNACKS: Readonly<Record<string, string>> = {
   riesenkauz: 'Wachtelflügel',
   schleiereule: 'Apfelchips',
   schneeeule: 'Birnensplitter',
-  sperbereule: 'Wachtelstücke',
+  sperbereule: 'Moosbeeren',
   'suedliche-weissgesichtseule': 'Knusperheuschrecken',
   sumpfohreule: 'Cranberrys',
   waldkauz: 'Haselnüsse',
@@ -136,7 +136,7 @@ export const SPECIES_SNACKS_EN: Readonly<Record<string, string>> = {
   riesenkauz: 'quail wings',
   schleiereule: 'apple crisps',
   schneeeule: 'pear slivers',
-  sperbereule: 'quail pieces',
+  sperbereule: 'frosted cranberries',
   'suedliche-weissgesichtseule': 'crunchy grasshoppers',
   sumpfohreule: 'cranberries',
   waldkauz: 'hazelnuts',

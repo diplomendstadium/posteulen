@@ -20,6 +20,9 @@ export const en: Texts = {
     sourceCode: 'Source code',
     versionLink: ' on GitHub (opens in a new tab)',
     skipToContent: 'Skip to content',
+    logout: 'Sign out',
+    logoutConfirm: 'Do you really want to sign out? This deletes all keys on this device.',
+    goldLabel: 'gold',
   },
   language: {
     switchLabel: 'Auf Deutsch umstellen',
@@ -58,6 +61,13 @@ export const en: Texts = {
     deletionCancelled: 'Welcome back! The deletion of your account has been cancelled.',
     /** v1.2.3: name of the info text box at the bottom of the start page (shared/texts/about.ts). */
     about: 'About PostEulen',
+    instance: 'About this instance',
+    instanceCreated: 'Accounts created in all',
+    instanceCurrent: 'Accounts existing',
+    instanceActive: 'Active in the last 30 days',
+    instanceLetters: 'Letters between people',
+    instanceLettersValue: '{total} in all, {last7} in the last 7 days',
+    instanceOwls: 'Owls owned by players',
   },
   register: {
     title: 'Create account',
@@ -312,6 +322,8 @@ export const en: Texts = {
       'Letters are deleted automatically and for good {period} after delivery, at the weekly tidy-up (early on Mondays; settings).',
     retentionYear: 'one year',
     retentionDays: '{days} days',
+    older: 'Search the cellar for older letters',
+    olderLoading: 'The owls are rummaging in the cellar …',
     loanOffers:
       'None of your owls that can carry this letter is ready right now. You can take a loan owl of the day: it is only borrowed when you send the letter (0.1 gold, owls that also carry gold 0.2 gold).',
     loanOfferHint: 'Loan owl of the day: {price}, only when sending.',
@@ -379,6 +391,10 @@ export const en: Texts = {
       '{owl} does not want to leave you and stays with you as a post owl. You will find {owl} under “My owls”.',
     owl_globe:
       '🌍 What a journey! {owl} has flown {km} km – further than once around the Earth. To celebrate, {owl} now wears the globe after its name: {owl} 🌍',
+    owl_moon:
+      '🌙 Truly impressive! {owl} has now flown {km} km – as far as from the Earth to the Moon. To celebrate, {owl} now wears the moon after its name instead of the globe: {owl} 🌙',
+    owl_crown:
+      '👑 A million kilometres! {owl} has already flown {km} km. Even the old owls at the post office now shuffle aside on their perch in awe whenever {owl} lands. Instead of the moon, {owl} now wears a crown after its name: {owl} 👑',
     eggs_laid: '{owl} has laid eggs and is now brooding for 7 days.',
     chicks_hatched:
       '{owl} has hatched a chick. Give it a name within the next 5 days – otherwise the lot picks one.',
@@ -898,8 +914,6 @@ export const en: Texts = {
   },
   units: {
     gold: (tenths: number): string => `${formatGold(tenths, '.')} gold`,
-    /** v1.3.1: the special status (SPEC 9.1.7). */
-    goldEndless: '∞ gold',
   },
   pages: {
     helpTitle: 'Help',

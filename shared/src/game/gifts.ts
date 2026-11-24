@@ -2,7 +2,7 @@
  * Giving gold or owls away (SPEC 9.1.4, 9.2.7, 9.10): makes it harder to move gold and owls from
  * extra accounts to a main account. Pure rules over a day log of the last 14 days.
  */
-import { GIFTS, GLOBE } from '../constants.ts';
+import { GIFTS } from '../constants.ts';
 
 /** One UTC day of an account in the log: active, a letter to / from a person. */
 export interface ActivityDay {
@@ -41,14 +41,4 @@ export function giftBlock(input: {
   if (count((entry) => entry.receivedHuman) < GIFTS.MIN_RECEIVED_DAYS) return 'few_received';
   if (count((entry) => entry.sentHuman) < GIFTS.MIN_SENT_DAYS) return 'few_sent';
   return null;
-}
-
-/** 🌍 after the name of an owl that has flown more than the Earth's circumference (9.2.1). */
-export function isGlobetrotter(km: number): boolean {
-  return km > GLOBE.KM;
-}
-
-/** The name as shown everywhere: with 🌍 for a globetrotter. */
-export function owlDisplayName(name: string, globetrotter: boolean): string {
-  return globetrotter ? `${name} ${GLOBE.BADGE}` : name;
 }

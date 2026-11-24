@@ -352,7 +352,7 @@ describe('migration 0024 (v1.3.1)', () => {
                             plan, started_at, ends_at)
        VALUES ('f', 'u', 'sick', 'own', 'sick', 'waldkauz', 'letter', '{}', '[]', '{}', 1, 2)`,
     );
-    expect(migrate(db, migrations)).toEqual([24]);
+    expect(migrate(db, migrations.slice(0, 24))).toEqual([24]);
     expect(db.all('SELECT owl_id, since_at FROM owl_unready ORDER BY owl_id')).toEqual([
       { owl_id: 'brood', since_at: 3 * 86_400_000 },
       { owl_id: 'sick', since_at: 5000 },

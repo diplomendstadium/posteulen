@@ -48,6 +48,20 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.3.2',
+    title: 'Ein Blick in den Keller und bis zum Mond: Version 1.3.2',
+    paragraphs: [
+      'Im Postamt wurde gefegt, sortiert und ein bisschen nach den Sternen gegriffen:',
+      '• Ganz rechts in der Leiste oben sitzt jetzt ein Ein-/Aus-Knopf. Damit meldest du dich ab – vorher fragt PostEulen noch einmal nach, damit nichts aus Versehen passiert. Dein Gold steht daneben nur noch als Zahl hinter der Münze.',
+      '• Lange Briefwechsel öffnen sich schneller: Bei vielen Briefen siehst du zuerst die letzten 25. Ganz oben liegt dann der Knopf „Ältere Briefe im Keller suchen“, und die Eulen holen den Rest herauf. Das gilt auch für die Systemnachrichten und die Briefe der Bots.',
+      '• Wer von der Erde bis zum Mond geflogen ist – 384.400 Kilometer –, trägt statt der Weltkugel einen Mond hinter dem Namen: 🌙 Und wer eine Million Kilometer schafft, bekommt eine Krone: 👑',
+      '• Die Eulen im Postamt behalten ihren Namen, auch wenn du die Sprache umstellst. Erst die Eulen des nächsten Tages bekommen Namen in der neuen Sprache.',
+      '• Auf der Startseite steht ganz unten, wie viel in dieser Eulenpost los ist: Konten, aktive Spieler, Briefe und Eulen. Am Computer steht der Cursor gleich im Feld für den Nutzernamen.',
+      '• Und eine Kleinigkeit: In den Einstellungen hat „Gold und Buchungen“ wieder Abstand zur Statistik darüber.',
+      'Grüße vom Mond!',
+    ],
+  },
+  {
     version: '1.3.1',
     title: 'Nachtwache im Nest und ein Beutel voller Kekse: Version 1.3.1',
     paragraphs: [
@@ -459,6 +473,20 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.3.2',
+    title: 'A look in the cellar and up to the Moon: version 1.3.2',
+    paragraphs: [
+      'The post office has been swept, sorted and has reached a little for the stars:',
+      '• At the very right of the bar at the top there is now an on/off button. It signs you out – PostEulen asks once more first, so nothing happens by accident. Your gold next to it now shows just as a number behind the coin.',
+      '• Long correspondences open faster: with many letters you first see the latest 25. At the very top there is then the button “Search the cellar for older letters”, and the owls bring up the rest. This also applies to the system messages and the letters of the bots.',
+      '• An owl that has flown from the Earth to the Moon – 384,400 kilometres – wears a moon after its name instead of the globe: 🌙 And one that manages a million kilometres gets a crown: 👑',
+      '• The owls in the post office keep their names even when you switch the language. Only the owls of the next day get names in the new language.',
+      '• At the very bottom of the start page you can see how busy this owl post is: accounts, active players, letters and owls. On a computer, the cursor is already in the user name field.',
+      '• And one small thing: in the settings, “Gold and bookings” has some space to the statistics above it again.',
+      'Greetings from the Moon!',
+    ],
+  },
   {
     version: '1.3.1',
     title: 'Night watch in the nest and a pouch full of biscuits: version 1.3.1',

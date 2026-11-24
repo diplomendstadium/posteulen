@@ -3,6 +3,7 @@
  * the settings) – bot letters, bot names, loan owl names, AI prompts and push texts follow it.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { TIME } from '@posteulen/shared/constants.ts';
 import { owlNames } from '@posteulen/shared/names-data.ts';
 import { systemPrompt } from '../src/bots/prompts.ts';
 import { languageOf } from '../src/accounts/language.ts';
@@ -41,7 +42,7 @@ describe('language of the account (v0.4)', () => {
     expect(contacts.body.bots.map((bot) => bot.name)).toContain('Explainer Bear');
   });
 
-  it('can be changed in the settings; bot names and loan owl names follow', async () => {
+  it('can be changed in the settings; bot names follow, today’s loan owls keep their names', async () => {
     type Offer = { offer: { name: string; sex: 'f' | 'm' }[] };
     const before = await anna.agent.json<Offer>('GET', '/api/menagerie');
     expect(before.body.offer.every((owl) => owlNames('de', owl.sex).includes(owl.name))).toBe(true);
@@ -52,10 +53,13 @@ describe('language of the account (v0.4)', () => {
     );
     expect(changed.status).toBe(200);
     expect(changed.body.profile.language).toBe('en');
+    // v1.3.2: the names of today's offer keep the language they were rolled in (SPEC 9.6) …
     const after = await anna.agent.json<Offer>('GET', '/api/menagerie');
-    expect(after.body.offer.every((owl) => owlNames('en', owl.sex).includes(owl.name))).toBe(true);
-    // Same derivation: the same owls (sex) of the day, names from the English lists.
-    expect(after.body.offer.map((owl) => owl.sex)).toEqual(before.body.offer.map((owl) => owl.sex));
+    expect(after.body.offer).toEqual(before.body.offer);
+    // … the next day's offer comes from the English lists.
+    app.clock.now += TIME.DAY;
+    const next = await anna.agent.json<Offer>('GET', '/api/menagerie');
+    expect(next.body.offer.every((owl) => owlNames('en', owl.sex).includes(owl.name))).toBe(true);
     const contacts = await anna.agent.json<{ bots: { name: string }[] }>('GET', '/api/contacts');
     expect(contacts.body.bots.map((bot) => bot.name)).toContain('Explainer Bear');
     expect(

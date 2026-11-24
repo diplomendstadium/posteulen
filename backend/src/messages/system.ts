@@ -21,6 +21,9 @@ export type SystemMessageType =
   | 'owl_healthy'
   | 'rescue_joined'
   | 'owl_globe'
+  /** v1.3.2: the moon and the crown (SPEC 9.2.1). */
+  | 'owl_moon'
+  | 'owl_crown'
   | 'eggs_laid'
   | 'chicks_hatched'
   | 'chicks_hatched_gift'

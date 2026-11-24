@@ -156,7 +156,7 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     const body = parse(LanguageSetting, request.body);
     const me = userOf(request).id;
     ctx.db.run('UPDATE users SET language = ? WHERE id = ?', body.language, me);
-    // The Erklärbär's name and loan owl names follow the language.
+    // The Erklärbär's name follows the language; names already rolled keep theirs (9.6).
     ctx.hub.notify(me, 'profile', 'contacts', 'owls', 'map');
     return { profile: profileOf(ctx, me) };
   });

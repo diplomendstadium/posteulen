@@ -31,6 +31,7 @@ import { createBots } from '../bots/service.ts';
 import { scheduleDonations } from '../messages/periodic.ts';
 import { accountClientKey, clientKey, TOR_CLIENT_KEY, TOR_LOGIN_KEY } from '../security/ip.ts';
 import { footerOnionLink } from '../ops/tor.ts';
+import { cachedInstanceStats, webHost } from '../accounts/instance.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
 import {
@@ -148,6 +149,13 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   app.get('/api/onion', async (request) => {
     limit(ctx, 'general', request);
     return { url: footerOnionLink(ctx, request.viaTor) };
+  });
+
+  // v1.3.2: "Über diese Instanz" on the start page and the address of the app on the web (8.1).
+  const instance = cachedInstanceStats(ctx);
+  app.get('/api/instance', async (request) => {
+    limit(ctx, 'general', request);
+    return { host: webHost(ctx), stats: instance(ctx.now()) };
   });
 
   app.get('/api/altcha/challenge', async (request) => {

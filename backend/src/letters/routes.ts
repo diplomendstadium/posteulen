@@ -6,6 +6,7 @@
  */
 import { christmasPaperOf } from './season.ts';
 import { owlLabel } from '../owls/globe.ts';
+import { windowStart } from '@posteulen/shared/chat-window.ts';
 import type { FastifyInstance } from 'fastify';
 import { SECURITY } from '@posteulen/shared/constants.ts';
 import { toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
@@ -110,6 +111,12 @@ const UNREADABLE_CAUSES: Readonly<Record<string, string>> = {
     'Für den Absender liegen im Kontakt-Tresor des Empfängers keine Schlüssel vor (Tresor leer, nicht geladen oder Kontakt nicht mehr verbunden).',
   unknown: 'Unbekannte Ursache (ältere App-Version ohne Angabe des Grundes).',
 };
+
+/** v1.3.2: `?all=1` asks for a whole conversation instead of its latest letters (SPEC 8.4). */
+function allParam(request: { readonly query: unknown }): boolean {
+  const query = request.query as { all?: unknown } | undefined;
+  return query?.all === '1';
+}
 
 export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
@@ -229,6 +236,26 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
   app.get('/api/chats/:peer/letters', { preHandler: authenticated }, async (request) => {
     const peer = parse(Id, (request.params as { peer?: unknown }).peer);
     const me = userOf(request).id;
+    // v1.3.2: long conversations send only the latest letters until the user asks for all of
+    // them ("Ältere Briefe im Keller suchen", SPEC 8.4); unread letters are always included.
+    const where = `(l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
+           OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')`;
+    const order = `CASE WHEN l.sender_id = ? THEN l.sent_at ELSE l.arrives_at END, l.sent_at, l.id`;
+    const sequence = ctx.db.all<{ unread: number }>(
+      `SELECT (l.recipient_id = ? AND l.read = 0) AS unread FROM letters l WHERE ${where} ORDER BY ${order}`,
+      me,
+      me,
+      peer,
+      peer,
+      me,
+      me,
+    );
+    const firstUnread = sequence.findIndex((row) => row.unread === 1);
+    const start = windowStart(
+      sequence.length,
+      firstUnread === -1 ? null : firstUnread,
+      allParam(request),
+    );
     const rows = ctx.db.all<{
       id: string;
       sender_id: string;
@@ -259,16 +286,18 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id
          LEFT JOIN owls o ON o.id = f.owl_id
          LEFT JOIN central_bot_events e ON e.id = l.bot_event_id
-        WHERE (l.sender_id = ? AND l.recipient_id = ? AND l.sender_has = 1)
-           OR (l.sender_id = ? AND l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered')
-        ORDER BY CASE WHEN l.sender_id = ? THEN l.sent_at ELSE l.arrives_at END, l.sent_at, l.id`,
+        WHERE ${where}
+        ORDER BY ${order} LIMIT -1 OFFSET ?`,
       me,
       peer,
       peer,
       me,
       me,
+      start,
     );
     return {
+      // v1.3.2: how many older letters were left out (0: the whole conversation).
+      older: start,
       // v1.1: the Christmas parchment pair of this conversation, the same for both sides.
       christmasPaper: christmasPaperOf(ctx, me, peer),
       letters: rows.map((row) => {
@@ -486,31 +515,49 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     return { ok: true };
   });
 
-  app.get('/api/system-messages', { preHandler: authenticated }, async (request) => ({
-    messages: ctx.db
-      .all<{
-        id: string;
-        type: string;
-        params: string;
-        created_at: number;
-        seen: number;
-        arrival_image: string | null;
-        arrival_shown: number;
-      }>(
-        `SELECT id, type, params, created_at, seen, arrival_image, arrival_shown
-           FROM system_messages WHERE user_id = ? ORDER BY created_at, rowid`,
-        userOf(request).id,
-      )
-      .map((row) => ({
-        id: row.id,
-        type: row.type,
-        params: JSON.parse(row.params) as Record<string, string | number>,
-        createdAt: row.created_at,
-        seen: row.seen === 1,
-        arrivalImage: row.arrival_image,
-        arrivalShown: row.arrival_shown === 1,
-      })),
-  }));
+  app.get('/api/system-messages', { preHandler: authenticated }, async (request) => {
+    const me = userOf(request).id;
+    // v1.3.2: like a long conversation (SPEC 8.4) – the latest messages, all unseen ones and
+    // those with an arrival image still to show; the rest only on request.
+    const sequence = ctx.db.all<{ pending: number }>(
+      `SELECT (seen = 0 OR (arrival_image IS NOT NULL AND arrival_shown = 0)) AS pending
+         FROM system_messages WHERE user_id = ? ORDER BY created_at, rowid`,
+      me,
+    );
+    const firstPending = sequence.findIndex((row) => row.pending === 1);
+    const start = windowStart(
+      sequence.length,
+      firstPending === -1 ? null : firstPending,
+      allParam(request),
+    );
+    return {
+      older: start,
+      messages: ctx.db
+        .all<{
+          id: string;
+          type: string;
+          params: string;
+          created_at: number;
+          seen: number;
+          arrival_image: string | null;
+          arrival_shown: number;
+        }>(
+          `SELECT id, type, params, created_at, seen, arrival_image, arrival_shown
+           FROM system_messages WHERE user_id = ? ORDER BY created_at, rowid LIMIT -1 OFFSET ?`,
+          me,
+          start,
+        )
+        .map((row) => ({
+          id: row.id,
+          type: row.type,
+          params: JSON.parse(row.params) as Record<string, string | number>,
+          createdAt: row.created_at,
+          seen: row.seen === 1,
+          arrivalImage: row.arrival_image,
+          arrivalShown: row.arrival_shown === 1,
+        })),
+    };
+  });
 
   /** v0.7.2: own owls back home that the app has not shown yet (overlay, SPEC 8.4, 9.2.6). */
   app.get('/api/homecomings', { preHandler: authenticated }, async (request) => ({

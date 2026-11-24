@@ -7,7 +7,7 @@
 import { GOLD, MOTIVATION, RESCUE } from '@posteulen/shared/constants.ts';
 import { owlLabel } from '../owls/globe.ts';
 import { energyAfterFeeding, energyAfterSnack } from '@posteulen/shared/game/energy.ts';
-import { isGlobetrotter } from '@posteulen/shared/game/gifts.ts';
+import { owlBadge, type OwlBadge } from '@posteulen/shared/game/badges.ts';
 import type { Interaction } from '@posteulen/shared/game/motivation.ts';
 import { randomSex, speciesById } from '@posteulen/shared/game/owls.ts';
 import {
@@ -160,8 +160,8 @@ export interface RescueOwlView {
   readonly progress: number;
   readonly today: Readonly<Record<RescueAction, boolean>>;
   readonly healed: boolean;
-  /** v1.3: 🌍 after the name (own owls only). */
-  readonly globetrotter?: boolean;
+  /** Badge after the name (own owls only, SPEC 9.2.1). */
+  readonly badge?: OwlBadge | null;
 }
 
 export function rescueView(
@@ -185,7 +185,7 @@ export function rescueView(
       progress: rescueProgress(row.done, row.needed),
       today: todayOf(row, today),
       healed: false,
-      globetrotter: isGlobetrotter(row.km_flown),
+      badge: owlBadge(row.km_flown),
     }));
   const wild = ctx.db
     .all<WildRow>('SELECT * FROM rescue_wild WHERE user_id = ? ORDER BY slot', userId)

@@ -2,7 +2,7 @@
 import { energyNow, displayEnergy } from '@posteulen/shared/game/energy.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
 import { OWL, TIME } from '@posteulen/shared/constants.ts';
-import { isGlobetrotter, owlDisplayName } from '@posteulen/shared/game/gifts.ts';
+import { owlBadge, owlDisplayName, type OwlBadge } from '@posteulen/shared/game/badges.ts';
 import { rescueProgress } from '@posteulen/shared/game/rescue.ts';
 import {
   canCare,
@@ -62,6 +62,8 @@ export interface OwlRow {
   readonly km_flown: number;
   /** v1.3: the 🌍 badge was announced. */
   readonly globe_announced?: number;
+  readonly moon_announced?: number;
+  readonly crown_announced?: number;
 }
 
 export function facts(owl: OwlRow): {
@@ -158,8 +160,8 @@ export interface OwlView {
   readonly clutchId: string | null;
   /** v1.2.4: kilometres flown in all (own owls; null for loan and visiting owls). */
   readonly km: number | null;
-  /** v1.3: 🌍 after the name – flown further than around the Earth (SPEC 9.2.1). */
-  readonly globetrotter: boolean;
+  /** Badge after the name by the kilometres flown – 🌍, 🌙 or 👑 (SPEC 9.2.1). */
+  readonly badge: OwlBadge | null;
   /** v1.3: order of the overview (SPEC 8.5): since when the player has it, created, away since. */
   readonly ownedSince: string;
   readonly createdAt: number;
@@ -206,8 +208,8 @@ export interface GuestView {
   readonly feedable: boolean;
   readonly snackable: boolean;
   readonly caredAt: number | null;
-  /** v1.3: 🌍 after the name (SPEC 9.2.1). */
-  readonly globetrotter: boolean;
+  /** Badge after the name (SPEC 9.2.1). */
+  readonly badge: OwlBadge | null;
   /** Whose owl it is: their user ID and current name (null if no longer a contact). */
   readonly holderId: string;
   readonly holderName: string | null;
@@ -229,8 +231,8 @@ export function guestView(
   const maxEnergy = speciesById(owl.species)?.maxEnergy ?? 0;
   return {
     id: owl.id,
-    // v1.3: with 🌍 for an owl that has flown around the Earth (SPEC 9.2.1).
-    name: owlDisplayName(owl.name ?? flight.owl_name, isGlobetrotter(owl.km_flown)),
+    // With the badge of an owl that has flown far (SPEC 9.2.1).
+    name: owlDisplayName(owl.name ?? flight.owl_name, owlBadge(owl.km_flown)),
     species: owl.species,
     sex: owl.sex,
     loan: owl.kind === 'loan',
@@ -244,7 +246,7 @@ export function guestView(
     feedable: canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
     snackable: canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
     caredAt: owl.cared_at,
-    globetrotter: isGlobetrotter(owl.km_flown),
+    badge: owlBadge(owl.km_flown),
     holderId: flight.holder_id,
     holderName: stop
       ? findContact(ctx.db, stop.userId, flight.holder_id)
@@ -301,7 +303,7 @@ export function botGuestView(
     feedable: !care.has('feed'),
     snackable: !care.has('snack'),
     caredAt: null,
-    globetrotter: false,
+    badge: null,
     holderId: flight.holder_id,
     holderName: bot?.name ?? null,
     restUntil: stop?.restUntil ?? now,
@@ -394,7 +396,7 @@ export function owlView(
     clutchId: owl.clutch_id,
     // v1.2.4: kilometres flown in all – only for own owls (not loan or visiting owls).
     km: owl.kind === 'own' ? Math.round(owl.km_flown) : null,
-    globetrotter: owl.kind === 'own' && isGlobetrotter(owl.km_flown),
+    badge: owl.kind === 'own' ? owlBadge(owl.km_flown) : null,
     ownedSince: owl.owned_since,
     createdAt: owl.created_at,
     awaySince,

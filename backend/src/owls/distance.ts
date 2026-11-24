@@ -4,7 +4,7 @@
  */
 import { flownKm, type Segment } from '@posteulen/shared/game/flight.ts';
 import type { Context } from '../context.ts';
-import { announceGlobe } from './globe.ts';
+import { announceBadges } from './globe.ts';
 
 /** Adds the flown distance of a finished flight to its owl (own owls only). */
 export function addFlownKm(ctx: Context, flight: { owl_id: string | null; plan: string }): void {
@@ -19,11 +19,11 @@ export function addFlownKm(ctx: Context, flight: { owl_id: string | null; plan: 
 }
 
 /**
- * v1.3: after the kilometres of a finished flight – the 🌍 badge is announced once when the
- * owl has passed the Earth's circumference (SPEC 9.2.1).
+ * After the kilometres of a finished flight – a new badge (🌍, 🌙, 👑) is announced once
+ * (SPEC 9.2.1).
  */
 export function afterFlownKm(ctx: Context, flight: { owl_id: string | null }, now: number): void {
-  if (flight.owl_id) announceGlobe(ctx, flight.owl_id, now);
+  if (flight.owl_id) announceBadges(ctx, flight.owl_id, now);
 }
 
 /**

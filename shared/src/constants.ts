@@ -152,11 +152,28 @@ export const RESCUE = {
   EARLY_SPRING_TO: { month: 3, day: 15 },
 } as const;
 
-/** An owl that has flown more than the Earth's circumference wears 🌍 after its name (9.2.1). */
-export const GLOBE = {
-  KM: 40_030,
-  BADGE: '🌍',
+/**
+ * Badges after the name of an own owl by the kilometres it has flown (9.2.1): 🌍 for more than
+ * the Earth's circumference, 🌙 from the distance Earth–Moon, 👑 from a million kilometres. The
+ * highest badge replaces the lower ones.
+ */
+export const BADGES = {
+  globe: { KM: 40_030, SYMBOL: '🌍' },
+  moon: { KM: 384_400, SYMBOL: '🌙' },
+  crown: { KM: 1_000_000, SYMBOL: '👑' },
 } as const;
+
+/**
+ * Long conversations (8.4): from this many letters (or system messages) on, a chat first shows
+ * only the latest ones; the rest is loaded with "Ältere Briefe im Keller suchen".
+ */
+export const CHAT = {
+  WINDOW_FROM: 30,
+  RECENT: 25,
+} as const;
+
+/** The figures of the instance on the start page are counted at most this often (8.1). */
+export const INSTANCE_STATS_CACHE_MS = 10 * 60 * 1000;
 
 /**
  * Giving gold or owls (SPEC 9.1.4, 9.2.7): one gift in 14 days, and only for players active on 7

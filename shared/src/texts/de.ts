@@ -20,6 +20,12 @@ export const de = {
     sourceCode: 'Quelltext',
     versionLink: ' auf GitHub (öffnet in einem neuen Tab)',
     skipToContent: 'Zum Inhalt springen',
+    /** v1.3.2: the power button at the right end of the top bar. */
+    logout: 'Abmelden',
+    logoutConfirm:
+      'Möchtest du dich wirklich abmelden? Dabei werden alle Schlüssel auf diesem Gerät gelöscht.',
+    /** v1.3.2: the balance in the top bar shows only the amount; for screen readers. */
+    goldLabel: 'Gold',
   },
   language: {
     /** Flag in the top right corner (v0.4): label in the language it switches to. */
@@ -59,6 +65,14 @@ export const de = {
     deletionCancelled: 'Willkommen zurück! Die Löschung deines Kontos wurde abgebrochen.',
     /** v1.2.3: name of the info text box at the bottom of the start page (shared/texts/about.ts). */
     about: 'Über PostEulen',
+    /** v1.3.2: figures of this instance below "Über PostEulen" (SPEC 8.1). */
+    instance: 'Über diese Instanz',
+    instanceCreated: 'Konten insgesamt erstellt',
+    instanceCurrent: 'Konten vorhanden',
+    instanceActive: 'In den letzten 30 Tagen aktiv',
+    instanceLetters: 'Briefe zwischen Menschen',
+    instanceLettersValue: '{total} insgesamt, {last7} in den letzten 7 Tagen',
+    instanceOwls: 'Eulen im Besitz der Spieler',
   },
   register: {
     title: 'Konto erstellen',
@@ -322,6 +336,9 @@ export const de = {
       'Briefe werden {period} nach der Zustellung beim wöchentlichen Aufräumen (montags früh) automatisch und unwiderruflich gelöscht (Einstellungen).',
     retentionYear: 'ein Jahr',
     retentionDays: '{days} Tage',
+    /** v1.3.2: long conversations first show only the latest letters (SPEC 8.4). */
+    older: 'Ältere Briefe im Keller suchen',
+    olderLoading: 'Die Eulen stöbern im Keller …',
     loanOffers:
       'Gerade ist keine deiner Eulen einsatzbereit, die diesen Brief tragen kann. Du kannst eine Leiheule des Tages nehmen: Sie wird erst beim Abschicken geliehen (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold).',
     loanOfferHint: 'Leiheule des Tages: {price}, erst beim Abschicken.',
@@ -393,6 +410,11 @@ export const de = {
     /** v1.3: more than the Earth's circumference flown. */
     owl_globe:
       '🌍 Was für eine Reise! {owl} ist schon {km} km geflogen – weiter als einmal rund um die Erde. Zur Feier trägt {owl} ab heute die Weltkugel hinter dem Namen: {owl} 🌍',
+    /** v1.3.2: the distance from the Earth to the Moon and a million kilometres (SPEC 9.2.1). */
+    owl_moon:
+      '🌙 Wirklich beeindruckend! {owl} ist inzwischen {km} km geflogen – so weit wie von der Erde bis zum Mond. Zur Feier trägt {owl} ab heute statt der Weltkugel den Mond hinter dem Namen: {owl} 🌙',
+    owl_crown:
+      '👑 Eine Million Kilometer! {owl} ist schon {km} km geflogen. Selbst die alten Eulen im Postamt rücken jetzt auf der Stange ehrfürchtig zur Seite, wenn {owl} landet. Statt des Mondes trägt {owl} ab heute eine Krone hinter dem Namen: {owl} 👑',
     eggs_laid: '{owl} hat Eier gelegt und brütet jetzt 7 Tage.',
     chicks_hatched:
       'Bei {owl} ist ein Küken geschlüpft. Gib ihm in den nächsten 5 Tagen einen Namen – sonst sucht das Los einen aus.',
@@ -934,8 +956,6 @@ export const de = {
   units: {
     // v1.3: thousands grouped ("1.234,5 Gold", SPEC 8.12).
     gold: (tenths: number): string => `${formatGold(tenths, ',')} Gold`,
-    /** v1.3.1: the special status (SPEC 9.1.7). */
-    goldEndless: '∞ Gold',
   },
   pages: {
     helpTitle: 'Hilfe',
