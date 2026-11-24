@@ -3,6 +3,38 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.3.2 – Ein Blick in den Keller und bis zum Mond
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-456 bis D-466).
+
+**Neu:**
+
+- **Ein-/Aus-Knopf:** Ganz rechts in der Statusleiste, hinter dem Fragezeichen, meldet ein Power-Symbol nach der Rückfrage „Möchtest du dich wirklich abmelden? Dabei werden alle Schlüssel auf diesem Gerät gelöscht.“ ab. Der Abschnitt „Abmelden“ in den Einstellungen bleibt.
+- **Mond und Krone:** Ab 384.400 km (Erde–Mond) trägt eine eigene Eule statt der Weltkugel einen Mond 🌙, ab 1.000.000 km eine Krone 👑 – jeweils einmal mit feierlicher Systemnachricht (`owl_moon`, `owl_crown`).
+- **Lange Briefwechsel:** Ab 30 Briefen schickt der Server zuerst nur die letzten 25 (und alle ungelesenen); ganz oben lädt „Ältere Briefe im Keller suchen“ den ganzen Verlauf. Ebenso Systemnachrichten und Bot-Chats.
+- **„Über diese Instanz“:** neue Box ganz unten auf der Startseite mit Konten insgesamt und vorhanden, aktiven Konten der letzten 30 Tage, Briefen zwischen Menschen und der Summe der Eulen in Spielerbesitz (öffentlich über `GET /api/instance`, höchstens alle 10 Minuten neu gezählt).
+- **Cursor im ersten Feld:** Startseite (Nutzername), Adminpanel und Bots-Kontrollzentrum (Passwort) – nur auf Geräten ohne Touchscreen.
+
+**Geändert:**
+
+- **Statusleiste:** Goldstand nur als Zahl hinter der Münze („⛀ 13,9“, mit Sonderstatus „⛀ ∞“).
+- **Namen des Tagesangebots** bleiben bis zum Tageswechsel in der Sprache ihres ersten Würfelns; geliehene Eulen, Küken und wilde Eulen behielten ihren Namen schon vorher.
+- **Installationsanleitung über die Onion-Adresse:** nennt die normale Adresse der Instanz statt der Onion-Adresse.
+- **Sperbereule:** Ihr Lieblingsleckerli heißt jetzt „Moosbeeren“ (englisch „frosted cranberries“), mit neuem Bild und angepasster Beschreibung in der Menagerie.
+- **Einstellungen:** Abstand zwischen „Statistik“ und „Gold und Buchungen“.
+- **API:** Eulenliste und Rettungsstation liefern `badge` (`globe`/`moon`/`crown`/`null`) statt `globetrotter`; Chats und Systemnachrichten liefern `older` und kennen `?all=1`.
+- Update-Nachricht, Hilfe, Erklärbär-Wissen, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; die gelieferte Datei `Sperbereule mit gefrorener Cranberry.png` ist eingepflegt und gelöscht.
+
+**Tests:** `shared/test/v132.test.ts`, `backend/test/v132.test.ts`, `web/test/instance.test.ts`, `e2e/v132.spec.ts`; angepasst `shared/test/v130.test.ts`, `backend/test/v130.test.ts`, `e2e/owls.spec.ts`, `e2e/v131.spec.ts`.
+
+### Hinweise für Betreiber
+
+- **Migration `0025_v132.sql`** (Schema-Version 25): neue Spalten `owls.moon_announced`, `owls.crown_announced` und `menagerie_user_offers.language`. Sie läuft beim Update automatisch. Beim ersten Start verkündet der Server Mond und Krone für Eulen, die die Grenze schon überschritten haben.
+- **Neuer öffentlicher Endpunkt** `GET /api/instance` (Rate-Limit normal) für die Box „Über diese Instanz“; er zeigt dieselben Zähler wie das Adminpanel, ohne Onion-Konten und ohne Aufschlüsselung nach Arten. Wer eine eigene Instanz betreibt, sollte wissen, dass diese Zahlen damit öffentlich sind.
+- **Ersetztes Bild:** `images/Sperbereule-Leckerli.png`; der Build erzeugt die Größen wie immer neu.
+- Keine neuen Dienste, keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.3.1 – Nachtwache im Nest und ein Beutel voller Kekse
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-439 bis D-455).
