@@ -225,6 +225,7 @@
 
   input[type='datetime-local'] {
     display: block;
+    min-height: 2.75rem;
     max-width: 16rem;
     margin-bottom: 0.75rem;
   }

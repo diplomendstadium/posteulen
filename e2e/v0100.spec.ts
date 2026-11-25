@@ -123,9 +123,10 @@ test.describe('Version 0.10', () => {
     await expect(headings.nth(0)).toHaveText('Abmelden');
     // v1.2.4: the notifications right below signing out.
     await expect(headings.nth(1)).toHaveText('Benachrichtigungen');
-    // v1.3: the statistics between notifications and gold.
-    await expect(headings.nth(2)).toHaveText('Statistik');
-    await expect(headings.nth(3)).toHaveText('Gold und Buchungen');
+    // v1.4: holiday mode, then the statistics between notifications and gold.
+    await expect(headings.nth(2)).toHaveText('Urlaubsmodus');
+    await expect(headings.nth(3)).toHaveText('Statistik');
+    await expect(headings.nth(4)).toHaveText('Gold und Buchungen');
     await expect(page.getByTestId('finance')).toContainText('Dein Gold: 3,0 Gold');
     await expect(page.getByTestId('finance')).toContainText(/Jeden Tag um .* Uhr bekommst du/);
   });

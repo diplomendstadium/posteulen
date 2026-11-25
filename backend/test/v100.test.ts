@@ -242,7 +242,8 @@ describe('Tor: nobody locks everybody out (v1.0, SPEC 5.10)', () => {
       limited = response.status === 429 || response.body['status'] !== 'ok';
     }
     expect(limited).toBe(true);
-  });
+    // Solves many captchas: under full load with coverage it needs more than the default.
+  }, 60_000);
 
   it('the waiting time per name protects against guessing over Tor as before', async () => {
     await register(new Agent(app.userApi, USER_ORIGIN), 'Anna', PASSWORD);
