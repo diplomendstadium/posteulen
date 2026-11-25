@@ -14,6 +14,7 @@ import { languageOf } from '../accounts/language.ts';
 import { credit } from '../gold/ledger.ts';
 import { addToBag } from '../gold/privilege.ts';
 import { addSystemMessage } from '../messages/system.ts';
+import { hasRoom } from '../owls/limit.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import {
   setCentralFlightHooks,
@@ -164,9 +165,19 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
     after(() => ctx.hub.notify(userId, 'profile', 'finance'));
   }
   if (event?.gift_species) {
-    // Like an owl from a voucher: it moves in at once and waits for its name (may exceed the limit).
+    // Like an owl from a voucher: it moves in at once and waits for its name. v1.4: not at the
+    // most own owls – then it flies off into freedom (9.2.3).
     const species = speciesById(event.gift_species);
-    if (species) {
+    if (species && !hasRoom(ctx, userId)) {
+      addSystemMessage(
+        ctx,
+        userId,
+        'bot_owl_gift_full',
+        { name: bot.name, species: species.id },
+        at,
+        after,
+      );
+    } else if (species) {
       ctx.db.run(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
          VALUES (?, ?, 'own', ?, ?, NULL, ?, ?, ?, ?)`,

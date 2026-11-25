@@ -12,7 +12,7 @@ import { recordGift, requireGiftAllowed } from '../accounts/stats.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { accountClientKey } from '../security/ip.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
-import { displayName, findContact } from '../contacts/model.ts';
+import { ACTIVE_DAY_SQL, displayName, findContact } from '../contacts/model.ts';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import { planFlight } from '../flights/service.ts';
 import {
@@ -50,7 +50,7 @@ export function registerGoldJobs(ctx: Context): void {
       const wage = 'CASE WHEN created_on > ? THEN ? ELSE ? END';
       ctx.db.run(
         `INSERT INTO transactions (user_id, at, type, amount)
-           SELECT id, ?, 'daily', ${wage} FROM users WHERE state != 'deleting' AND last_active_date >= ?`,
+           SELECT id, ?, 'daily', ${wage} FROM users u WHERE state != 'deleting' AND ${ACTIVE_DAY_SQL('u')} >= ?`,
         logicalAt,
         highSince,
         GOLD.DAILY,
@@ -58,7 +58,7 @@ export function registerGoldJobs(ctx: Context): void {
         activeSince,
       );
       ctx.db.run(
-        `UPDATE users SET gold = gold + ${wage} WHERE state != 'deleting' AND last_active_date >= ?`,
+        `UPDATE users AS u SET gold = gold + ${wage} WHERE state != 'deleting' AND ${ACTIVE_DAY_SQL('u')} >= ?`,
         highSince,
         GOLD.DAILY,
         GOLD.DAILY_LATER,

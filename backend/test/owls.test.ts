@@ -290,11 +290,11 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
       code: 'owl_not_home',
     });
     advanceTo(app, app.clock.now + 3 * TIME.DAY);
-    // v0.8.5: only while more than 20 own owls live here (9.2.8).
+    // Only while more than 5 own owls live here (v1.4, 9.2.8).
     expect((await owls(anna))[0]?.actions.release).toBe(false);
     expect((await release(name)).body).toMatchObject({ code: 'owl_release_limit' });
     setGold(app, anna, 5000);
-    for (let i = 0; i < 20; i++) await buyOwl(app, anna, 'bartkauz', `Bart ${i}`);
+    for (let i = 0; i < 5; i++) await buyOwl(app, anna, 'bartkauz', `Bart ${i}`);
     expect((await owls(anna)).find((owl) => owl.id === id)?.actions.release).toBe(true);
     // v0.3: only with the exact name, typed by the user.
     expect((await anna.agent.json('POST', `/api/owls/${id}/release`, {})).status).toBe(400);
@@ -304,8 +304,8 @@ describe('energy, feeding, petting, releasing (SPEC 9.3, 9.2.8)', () => {
     ).toMatchObject({ code: 'owl_name_mismatch' });
     expect((await release(name)).status).toBe(200);
     const left = await owls(anna);
-    expect(left).toHaveLength(20);
-    // At 20 the limit is reached.
+    expect(left).toHaveLength(5);
+    // At 5 the limit is reached.
     expect(left.every((owl) => !owl.actions.release)).toBe(true);
     const next = left[0]!;
     expect(

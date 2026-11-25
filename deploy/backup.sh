@@ -55,9 +55,13 @@ fi
 
 # v0.9: die Schlüssel des Onion-Dienstes (SPEC 16.5), verschlüsselt wie die Datenbank. Mit ihnen
 # behält ein wiederhergestellter Server dieselbe Onion-Adresse. Ein Fehler hier bricht nicht ab.
+# v1.4: mit den Schlüsseln der Onion-Adressen von Adminpanel und Bots-Kontrollzentrum.
 if [[ -s $PE_ONION_KEYS/hs_ed25519_secret_key ]]; then
   onion_target="$PE_BACKUPS/posteulen-onion-$stamp-$reason.tar.age"
-  if tar -C "$PE_ETC" -cf - onion | age --encrypt --recipients-file "$PE_BACKUP_PUB" --output "$onion_target.part"; then
+  onion_dirs=(onion)
+  [[ -s $PE_ONION_KEYS_ADMIN/hs_ed25519_secret_key ]] && onion_dirs+=(onion-admin)
+  [[ -s $PE_ONION_KEYS_BOTS/hs_ed25519_secret_key ]] && onion_dirs+=(onion-bots)
+  if tar -C "$PE_ETC" -cf - "${onion_dirs[@]}" | age --encrypt --recipients-file "$PE_BACKUP_PUB" --output "$onion_target.part"; then
     chmod 0600 "$onion_target.part"
     mv "$onion_target.part" "$onion_target"
   else

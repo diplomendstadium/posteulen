@@ -48,6 +48,20 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.4.0',
+    title: 'Ferien für die Eulen: Version 1.4.0',
+    paragraphs: [
+      'Im Eulenpostamt wurden die Dienstpläne neu geschrieben, und auf einer kleinen Insel in Schottland hat eine Eulenpflegestation eröffnet:',
+      '• Urlaubsmodus: Fährst du weg, hast du Ferien oder Prüfungen? Dann schalte in den Einstellungen den Urlaubsmodus ein – bis zu dreimal im Jahr für bis zu sechs Wochen. Deine Eulen erholen sich so lange auf der Insel Inchlonaig im Loch Lomond und sind pünktlich zum Ende wieder zu Hause. Du musst dich in der Zeit nicht anmelden und hast keine Nachteile.',
+      '• Eulen wollen Briefe tragen: Bringt eine Eule drei Wochen lang keinen Brief zu einem Menschen, langweilt sie sich und schaut sehnsüchtig aus dem Fenster. Schickst du sie dann nicht bald los, sucht sie sich ein eigenes Abenteuer und fliegt davon. Deine letzte Eule bleibt aber immer bei dir.',
+      '• Eine Voliere hat Platz für so viele Eulen, wie es Arten gibt – derzeit 21. Wer schon mehr hat, behält alle. Ab sechs Eulen kannst du einzelne in die Freiheit entlassen.',
+      '• Eigene Eulen helfen jetzt im Eulenpostamt aus statt in der Menagerie – jede einmal im Quartal. Leiheulen kommen ausgeruhter: mit mindestens drei Vierteln ihrer Energie.',
+      '• Unter den Eulen stehen nur noch Knöpfe, die gerade gehen – die Karten sind kleiner und übersichtlicher. Im Postamt und in der Menagerie steht die Tür gleich unter dem Bild.',
+      '• Rasten mehrere Eulen eines Kontakts bei dir, siehst du im Briefwechsel für jede ein Eulensymbol. Und lässt du eine Gast-Eule ohne Brief weiterfliegen, siehst du, wie sie frei davonfliegt.',
+      'Erholsame Ferien wünscht das Eulenpostamt!',
+    ],
+  },
+  {
     version: '1.3.2',
     title: 'Ein Blick in den Keller und bis zum Mond: Version 1.3.2',
     paragraphs: [
@@ -473,6 +487,20 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.4.0',
+    title: 'Holidays for the owls: version 1.4.0',
+    paragraphs: [
+      'The owl post office has rewritten its rotas, and an owl care station has opened on a little island in Scotland:',
+      '• Holiday mode: going away, off school or facing exams? Switch on holiday mode in the settings – up to three times a year for up to six weeks. Your owls relax on the island of Inchlonaig in Loch Lomond meanwhile and are home again exactly when it ends. You need not sign in during that time, and you lose nothing.',
+      '• Owls want to carry letters: if an owl takes no letter to a person for three weeks, it grows bored and gazes longingly out of the window. If you do not send it off soon after, it goes looking for an adventure of its own and flies away. Your last owl, though, always stays with you.',
+      '• An aviary has room for as many owls as there are species – currently 21. Anyone who already has more keeps them all. From six owls on you can set single ones free.',
+      '• Your own owls now help out at the owl post office instead of the Menagerie – each once a quarter. Loan owls arrive better rested: with at least three quarters of their energy.',
+      '• Under the owls there are only buttons that work right now – the cards are smaller and tidier. At the post office and the Menagerie the door is right below the picture.',
+      '• If several owls of a contact rest with you, you see an owl symbol for each in your conversations. And if you let a visiting owl fly on without a letter, you see it fly off free.',
+      'Restful holidays from the owl post office!',
+    ],
+  },
   {
     version: '1.3.2',
     title: 'A look in the cellar and up to the Moon: version 1.3.2',

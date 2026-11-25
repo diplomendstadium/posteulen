@@ -9,6 +9,8 @@ import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { displayName } from '../contacts/model.ts';
 import { botTitle, type BotRow } from '../bots/service.ts';
 import { homeOf, planOf, routeOf, type FlightRow } from './service.ts';
+import { vacationTripsOf } from '../owls/vacation.ts';
+import { VACATION } from '@posteulen/shared/constants.ts';
 
 export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = requireUser(ctx, userCookieSpec(ctx.config));
@@ -87,6 +89,8 @@ export function registerFlightRoutes(app: FastifyInstance, ctx: Context): void {
         })),
         segments: planOf(flight),
       })),
+      // v1.4: own owls on holiday – to and from the owl care station on Inchlonaig (SPEC 12.1).
+      vacation: { island: VACATION.ISLAND, owls: vacationTripsOf(ctx, me) },
     };
   });
 }

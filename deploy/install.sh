@@ -321,6 +321,11 @@ version=$(release_version "$(readlink -f "$PE_CURRENT")")
 printf '\n%s\n' "${PE_GREEN}${PE_BOLD}PostEulen $version läuft.${PE_RESET}"
 printf '  Website:      https://%s\n  Verwaltung:   https://admin.%s\n  Bots:         https://bots.%s\n' "$domain" "$domain" "$domain"
 [[ -n $onion ]] && printf '  Tor-Netz:     http://%s\n' "$onion"
+# v1.4: Adminpanel und Bots-Kontrollzentrum im Tor-Netz.
+onion_admin=$(onion_host "$PE_ONION_KEYS_ADMIN")
+onion_bots=$(onion_host "$PE_ONION_KEYS_BOTS")
+[[ -n $onion_admin ]] && printf '  Admin (Tor):  http://%s\n' "$onion_admin"
+[[ -n $onion_bots ]] && printf '  Bots (Tor):   http://%s\n' "$onion_bots"
 printf '  Updates:      sudo posteulen-update\n'
 messages=(
   "WICHTIG: Jetzt die Geheimnis-Datei außerhalb des Servers sichern:"
@@ -340,8 +345,9 @@ if [[ -n $onion ]]; then
   messages+=(
     ""
     "Onion-Adresse im Tor-Netz: http://$onion"
-    "Ihre Schlüssel liegen in $PE_ONION_KEYS und sind Teil jeder Sicherung"
-    "(posteulen-onion-….tar.age) – so behält ein neuer Server dieselbe Adresse."
+    "Ihre Schlüssel liegen in $PE_ONION_KEYS (Adminpanel und Bots-Kontrollzentrum:"
+    "$PE_ONION_KEYS_ADMIN, $PE_ONION_KEYS_BOTS) und sind Teil jeder Sicherung"
+    "(posteulen-onion-….tar.age) – so behält ein neuer Server dieselben Adressen."
   )
 fi
 if [[ -n $admin_password ]]; then

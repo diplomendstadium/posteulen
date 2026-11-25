@@ -16,6 +16,7 @@ import { randomId, utcDay } from '../security/ids.ts';
 import { recipientProblem } from '../contacts/model.ts';
 import { activeFlightOf, currentEnergy, isReady, type OwlRow } from '../owls/model.ts';
 import { leftHome } from '../owls/care.ts';
+import { resetIdle, toPeople } from '../owls/boredom.ts';
 import {
   endRest,
   flightPosition,
@@ -340,6 +341,8 @@ export function depart(
     );
     if (left.changes !== 1) throw new HttpError(400, 'owl_not_ready');
     leftHome(ctx, owl.id, now);
+    // v1.4: off to people with a letter or gold – no longer bored (9.2.9).
+    if (token.purpose !== 'gift' && toPeople(ctx, token.recipients)) resetIdle(ctx, owl.id, now);
   }
   const { id, route } = startFlight(ctx, {
     holderId: token.senderId,

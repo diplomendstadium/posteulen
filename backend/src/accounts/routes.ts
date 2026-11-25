@@ -11,6 +11,7 @@ import {
   LetterSettings,
 } from '@posteulen/shared/schemas/auth.ts';
 import type { Context } from '../context.ts';
+import { vacationAfterMove } from '../owls/vacation.ts';
 import { HttpError, parse } from '../http/errors.ts';
 import { utcDay } from '../security/ids.ts';
 import { clearSessionCookie, userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
@@ -112,6 +113,8 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
         me,
       );
       rerouteForMove(ctx, me, now, (work) => after.push(work));
+      // v1.4: owls on holiday fly back to the new home (9.12).
+      vacationAfterMove(ctx, me, now);
     });
     for (const work of after) work();
     for (const other of contactIdsOf(ctx, me)) ctx.hub.notify(other, 'map');

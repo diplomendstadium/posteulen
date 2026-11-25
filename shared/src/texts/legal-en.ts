@@ -22,7 +22,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
         'Keys: your public keys readably, your private keys and your contact vault only encrypted. Only your device knows the key for them while you are signed in.',
         'Contacts: who is connected with whom, open contact requests (at most 24 hours) and key warnings.',
         'Letters between people: only encrypted. The server can read sender, recipient, times, parchment size, delivery and read status (only yes/no).',
-        'Game state: gold, the last 20 bookings, owls with their values and flights.',
+        'Game state: gold, the last 20 bookings, owls with their values and flights, the start and end of your holidays (holiday mode).',
         'Bot chats and system messages: in plain text (see below).',
         `Messages to the admin (voluntary, from the settings): in plain text and without the sender, for ${FEEDBACK.RETENTION_DAYS} days. The account only keeps the day of the last message (for the limit of one message a day).`,
         'Notifications: the address of your push subscription and notifications not yet confirmed (without content).',

@@ -247,12 +247,12 @@ describe('a resting owl (v0.8.5, SPEC 8.4)', () => {
     advanceTo(app, sent.letters[0]!.arrivesAt + TIME.MINUTE);
     const chats = async () =>
       (
-        await ben.agent.json<{ chats: { peerId: string; owlResting: boolean }[] }>(
+        await ben.agent.json<{ chats: { peerId: string; owlsResting: number }[] }>(
           'GET',
           '/api/chats',
         )
       ).body.chats;
-    expect((await chats()).find((c) => c.peerId === anna.id)?.owlResting).toBe(true);
+    expect((await chats()).find((c) => c.peerId === anna.id)?.owlsResting).toBe(1);
     expect(
       app.db.all(
         "SELECT 1 FROM system_messages WHERE type = 'owl_resting' AND user_id = ?",
@@ -285,16 +285,16 @@ describe('a resting owl (v0.8.5, SPEC 8.4)', () => {
     );
     expect(owls.body.owls[0]?.absence?.resting).toBeTruthy();
     advanceTo(app, sent.letters[0]!.arrivesAt + 3 * TIME.HOUR);
-    expect((await chats()).find((c) => c.peerId === anna.id)?.owlResting).toBe(false);
+    expect((await chats()).find((c) => c.peerId === anna.id)?.owlsResting).toBe(0);
   });
 });
 
 describe('releasing owls (v0.8.5, SPEC 9.2.8)', () => {
-  it('needs more than 20 own owls', () => {
+  it('needs more than 5 own owls (v1.4)', () => {
     const home = { state: 'home', kind: 'own', isChick: false } as const;
-    expect(OWL.RELEASE_ABOVE_OWN_OWLS).toBe(20);
-    expect(releaseAllowed(home, 20)).toBe(false);
-    expect(releaseAllowed(home, 21)).toBe(true);
+    expect(OWL.RELEASE_ABOVE_OWN_OWLS).toBe(5);
+    expect(releaseAllowed(home, 5)).toBe(false);
+    expect(releaseAllowed(home, 6)).toBe(true);
     expect(releaseAllowed({ ...home, state: 'flying' }, 30)).toBe(false);
     expect(releaseAllowed({ ...home, kind: 'loan' }, 30)).toBe(false);
   });

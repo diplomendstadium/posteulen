@@ -25,9 +25,10 @@ export interface ApiOptions {
   readonly hsts: boolean;
   readonly logLevel?: string | undefined;
   /**
-   * v0.9 (user API only): the onion service. The same routes also answer on a second, local
-   * listener that only the onion site of Caddy reaches; requests there carry this origin, count
-   * as one client for all IP-based limits and are refused while Tor is switched off (SPEC 16.5).
+   * v0.9: the onion service (v1.4 for all three APIs). The same routes also answer on a second,
+   * local listener that only the onion site of Caddy reaches; requests there carry this origin,
+   * count as one client for all IP-based limits and are refused while Tor (v1.4: the site's own
+   * switch) is off (SPEC 16.5).
    */
   readonly tor?: { readonly origin: string; readonly enabled: () => boolean } | undefined;
 }

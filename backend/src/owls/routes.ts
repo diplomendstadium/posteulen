@@ -19,7 +19,9 @@ import {
   cargoOf,
   loanPrice,
   canGift,
-  canLendToMenagerie,
+  canLendToPostOffice,
+  maxOwnOwls,
+  quarterOf,
   canRelease,
   releaseAllowed,
   canRenameInYear,
@@ -38,8 +40,17 @@ import {
   OwlBuy,
   OwlName,
   OwlRelease,
+  VacationPlan,
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
+import { requireRoom } from './limit.ts';
+import {
+  cancelVacation,
+  endVacation,
+  planVacation,
+  sendOwlsOnVacation,
+  vacationView,
+} from './vacation.ts';
 import { kmOf, owlLabel } from './globe.ts';
 import { countInteraction, recordGift, requireGiftAllowed } from '../accounts/stats.ts';
 import { careForBotOwl } from '../central/care.ts';
@@ -107,8 +118,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       "SELECT * FROM owls WHERE owner_id = ? AND state != 'gift_flight' ORDER BY created_at, id",
       me,
     );
-    const clutches = ctx.db.all<{ id: string; hatched_at: number }>(
-      "SELECT id, hatched_at FROM clutches WHERE owner_id = ? AND gift_state = 'open'",
+    const clutches = ctx.db.all<{ id: string; hatched_at: number; gift_all: number }>(
+      "SELECT id, hatched_at, gift_all FROM clutches WHERE owner_id = ? AND gift_state = 'open'",
       me,
     );
     // v0.7: owls of others resting here for a while.
@@ -124,12 +135,16 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return {
       owls: rows.map((owl) => owlView(ctx, owl, now, count)),
       guests,
-      // v1.3.1: privileged players may own more than 50 owls (SPEC 9.1.7).
-      canBuy: canBuyMore(ownOwlCount(ctx, me)) || isPrivileged(ctx.db, me, now),
-      // Chicks of which one must be given away within 24 hours (9.9).
+      // v1.3.1: privileged players may buy beyond the limit (SPEC 9.1.7).
+      canBuy: canBuyMore(count) || isPrivileged(ctx.db, me, now),
+      // v1.4: the most own owls – as many as there are species (9.2.3).
+      maxOwls: maxOwnOwls(),
+      ownCount: count,
+      // Chicks of which one (v1.4: beyond the limit all) must be given away in five days (9.9).
       clutches: clutches.map((clutch) => ({
         id: clutch.id,
         giftDeadline: clutch.hatched_at + OWL.CHICK_GIFT_DEADLINE_HOURS * TIME.HOUR,
+        giftAll: clutch.gift_all === 1,
       })),
     };
   });
@@ -187,7 +202,9 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         id,
       );
     }
-    ctx.hub.notify(me, 'owls');
+    // v1.4: a named owl at home joins a running holiday (9.12).
+    ctx.db.transaction(() => sendOwlsOnVacation(ctx, me, now));
+    ctx.hub.notify(me, 'owls', 'map');
     return { owl: owlView(ctx, ownOwl(ctx, me, id), now) };
   });
 
@@ -428,6 +445,8 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     // v1.3: only active players, one gift of gold or an owl in two weeks (SPEC 9.1.5).
     requireGiftAllowed(ctx, me, now);
     checkRecipients(ctx, me, [body.recipient], now);
+    // v1.4: only to someone below the most own owls (9.2.3).
+    requireRoom(ctx, body.recipient);
     const planned = planFlight(ctx, {
       holderId: me,
       owl: chooseOwl(ctx, me, id, now),
@@ -473,6 +492,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
       requireGiftAllowed(ctx, me, now);
+      for (const recipient of token.recipients) requireRoom(ctx, recipient);
       const { route, owl } = depart(ctx, token, letters, now);
       recordGift(ctx, me, now);
       return {
@@ -484,7 +504,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     return result;
   });
 
-  /** Lend an owl to the menagerie for 7 days (9.7). */
+  /** Lend an owl to the post office for 7 days, once per calendar quarter (9.7). */
   app.post(
     '/api/owls/:id/menagerie',
     { preHandler: [authenticated, emptyBody] },
@@ -493,15 +513,18 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       const me = userOf(request).id;
       const now = ctx.now();
       const owl = ownOwl(ctx, me, id);
-      if (!canLendToMenagerie(facts(owl)) || owl.name === null)
+      if (!canLendToPostOffice(facts(owl)) || owl.name === null)
         throw new HttpError(400, 'owl_not_home');
+      if (!canLendToPostOffice(facts(owl), owl.lent_quarter ?? null, now))
+        throw new HttpError(400, 'owl_lent_this_quarter');
       const until = now + OWL.MENAGERIE_DAYS * TIME.DAY;
       ctx.db.transaction(() => {
         ctx.db.run(
-          "UPDATE owls SET state = 'menagerie', state_until = ?, energy = ?, energy_at = ? WHERE id = ? AND state = 'home'",
+          "UPDATE owls SET state = 'menagerie', state_until = ?, energy = ?, energy_at = ?, lent_quarter = ? WHERE id = ? AND state = 'home'",
           until,
           currentEnergy(ctx, owl, now),
           now,
+          quarterOf(now),
           id,
         );
         leftHome(ctx, id, now);
@@ -575,6 +598,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     if (!chick) throw new HttpError(404, 'not_found');
     if (chick.name === null) throw new HttpError(400, 'owl_unnamed');
     checkRecipients(ctx, me, [body.recipient], now);
+    requireRoom(ctx, body.recipient);
     const planned = planFlight(ctx, {
       holderId: me,
       owl: chooseChick(ctx, me, body.chickId, now),
@@ -621,13 +645,26 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     const letters = checkLetters(token, body.cover ? [body.cover] : []);
     checkRecipients(ctx, me, token.recipients, now);
     const result = ctx.db.transaction(() => {
-      const done = ctx.db.run(
-        "UPDATE clutches SET gift_state = 'sent' WHERE id = ? AND owner_id = ? AND gift_state = 'open'",
+      const clutch = ctx.db.get<{ gift_all: number }>(
+        "SELECT gift_all FROM clutches WHERE id = ? AND owner_id = ? AND gift_state = 'open'",
         clutchId,
         me,
       );
-      if (done.changes !== 1) throw new HttpError(400, 'clutch_done');
+      if (!clutch) throw new HttpError(400, 'clutch_done');
+      for (const recipient of token.recipients) requireRoom(ctx, recipient);
       const { route, owl } = depart(ctx, token, letters, now);
+      // One chick – v1.4 beyond the limit all of them, one after the other (9.9).
+      const left =
+        ctx.db.get<{ n: number }>(
+          "SELECT COUNT(*) AS n FROM owls WHERE clutch_id = ? AND owner_id = ? AND is_chick = 1 AND state = 'home'",
+          clutchId,
+          me,
+        )?.n ?? 0;
+      if (clutch.gift_all === 0 || left === 0) {
+        ctx.db.run("UPDATE clutches SET gift_state = 'sent' WHERE id = ?", clutchId);
+        // The chicks that stay are free now; during a holiday they fly to the island.
+        sendOwlsOnVacation(ctx, me, now);
+      }
       return {
         owl: { name: owl.name, species: owl.species },
         arrivesAt: route[0]?.arrivesAt ?? now,
@@ -635,5 +672,39 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
     });
     ctx.hub.notify(me, 'owls', 'map', 'chats');
     return result;
+  });
+
+  /** v1.4: holiday mode (SPEC 8.10, 9.12). */
+  app.get('/api/vacation', { preHandler: authenticated }, async (request) =>
+    vacationView(ctx, userOf(request).id, ctx.now()),
+  );
+
+  app.post('/api/vacation', { preHandler: authenticated }, async (request) => {
+    const body = parse(VacationPlan, request.body);
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const after: (() => void)[] = [];
+    ctx.db.transaction(() => planVacation(ctx, me, body, now, (work) => after.push(work)));
+    for (const work of after) work();
+    return vacationView(ctx, me, now);
+  });
+
+  /** A planned holiday is called off (it does not count). */
+  app.post('/api/vacation/cancel', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const me = userOf(request).id;
+    const after: (() => void)[] = [];
+    ctx.db.transaction(() => cancelVacation(ctx, me, (work) => after.push(work)));
+    for (const work of after) work();
+    return vacationView(ctx, me, ctx.now());
+  });
+
+  /** The running holiday ends early: the owls fly home at once. */
+  app.post('/api/vacation/end', { preHandler: [authenticated, emptyBody] }, async (request) => {
+    const me = userOf(request).id;
+    const now = ctx.now();
+    const after: (() => void)[] = [];
+    ctx.db.transaction(() => endVacation(ctx, me, now, (work) => after.push(work)));
+    for (const work of after) work();
+    return vacationView(ctx, me, now);
   });
 }

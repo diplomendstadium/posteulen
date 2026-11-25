@@ -34,6 +34,8 @@ Gold gibt es jeden Tag automatisch, und ein paar optionale Brieffreunde sind auc
 
 PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen: Es gibt keinen Sog, keine Dauerbereitschaft. Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt. Es ist kein eigenes Handy nötig. PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht. Es gibt keine Kontaktmöglichkeiten für Fremde. Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann. Und weil PostEulen auch im Graustufenmodus des Geräts tadellos funktioniert, lässt sich die bunte Reizüberflutung ganz einfach abschalten.
 
+Stehen Ferien, Urlaub oder eine Prüfungsphase an, gibt es den Urlaubsmodus: Bis zu dreimal im Jahr erholen sich die Eulen bis zu sechs Wochen lang in einer Eulenpflegestation auf einer kleinen schottischen Insel. In dieser Zeit muss sich niemand anmelden, und es entstehen keinerlei Nachteile – die Eulen sind bestens versorgt und pünktlich zum Ende wieder zu Hause.
+
 **Selbstverständlich gibt es auch keine In-App-Käufe.**
 
 Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
@@ -84,6 +86,8 @@ You get gold every day automatically, and a few optional pen friends join in, to
 # A good first messenger for children
 
 PostEulen is also a great way to introduce children gently to messengers: there is no pull and no constant availability. Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives. No phone of their own is needed. PostEulen runs in an ordinary web browser – also on a parent’s phone, tablet or computer. The child signs in there with their own account and signs out again afterwards; they do not need a smartphone of their own. Strangers have no way of getting in touch. Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child. And because PostEulen works perfectly in the device’s greyscale mode, the colourful overload can simply be switched off.
+
+When holidays, a trip away or exams come up, there is holiday mode: up to three times a year the owls relax for up to six weeks at an owl care station on a little Scottish island. Nobody has to sign in during that time, and there are no drawbacks at all – the owls are well looked after and home again exactly when it ends.
 
 **Of course there are no in-app purchases either.**
 

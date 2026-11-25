@@ -6,6 +6,7 @@
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, RESCUE, TIME } from '@posteulen/shared/constants.ts';
+import { maxOwnOwls } from '@posteulen/shared/game/owls.ts';
 import { utcDay } from '../src/security/ids.ts';
 import { admit } from '../src/rescue/service.ts';
 import { announceAllBadges } from '../src/owls/globe.ts';
@@ -338,9 +339,9 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
     expect([first!.id, second!.id, third!.id]).not.toContain(now[0]!.id);
   });
 
-  it('a joining owl may go beyond the limit of 50 owls', async () => {
+  it('at the most own owls a healed wild owl always flies off into freedom (v1.4)', async () => {
     const wild = (await rescue(anna)).wild[0]!;
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < maxOwnOwls(); i++) {
       app.db.run(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
          VALUES (?, ?, 'own', 'waldkauz', 'm', 'X', 1, 1, '2026-01-01', 1)`,
@@ -354,13 +355,13 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
     expect(
       (await anna.agent.json<{ stays: boolean }>('POST', `/api/rescue/wild/${wild.id}/release`, {}))
         .body.stays,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       app.db.get<{ n: number }>(
         "SELECT COUNT(*) AS n FROM owls WHERE owner_id = ? AND kind = 'own'",
         anna.id,
       )!.n,
-    ).toBe(51);
+    ).toBe(maxOwnOwls());
   });
 });
 

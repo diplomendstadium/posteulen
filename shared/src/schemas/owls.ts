@@ -102,3 +102,10 @@ export const RescueParams = v.strictObject({
   id: Id,
   action: v.picklist(['medicine', 'feed', 'snack', 'pet', 'water']),
 });
+
+/** v1.4: a holiday (SPEC 8.10): start (null = now) and end as milliseconds since 1970. */
+const Moment = v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(8.64e15));
+export const VacationPlan = v.strictObject({
+  startsAt: v.nullable(Moment),
+  endsAt: Moment,
+});

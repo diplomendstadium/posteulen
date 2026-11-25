@@ -38,7 +38,8 @@ import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
 import { registerCentralHandlers } from './central/service.ts';
 import { registerBotsCentreRoutes } from './central/routes.ts';
-import { syncTorSwitch, torEnabled } from './ops/tor.ts';
+import { panelTorEnabled, syncTorSwitch, torEnabled } from './ops/tor.ts';
+import { registerVacationHandlers } from './owls/vacation.ts';
 
 export interface App {
   readonly config: Config;
@@ -109,14 +110,37 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
         ? undefined
         : { origin: config.torOrigin, enabled: () => torEnabled(db) },
   });
-  const adminApi = buildApi({ kind: 'admin', origin: config.adminOrigin, db, hsts, logLevel });
-  const botsApi = buildApi({ kind: 'bots', origin: config.botsOrigin, db, hsts, logLevel });
+  // v1.4: the admin panel and the bots control centre have onion sites of their own (SPEC 16.5).
+  const adminApi = buildApi({
+    kind: 'admin',
+    origin: config.adminOrigin,
+    db,
+    hsts,
+    logLevel,
+    tor:
+      config.adminTorOrigin === undefined
+        ? undefined
+        : { origin: config.adminTorOrigin, enabled: () => panelTorEnabled(db, 'admin') },
+  });
+  const botsApi = buildApi({
+    kind: 'bots',
+    origin: config.botsOrigin,
+    db,
+    hsts,
+    logLevel,
+    tor:
+      config.botsTorOrigin === undefined
+        ? undefined
+        : { origin: config.botsTorOrigin, enabled: () => panelTorEnabled(db, 'bots') },
+  });
   ctx.push = new PushService(ctx, options.pushSender, options.pushTimer);
   ctx.botReplies = new BotReplies(ctx, ctx.ai);
   ctx.centralBots = new CentralRunner(ctx, ctx.ai);
   registerLetterHandlers(ctx);
   registerFlightHandlers(ctx);
   registerLifecycleHandlers(ctx);
+  // v1.4: holiday mode (SPEC 9.12).
+  registerVacationHandlers(ctx);
   registerAccountHandlers(ctx);
   registerBotHandlers(ctx);
   registerReplyHandler(ctx);
@@ -200,5 +224,11 @@ export async function listen(app: App): Promise<void> {
     await listenTor(app.userApi, app.config.host, app.config.torPort);
   }
   await app.adminApi.listen({ host: app.config.host, port: app.config.adminPort });
+  if (app.config.adminTorOrigin !== undefined) {
+    await listenTor(app.adminApi, app.config.host, app.config.adminTorPort);
+  }
   await app.botsApi.listen({ host: app.config.host, port: app.config.botsPort });
+  if (app.config.botsTorOrigin !== undefined) {
+    await listenTor(app.botsApi, app.config.host, app.config.botsTorPort);
+  }
 }

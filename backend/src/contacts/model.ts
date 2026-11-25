@@ -35,6 +35,14 @@ export function isActiveDate(lastActiveDate: string, now: number): boolean {
   return lastActiveDate >= utcDay(now - ACCOUNT.INACTIVE_AFTER_DAYS * TIME.DAY);
 }
 
+/**
+ * v1.4: the day inactivity counts from (SPEC 9.10) as SQL over a users table alias – the later of
+ * the last active day and `idle_ref` (a holiday does not count as days away; while it runs, its end).
+ */
+export function ACTIVE_DAY_SQL(alias: string): string {
+  return `MAX(${alias}.last_active_date, COALESCE(${alias}.idle_ref, ${alias}.last_active_date))`;
+}
+
 /** Current name of a person, or the name of a bot (SPEC 10). */
 export function displayName(db: Database, userId: string): string | null {
   const user = db.get<{ name_display: string }>(
@@ -80,7 +88,7 @@ export function recipientProblem(
   if (!contact) return 'recipient_invalid';
   if (hasKeyWarning(contact)) return 'key_warning';
   const user = ctx.db.get<{ state: string; last_active_date: string }>(
-    'SELECT state, last_active_date FROM users WHERE id = ?',
+    `SELECT u.state, ${ACTIVE_DAY_SQL('u')} AS last_active_date FROM users u WHERE u.id = ?`,
     recipientId,
   );
   if (!user || user.state === 'deleting') return 'recipient_invalid';

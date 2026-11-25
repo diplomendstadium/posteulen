@@ -36,6 +36,15 @@ readonly PE_ONION_KEYS=$PE_ETC/onion
 readonly PE_TOR_SWITCH=$PE_DATA/tor-switch
 # Caddy nimmt die Onion-Seite nur lokal an; Tor leitet Port 80 der Onion-Adresse hierher.
 readonly PE_ONION_LISTEN_PORT=3005
+# v1.4: eigene Onion-Adressen für Adminpanel und Bots-Kontrollzentrum (SPEC 16.5) – im selben
+# Tor-Dienst, mit eigenen Schlüsseln (maßgebliche Kopien in /etc/posteulen/onion-admin bzw.
+# onion-bots, nie überschrieben) und eigenen lokalen Caddy-Listenern.
+readonly PE_TOR_HS_DIR_ADMIN=$PE_TOR_DATA/onion-admin
+readonly PE_TOR_HS_DIR_BOTS=$PE_TOR_DATA/onion-bots
+readonly PE_ONION_KEYS_ADMIN=$PE_ETC/onion-admin
+readonly PE_ONION_KEYS_BOTS=$PE_ETC/onion-bots
+readonly PE_ONION_ADMIN_LISTEN_PORT=3006
+readonly PE_ONION_BOTS_LISTEN_PORT=3007
 # Hinweise, die am Ende von Installation oder Update gesammelt angezeigt werden.
 readonly PE_NOTICES=/run/posteulen-hinweise
 
@@ -201,10 +210,11 @@ server_addresses() {
 }
 
 # v0.9: Onion-Adresse dieser Instanz aus der maßgeblichen Schlüsselkopie (leer, wenn es keine gibt).
+# v1.4: mit einem Verzeichnis als Argument die Adresse von Adminpanel bzw. Kontrollzentrum.
 onion_host() {
-  local host
-  [[ -f $PE_ONION_KEYS/hostname ]] || return 0
-  host=$(tr -d '[:space:]' <"$PE_ONION_KEYS/hostname")
+  local keys=${1:-$PE_ONION_KEYS} host
+  [[ -f $keys/hostname ]] || return 0
+  host=$(tr -d '[:space:]' <"$keys/hostname")
   [[ $host =~ ^[a-z2-7]{56}\.onion$ ]] && printf '%s' "$host"
   return 0
 }

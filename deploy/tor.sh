@@ -9,10 +9,11 @@
 #   tor.sh started   Tor läuft wieder (systemd: ExecStartPost von tor@posteulen)
 #   tor.sh failed    Tor ist dauerhaft ausgefallen (systemd: OnFailure von tor@posteulen)
 #
-# Grundsätze: Die Onion-Adresse ändert sich nie mehr, wenn sie einmal da ist. Maßgeblich ist die
-# Kopie der Schlüssel in /etc/posteulen/onion (nie überschrieben, Teil jeder Sicherung); fehlt
-# sie, wird sie aus dem Schlüsselverzeichnis von Tor angelegt; fehlt beides, erzeugt Tor neue
-# Schlüssel. Ein Problem mit Tor hält PostEulen nie auf: Dieses Skript endet immer mit 0, meldet
+# Grundsätze: Die Onion-Adressen ändern sich nie mehr, wenn sie einmal da sind. Es gibt drei:
+# die Spieler-App, seit v1.4 auch Adminpanel und Bots-Kontrollzentrum – im selben Tor-Dienst.
+# Maßgeblich ist jeweils die Kopie der Schlüssel in /etc/posteulen/onion, onion-admin bzw.
+# onion-bots (nie überschrieben, Teil jeder Sicherung); fehlt sie, wird sie aus dem
+# Schlüsselverzeichnis von Tor angelegt; fehlt beides, erzeugt Tor neue Schlüssel. Ein Problem mit Tor hält PostEulen nie auf: Dieses Skript endet immer mit 0, meldet
 # Probleme als deutlichen Hinweis und im Fehlerprotokoll des Adminpanels, und die normale Seite
 # läuft weiter.
 set -uo pipefail
@@ -23,6 +24,12 @@ RELEASE=$(cd "$SELF_DIR/.." && pwd)
 require_root
 
 KEY_FILES=(hs_ed25519_secret_key hs_ed25519_public_key hostname)
+# v1.4: die drei Onion-Dienste – maßgebliche Kopie, Schlüsselverzeichnis von Tor, lokaler Port.
+SERVICES=(
+  "$PE_ONION_KEYS $PE_TOR_HS_DIR $PE_ONION_LISTEN_PORT"
+  "$PE_ONION_KEYS_ADMIN $PE_TOR_HS_DIR_ADMIN $PE_ONION_ADMIN_LISTEN_PORT"
+  "$PE_ONION_KEYS_BOTS $PE_TOR_HS_DIR_BOTS $PE_ONION_BOTS_LISTEN_PORT"
+)
 
 # Meldet einen Fehler: Hinweis bei Installation/Update und Eintrag im Fehlerprotokoll.
 tor_problem() {
@@ -37,9 +44,9 @@ keys_complete() {
 }
 
 keys_equal() {
-  local file
+  local copy=$1 dir=$2 file
   for file in hs_ed25519_secret_key hs_ed25519_public_key; do
-    cmp -s "$PE_ONION_KEYS/$file" "$PE_TOR_HS_DIR/$file" || return 1
+    cmp -s "$copy/$file" "$dir/$file" || return 1
   done
 }
 
@@ -62,20 +69,30 @@ ensure_package() {
 
 write_torrc() {
   install -d -m 0755 "$PE_TOR_ETC"
-  cat >"$PE_TOR_ETC/torrc.new" <<TORRC
+  local service copy dir port
+  {
+    cat <<TORRC
 # Erzeugt von PostEulen (deploy/tor.sh). Nicht von Hand ändern – wird bei jedem Update neu
-# geschrieben. Onion-Dienst von PostEulen (SPEC 16.5): Tor übernimmt Verschlüsselung und
-# Authentifizierung, deshalb spricht die Onion-Seite einfaches http mit dem lokalen Caddy.
-HiddenServiceDir $PE_TOR_HS_DIR
+# geschrieben. Onion-Dienste von PostEulen (SPEC 16.5): die Spieler-App, das Adminpanel und das
+# Bots-Kontrollzentrum. Tor übernimmt Verschlüsselung und Authentifizierung, deshalb sprechen
+# die Onion-Seiten einfaches http mit dem lokalen Caddy. Je Dienst: Rechenaufgabe (Proof of
+# Work) bei Andrang, Begrenzung an den Einführungspunkten und höchstens 64 gleichzeitige
+# Verbindungen je Tor-Kreis.
+TORRC
+    for service in "${SERVICES[@]}"; do
+      read -r copy dir port <<<"$service"
+      cat <<TORRC
+
+HiddenServiceDir $dir
 HiddenServiceVersion 3
-HiddenServicePort 80 127.0.0.1:$PE_ONION_LISTEN_PORT
-# Schutz vor Überlastung: Rechenaufgabe (Proof of Work) bei Andrang, Begrenzung an den
-# Einführungspunkten und höchstens 64 gleichzeitige Verbindungen je Tor-Kreis.
+HiddenServicePort 80 127.0.0.1:$port
 HiddenServicePoWDefensesEnabled 1
 HiddenServiceEnableIntroDoSDefense 1
 HiddenServiceMaxStreams 64
 HiddenServiceMaxStreamsCloseCircuit 1
 TORRC
+    done
+  } >"$PE_TOR_ETC/torrc.new"
   # Prüfen wie die Unit es tut; kennt diese Tor-Version die Abwehr per Rechenaufgabe nicht, ohne sie.
   local defaults
   defaults=$(mktemp)
@@ -110,37 +127,54 @@ write_units() {
   systemctl enable --quiet tor.service 2>/dev/null || true
 }
 
-# Schlüssel: Kopie in /etc/posteulen/onion ist maßgeblich (SPEC 16.5). Gibt 10 zurück, wenn die
-# Schlüssel im Verzeichnis von Tor ersetzt wurden (dann muss Tor neu starten).
+# Schlüssel: die Kopie in /etc/posteulen/onion (bzw. onion-admin, onion-bots) ist maßgeblich
+# (SPEC 16.5). Gibt 10 zurück, wenn Schlüssel im Verzeichnis von Tor ersetzt wurden (dann muss
+# Tor neu starten).
 sync_keys() {
-  local file replaced=0
-  if keys_complete "$PE_ONION_KEYS"; then
-    if ! keys_complete "$PE_TOR_HS_DIR" || ! keys_equal; then
-      systemctl stop "$PE_TOR_UNIT" >/dev/null 2>&1 || true
-      install -d -m 0700 -o "_tor-$PE_TOR_INSTANCE" -g "_tor-$PE_TOR_INSTANCE" "$PE_TOR_HS_DIR"
-      for file in "${KEY_FILES[@]}"; do
-        install -m 0600 -o "_tor-$PE_TOR_INSTANCE" -g "_tor-$PE_TOR_INSTANCE" "$PE_ONION_KEYS/$file" "$PE_TOR_HS_DIR/$file"
-      done
-      info "Onion-Schlüssel aus $PE_ONION_KEYS übernommen (Adresse $(onion_host))."
-      replaced=1
+  local service copy dir port file replaced=0
+  for service in "${SERVICES[@]}"; do
+    read -r copy dir port <<<"$service"
+    if keys_complete "$copy"; then
+      if ! keys_complete "$dir" || ! keys_equal "$copy" "$dir"; then
+        systemctl stop "$PE_TOR_UNIT" >/dev/null 2>&1 || true
+        install -d -m 0700 -o "_tor-$PE_TOR_INSTANCE" -g "_tor-$PE_TOR_INSTANCE" "$dir"
+        for file in "${KEY_FILES[@]}"; do
+          install -m 0600 -o "_tor-$PE_TOR_INSTANCE" -g "_tor-$PE_TOR_INSTANCE" "$copy/$file" "$dir/$file"
+        done
+        info "Onion-Schlüssel aus $copy übernommen (Adresse $(onion_host "$copy"))."
+        replaced=1
+      fi
+    elif keys_complete "$dir"; then
+      save_keys
     fi
-  elif keys_complete "$PE_TOR_HS_DIR"; then
-    save_keys
-  fi
+  done
   return $((replaced == 1 ? 10 : 0))
 }
 
-# Legt die maßgebliche Kopie an – nur, wenn es sie noch nicht gibt (nie überschreiben).
+# Legt die maßgeblichen Kopien an – nur, wo es sie noch nicht gibt (nie überschreiben).
 save_keys() {
-  local file
-  keys_complete "$PE_ONION_KEYS" && return 0
-  [[ -e $PE_ONION_KEYS ]] && [[ -n $(ls -A "$PE_ONION_KEYS" 2>/dev/null) ]] && {
-    notice "Tor: $PE_ONION_KEYS ist unvollständig und wurde nicht angerührt. Die Dateien ${KEY_FILES[*]} gehören dort hinein (z. B. aus einer Sicherung)."
-    return 1
-  }
-  install -d -m 0700 -o root -g root "$PE_ONION_KEYS"
-  for file in "${KEY_FILES[@]}"; do install -m 0600 -o root -g root "$PE_TOR_HS_DIR/$file" "$PE_ONION_KEYS/$file"; done
-  ok "Onion-Schlüssel gesichert in $PE_ONION_KEYS (Teil der täglichen Sicherung)."
+  local service copy dir port file
+  for service in "${SERVICES[@]}"; do
+    read -r copy dir port <<<"$service"
+    keys_complete "$copy" && continue
+    keys_complete "$dir" || continue
+    if [[ -e $copy ]] && [[ -n $(ls -A "$copy" 2>/dev/null) ]]; then
+      notice "Tor: $copy ist unvollständig und wurde nicht angerührt. Die Dateien ${KEY_FILES[*]} gehören dort hinein (z. B. aus einer Sicherung)."
+      continue
+    fi
+    install -d -m 0700 -o root -g root "$copy"
+    for file in "${KEY_FILES[@]}"; do install -m 0600 -o root -g root "$dir/$file" "$copy/$file"; done
+    ok "Onion-Schlüssel gesichert in $copy (Teil der täglichen Sicherung)."
+  done
+}
+
+# Alle drei Schlüsselverzeichnisse von Tor sind vollständig.
+all_keys_ready() {
+  local service copy dir port
+  for service in "${SERVICES[@]}"; do
+    read -r copy dir port <<<"$service"
+    keys_complete "$dir" || return 1
+  done
 }
 
 # Startet Tor (neu) und wartet auf die Onion-Adresse.
@@ -153,7 +187,7 @@ start_tor() {
     systemctl reload "$PE_TOR_UNIT" >/dev/null 2>&1 || systemctl restart "$PE_TOR_UNIT" >/dev/null 2>&1 || return 1
   fi
   for attempt in $(seq 1 30); do
-    keys_complete "$PE_TOR_HS_DIR" && systemctl is-active --quiet "$PE_TOR_UNIT" && return 0
+    all_keys_ready && systemctl is-active --quiet "$PE_TOR_UNIT" && return 0
     sleep 1
   done
   return 1
@@ -194,13 +228,18 @@ cmd_setup() {
   fi
   save_keys
   ok "Onion-Dienst läuft: http://$(onion_host)"
+  [[ -n $(onion_host "$PE_ONION_KEYS_ADMIN") ]] && ok "Adminpanel im Tor-Netz: http://$(onion_host "$PE_ONION_KEYS_ADMIN")"
+  [[ -n $(onion_host "$PE_ONION_KEYS_BOTS") ]] && ok "Bots-Kontrollzentrum im Tor-Netz: http://$(onion_host "$PE_ONION_KEYS_BOTS")"
+  return 0
 }
 
-# Lokale Prüfung über den Caddy-Listener der Onion-Seite (genau der Weg, den Tor nimmt).
+# Lokale Prüfung über den Caddy-Listener einer Onion-Seite (genau der Weg, den Tor nimmt).
+# Antwortet die API dort mit 503, ist die Seite im Adminpanel abgeschaltet – auch das ist in Ordnung.
 local_check() {
-  local onion=$1 attempt
+  local onion=$1 port=${2:-$PE_ONION_LISTEN_PORT} attempt code
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
-    curl --silent --fail --max-time 5 -H "Host: $onion" "http://127.0.0.1:$PE_ONION_LISTEN_PORT/api/health" 2>/dev/null | grep -q '"status":"ok"' && return 0
+    code=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 -H "Host: $onion" "http://127.0.0.1:$port/api/health" 2>/dev/null || true)
+    [[ $code == 200 || $code == 503 ]] && return 0
     sleep 2
   done
   return 1
@@ -226,8 +265,19 @@ cmd_check() {
     tor_problem "Die Onion-Seite antwortet lokal nicht." "Caddy liefert unter 127.0.0.1:$PE_ONION_LISTEN_PORT keine Antwort für $onion." "„journalctl -u caddy -u posteulen -n 50“ ansehen."
     return 0
   fi
+  # v1.4: die Onion-Seiten von Adminpanel und Bots-Kontrollzentrum.
+  local panel_onion panel_port panel_keys
+  for panel_keys in "$PE_ONION_KEYS_ADMIN $PE_ONION_ADMIN_LISTEN_PORT" "$PE_ONION_KEYS_BOTS $PE_ONION_BOTS_LISTEN_PORT"; do
+    read -r panel_keys panel_port <<<"$panel_keys"
+    panel_onion=$(onion_host "$panel_keys")
+    [[ -n $panel_onion ]] || continue
+    if ! local_check "$panel_onion" "$panel_port"; then
+      tor_problem "Eine Onion-Seite antwortet lokal nicht." "Caddy liefert unter 127.0.0.1:$panel_port keine Antwort für $panel_onion." "„journalctl -u caddy -u posteulen -n 50“ ansehen."
+      return 0
+    fi
+  done
   tor_report ok
-  ok "Onion-Seite antwortet lokal (http://$onion)."
+  ok "Onion-Seiten antworten lokal (http://$onion)."
   [[ $network -eq 1 ]] || return 0
   # Einmal über das Tor-Netz (eigener SOCKS-Zugang der Instanz, nur lokal). Nach der ersten
   # Einrichtung braucht die Veröffentlichung im Tor-Netz manchmal einige Minuten.

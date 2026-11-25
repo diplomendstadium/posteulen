@@ -14,7 +14,7 @@ import { pruneBroadcasts } from '../admin/operations.ts';
 import type { Context } from '../context.ts';
 import { hmac, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
-import { pair } from '../contacts/model.ts';
+import { ACTIVE_DAY_SQL, pair } from '../contacts/model.ts';
 import {
   finishFlight,
   replanFlight,
@@ -153,7 +153,7 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   const dayMs = Date.parse(`${day}T00:00:00Z`);
   const warnBefore = utcDay(dayMs - (days - ACCOUNT.AUTO_DELETE_WARNING_DAYS) * TIME.DAY);
   const toWarn = ctx.db.all<{ id: string }>(
-    "SELECT id FROM users WHERE state = 'active' AND inactivity_warned_on IS NULL AND last_active_date <= ?",
+    `SELECT id FROM users u WHERE state = 'active' AND inactivity_warned_on IS NULL AND ${ACTIVE_DAY_SQL('u')} <= ?`,
     warnBefore,
   );
   for (const user of toWarn) {
@@ -163,7 +163,7 @@ function inactivityAndCleanup(ctx: Context, day: string, at: number, after: Afte
   }
   // A shorter period never deletes without a warning at least 30 days old (SPEC 13 item 4).
   const toDelete = ctx.db.all<{ id: string }>(
-    `SELECT id FROM users WHERE state = 'active' AND last_active_date <= ?
+    `SELECT id FROM users u WHERE state = 'active' AND ${ACTIVE_DAY_SQL('u')} <= ?
         AND inactivity_warned_on IS NOT NULL AND inactivity_warned_on <= ?`,
     utcDay(dayMs - days * TIME.DAY),
     utcDay(dayMs - ACCOUNT.AUTO_DELETE_WARNING_DAYS * TIME.DAY),

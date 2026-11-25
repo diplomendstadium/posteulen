@@ -36,6 +36,20 @@ export interface CaddyfileOptions {
         readonly active: boolean;
       }
     | undefined;
+  /**
+   * v1.4: the onion sites of the admin panel and the bots control centre (SPEC 16.5) – plain http
+   * on loopback listeners like the player's, each with the API on its own Tor listener and the
+   * local rules of its host (admin-*.caddy, bots-*.caddy), so a restriction there applies to the
+   * onion site as well. Only together with the player's onion site.
+   */
+  readonly adminOnion?: OnionSite | undefined;
+  readonly botsOnion?: OnionSite | undefined;
+}
+
+export interface OnionSite {
+  readonly host: string;
+  readonly listenPort: number;
+  readonly apiPort: number;
 }
 
 const DOMAIN_PATTERN = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
@@ -115,6 +129,14 @@ export function generateCaddyfile(options: CaddyfileOptions): string {
   }
   const onion = options.onion;
   if (onion && !ONION_PATTERN.test(onion.host)) throw new Error('invalid onion address');
+  for (const panel of [options.adminOnion, options.botsOnion]) {
+    if (panel && !ONION_PATTERN.test(panel.host)) throw new Error('invalid onion address');
+  }
+  // v1.4: while Tor runs, the Tor Browser offers each host its onion address („.onion verfügbar“).
+  const location = (panel: OnionSite | undefined) =>
+    onion?.active && panel
+      ? { pageHeaders: { 'Onion-Location': `http://${panel.host}{uri}` } }
+      : {};
   const tls = options.testMode ? '\ttls internal\n' : '';
   const global = `# Erzeugt von posteulen-cli caddyfile. Nicht von Hand ändern:
 # Eigene Anpassungen gehören nach ${options.localDir}/*.caddy (werden nie überschrieben).
@@ -166,6 +188,7 @@ ${headerBlock(commonHeaders({ hsts: true }), '\t\t')}
       https: true,
       preamble: tls,
       extraImport: `${options.localDir}/admin-*.caddy`,
+      ...location(options.adminOnion),
     }),
     site({
       address: `bots.${options.domain}`,
@@ -174,6 +197,7 @@ ${headerBlock(commonHeaders({ hsts: true }), '\t\t')}
       https: true,
       preamble: tls,
       extraImport: `${options.localDir}/bots-*.caddy`,
+      ...location(options.botsOnion),
     }),
   );
   if (onion) {
@@ -188,6 +212,24 @@ ${headerBlock(commonHeaders({ hsts: true }), '\t\t')}
         preamble: '\tbind 127.0.0.1\n',
       }),
     );
+    // v1.4: the admin panel and the bots control centre in the Tor network.
+    const panels = [
+      [options.adminOnion, options.adminRoot, 'admin'],
+      [options.botsOnion, options.botsRoot, 'bots'],
+    ] as const;
+    for (const [panel, root, local] of panels) {
+      if (!panel) continue;
+      sites.push(
+        site({
+          address: `http://${panel.host}:${panel.listenPort}`,
+          root,
+          port: panel.apiPort,
+          https: false,
+          preamble: '\tbind 127.0.0.1\n',
+          extraImport: `${options.localDir}/${local}-*.caddy`,
+        }),
+      );
+    }
   }
   return sites.join('\n');
 }

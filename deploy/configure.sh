@@ -16,11 +16,17 @@ valid_domain "$domain" || die "Keine gültige Domain in $PE_CONF." "Die Datei pr
 
 # v0.9: Onion-Adresse aus der maßgeblichen Schlüsselkopie (leer, solange Tor nicht eingerichtet ist).
 onion=$(onion_host)
+# v1.4: die Onion-Adressen von Adminpanel und Bots-Kontrollzentrum (SPEC 16.5).
+onion_admin=$(onion_host "$PE_ONION_KEYS_ADMIN")
+onion_bots=$(onion_host "$PE_ONION_KEYS_BOTS")
 
 umask 022
 {
   printf 'POSTEULEN_DOMAIN=%s\n' "$domain"
   [[ -n $onion ]] && printf 'POSTEULEN_ONION=%s\n' "$onion"
+  [[ -n $onion_admin ]] && printf 'POSTEULEN_ONION_ADMIN=%s\n' "$onion_admin"
+  [[ -n $onion_bots ]] && printf 'POSTEULEN_ONION_BOTS=%s\n' "$onion_bots"
+  true
 } >"$PE_SERVICE_ENV.new"
 chmod 0644 "$PE_SERVICE_ENV.new"
 mv "$PE_SERVICE_ENV.new" "$PE_SERVICE_ENV"
@@ -61,6 +67,9 @@ www_wanted "$domain" "${test_mode:-0}" && args+=(--www)
 if [[ -n $onion ]]; then
   args+=(--onion "$onion")
   tor_wanted && systemctl is-active --quiet "$PE_TOR_UNIT" && args+=(--onion-active)
+  # v1.4: eigene Onion-Seiten für Adminpanel und Bots-Kontrollzentrum.
+  [[ -n $onion_admin ]] && args+=(--onion-admin "$onion_admin")
+  [[ -n $onion_bots ]] && args+=(--onion-bots "$onion_bots")
 fi
 node "$RELEASE/backend/src/cli.ts" "${args[@]}" >"$caddyfile.new"
 if ! caddy validate --config "$caddyfile.new" --adapter caddyfile >/dev/null 2>&1; then

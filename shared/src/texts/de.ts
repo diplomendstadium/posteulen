@@ -4,8 +4,43 @@
  * against `Texts`, so no text can be missing there.
  */
 import { formatGold } from '../game/gold.ts';
+import { SPECIES } from '../species.ts';
+
+/** v1.4: the most own owls – as many as there are species (SPEC 9.2.3). */
+const MAX_OWLS = SPECIES.length;
 
 export const de = {
+  /** v1.4: holiday mode (SPEC 8.10, 9.12). */
+  vacation: {
+    title: 'Urlaubsmodus',
+    intro:
+      'Ferien, Urlaub oder eine anstrengende Prüfungsphase? Dann schick deine Eulen doch in die Eulenpflegestation auf der kleinen Insel Inchlonaig im Loch Lomond. Zwischen alten Eiben und Heidekraut kümmern sich erfahrene Eulenpflegerinnen und -pfleger um sie: frisches Wasser, Leckerlis, Streicheleinheiten und ein ruhiges Plätzchen mit Blick über den See. Deine Eulen werden dort nicht krank, langweilen sich nicht und kommen gut erholt zurück – pünktlich zum Ende deines Urlaubs sind alle wieder bei dir zu Hause.',
+    care: 'Du musst dich in dieser Zeit nicht anmelden: Dein Konto gilt nicht als inaktiv, und es entstehen dir keine Nachteile. Wenn du magst, kannst du trotzdem alles machen, wofür du keine eigene Eule brauchst – zum Beispiel mit einer Leiheule aus dem Postamt einen Brief schreiben. Du kannst den Urlaub auch vorzeitig beenden; dann machen sich deine Eulen sofort auf den Heimweg.',
+    rules:
+      'Bis zu {perYear}-mal im Kalenderjahr, jeweils bis zu {weeks} Wochen, höchstens drei Monate im Voraus planbar. In diesem Jahr noch möglich: {left}.',
+    startLegend: 'Wann soll es losgehen?',
+    startNow: 'Sofort',
+    startLater: 'Später',
+    startAt: 'Beginn',
+    endAt: 'Ende (dann sind alle Eulen wieder zu Hause)',
+    startButton: 'Urlaub beginnen',
+    planButton: 'Urlaub planen',
+    started: 'Schöne Ferien! Deine Eulen machen sich auf den Weg nach Inchlonaig.',
+    planned: 'Dein Urlaub ist geplant.',
+    plannedFor: 'Urlaub geplant von {from} bis {until}.',
+    cancel: 'Geplanten Urlaub absagen',
+    cancelConfirm: 'Den geplanten Urlaub absagen? Er zählt dann nicht mit.',
+    cancelled: 'Der geplante Urlaub ist abgesagt.',
+    running: 'Urlaubsmodus bis {until}. Deine Eulen sind auf Inchlonaig in den besten Händen.',
+    end: 'Urlaub vorzeitig beenden',
+    endConfirm:
+      'Den Urlaub jetzt beenden? Deine Eulen fliegen sofort los nach Hause. Der Urlaub zählt trotzdem mit.',
+    ended: 'Der Urlaub ist beendet. Deine Eulen sind auf dem Heimweg.',
+    yearFull: 'In diesem Kalenderjahr hast du schon alle Urlaube genommen.',
+    badTime: 'Bitte gib Datum und Uhrzeit vollständig an.',
+    banner: 'Urlaubsmodus bis {until}: Deine Eulen erholen sich auf der Insel Inchlonaig.',
+    bannerLink: 'Zu den Einstellungen',
+  },
   app: {
     name: 'PostEulen',
     tagline: 'Briefe, die eine Eule bringt.',
@@ -73,6 +108,14 @@ export const de = {
     instanceLetters: 'Briefe zwischen Menschen',
     instanceLettersValue: '{total} insgesamt, {last7} in den letzten 7 Tagen',
     instanceOwls: 'Eulen im Besitz der Spieler',
+    /** v1.4: the addresses of the instance (SPEC 8.1). */
+    instanceAddresses: 'Adressen',
+    instanceWeb: 'Startseite',
+    instanceWebOnion: 'Startseite im Tor-Netz',
+    instanceAdmin: 'Adminpanel',
+    instanceAdminOnion: 'Adminpanel im Tor-Netz',
+    instanceBots: 'Bots-Kontrollzentrum',
+    instanceBotsOnion: 'Bots-Kontrollzentrum im Tor-Netz',
   },
   register: {
     title: 'Konto erstellen',
@@ -274,6 +317,7 @@ export const de = {
     system: 'Systemnachrichten',
     /** v0.8.5: behind the name in the chat list. */
     owlRestingHere: 'Eine Eule von {name} rastet gerade bei dir',
+    owlsRestingHere: '{count} Eulen von {name} rasten gerade bei dir',
     unread: '{count} ungelesen',
     unknown: 'unbekannt',
     from: 'Gebracht von {owl} ({species})',
@@ -420,13 +464,35 @@ export const de = {
       'Bei {owl} ist ein Küken geschlüpft. Gib ihm in den nächsten 5 Tagen einen Namen – sonst sucht das Los einen aus.',
     chicks_hatched_gift:
       'Bei {owl} sind {count} Küken geschlüpft. Lass dir ruhig Zeit: Gib ihnen Namen und verschenke eines davon innerhalb von 5 Tagen. Erst danach entscheidet das Los.',
+    /** v1.4: beyond the most own owls all chicks must be given away (9.9). */
+    chicks_hatched_gift_all:
+      'Bei {owl} sind Küken geschlüpft ({count}). Weil du damit mehr als {max} Eulen hättest – so viele Eulenarten gibt es –, dürfen sie nicht bei dir bleiben: Gib ihnen Namen und verschenke sie innerhalb von 5 Tagen an Kontakte, die noch Platz haben. Erst danach entscheidet das Los.',
     clutch_reminder:
       'Erinnerung: Ein Küken muss bis morgen um diese Zeit verschenkt sein, sonst wird gelost.',
+    clutch_reminder_all:
+      'Erinnerung: Deine Küken müssen bis morgen um diese Zeit verschenkt sein, sonst wird gelost.',
     clutch_lot: 'Das Los hat entschieden: Das Küken {owl} fliegt zu {name}.',
-    clutch_kept: 'Du hast keine aktiven Kontakte – alle Küken bleiben bei dir.',
+    clutch_kept:
+      'Keiner deiner aktiven Kontakte hat noch Platz für ein Küken – die übrigen Küken bleiben bei dir.',
     chick_adult: '{owl} ist erwachsen.',
     loan_expired: 'Die Leiheule {owl} ist nicht losgeflogen und ins Eulenpostamt zurückgekehrt.',
-    menagerie_done: '{owl} ist aus der Menagerie zurück. Lohn: {amount}.',
+    menagerie_done: '{owl} ist aus dem Eulenpostamt zurück. Lohn: {amount}.',
+    /** v1.4: bored and escaped owls (9.2.9), the most own owls (9.2.3). */
+    owl_bored:
+      '{owl} wirkt unzufrieden und gelangweilt. Seit Wochen hat {owl} keinen Brief mehr zu einem Menschen getragen und schaut sehnsüchtig aus dem Fenster. Schick {owl} in den nächsten {days} Tagen mit einem Brief zu einem deiner Kontakte – sonst sucht sich {owl} ein neues Abenteuer.',
+    owl_escaped:
+      '{owl} hat sich zu sehr gelangweilt und ist in die Freiheit davongeflogen. Vielleicht trägt {owl} jetzt anderswo Briefe aus – zurück kommt {owl} nicht mehr.',
+    owl_limit:
+      'Deine Voliere ist voll: Du hast so viele Eulen, wie es Eulenarten gibt ({max}). Solange das so bleibt, kannst du keine Eule kaufen oder geschenkt bekommen, geheilte wilde Eulen der Rettungsstation fliegen in die Freiheit, und geschlüpfte Küken musst du verschenken. Ab mehr als 5 Eulen kannst du einzelne in die Freiheit entlassen.',
+    bot_owl_gift_full:
+      '{name} wollte dir eine Eule schenken ({species}). Weil deine Voliere schon voll ist, ist sie in die Freiheit davongeflogen.',
+    /** v1.4: holiday mode (8.10, 9.12). */
+    vacation_started:
+      'Schöne Ferien! Deine Eulen fliegen jetzt zur Eulenpflegestation auf der Insel Inchlonaig im Loch Lomond und sind bis {until} wieder bei dir. Du musst dich um nichts kümmern.',
+    vacation_ended:
+      'Willkommen zurück! Der Urlaubsmodus ist vorbei, deine Eulen sind wieder zu Hause – ausgeruht und gut versorgt.',
+    vacation_ended_early:
+      'Du hast den Urlaubsmodus beendet. Deine Eulen machen sich sofort auf den Heimweg von Inchlonaig.',
     deletion_warning:
       'Dein Konto wird in 30 Tagen gelöscht, wenn du dich nicht anmeldest. Jede Nutzung der App verhindert das.',
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
@@ -597,7 +663,7 @@ export const de = {
     speed: 'Geschwindigkeit {speed} km/h',
     recovery: 'Erholung {recovery} %/h',
     motivationHint:
-      'Motivation (80 % bis 120 %) sinkt jede Nacht um 10 Prozentpunkte. Wasser, Streicheln, Eulenkeks und Lieblingsleckerli heben sie jeweils einmal am Tag um 10 Prozentpunkte. Sie zählt für die nächste Strecke – beim Abflug von zu Hause und neu bei jedem Weiterflug von einem Empfänger: Energie, Geschwindigkeit und Erholung unterwegs verändern sich um den angezeigten Anteil. Zwei verschiedene Pflege-Aktionen an einem Tag schützen außerdem vor Krankheit.',
+      'Motivation (80 % bis 120 %) sinkt jede Nacht um 10 Prozentpunkte. Wasser, Streicheln, Eulenkeks und Lieblingsleckerli heben sie jeweils einmal am Tag um 10 Prozentpunkte. Sie zählt für die nächste Strecke – beim Abflug von zu Hause und neu bei jedem Weiterflug von einem Empfänger: Energie, Geschwindigkeit und Erholung unterwegs verändern sich um den angezeigten Anteil. Zwei verschiedene Pflege-Aktionen an einem Tag schützen außerdem vor Krankheit. Und schick deine Eulen immer wieder mit Briefen zu Menschen – wer drei Wochen lang keinen trägt, langweilt sich.',
     stateHome: 'zu Hause',
     stateFlying: 'unterwegs',
     flyingLetter: 'Fliegt gerade einen Brief zu {names}.',
@@ -613,15 +679,21 @@ export const de = {
     /** v1.3: the rule on gifts, as the players learn it (SPEC 9.1.5). */
     giftRule: 'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
     stateBrooding: 'Brütet bis {until}.',
-    stateMenagerie: 'In der Menagerie bis {until}.',
+    stateMenagerie: 'Hilft im Eulenpostamt aus bis {until}.',
     loanUntil: 'Leiheule – muss bis {until} losfliegen.',
     chick: 'Küken – erwachsen ab {until}.',
-    menagerie: 'An die Menagerie verleihen (7 Tage)',
-    menagerieConfirm: '{name} für 7 Tage an die Menagerie verleihen? Danach gibt es {amount}.',
+    /** v1.4: lent to the post office, once per owl and quarter (SPEC 9.7). */
+    lend: 'An das Postamt verleihen (7 Tage)',
+    lendConfirm:
+      '{name} für 7 Tage an das Eulenpostamt verleihen? Danach gibt es {amount}. Jede Eule kann nur einmal im Quartal aushelfen.',
     chickNameTitle: 'Wie soll dein Küken heißen?',
     clutchTitle: 'Ein Küken verschenken',
     clutchIntro:
       'Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken. Entscheidest du dich nicht bis {until}, wird gelost (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
+    /** v1.4: beyond the most own owls all chicks of the clutch (SPEC 9.9). */
+    clutchTitleAll: 'Küken verschenken',
+    clutchIntroAll:
+      'Mit diesen Küken hättest du mehr Eulen, als es Eulenarten gibt – deshalb musst du alle verschenken, eines nach dem anderen, an Kontakte, die noch Platz haben. Was bis {until} nicht verschenkt ist, verteilt das Los (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
     clutchChick: 'Welches Küken?',
     clutchNameFirst: 'Bitte gib dem Küken zuerst einen Namen.',
     /** v1.1: with the times of the journey, as on the map. */
@@ -630,16 +702,8 @@ export const de = {
     and: ' und ',
     pet: 'Streicheln',
     water: 'Wasser geben',
-    /**
-     * v1.3.1: a care button already used today keeps its text, crossed out and greyed; the
-     * reason is only read out (`doneAria`).
-     */
-    wateredToday: 'heute schon getrunken',
     feed: 'Eulenkeks ({price})',
-    fedToday: 'satt, heute schon gefüttert',
     snack: '{snack} geben ({price})',
-    snackedToday: 'satt, heute schon genascht',
-    doneAria: '{action} – {why}',
     /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
     fromBag: 'aus dem Beutel',
     free: 'kostenlos',
@@ -650,7 +714,6 @@ export const de = {
     cargo_long: 'Trägt kurzes und langes Pergament',
     cargo_gold: 'Trägt kurzes und langes Pergament sowie Gold',
     rename: 'Umbenennen',
-    renameBlocked: 'Umbenennen erst wieder im nächsten Kalenderjahr.',
     gift: 'Verschenken',
     release: 'In die Freiheit entlassen',
     releaseTitle: '{name} in die Freiheit entlassen',
@@ -690,7 +753,20 @@ export const de = {
     /** v0.10: an owl at home with a motivation of 80 %. */
     grumpyAlt: '{name} schaut grummelig drein – die Motivation ist ganz unten',
     broodingAlt: '{name} brütet im Nest auf ihren Eiern',
-    perchAlt: 'Leere Stange – {name} hilft gerade in der Menagerie aus',
+    perchAlt: 'Leere Stange – {name} hilft gerade im Eulenpostamt aus',
+    /** v1.4: bored (SPEC 9.2.9) and on holiday (SPEC 9.12). */
+    boredAlt: '{name} sitzt gelangweilt am Fenster und schaut sehnsüchtig hinaus',
+    perchVacationAlt: 'Leere Stange – {name} erholt sich gerade auf der Insel Inchlonaig',
+    vacationOut:
+      'Fliegt in den Urlaub zur Eulenpflegestation auf Inchlonaig im Loch Lomond (Ankunft ca. {arrives}). Wieder zu Hause ca. {time}.',
+    vacationOutTurn:
+      'Fliegt in Richtung Inchlonaig und kehrt rechtzeitig um – für diesen Urlaub ist die Insel zu weit. Wieder zu Hause ca. {time}.',
+    vacationStay:
+      'Erholt sich in der Eulenpflegestation auf Inchlonaig. Fliegt ca. {leaves} los und ist ca. {time} wieder zu Hause.',
+    vacationBack: 'Fliegt aus dem Urlaub heim. Wieder zu Hause ca. {time}.',
+    vacationIsland: 'Im Urlaub auf Inchlonaig.',
+    /** v1.4: a visiting owl sent on without a reply flies off free (freedom picture). */
+    guestFlewOn: '{name} fliegt ohne Brief davon',
     /** v0.8.5 */
     perchRestingAlt: 'Leere Stange – {name} rastet gerade bei {host}',
     write: 'Brief schreiben',
@@ -727,6 +803,7 @@ export const de = {
     /** v1.1: landing with a letter, shown at the first opportunity. */
     arrivesFrom: '{name} ist gelandet und bringt dir Post von {from}.',
     backHome: '{name} ist wieder zu Hause',
+    flewOff: '{name} ist in die Freiheit davongeflogen',
     backHomeLetter: '{name} ist wieder zu Hause – mit einem Antwortbrief',
     backHomeLetters: '{name} ist wieder zu Hause – mit {count} Antwortbriefen',
     feeding: '{name} lässt es sich schmecken',
@@ -754,7 +831,6 @@ export const de = {
     snack: '{snack} geben ({price})',
     pet: 'Streicheln',
     water: 'Wasser geben',
-    doneToday: 'heute schon erledigt',
     medicineCaption: '{name} bekommt Medizin.',
     healed: '{name} ist wieder gesund. Danke, dass du dich um {name} gekümmert hast.',
     goHome: '{name} darf wieder nach Hause.',
@@ -773,7 +849,7 @@ export const de = {
   },
   menagerie: {
     intro:
-      'Die Menagerie: Hier kannst du Eulen kaufen und eigene Eulen verleihen. Leiheulen gibt es im Eulenpostamt.',
+      'Die Menagerie: Hier kannst du Eulen kaufen. Leiheulen gibt es im Eulenpostamt – dorthin kannst du auch eigene Eulen verleihen.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'Die Menagerie in einem alten Gemäuer, bei Tag',
     pictureNight: 'Die Menagerie in einem alten Gemäuer, bei Nacht',
@@ -794,11 +870,10 @@ export const de = {
     buyTitle: 'Eulen kaufen',
     price: 'Preis: {price}',
     stats: 'Energie {energy} · Geschwindigkeit {speed} km/h · Erholung {recovery} %/h',
-    mythical:
-      'Ein Phönix wird nie verliehen, legt keine Eier und hilft nicht in der Menagerie aus.',
+    mythical: 'Ein Phönix wird nie verliehen, legt keine Eier und hilft nicht im Eulenpostamt aus.',
     buy: '{species} kaufen',
     buyConfirm: '{species} wirklich für {price} kaufen?',
-    limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
+    limit: `Du hast schon ${MAX_OWLS} eigene Eulen – so viele, wie es Eulenarten gibt. Mehr gehen nicht.`,
   },
   /** v0.10: the post office – loan owls (before in the Menagerie) and the borrowed ones. */
   post: {
@@ -891,6 +966,14 @@ export const de = {
     purposeLetter: 'Brief',
     purposeGold: 'Gold',
     purposeGift: 'Geschenk',
+    /** v1.4: owls on holiday (SPEC 9.12, 12.1). */
+    purposeVacation: 'Urlaub',
+    vacationOut: 'fliegt nach Inchlonaig, Ankunft ca. {time}',
+    vacationOutTurn: 'fliegt Richtung Inchlonaig und kehrt rechtzeitig um, zurück ca. {time}',
+    vacationIsland: 'erholt sich auf Inchlonaig, zurück ca. {time}',
+    vacationBack: 'fliegt heim, zurück ca. {time}',
+    island: 'Inchlonaig ({count})',
+    legendIsland: 'Eulenpflegestation Inchlonaig (im Urlaub)',
     nextStop: 'nächster Halt {name} ca. {time}',
     /** v0.8.5 */
     restingAt: 'rastet bei {name} bis {time}',
@@ -1094,6 +1177,17 @@ export const de = {
       'Den Zugang über das Tor-Netz wirklich abschalten? Wer gerade über Tor angemeldet ist, kommt erst nach dem Einschalten wieder hinein.',
     torSavedOn: 'Tor wird eingeschaltet – das dauert auf dem Server einige Sekunden.',
     torSavedOff: 'Tor wird abgeschaltet.',
+    /** v1.4: own onion addresses of the admin panel and the bots control centre (SPEC 16.5). */
+    torPanelsTitle: 'Adminpanel und Bots-Kontrollzentrum im Tor-Netz',
+    torPanelsIntro:
+      'Auch das Adminpanel und das Bots-Kontrollzentrum haben je eine eigene, dauerhafte Onion-Adresse. Es gilt derselbe Schutz wie im Web; jede Anmeldung über Tor braucht die Rechenaufgabe, und Fehlversuche über Tor bremsen nie die Anmeldung im Web. Eigene Regeln aus admin-*.caddy bzw. bots-*.caddy gelten auch dort. Abgeschaltet antwortet die jeweilige Onion-Adresse nicht mehr, und ihr Link auf der Startseite verschwindet.',
+    torAdminAddress: 'Onion-Adresse des Adminpanels',
+    torBotsAddress: 'Onion-Adresse des Bots-Kontrollzentrums',
+    torAdminSwitch: 'Adminpanel über das Tor-Netz erreichbar',
+    torBotsSwitch: 'Bots-Kontrollzentrum über das Tor-Netz erreichbar',
+    torPanelOffConfirm:
+      'Wirklich abschalten? Wer gerade über diese Onion-Adresse angemeldet ist, kommt erst nach dem Einschalten wieder hinein.',
+    torPanelSaved: 'Gespeichert.',
     inactivityTitle: 'Löschfrist bei Inaktivität',
     inactivityIntro:
       'Konten ohne Nutzung werden nach dieser Zahl von Tagen gelöscht (mindestens 60). 30 Tage vorher kommt eine Warnung; eine Verkürzung löscht niemanden ohne diese Warnung.',
@@ -1402,7 +1496,17 @@ export const de = {
     feedback_too_long: 'Die Nachricht ist zu lang (höchstens 300 Zeichen).',
     feedback_invalid: 'Die Nachricht enthält Zeichen, die nicht erlaubt sind.',
     owl_recipients: 'So viele Empfänger kann diese Eule nicht anfliegen (höchstens 5).',
-    owl_limit: 'Du hast schon 50 eigene Eulen – mehr gehen nicht.',
+    owl_limit: `Du hast schon ${MAX_OWLS} eigene Eulen – so viele, wie es Eulenarten gibt. Mehr gehen nicht.`,
+    recipient_owl_limit: `Dieser Kontakt hat schon ${MAX_OWLS} Eulen und kann keine weitere bekommen.`,
+    owl_lent_this_quarter:
+      'Diese Eule hat in diesem Quartal schon im Eulenpostamt ausgeholfen. Im nächsten Quartal geht es wieder.',
+    vacation_exists: 'Du hast schon einen Urlaub geplant oder bist gerade im Urlaub.',
+    vacation_start_past: 'Der Beginn liegt in der Vergangenheit.',
+    vacation_start_too_late: 'Ein Urlaub lässt sich höchstens drei Monate im Voraus planen.',
+    vacation_too_short: 'Ein Urlaub dauert mindestens einen Tag.',
+    vacation_too_long: 'Ein Urlaub dauert höchstens sechs Wochen.',
+    vacation_year_full: 'In diesem Kalenderjahr hast du schon dreimal Urlaub gemacht.',
+    vacation_none: 'Gerade ist kein Urlaub geplant oder unterwegs.',
     owl_not_for_sale: 'Diese Eule ist in der Menagerie nicht zu kaufen.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen und ist satt.',
     owl_watered_today: 'Diese Eule hat heute schon getrunken.',
@@ -1413,7 +1517,7 @@ export const de = {
     owl_name_mismatch:
       'Der Name stimmt nicht. Bitte tippe den Namen der Eule genau so ein, wie er dasteht.',
     owl_release_limit:
-      'Freilassen geht nur, solange du mehr als 20 eigene Eulen hast (Küken zählen mit).',
+      'Freilassen geht nur, solange du mehr als 5 eigene Eulen hast (Küken zählen mit).',
     owl_rename_blocked: 'Diese Eule kann erst im nächsten Kalenderjahr wieder umbenannt werden.',
     owl_name_too_short: 'Der Name ist zu kurz (mindestens 2 Zeichen).',
     owl_name_too_long: 'Der Name ist zu lang (höchstens 20 Zeichen).',
@@ -1426,7 +1530,7 @@ export const de = {
     loan_species: 'Diese Leiheule hast du heute schon geliehen.',
     owl_not_sick: 'Diese Eule ist nicht krank.',
     owl_unnamed: 'Bitte gib dem Küken zuerst einen Namen.',
-    clutch_done: 'Aus diesem Gelege wurde schon ein Küken verschenkt.',
+    clutch_done: 'Aus diesem Gelege ist schon alles verschenkt, was verschenkt werden musste.',
     name_change_blocked: 'Du kannst deinen Namen erst im nächsten Kalenderjahr wieder ändern.',
     home_change_blocked: 'Den Wohnort kannst du höchstens 3-mal pro Kalendermonat ändern.',
     bot_write_lock: 'Diesem Bot hast du heute schon geschrieben. Morgen geht es wieder.',

@@ -104,6 +104,13 @@ export const OWL_IMAGE_KINDS = [
   // healthy pictures while it is dark at the viewer's home (28 kinds; the phoenix has 20).
   { kind: 'broodingNight', suffix: 'Brueten-Nacht' },
   { kind: 'healthyNight', suffix: 'Gesund-Nacht' },
+  // v1.4: bored at home by day and by night (SPEC 9.2.9), and flying off into freedom without a
+  // letter by day and by night (a bored owl that left, a visiting owl sent on without a reply;
+  // 32 kinds, the phoenix has 24).
+  { kind: 'bored', suffix: 'Langeweile' },
+  { kind: 'boredNight', suffix: 'Langeweile-Nacht' },
+  { kind: 'free', suffix: 'Frei' },
+  { kind: 'freeNight', suffix: 'Frei-Nacht' },
 ] as const;
 
 /** Picture kinds a mythical species does not have: no eggs, no chicks, never sick. */

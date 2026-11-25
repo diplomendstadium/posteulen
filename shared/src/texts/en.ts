@@ -5,8 +5,41 @@
  */
 import { formatGold } from '../game/gold.ts';
 import { de, type Texts } from './de.ts';
+import { SPECIES } from '../species.ts';
+
+const MAX_OWLS = SPECIES.length;
 
 export const en: Texts = {
+  vacation: {
+    title: 'Holiday mode',
+    intro:
+      'Holidays, a trip away or a gruelling exam period? Then why not send your owls to the owl care station on the little island of Inchlonaig in Loch Lomond. Among ancient yews and heather, experienced owl keepers look after them: fresh water, treats, a stroke now and then and a quiet perch overlooking the loch. There your owls do not fall ill, do not get bored and come back well rested – all of them are home again exactly when your holiday ends.',
+    care: 'You need not sign in during that time: your account does not count as inactive, and you lose nothing. If you like, you can still do everything that needs no owl of your own – for instance write a letter with a loan owl from the post office. You can also end the holiday early; then your owls set off home straight away.',
+    rules:
+      'Up to {perYear} times a calendar year, each up to {weeks} weeks, planned at most three months ahead. Still possible this year: {left}.',
+    startLegend: 'When should it begin?',
+    startNow: 'Now',
+    startLater: 'Later',
+    startAt: 'Start',
+    endAt: 'End (all owls will be home again)',
+    startButton: 'Start holiday',
+    planButton: 'Plan holiday',
+    started: 'Happy holidays! Your owls are setting off for Inchlonaig.',
+    planned: 'Your holiday is planned.',
+    plannedFor: 'Holiday planned from {from} to {until}.',
+    cancel: 'Call off the planned holiday',
+    cancelConfirm: 'Call off the planned holiday? It will not count then.',
+    cancelled: 'The planned holiday has been called off.',
+    running: 'Holiday mode until {until}. Your owls are in the best of hands on Inchlonaig.',
+    end: 'End the holiday early',
+    endConfirm:
+      'End the holiday now? Your owls set off home straight away. The holiday still counts.',
+    ended: 'The holiday is over. Your owls are on their way home.',
+    yearFull: 'You have already taken all your holidays this calendar year.',
+    badTime: 'Please enter the date and time in full.',
+    banner: 'Holiday mode until {until}: your owls are resting on the island of Inchlonaig.',
+    bannerLink: 'To the settings',
+  },
   app: {
     name: 'PostEulen',
     tagline: 'Letters brought by an owl.',
@@ -68,6 +101,13 @@ export const en: Texts = {
     instanceLetters: 'Letters between people',
     instanceLettersValue: '{total} in all, {last7} in the last 7 days',
     instanceOwls: 'Owls owned by players',
+    instanceAddresses: 'Addresses',
+    instanceWeb: 'Start page',
+    instanceWebOnion: 'Start page in the Tor network',
+    instanceAdmin: 'Admin panel',
+    instanceAdminOnion: 'Admin panel in the Tor network',
+    instanceBots: 'Bots control centre',
+    instanceBotsOnion: 'Bots control centre in the Tor network',
   },
   register: {
     title: 'Create account',
@@ -265,6 +305,7 @@ export const en: Texts = {
     none: 'No letters yet. Add a contact in the address book and write the first letter.',
     system: 'System messages',
     owlRestingHere: 'An owl of {name} is resting with you right now',
+    owlsRestingHere: '{count} owls of {name} are resting with you right now',
     unread: '{count} unread',
     unknown: 'unknown',
     from: 'Brought by {owl} ({species})',
@@ -400,13 +441,32 @@ export const en: Texts = {
       '{owl} has hatched a chick. Give it a name within the next 5 days – otherwise the lot picks one.',
     chicks_hatched_gift:
       '{owl} has hatched {count} chicks. Take your time: give them names and give one of them away within 5 days. Only then will lots be drawn.',
+    chicks_hatched_gift_all:
+      '{owl} has hatched chicks ({count}). With them you would have more than {max} owls – as many as there are species – so they cannot stay with you: give them names and give them away within 5 days to contacts who still have room. Only then will lots be drawn.',
     clutch_reminder:
       'Reminder: a chick must be given away by this time tomorrow, or lots will be drawn.',
+    clutch_reminder_all:
+      'Reminder: your chicks must be given away by this time tomorrow, or lots will be drawn.',
     clutch_lot: 'The lot has decided: the chick {owl} is flying to {name}.',
-    clutch_kept: 'You have no active contacts – all chicks stay with you.',
+    clutch_kept:
+      'None of your active contacts has room for a chick – the remaining chicks stay with you.',
     chick_adult: '{owl} is grown up.',
     loan_expired: 'The loan owl {owl} did not take off and has returned to the owl post office.',
-    menagerie_done: '{owl} is back from the Menagerie. Wage: {amount}.',
+    menagerie_done: '{owl} is back from the owl post office. Wage: {amount}.',
+    owl_bored:
+      '{owl} seems unhappy and bored. It has not carried a letter to a person for weeks and gazes longingly out of the window. Send {owl} to one of your contacts with a letter within the next {days} days – or {owl} will go looking for a new adventure.',
+    owl_escaped:
+      '{owl} grew too bored and has flown off into freedom. Perhaps {owl} now delivers letters somewhere else – but it will not come back.',
+    owl_limit:
+      'Your aviary is full: you have as many owls as there are species ({max}). While that remains so, you cannot buy an owl or be given one, healed wild owls of the rescue centre fly off into freedom, and you must give away any chicks that hatch. With more than 5 owls you can set single owls free.',
+    bot_owl_gift_full:
+      '{name} wanted to give you an owl ({species}). As your aviary is already full, it has flown off into freedom.',
+    vacation_started:
+      'Happy holidays! Your owls are now flying to the owl care station on the island of Inchlonaig in Loch Lomond and will be back with you by {until}. You need not worry about a thing.',
+    vacation_ended:
+      'Welcome back! Holiday mode is over and your owls are home again – well rested and well looked after.',
+    vacation_ended_early:
+      'You have ended holiday mode. Your owls are setting off home from Inchlonaig straight away.',
     deletion_warning:
       'Your account will be deleted in 30 days if you do not sign in. Any use of the app prevents this.',
     deletion_cancelled: 'The deletion of your account has been cancelled.',
@@ -572,7 +632,7 @@ export const en: Texts = {
     speed: 'Speed {speed} km/h',
     recovery: 'Recovery {recovery}%/h',
     motivationHint:
-      'Motivation (80% to 120%) drops by 10 percentage points every night. Water, petting, an owl biscuit and the favourite snack each raise it by 10 percentage points once a day. It counts for the next leg – at take-off from home and anew whenever the owl flies on from a recipient: energy, speed and recovery on the way change by the share shown. Two different kinds of care on one day also protect against illness.',
+      'Motivation (80% to 120%) drops by 10 percentage points every night. Water, petting, an owl biscuit and the favourite snack each raise it by 10 percentage points once a day. It counts for the next leg – at take-off from home and anew whenever the owl flies on from a recipient: energy, speed and recovery on the way change by the share shown. Two different kinds of care on one day also protect against illness. And keep sending your owls to people with letters – an owl that carries none for three weeks gets bored.',
     stateHome: 'at home',
     stateFlying: 'on its way',
     flyingLetter: 'Is flying a letter to {names}.',
@@ -586,15 +646,19 @@ export const en: Texts = {
     perchRescueAlt: 'Empty perch – {name} is being looked after in the rescue centre',
     giftRule: 'Only active players can give away gold or an owl, once every two weeks.',
     stateBrooding: 'Brooding until {until}.',
-    stateMenagerie: 'In the Menagerie until {until}.',
+    stateMenagerie: 'Helping out at the owl post office until {until}.',
     loanUntil: 'Loan owl – must take off by {until}.',
     chick: 'Chick – grown up from {until}.',
-    menagerie: 'Lend to the Menagerie (7 days)',
-    menagerieConfirm: 'Lend {name} to the Menagerie for 7 days? Afterwards you get {amount}.',
+    lend: 'Lend to the post office (7 days)',
+    lendConfirm:
+      'Lend {name} to the owl post office for 7 days? Afterwards you get {amount}. Each owl can help out only once a quarter.',
     chickNameTitle: 'What should your chick be called?',
     clutchTitle: 'Give a chick away',
     clutchIntro:
       'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
+    clutchTitleAll: 'Give the chicks away',
+    clutchIntroAll:
+      'With these chicks you would have more owls than there are species – so you have to give all of them away, one after the other, to contacts who still have room. Whatever is not given away by {until} is handed out by lot (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
     clutchChick: 'Which chick?',
     clutchNameFirst: 'Please give the chick a name first.',
     /** v1.1 */
@@ -603,16 +667,8 @@ export const en: Texts = {
     and: ' and ',
     pet: 'Pet',
     water: 'Give water',
-    /**
-     * v1.3.1: a care button already used today keeps its text, crossed out and greyed; the
-     * reason is only read out (`doneAria`).
-     */
-    wateredToday: 'already had a drink today',
     feed: 'Owl biscuit ({price})',
-    fedToday: 'full, already fed today',
     snack: 'Give {snack} ({price})',
-    snackedToday: 'full, already had a treat today',
-    doneAria: '{action} – {why}',
     /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
     fromBag: 'from your pouch',
     free: 'free',
@@ -623,7 +679,6 @@ export const en: Texts = {
     cargo_long: 'Carries short and long parchment',
     cargo_gold: 'Carries short and long parchment as well as gold',
     rename: 'Rename',
-    renameBlocked: 'Renaming possible again next calendar year.',
     gift: 'Give away',
     release: 'Set free',
     releaseTitle: 'Set {name} free',
@@ -670,7 +725,18 @@ export const en: Texts = {
     writeGo: 'On to the letter',
     writeNobody:
       'You cannot write to anyone right now. Add a contact in the address book – you both need to add each other.',
-    perchAlt: 'Empty perch – {name} is helping out in the Menagerie',
+    perchAlt: 'Empty perch – {name} is helping out at the owl post office',
+    boredAlt: '{name} sits bored at the window, gazing out longingly',
+    perchVacationAlt: 'Empty perch – {name} is resting on the island of Inchlonaig',
+    vacationOut:
+      'Flying on holiday to the owl care station on Inchlonaig in Loch Lomond (arriving about {arrives}). Home again about {time}.',
+    vacationOutTurn:
+      'Flying towards Inchlonaig and turning back in time – the island is too far for this holiday. Home again about {time}.',
+    vacationStay:
+      'Resting at the owl care station on Inchlonaig. Sets off about {leaves} and is home again about {time}.',
+    vacationBack: 'Flying home from the holiday. Home again about {time}.',
+    vacationIsland: 'On holiday on Inchlonaig.',
+    guestFlewOn: '{name} flies off without a letter',
     homeDayAlt: '{name} sits on the window sill by day',
     homeNightAlt: '{name} sits on the window sill by candlelight at night',
     nameTitle: 'What should your new {species} be called?',
@@ -695,6 +761,7 @@ export const en: Texts = {
     /** v1.1 */
     arrivesFrom: '{name} has landed and brings you post from {from}.',
     backHome: '{name} is back home',
+    flewOff: '{name} has flown off into freedom',
     backHomeLetter: '{name} is back home – with a reply',
     backHomeLetters: '{name} is back home – with {count} replies',
     feeding: '{name} is enjoying a snack',
@@ -721,7 +788,6 @@ export const en: Texts = {
     snack: 'Give {snack} ({price})',
     pet: 'Stroke',
     water: 'Give water',
-    doneToday: 'done today',
     medicineCaption: '{name} is getting medicine.',
     healed: '{name} is well again. Thank you for looking after {name}.',
     goHome: '{name} may go home again.',
@@ -739,7 +805,7 @@ export const en: Texts = {
   },
   menagerie: {
     intro:
-      'The Menagerie: here you can buy owls and lend your own owls. Loan owls are at the owl post office.',
+      'The Menagerie: here you can buy owls. Loan owls are at the owl post office – where you can also lend your own owls.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
     pictureDay: 'The Menagerie in old stone walls, by day',
     pictureNight: 'The Menagerie in old stone walls, at night',
@@ -759,10 +825,11 @@ export const en: Texts = {
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery}%/h',
-    mythical: 'A phoenix is never lent out, lays no eggs and does not help out in the Menagerie.',
+    mythical:
+      'A phoenix is never lent out, lays no eggs and does not help out at the owl post office.',
     buy: 'Buy {species}',
     buyConfirm: 'Really buy the {species} for {price}?',
-    limit: 'You already have 50 owls of your own – that is the limit.',
+    limit: `You already have ${MAX_OWLS} owls of your own – as many as there are species. That is the limit.`,
   },
   /** v0.10: the post office – loan owls (before in the Menagerie) and the borrowed ones. */
   post: {
@@ -855,6 +922,13 @@ export const en: Texts = {
     purposeLetter: 'Letter',
     purposeGold: 'Gold',
     purposeGift: 'Gift',
+    purposeVacation: 'Holiday',
+    vacationOut: 'flying to Inchlonaig, arriving around {time}',
+    vacationOutTurn: 'flying towards Inchlonaig and turning back in time, back around {time}',
+    vacationIsland: 'resting on Inchlonaig, back around {time}',
+    vacationBack: 'flying home, back around {time}',
+    island: 'Inchlonaig ({count})',
+    legendIsland: 'Owl care station Inchlonaig (on holiday)',
     restingAt: 'resting with {name} until {time}',
     nextStop: 'next stop {name} around {time}',
     homeAt: 'back around {time}',
@@ -1049,6 +1123,16 @@ export const en: Texts = {
       'Really switch off access through the Tor network? Anyone signed in over Tor can only get back in once it is switched on again.',
     torSavedOn: 'Tor is being switched on – this takes a few seconds on the server.',
     torSavedOff: 'Tor is being switched off.',
+    torPanelsTitle: 'Admin panel and bots control centre in the Tor network',
+    torPanelsIntro:
+      'The admin panel and the bots control centre each have an onion address of their own that never changes. The same protection applies as on the web; every sign-in through Tor needs the puzzle, and failed attempts through Tor never slow down signing in on the web. Your own rules in admin-*.caddy or bots-*.caddy apply there too. Switched off, that onion address no longer answers and its link on the start page disappears.',
+    torAdminAddress: 'Onion address of the admin panel',
+    torBotsAddress: 'Onion address of the bots control centre',
+    torAdminSwitch: 'Admin panel reachable through the Tor network',
+    torBotsSwitch: 'Bots control centre reachable through the Tor network',
+    torPanelOffConfirm:
+      'Really switch it off? Whoever is signed in through this onion address right now gets back in only once it is switched on again.',
+    torPanelSaved: 'Saved.',
     inactivityTitle: 'Deletion after inactivity',
     inactivityIntro:
       'Accounts that are not used are deleted after this number of days (at least 60). A warning comes 30 days before; a shorter period deletes nobody without this warning.',
@@ -1348,7 +1432,17 @@ export const en: Texts = {
     feedback_too_long: 'The message is too long (at most 300 characters).',
     feedback_invalid: 'The message contains characters that are not allowed.',
     owl_recipients: 'This owl cannot fly to that many recipients (at most 5).',
-    owl_limit: 'You already have 50 owls of your own – that is the limit.',
+    owl_limit: `You already have ${MAX_OWLS} owls of your own – as many as there are species. That is the limit.`,
+    recipient_owl_limit: `This contact already has ${MAX_OWLS} owls and cannot be given another.`,
+    owl_lent_this_quarter:
+      'This owl has already helped out at the owl post office this quarter. Next quarter it can again.',
+    vacation_exists: 'You have already planned a holiday or are on holiday right now.',
+    vacation_start_past: 'The start lies in the past.',
+    vacation_start_too_late: 'A holiday can be planned at most three months ahead.',
+    vacation_too_short: 'A holiday lasts at least one day.',
+    vacation_too_long: 'A holiday lasts at most six weeks.',
+    vacation_year_full: 'You have already been on holiday three times this calendar year.',
+    vacation_none: 'No holiday is planned or running right now.',
     owl_not_for_sale: 'This owl is not for sale in the Menagerie.',
     owl_fed_today: 'This owl has already eaten today and is full.',
     owl_watered_today: 'This owl has already had a drink today.',
@@ -1357,7 +1451,7 @@ export const en: Texts = {
     owl_not_home: 'This is only possible while the owl is at home.',
     owl_name_mismatch: 'The name does not match. Please type the owl’s name exactly as shown.',
     owl_release_limit:
-      'You can only release an owl while you have more than 20 owls of your own (chicks count).',
+      'You can only release an owl while you have more than 5 owls of your own (chicks count).',
     owl_rename_blocked: 'This owl can only be renamed again next calendar year.',
     owl_name_too_short: 'The name is too short (at least 2 characters).',
     owl_name_too_long: 'The name is too long (at most 20 characters).',
@@ -1370,7 +1464,7 @@ export const en: Texts = {
     loan_species: 'You have already borrowed this loan owl today.',
     owl_not_sick: 'This owl is not ill.',
     owl_unnamed: 'Please give the chick a name first.',
-    clutch_done: 'A chick from this clutch has already been given away.',
+    clutch_done: 'Everything that had to be given away from this clutch has been given away.',
     name_change_blocked: 'You can only change your name again next calendar year.',
     home_change_blocked: 'You can change your home at most 3 times per calendar month.',
     bot_write_lock: 'You have already written to this bot today. Tomorrow you can again.',

@@ -42,7 +42,7 @@ Bis bald, dein Erklärbär`,
 
 Dein Gold siehst du oben rechts, die Buchungen in den Einstellungen. Eulen, die Gold tragen können, haben in der Eulenübersicht den Knopf „Gold verschicken“.
 
-In der Menagerie kaufst du Eulen, im Postamt hat jeden Tag eines von vier Eulenteams Dienst, eigens für dich ausgelost – tritt ein und leih dir seine Eulen. Kleine Eulen tragen nur kurzes Pergament, nur kräftige auch Gold. Eine Eule, die du übrig hast, kannst du für 7 Tage an die Menagerie verleihen und bekommst danach 10 % ihres Preises.
+In der Menagerie kaufst du Eulen, im Postamt hat jeden Tag eines von vier Eulenteams Dienst, eigens für dich ausgelost – tritt ein und leih dir seine Eulen. Kleine Eulen tragen nur kurzes Pergament, nur kräftige auch Gold. Eine Eule, die du übrig hast, kannst du für 7 Tage an das Postamt verleihen und bekommst danach 10 % ihres Preises.
 
 Übrigens: Mit dem kleinen Fähnchen oben rechts schaltest du PostEulen auf Englisch um und wieder zurück. Klemmt etwas, oder hast du eine Idee? Ganz unten in den Einstellungen schickst du dem Admin eine kurze Nachricht.
 
@@ -60,9 +60,11 @@ Briefe an Bots wie mich sind übrigens nicht verschlüsselt. Im Advent und an We
 Dein Erklärbär`,
   day7: `Hallo, heute geht es um Pflege!
 
-Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und motiviert fliegen sie schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Reisetage zählen dabei nicht. Wird eine Eule krank, pflegst du sie in der Rettungsstation wieder gesund.
+Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und motiviert fliegen sie schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Wird eine Eule krank, pflegst du sie in der Rettungsstation wieder gesund.
 
 Manchmal legt eine Eule Eier – öfter, wenn ein Eulenmann ihrer Art bei dir wohnt. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
+
+Schick deine Eulen oft zu Menschen, sonst langweilen sie sich.
 
 Das war mein letzter Brief der Reihe. Fragen beantworte ich gern!
 

@@ -96,6 +96,7 @@ export function registerBotsCentreRoutes(app: FastifyInstance, ctx: Context): vo
   const authenticated = registerPanelAuth(app, ctx, {
     key: 'bots',
     origin: ctx.config.botsOrigin,
+    torOrigin: ctx.config.botsTorOrigin,
     cookie: 'pe_bots',
     table: 'bots_admin',
     sessions: 'bots_admin_sessions',

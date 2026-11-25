@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GOLD, OWL, TIME } from '../src/constants.ts';
+import { GOLD, TIME } from '../src/constants.ts';
 import {
   daysBetween,
   displayEnergy,
@@ -24,7 +24,8 @@ import {
   canBuyMore,
   canCare,
   canGift,
-  canLendToMenagerie,
+  canLendToPostOffice,
+  maxOwnOwls,
   canRelease,
   canRename,
   canRenameInYear,
@@ -238,21 +239,22 @@ describe('owl states (SPEC 9.2.5)', () => {
     expect(canRelease({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(canRelease({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
     expect(canRename({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
-    expect(canLendToMenagerie({ ...own, state: 'home' })).toBe(true);
-    expect(canLendToMenagerie({ ...own, state: 'sick' })).toBe(false);
-    expect(canLendToMenagerie({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
-    expect(canLendToMenagerie({ state: 'home', kind: 'own', isChick: true })).toBe(false);
+    expect(canLendToPostOffice({ ...own, state: 'home' })).toBe(true);
+    expect(canLendToPostOffice({ ...own, state: 'sick' })).toBe(false);
+    expect(canLendToPostOffice({ state: 'home', kind: 'loan', isChick: false })).toBe(false);
+    expect(canLendToPostOffice({ state: 'home', kind: 'own', isChick: true })).toBe(false);
     expect(regenerates('brooding')).toBe(true);
     expect(regenerates('menagerie')).toBe(false);
     expect(regenerates('flying')).toBe(false);
   });
 
-  it('renaming once per calendar year, at most 50 own owls, random sex', () => {
+  it('renaming once per calendar year, at most as many own owls as species, random sex', () => {
     expect(canRenameInYear(null, 2026)).toBe(true);
     expect(canRenameInYear(2026, 2026)).toBe(false);
     expect(canRenameInYear(2025, 2026)).toBe(true);
-    expect(canBuyMore(OWL.MAX_OWN_OWLS - 1)).toBe(true);
-    expect(canBuyMore(OWL.MAX_OWN_OWLS)).toBe(false);
+    expect(maxOwnOwls()).toBe(SPECIES.length);
+    expect(canBuyMore(maxOwnOwls() - 1)).toBe(true);
+    expect(canBuyMore(maxOwnOwls())).toBe(false);
     expect(randomSex(0.1)).toBe('f');
     expect(randomSex(0.9)).toBe('m');
     expect(speciesById('nope')).toBe(undefined);

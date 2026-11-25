@@ -48,7 +48,16 @@ export type SystemMessageType =
   /** v1.3.1: owl biscuits or treats of a bot in the pouch; the privilege set by the admin. */
   | 'bag_gift'
   | 'privilege_granted'
-  | 'privilege_ended';
+  | 'privilege_ended'
+  /** v1.4: bored and escaped owls, the most own owls, all chicks to give away, holidays. */
+  | 'owl_bored'
+  | 'owl_escaped'
+  | 'owl_limit'
+  | 'chicks_hatched_gift_all'
+  | 'bot_owl_gift_full'
+  | 'vacation_started'
+  | 'vacation_ended'
+  | 'vacation_ended_early';
 
 export function addSystemMessage(
   ctx: Context,

@@ -24,7 +24,7 @@ import {
 import { grantPrivilege, listPrivileged, revokePrivilege } from '../gold/privilege.ts';
 import { registerAdminOperations } from './operations.ts';
 import { registerPanelAuth } from './panel-auth.ts';
-import { setTorEnabled, torOverview } from '../ops/tor.ts';
+import { setPanelTorEnabled, setTorEnabled, torOverview } from '../ops/tor.ts';
 import { serverLoad } from './server-load.ts';
 
 /** Error log IDs are positive integers in decimal notation (no `1e2`, no signs). */
@@ -34,6 +34,7 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   const authenticated = registerPanelAuth(app, ctx, {
     key: 'admin',
     origin: ctx.config.adminOrigin,
+    torOrigin: ctx.config.adminTorOrigin,
     cookie: 'pe_admin',
     table: 'admin',
     sessions: 'admin_sessions',
@@ -133,7 +134,10 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.put('/api/settings/tor', { preHandler: authenticated }, async (request) => {
     const body = parse(TorUpdate, request.body);
-    setTorEnabled(ctx, body.enabled);
+    if (body.enabled !== undefined) setTorEnabled(ctx, body.enabled);
+    // v1.4: the onion sites of the admin panel and the bots control centre (SPEC 16.5).
+    if (body.admin !== undefined) setPanelTorEnabled(ctx, 'admin', body.admin);
+    if (body.bots !== undefined) setPanelTorEnabled(ctx, 'bots', body.bots);
     return torOverview(ctx);
   });
 

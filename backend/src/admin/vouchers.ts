@@ -13,6 +13,7 @@ import { HttpError } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
 import { addToBag } from '../gold/privilege.ts';
+import { hasRoom } from '../owls/limit.ts';
 
 /** Easy to type: no 0/O, 1/I/L (as invitation codes). 12 characters ≈ 59 bits. */
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -108,6 +109,8 @@ export function redeemVoucher(
     now,
   );
   if (!row) throw new HttpError(400, 'voucher_invalid');
+  // v1.4: an owl only below the most own owls – the code stays valid (9.2.3).
+  if (row.kind === 'owl' && !hasRoom(ctx, userId)) throw new HttpError(400, 'owl_limit');
   const used = ctx.db.run('UPDATE vouchers SET redeemed = 1 WHERE id = ? AND redeemed = 0', row.id);
   if (used.changes !== 1) throw new HttpError(400, 'voucher_invalid');
   if (row.kind === 'gold') {

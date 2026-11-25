@@ -9,7 +9,7 @@ import {
   canGift,
   releaseAllowed,
   canRenameInYear,
-  canLendToMenagerie,
+  canLendToPostOffice,
   canTransport,
   isMythical,
   regenerates,
@@ -26,6 +26,7 @@ import { utcDay } from '../security/ids.ts';
 import { displayName, findContact } from '../contacts/model.ts';
 import { flightPosition, routeOf, type FlightRow } from '../flights/service.ts';
 import { botCareToday } from '../central/care.ts';
+import { vacationTrip, type VacationTripView } from './vacation.ts';
 
 export interface OwlRow {
   readonly id: string;
@@ -64,6 +65,11 @@ export interface OwlRow {
   readonly globe_announced?: number;
   readonly moon_announced?: number;
   readonly crown_announced?: number;
+  /** v1.4: bored owls (9.2.9) and the quarter of the last loan to the post office (9.7). */
+  readonly idle_ms?: number;
+  readonly idle_at?: number | null;
+  readonly bored_at?: number | null;
+  readonly lent_quarter?: string | null;
 }
 
 export function facts(owl: OwlRow): {
@@ -168,6 +174,10 @@ export interface OwlView {
   readonly awaySince: number | null;
   /** v1.3: in the rescue centre (sick), with the progress in per cent (SPEC 8.13). */
   readonly rescue: { readonly progress: number } | null;
+  /** v1.4: bored – the overview shows the bored picture until it flies to people (9.2.9). */
+  readonly bored: boolean;
+  /** v1.4: on holiday at the owl care station on Inchlonaig: where and until when (9.12). */
+  readonly vacation: VacationTripView | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
@@ -370,6 +380,9 @@ export function owlView(
   else if (owl.is_chick === 1)
     awaySince = Math.max(owl.hatched_at ?? 0, Date.parse(`${owl.owned_since}T00:00:00Z`));
   else if (owl.state === 'home' && owl.name === null) awaySince = owl.created_at;
+  // v1.4: on holiday since the departure (the energy was set then).
+  const vacation = owl.state === 'vacation' ? vacationTrip(ctx, owl.id, now) : null;
+  if (owl.state === 'vacation') awaySince = owl.energy_at;
   return {
     id: owl.id,
     name: owl.name,
@@ -401,12 +414,15 @@ export function owlView(
     createdAt: owl.created_at,
     awaySince,
     rescue: rescue ? { progress: rescueProgress(rescue.done, rescue.needed) } : null,
+    bored: owl.kind === 'own' && (owl.bored_at ?? null) !== null,
+    vacation,
     actions: {
       care: canCare(ownFacts),
       gift: canGift(ownFacts) && owl.name !== null,
       release: releaseAllowed(ownFacts, ownCount),
       rename: owl.kind === 'own' && (owl.name === null || canRenameInYear(owl.renamed_year, year)),
-      menagerie: canLendToMenagerie(ownFacts),
+      // v1.4: to the post office, once per owl and calendar quarter (9.7).
+      menagerie: owl.name !== null && canLendToPostOffice(ownFacts, owl.lent_quarter ?? null, now),
     },
     absence,
   };

@@ -251,7 +251,7 @@ describe('migration 0025 (v1.3.2)', () => {
     db.run(
       `INSERT INTO menagerie_user_offers (user_id, day, species, team) VALUES ('u', '2026-11-24', '[]', 'A')`,
     );
-    expect(migrate(db, migrations)).toEqual([25]);
+    expect(migrate(db, migrations.slice(0, 25))).toEqual([25]);
     expect(db.get('SELECT globe_announced, moon_announced, crown_announced FROM owls')).toEqual({
       globe_announced: 1,
       moon_announced: 0,

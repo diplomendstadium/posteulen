@@ -23,6 +23,7 @@ import {
   type LoginStartResponse,
 } from '@posteulen/shared/schemas/auth.ts';
 import type { Context } from '../context.ts';
+import { vacationView } from '../owls/vacation.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -30,7 +31,7 @@ import { cancelDeletion } from '../accounts/lifecycle.ts';
 import { createBots } from '../bots/service.ts';
 import { scheduleDonations } from '../messages/periodic.ts';
 import { accountClientKey, clientKey, TOR_CLIENT_KEY, TOR_LOGIN_KEY } from '../security/ip.ts';
-import { footerOnionLink } from '../ops/tor.ts';
+import { footerOnionLink, instanceLinks } from '../ops/tor.ts';
 import { cachedInstanceStats, webHost } from '../accounts/instance.ts';
 import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
@@ -155,7 +156,8 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
   const instance = cachedInstanceStats(ctx);
   app.get('/api/instance', async (request) => {
     limit(ctx, 'general', request);
-    return { host: webHost(ctx), stats: instance(ctx.now()) };
+    // v1.4: the six addresses – start page, admin panel, bots control centre, web and Tor.
+    return { host: webHost(ctx), stats: instance(ctx.now()), links: instanceLinks(ctx) };
   });
 
   app.get('/api/altcha/challenge', async (request) => {
@@ -626,5 +628,7 @@ export function profileOf(ctx: Context, userId: string) {
     // v1.3.1: the pouch (SPEC 9.1.6) and the privilege set by the admin (SPEC 9.1.7).
     bag: { biscuits: row.bag_biscuits, treats: row.bag_treats },
     privileged: privilegeOf(ctx.db, userId, ctx.now()),
+    // v1.4: a planned or running holiday – the banner at the top (SPEC 8.10, 9.12).
+    vacation: vacationView(ctx, userId, ctx.now()).current,
   };
 }

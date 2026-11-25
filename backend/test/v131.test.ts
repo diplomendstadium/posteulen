@@ -6,6 +6,7 @@
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GOLD, OWL, TIME } from '@posteulen/shared/constants.ts';
+import { maxOwnOwls } from '@posteulen/shared/game/owls.ts';
 import { openDatabase } from '../src/db/database.ts';
 import { loadMigrations, migrate } from '../src/db/migrate.ts';
 import { createVoucher } from '../src/admin/vouchers.ts';
@@ -175,9 +176,9 @@ describe('privileged players (v1.3.1, SPEC 9.1.7)', () => {
     expect(gold(ben)).toBe(bensGold);
   });
 
-  it('may own more than 50 owls', async () => {
+  it('may buy beyond the most own owls', async () => {
     setGold(app, anna, 0);
-    for (let i = 0; i < OWL.MAX_OWN_OWLS; i++) {
+    for (let i = 0; i < maxOwnOwls(); i++) {
       app.db.run(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
          VALUES (?, ?, 'own', 'waldkauz', 'f', ?, 100, 0, '2026-01-01', 0)`,

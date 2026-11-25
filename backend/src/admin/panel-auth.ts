@@ -21,11 +21,19 @@ import { randomId, randomToken, sha256 } from '../security/ids.ts';
 import { clientKey } from '../security/ip.ts';
 import { loginThrottle } from '../auth/user-routes.ts';
 import { checkRegistrationRecord, opaqueStep } from '../auth/opaque-guard.ts';
-import { clearSessionCookie, cookieSpec, setSessionCookie } from '../auth/sessions.ts';
+import {
+  clearSessionCookie,
+  cookieSpec,
+  setSessionCookie,
+  specFor,
+  type CookieSpec,
+} from '../auth/sessions.ts';
 
 export interface Panel {
   readonly key: 'admin' | 'bots';
   readonly origin: string;
+  /** v1.4: the onion site of the panel, if set up (SPEC 16.5). */
+  readonly torOrigin?: string | undefined;
   readonly cookie: 'pe_admin' | 'pe_bots';
   readonly table: 'admin' | 'bots_admin';
   readonly sessions: 'admin_sessions' | 'bots_admin_sessions';
@@ -54,7 +62,18 @@ export type Authenticated = (request: FastifyRequest) => Promise<void>;
 
 /** Registers login, logout, session, me, re-authentication and password change of a panel. */
 export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Panel): Authenticated {
-  const spec = cookieSpec(panel.origin, panel.cookie);
+  // v1.4: over Tor the cookie without Secure and __Host- (plain http onion site, SPEC 16.5).
+  const base = cookieSpec(panel.origin, panel.cookie);
+  const spec: CookieSpec =
+    panel.torOrigin === undefined
+      ? base
+      : { ...base, tor: cookieSpec(panel.torOrigin, panel.cookie) };
+  const cookieOf = (request: FastifyRequest): string | undefined =>
+    request.cookies[specFor(spec, request).name];
+  // v1.4: failed logins over Tor slow down only logins over Tor – a stranger in the Tor network
+  // can never lock the admin out on the web (all Tor visitors share one address key).
+  const guardKey = (request: FastifyRequest): string =>
+    request.viaTor ? `${panel.key}:tor` : panel.key;
   const guard = ctx.guards[panel.key];
   const limiter = ctx.limits[panel.key];
 
@@ -71,7 +90,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   };
 
   const authenticated = async (request: FastifyRequest): Promise<void> => {
-    const token = request.cookies[spec.name];
+    const token = cookieOf(request);
     if (!token) throw new HttpError(401, 'unauthorized');
     const now = ctx.now();
     const hash = sha256(token);
@@ -108,15 +127,12 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   app.post('/api/login/start', async (request): Promise<LoginStartResponse> => {
     const ip = clientKey(request);
     const body = parse(AdminLoginStart, request.body);
-    const throttle = await loginThrottle(
-      ctx,
-      { name: panel.key, ip, panel: panel.key },
-      body.altcha,
-    );
+    const name = guardKey(request);
+    const throttle = await loginThrottle(ctx, { name, ip, panel: panel.key }, body.altcha);
     if (throttle) return throttle as LoginStartResponse;
     const now = ctx.now();
     const admin = panelRecord();
-    guard.fail(panel.key, now);
+    guard.fail(name, now);
     ctx.guards.ips.fail(ip, now);
     const { serverLoginState, loginResponse } = opaqueStep(() =>
       opaque.server.startLogin({
@@ -132,7 +148,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
       {
         kind: panel.attemptKind,
         userId: null,
-        nameKey: panel.key,
+        nameKey: name,
         ipKey: ip,
         serverLoginState,
         record: admin.opaque_record,
@@ -158,7 +174,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     }
     // v1.0: a login that started before a password change must not finish after it.
     if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
-    guard.reset(panel.key);
+    guard.reset(attempt.nameKey);
     ctx.guards.ips.succeed(attempt.ipKey);
     const token = randomToken();
     ctx.db.transaction(() => {
@@ -185,7 +201,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
 
   // Start of the admin app: answers without 401 when nobody is logged in.
   app.get('/api/session', async (request) => {
-    const token = request.cookies[spec.name];
+    const token = cookieOf(request);
     if (!token) return { state: 'none' };
     const row = ctx.db.get<{ last_used_at: number }>(
       `SELECT last_used_at FROM ${panel.sessions} WHERE token_hash = ?`,
@@ -209,10 +225,11 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     const body = parse(AdminReauthStart, request.body);
     const now = ctx.now();
     const ip = clientKey(request);
-    const wait = guard.waitMs(panel.key, now);
+    const name = guardKey(request);
+    const wait = guard.waitMs(name, now);
     if (wait > 0) return { status: 'wait', retryAfterSeconds: Math.ceil(wait / 1000) };
     const admin = panelRecord();
-    guard.fail(panel.key, now);
+    guard.fail(name, now);
     const { serverLoginState, loginResponse } = opaqueStep(() =>
       opaque.server.startLogin({
         serverSetup: ctx.secrets.opaqueServerSetup,
@@ -227,7 +244,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
       {
         kind: panel.reauthKind,
         userId: null,
-        nameKey: panel.key,
+        nameKey: name,
         ipKey: ip,
         serverLoginState,
         record: admin.opaque_record,
@@ -253,7 +270,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     }
     // v1.0: a login that started before a password change must not finish after it.
     if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
-    guard.reset(panel.key);
+    guard.reset(attempt.nameKey);
     const token = randomId();
     ctx.reauthTokens.set(
       token,

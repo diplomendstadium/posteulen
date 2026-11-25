@@ -3,10 +3,12 @@ import { GOLD, LETTER, OWL } from '../constants.ts';
 import { SPECIES, type Cargo, type Species } from '../species.ts';
 
 /**
- * v1.3: `sick` means "in the rescue centre" (SPEC 9.8). The states of the former treatments
- * (nursing at home, owl vet) no longer occur; the update made such owls healthy.
+ * `sick` means "in the rescue centre" (SPEC 9.8), `menagerie` "lent to the post office" (9.7; the
+ * name is historical), `vacation` "on holiday at the owl care station on Inchlonaig" (9.12). The
+ * states of the former treatments (nursing at home, owl vet) no longer occur.
  */
-export type OwlState = 'home' | 'flying' | 'gift_flight' | 'sick' | 'brooding' | 'menagerie';
+export type OwlState =
+  'home' | 'flying' | 'gift_flight' | 'sick' | 'brooding' | 'menagerie' | 'vacation';
 
 export type OwlKind = 'own' | 'loan' | 'bot';
 
@@ -49,9 +51,35 @@ export function canCare(owl: OwlFacts): boolean {
   return ['home', 'brooding'].includes(owl.state);
 }
 
-/** Menagerie: own adult healthy owls at home, not brooding, never a phoenix (9.7, v0.5). */
-export function canLendToMenagerie(owl: OwlFacts): boolean {
-  return owl.kind === 'own' && !owl.isChick && owl.state === 'home' && owl.mythical !== true;
+/**
+ * Lending to the post office (9.7): own adult healthy owls at home, not brooding, never a phoenix
+ * – and each owl only once per calendar quarter (`lentQuarter` = quarter of its last loan).
+ */
+export function canLendToPostOffice(
+  owl: OwlFacts,
+  lentQuarter: string | null = null,
+  now: number = Date.now(),
+): boolean {
+  return (
+    owl.kind === 'own' &&
+    !owl.isChick &&
+    owl.state === 'home' &&
+    owl.mythical !== true &&
+    lentQuarter !== quarterOf(now)
+  );
+}
+
+/** The calendar quarter (UTC) of a moment, e.g. "2026-4" for October to December 2026. */
+export function quarterOf(at: number): string {
+  const date = new Date(at);
+  return `${date.getUTCFullYear()}-${Math.floor(date.getUTCMonth() / 3) + 1}`;
+}
+
+/** The first moment of the next calendar quarter (UTC) – when an owl may be lent again. */
+export function nextQuarterStart(at: number): number {
+  const date = new Date(at);
+  const month = (Math.floor(date.getUTCMonth() / 3) + 1) * 3;
+  return Date.UTC(date.getUTCFullYear() + Math.floor(month / 12), month % 12, 1);
 }
 
 /** The state allows a release (9.2.5); whether the stock does, says `releaseAllowed`. */
@@ -60,9 +88,9 @@ export function canRelease(owl: OwlFacts): boolean {
 }
 
 /**
- * v0.8.5: owls may only be released while the player has more than 20 own owls (the count of
- * the buying limit: chicks count, loan owls and owls on a gift flight not; 9.2.8). At 21 one
- * suitable owl can go; then the limit is reached.
+ * Owls may only be released while the player has more than 5 own owls (the count of the buying
+ * limit: chicks count, loan owls and owls on a gift flight not; 9.2.8). At 6 one suitable owl can
+ * go; then the limit is reached.
  */
 export function releaseAllowed(owl: OwlFacts, ownOwlCount: number): boolean {
   return canRelease(owl) && ownOwlCount > OWL.RELEASE_ABOVE_OWN_OWLS;
@@ -82,9 +110,17 @@ export function canRenameInYear(renamedYear: number | null, year: number): boole
   return renamedYear === null || renamedYear < year;
 }
 
-/** Buying needs fewer than 50 own owls (chicks count, loan owls not, 9.2.3). */
+/**
+ * The most own owls a player may have: as many as there are species in the game (9.2.3) – it
+ * grows by itself with every new species.
+ */
+export function maxOwnOwls(): number {
+  return SPECIES.length;
+}
+
+/** Buying (and every other new owl) needs fewer own owls than the limit (chicks count, 9.2.3). */
 export function canBuyMore(ownOwlCount: number): boolean {
-  return ownOwlCount < OWL.MAX_OWN_OWLS;
+  return ownOwlCount < maxOwnOwls();
 }
 
 /** Random sex at purchase or hatching; `random` in [0, 1). */

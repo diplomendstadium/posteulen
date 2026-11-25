@@ -69,7 +69,7 @@ export function teamSpecies(team: LoanTeam): readonly string[] {
 export interface LoanIdentity {
   readonly name: string;
   readonly sex: 'f' | 'm';
-  /** Share of the start energy range (60–100 %, 9.3), in [0, 1). */
+  /** Share of the start energy range of loan owls (75–100 %, 9.6), in [0, 1). */
   readonly energyShare: number;
   /** v0.5: motivation in tenths, 8, 9 or 10. */
   readonly motivation: number;

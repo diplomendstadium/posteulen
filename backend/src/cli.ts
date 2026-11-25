@@ -200,11 +200,20 @@ async function main(argv: string[]): Promise<void> {
           www: { type: 'boolean', default: false },
           onion: { type: 'string' },
           'onion-active': { type: 'boolean', default: false },
+          // v1.4: the onion sites of the admin panel and the bots control centre.
+          'onion-admin': { type: 'string' },
+          'onion-bots': { type: 'string' },
         },
       });
       if (!values.domain) fail('--domain fehlt');
       const onion = values.onion
         ? { host: values.onion, listenPort: 3005, apiPort: 3004, active: values['onion-active'] }
+        : undefined;
+      const adminOnion = values['onion-admin']
+        ? { host: values['onion-admin'], listenPort: 3006, apiPort: 3008 }
+        : undefined;
+      const botsOnion = values['onion-bots']
+        ? { host: values['onion-bots'], listenPort: 3007, apiPort: 3009 }
         : undefined;
       process.stdout.write(
         generateCaddyfile({
@@ -219,6 +228,8 @@ async function main(argv: string[]): Promise<void> {
           botsPort: 3003,
           www: values.www,
           onion,
+          adminOnion,
+          botsOnion,
         }),
       );
       return;

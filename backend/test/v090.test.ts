@@ -231,6 +231,11 @@ describe('Adminpanel: Tor-Schalter und Eulen-Statistik (SPEC 13)', () => {
       status: 'ok',
       statusAt: app.clock.now,
       message: null,
+      // v1.4: the onion sites of the admin panel and the bots control centre.
+      adminOnion: null,
+      adminEnabled: true,
+      botsOnion: null,
+      botsEnabled: true,
     });
     const off = await admin.json('PUT', '/api/settings/tor', { enabled: false });
     expect(off.body['enabled']).toBe(false);

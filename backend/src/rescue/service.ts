@@ -32,6 +32,8 @@ import { addSystemMessage } from '../messages/system.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { interact, backHome } from '../owls/care.ts';
 import { currentEnergy, type OwlRow } from '../owls/model.ts';
+import { hasRoom } from '../owls/limit.ts';
+import { sendOwlsOnVacation } from '../owls/vacation.ts';
 
 type After = (work: () => void) => void;
 
@@ -283,6 +285,8 @@ function heal(ctx: Context, owl: OwlRow, now: number, after: After): void {
   backHome(ctx, owl.id, now);
   markReady(ctx, owl.id, now);
   addSystemMessage(ctx, owl.owner_id, 'owl_healthy', { owl: owlLabel(owl) }, now, after);
+  // v1.4: healthy during a holiday – on to the island (9.12).
+  sendOwlsOnVacation(ctx, owl.owner_id, now, after);
   after(() => ctx.hub.notify(owl.owner_id, 'owls'));
 }
 
@@ -323,8 +327,8 @@ export function careForWild(
 
 /**
  * "Find out where [name] flies": a healed wild owl leaves the rescue centre – back into freedom,
- * or it stays with the player as a post owl (may exceed the limit of 50 owls, like a gift). A new
- * wild owl comes once none is left (v1.3.1).
+ * or it stays with the player as a post owl. v1.4: at the most own owls it always flies off into
+ * freedom (9.2.3). A new wild owl comes once none is left (v1.3.1).
  */
 export function releaseWild(
   ctx: Context,
@@ -342,7 +346,8 @@ export function releaseWild(
   if (wild.healed_at === null || wild.stays === null) throw new HttpError(400, 'rescue_not_healed');
   ctx.db.run('DELETE FROM rescue_wild WHERE id = ?', wildId);
   let owlId: string | null = null;
-  if (wild.stays === 1) {
+  const stays = wild.stays === 1 && hasRoom(ctx, userId);
+  if (stays) {
     owlId = randomId();
     const species = speciesById(wild.species);
     ctx.db.run(
@@ -360,8 +365,9 @@ export function releaseWild(
       now,
     );
     addSystemMessage(ctx, userId, 'rescue_joined', { owl: wild.name }, now, after);
+    sendOwlsOnVacation(ctx, userId, now, after);
   }
   ensureWild(ctx, userId, now);
   after(() => ctx.hub.notify(userId, 'owls'));
-  return { stays: wild.stays === 1, owlId };
+  return { stays, owlId };
 }

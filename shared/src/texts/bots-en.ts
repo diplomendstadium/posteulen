@@ -33,7 +33,7 @@ Your Explainer Bear`,
 
 You see your gold at the top right and your bookings in the settings. Owls that can carry gold have the button “Send gold” in your owl overview.
 
-In the Menagerie you buy owls; at the post office one of four owl teams is on duty every day, drawn just for you – step inside and borrow its owls. Small owls carry short parchment only, only strong ones also carry gold. An owl you have to spare can be lent to the Menagerie for 7 days, and you get 10% of its price afterwards.
+In the Menagerie you buy owls; at the post office one of four owl teams is on duty every day, drawn just for you – step inside and borrow its owls. Small owls carry short parchment only, only strong ones also carry gold. An owl you have to spare can be lent to the post office for 7 days, and you get 10% of its price afterwards.
 
 By the way: the little flag in the top right corner switches PostEulen to German and back. Something not working, or an idea? At the very bottom of the settings you can send the admin a short message.
 
@@ -58,9 +58,11 @@ By the way, letters to bots like me are not encrypted. From the first Sunday of 
 Your Explainer Bear`,
     day7: `Hello, today is all about care!
 
-Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. Travel days do not count. If an owl falls ill, you nurse it back to health in the rescue centre.
+Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. If an owl falls ill, you nurse it back to health in the rescue centre.
 
 Sometimes an owl lays eggs – more often if a male of her species lives with you. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
+
+Send your owls to people often, or they get bored.
 
 That was the last letter of my series. I am happy to answer your questions!
 

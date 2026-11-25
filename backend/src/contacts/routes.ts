@@ -20,7 +20,9 @@ import { addSystemMessage } from '../messages/system.ts';
 import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
 import { deriveServerKey } from '../secrets.ts';
+import { hasRoom } from '../owls/limit.ts';
 import {
+  ACTIVE_DAY_SQL,
   displayName,
   findContact,
   hasKeyWarning,
@@ -152,7 +154,7 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
       `SELECT CASE WHEN c.user_lo = ? THEN c.user_hi ELSE c.user_lo END AS other, c.since,
               CASE WHEN c.user_lo = ? THEN c.warn_lo ELSE c.warn_hi END AS warn_mine,
               CASE WHEN c.user_lo = ? THEN c.warn_hi ELSE c.warn_lo END AS warn_theirs,
-              u.name_display, u.last_active_date
+              u.name_display, ${ACTIVE_DAY_SQL('u')} AS last_active_date
          FROM contacts c JOIN users u ON u.id = CASE WHEN c.user_lo = ? THEN c.user_hi ELSE c.user_lo END
         WHERE (c.user_lo = ? OR c.user_hi = ?) AND u.state != 'deleting'
         ORDER BY u.name_key`,
@@ -191,6 +193,8 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
         since: row.since,
         active: isActiveDate(row.last_active_date, now),
         keyWarning: row.warn_mine === 1 || row.warn_theirs === 1,
+        // v1.4: has the most own owls – no owl or chick can be given to them (9.2.3).
+        owlsFull: !hasRoom(ctx, row.other),
       })),
       // v0.8: never in the address book – the letters and the settings use this list.
       botsDisabled: disabled,

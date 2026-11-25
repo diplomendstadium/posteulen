@@ -91,9 +91,9 @@ export const OWL = {
   SNACK_SHARE: 0.2,
   /** v0.5: a day counts as cared for with this many different interactions. */
   CARE_DAY_INTERACTIONS: 2,
-  MAX_OWN_OWLS: 50,
-  /** v0.8.5: releasing an owl needs more than this many own owls (chicks count, 9.2.8). */
-  RELEASE_ABOVE_OWN_OWLS: 20,
+  /** Releasing an owl needs more than this many own owls (chicks count, 9.2.8). The most own
+   * owls a player may have is the number of species (`maxOwnOwls` in game/owls.ts, 9.2.3). */
+  RELEASE_ABOVE_OWN_OWLS: 5,
   NAME_MIN_CHARS: 2,
   NAME_MAX_CHARS: 20,
   /** Care bonus (9.3): the last 14 days with at least one hour at home, 10 of them cared for. */
@@ -232,6 +232,42 @@ export const MENAGERIE = {
   OFFER_HOUR_UTC: 0,
   MAX_LOANS_PER_SPECIES: 1,
   LOAN_EXPIRY_HOURS: 24,
+  /** Loan owls of the post office start with 75–100 % of their energy (9.6). */
+  LOAN_START_ENERGY_MIN_SHARE: 0.75,
+  LOAN_START_ENERGY_MAX_SHARE: 1.0,
+} as const;
+
+/**
+ * Bored owls (9.2.9): an own adult owl that has not come home from a flight to people for 21 days
+ * (times in the rescue centre, brooding, lent to the post office or on holiday do not count) is
+ * bored; if it is not sent to a person with a letter or gold within 7 more days, it flies off into
+ * freedom – never the last adult owl of a player. Counted once a day at this hour.
+ */
+export const BOREDOM = {
+  BORED_AFTER_DAYS: 21,
+  ESCAPE_AFTER_DAYS: 7,
+  HOUR_UTC: 6,
+} as const;
+
+/** The most own owls (9.2.3): while a player has reached it, a system message once a week. */
+export const OWL_LIMIT = {
+  NOTICE_EVERY_DAYS: 7,
+} as const;
+
+/**
+ * Holiday mode (8.10, 9.12): up to three holidays per calendar year (UTC year of the start), each
+ * at most six weeks and at least one day long, planned at most 92 days ahead. The owls fly
+ * straight to the owl care station on the island of Inchlonaig in Loch Lomond and back, at the
+ * speed of their species (chicks at chick speed), without using energy – so that all are home
+ * exactly when the holiday ends. An owl only sets off while at least two hours are left.
+ */
+export const VACATION = {
+  PER_YEAR: 3,
+  MAX_DAYS: 42,
+  MIN_HOURS: 24,
+  PLAN_AHEAD_DAYS: 92,
+  MIN_TRIP_HOURS: 2,
+  ISLAND: { lat: 56.0962, lon: -4.6115 },
 } as const;
 
 export const ACCOUNT = {

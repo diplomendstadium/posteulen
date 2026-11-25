@@ -28,7 +28,7 @@ export const PRIVACY_SECTIONS: readonly HelpSection[] = [
         'Schlüssel: deine öffentlichen Schlüssel lesbar, deine privaten Schlüssel und dein Kontakt-Tresor nur verschlüsselt. Den Schlüssel dafür kennt nur dein Gerät, während du angemeldet bist.',
         'Kontakte: wer mit wem verbunden ist, offene Kontaktanfragen (höchstens 24 Stunden) und Schlüsselwarnungen.',
         'Briefe zwischen Menschen: nur verschlüsselt. Lesbar für den Server sind Absender, Empfänger, Zeitpunkte, Pergamentgröße, Zustell- und Lesestatus (nur ja/nein).',
-        'Spielstand: Gold, die letzten 20 Buchungen, Eulen mit ihren Werten und Flügen.',
+        'Spielstand: Gold, die letzten 20 Buchungen, Eulen mit ihren Werten und Flügen, Beginn und Ende deiner Urlaube (Urlaubsmodus).',
         'Bot-Chats und Systemnachrichten: im Klartext (siehe unten).',
         `Nachrichten an den Admin (freiwillig, aus den Einstellungen): im Klartext und ohne Absender, ${FEEDBACK.RETENTION_DAYS} Tage lang. Am Konto steht nur der Tag der letzten Nachricht (für die Grenze von einer Nachricht pro Tag).`,
         'Benachrichtigungen: die Adresse deines Push-Abos und noch nicht bestätigte Benachrichtigungen (ohne Inhalte).',

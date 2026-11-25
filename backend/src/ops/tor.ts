@@ -118,9 +118,48 @@ export function setTorEnabled(ctx: Context, enabled: boolean): void {
   syncTorSwitch(ctx);
 }
 
+/**
+ * v1.4: the onion sites of the admin panel and the bots control centre each have a switch of
+ * their own (default on). Tor itself keeps running for the player site; switched off, their API
+ * answers there with 503 and the start page leaves out the link.
+ */
+export type PanelSite = 'admin' | 'bots';
+
+export function panelTorEnabled(db: Database, site: PanelSite): boolean {
+  return torEnabled(db) && setting(db, `tor_${site}_enabled`) !== '0';
+}
+
+export function setPanelTorEnabled(ctx: Context, site: PanelSite, enabled: boolean): void {
+  store(ctx.db, `tor_${site}_enabled`, enabled ? '1' : '0');
+}
+
 /** The onion address of this instance (from the server configuration), if Tor is set up. */
 export function onionAddress(ctx: Context): string | null {
   return ctx.config.torOrigin ?? null;
+}
+
+/** v1.4: the onion address of the admin panel or the bots control centre, if set up. */
+export function panelOnionAddress(ctx: Context, site: PanelSite): string | null {
+  return (site === 'admin' ? ctx.config.adminTorOrigin : ctx.config.botsTorOrigin) ?? null;
+}
+
+/**
+ * v1.4: the six addresses of this instance for „Über diese Instanz“ (SPEC 8.1): start page,
+ * admin panel and bots control centre on the web and – while Tor runs and their switch is on –
+ * in the Tor network.
+ */
+export function instanceLinks(ctx: Context) {
+  const running = torEnabled(ctx.db) && torStatus(ctx.db)?.state === 'ok';
+  const onion = (origin: string | null, on: boolean): string | null =>
+    origin !== null && running && on ? `${origin}/` : null;
+  return {
+    web: `${ctx.config.userOrigin}/`,
+    admin: `${ctx.config.adminOrigin}/`,
+    bots: `${ctx.config.botsOrigin}/`,
+    webOnion: onion(onionAddress(ctx), true),
+    adminOnion: onion(panelOnionAddress(ctx, 'admin'), panelTorEnabled(ctx.db, 'admin')),
+    botsOnion: onion(panelOnionAddress(ctx, 'bots'), panelTorEnabled(ctx.db, 'bots')),
+  };
 }
 
 /**
@@ -139,6 +178,10 @@ export function torOverview(ctx: Context) {
   return {
     onion: onionAddress(ctx),
     enabled: torEnabled(ctx.db),
+    adminOnion: panelOnionAddress(ctx, 'admin'),
+    adminEnabled: setting(ctx.db, 'tor_admin_enabled') !== '0',
+    botsOnion: panelOnionAddress(ctx, 'bots'),
+    botsEnabled: setting(ctx.db, 'tor_bots_enabled') !== '0',
     status: status?.state ?? null,
     statusAt: status?.at ?? null,
     message: status?.message ?? null,

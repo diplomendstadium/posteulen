@@ -210,8 +210,10 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         'SELECT COUNT(*) AS n FROM system_messages WHERE user_id = ? AND seen = 0',
         me,
       )?.n ?? 0;
-    // v0.8.5: whose owl rests here right now – a little owl behind their name (8.4).
-    const resting = new Set(guestsOf(ctx, me).map(({ flight }) => flight.holder_id));
+    // Whose owls rest here right now – one little owl per resting owl behind their name (8.4).
+    const resting = new Map<string, number>();
+    for (const { flight } of guestsOf(ctx, me))
+      resting.set(flight.holder_id, (resting.get(flight.holder_id) ?? 0) + 1);
     return {
       system: { unread: systemUnread },
       chats: chats.map((chat) => {
@@ -227,7 +229,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           isContact: contact !== undefined,
           lastActivityAt: chat.last_activity_at,
           unread: chat.unread,
-          owlResting: resting.has(chat.peer_id),
+          owlsResting: resting.get(chat.peer_id) ?? 0,
         };
       }),
     };
@@ -559,11 +561,21 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     };
   });
 
-  /** v0.7.2: own owls back home that the app has not shown yet (overlay, SPEC 8.4, 9.2.6). */
+  /**
+   * v0.7.2: own owls back home that the app has not shown yet (overlay, SPEC 8.4, 9.2.6) – v1.4
+   * also owls that flew off into freedom (`kind` freedom, shown with their freedom picture).
+   */
   app.get('/api/homecomings', { preHandler: authenticated }, async (request) => ({
     homecomings: ctx.db
-      .all<{ id: string; owl_name: string; species: string; letters: number; created_at: number }>(
-        'SELECT id, owl_name, species, letters, created_at FROM homecomings WHERE user_id = ? ORDER BY created_at, id',
+      .all<{
+        id: string;
+        owl_name: string;
+        species: string;
+        letters: number;
+        created_at: number;
+        kind: 'home' | 'freedom';
+      }>(
+        'SELECT id, owl_name, species, letters, created_at, kind FROM homecomings WHERE user_id = ? ORDER BY created_at, id',
         userOf(request).id,
       )
       .map((row) => ({
@@ -572,6 +584,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         species: row.species,
         letters: row.letters,
         at: row.created_at,
+        kind: row.kind,
       })),
   }));
 

@@ -2,7 +2,7 @@
  * Energy, feeding, petting and the care mask (SPEC 9.3). Energy is stored with decimals
  * together with the time it was last set and computed on reading.
  */
-import { OWL, TIME } from '../constants.ts';
+import { MENAGERIE, OWL, TIME } from '../constants.ts';
 import type { Species } from '../species.ts';
 
 export interface StoredEnergy {
@@ -54,6 +54,14 @@ export function startEnergy(species: Species, random: number): number {
   const share =
     OWL.START_ENERGY_MIN_SHARE + (OWL.START_ENERGY_MAX_SHARE - OWL.START_ENERGY_MIN_SHARE) * random;
   return Math.round(species.maxEnergy * share * 100) / 100;
+}
+
+/** Start energy of a loan owl of the post office: 75–100 % of the maximum (9.6); `share` in [0, 1). */
+export function loanStartEnergy(species: Species, share: number): number {
+  const part =
+    MENAGERIE.LOAN_START_ENERGY_MIN_SHARE +
+    (MENAGERIE.LOAN_START_ENERGY_MAX_SHARE - MENAGERIE.LOAN_START_ENERGY_MIN_SHARE) * share;
+  return Math.round(species.maxEnergy * part * 100) / 100;
 }
 
 function dayNumber(day: string): number {

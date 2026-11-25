@@ -71,10 +71,14 @@ export function interact(
   }
 }
 
-/** Every night at 00:00 UTC every owl of the players loses 0.1 motivation (v0.5). */
+/**
+ * Every night at 00:00 UTC every owl of the players loses 0.1 motivation (v0.5) – v1.4 not while
+ * its player is on holiday (9.12).
+ */
 export function motivationNight(ctx: Context): void {
   ctx.db.run(
-    "UPDATE owls SET motivation = MAX(?, motivation - ?) WHERE kind != 'bot'",
+    `UPDATE owls SET motivation = MAX(?, motivation - ?)
+      WHERE kind != 'bot' AND owner_id NOT IN (SELECT user_id FROM vacations WHERE state = 'active')`,
     MOTIVATION.MIN,
     MOTIVATION.STEP,
   );

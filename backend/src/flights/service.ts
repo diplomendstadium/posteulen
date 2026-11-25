@@ -23,6 +23,8 @@ import { speciesById } from '@posteulen/shared/game/owls.ts';
 import { isDay } from '@posteulen/shared/game/sun.ts';
 import { isLandAnywhere } from '@posteulen/shared/map/landmask.ts';
 import { backHome } from '../owls/care.ts';
+import { resetIdle, toPeople } from '../owls/boredom.ts';
+import { sendOwlsOnVacation } from '../owls/vacation.ts';
 import type { Context } from '../context.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
@@ -542,6 +544,17 @@ function arriveHome(
       flight.owl_id,
     );
     backHome(ctx, flight.owl_id, at);
+    // v1.4: home from people – it starts counting again (9.2.9).
+    const route = routeOf(flight);
+    if (
+      toPeople(
+        ctx,
+        route
+          .filter((visit) => visit.type === 'deliver' && visit.status === 'done')
+          .map((visit) => visit.userId),
+      )
+    )
+      resetIdle(ctx, flight.owl_id, at);
   }
   if (flight.gold_state === 'returning') {
     // v1.3.1: gold a privileged player sent for free is not refunded (SPEC 9.1.7).
@@ -577,6 +590,8 @@ function arriveHome(
       // Eggs or a sickness rolled during the flight (9.8, 9.9).
       afterReturnHome(ctx, flight.owl_id, at, after);
     }
+    // v1.4: home during a holiday – on to the island (9.12).
+    sendOwlsOnVacation(ctx, flight.holder_id, at, after);
   }
   after(() => ctx.hub.notify(flight.holder_id, 'owls', 'profile', 'map', 'chats'));
 }
@@ -706,6 +721,9 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       chick && image ? `${image}:chick` : image,
     );
     push = chick ? 'chick_gift' : 'owl_gift';
+    // v1.4: a new owner – it starts counting afresh; during a holiday on to the island.
+    resetIdle(ctx, flight.owl_id, at);
+    sendOwlsOnVacation(ctx, recipient, at, after);
     after(() => ctx.hub.notify(recipient, 'owls'));
   }
   // v1.2.4: a letter whose owl rests with the recipient is one push for both.

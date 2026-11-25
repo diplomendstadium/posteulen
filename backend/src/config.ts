@@ -23,6 +23,14 @@ export interface Config {
    */
   readonly torOrigin: string | undefined;
   readonly torPort: number;
+  /**
+   * v1.4: the admin panel and the bots control centre each have an onion address of their own
+   * (SPEC 4.3, 16.5): their APIs also answer on a local Tor listener with this origin.
+   */
+  readonly adminTorOrigin: string | undefined;
+  readonly adminTorPort: number;
+  readonly botsTorOrigin: string | undefined;
+  readonly botsTorPort: number;
   /** v0.9: the Tor switch of the admin panel, mirrored for the root helper (SPEC 16.5). */
   readonly torSwitchFile: string;
   /** v1.2.1: measurements of posteulen-stats.timer for the server dashboard (SPEC 13 item 13). */
@@ -71,8 +79,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const botsOrigin =
     env['POSTEULEN_BOTS_ORIGIN'] ?? (domain ? `https://bots.${domain}` : undefined);
   const onion = readOnion(env['POSTEULEN_ONION']);
-  // The local preview simulates the onion site on another local address (never on servers).
+  const adminOnion = readOnion(env['POSTEULEN_ONION_ADMIN']);
+  const botsOnion = readOnion(env['POSTEULEN_ONION_BOTS']);
+  // The local preview simulates the onion sites on other local addresses (never on servers).
   const torOrigin = env['POSTEULEN_TOR_ORIGIN'] ?? (onion ? `http://${onion}` : undefined);
+  const adminTorOrigin =
+    env['POSTEULEN_ADMIN_TOR_ORIGIN'] ?? (adminOnion ? `http://${adminOnion}` : undefined);
+  const botsTorOrigin =
+    env['POSTEULEN_BOTS_TOR_ORIGIN'] ?? (botsOnion ? `http://${botsOnion}` : undefined);
   if (userOrigin === undefined || adminOrigin === undefined || botsOrigin === undefined) {
     throw new Error('POSTEULEN_DOMAIN (oder alle drei Origins) muss gesetzt sein.');
   }
@@ -90,6 +104,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     botsPort: readPort(env['POSTEULEN_BOTS_PORT'], 3003),
     torOrigin: torOrigin === undefined ? undefined : new URL(torOrigin).origin,
     torPort: readPort(env['POSTEULEN_TOR_PORT'], 3004),
+    adminTorOrigin: adminTorOrigin === undefined ? undefined : new URL(adminTorOrigin).origin,
+    adminTorPort: readPort(env['POSTEULEN_ADMIN_TOR_PORT'], 3008),
+    botsTorOrigin: botsTorOrigin === undefined ? undefined : new URL(botsTorOrigin).origin,
+    botsTorPort: readPort(env['POSTEULEN_BOTS_TOR_PORT'], 3009),
     torSwitchFile: path.join(dataDir, 'tor-switch'),
     serverLoadFile: path.join(dataDir, 'server-load'),
     logLevel: env['POSTEULEN_LOG_LEVEL'] ?? 'info',

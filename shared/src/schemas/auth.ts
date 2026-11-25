@@ -125,7 +125,17 @@ export const ErrorLogUpdate = v.strictObject({
 });
 
 /** v0.9: switch the onion service on or off (admin panel, SPEC 13 item 9). */
-export const TorUpdate = v.strictObject({ enabled: v.boolean() });
+/** The Tor switches (SPEC 13 item 9): the whole service, and v1.4 the admin and bots onion sites. */
+export const TorUpdate = v.pipe(
+  v.strictObject({
+    enabled: v.optional(v.boolean()),
+    admin: v.optional(v.boolean()),
+    bots: v.optional(v.boolean()),
+  }),
+  v.check(
+    (body) => body.enabled !== undefined || body.admin !== undefined || body.bots !== undefined,
+  ),
+);
 
 export const AccountDelete = v.strictObject({ token: Id });
 
