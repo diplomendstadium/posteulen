@@ -77,7 +77,19 @@ onion_keys_saved() {
     cmp -s /etc/posteulen/onion/hs_ed25519_secret_key /var/lib/tor-instances/posteulen/onion/hs_ed25519_secret_key
 }
 onion_local() { curl -s --max-time 10 -H "Host: $(onion)" http://127.0.0.1:3005/api/health | grep -q '"status":"ok"'; }
-onion_loopback_only() { ! ss -Hltn | grep -E ':300[45] ' | grep -vq '127.0.0.1'; }
+# v1.4: eigene Onion-Adressen für Adminpanel und Bots-Kontrollzentrum (SPEC 16.5).
+has_panel_onions() { grep -q 'PE_ONION_KEYS_ADMIN' /opt/posteulen/current/deploy/lib.sh 2>/dev/null; }
+onion_of() { tr -d '[:space:]' <"/etc/posteulen/onion-$1/hostname" 2>/dev/null; }
+panel_onion_local() {
+  local port=3006
+  [[ $1 == bots ]] && port=3007
+  curl -s --max-time 10 -H "Host: $(onion_of "$1")" "http://127.0.0.1:$port/api/health" | grep -q "\"api\":\"$1\""
+}
+panel_keys_saved() {
+  [[ $(stat -c '%a %U' "/etc/posteulen/onion-$1") == '700 root' ]] &&
+    cmp -s "/etc/posteulen/onion-$1/hs_ed25519_secret_key" "/var/lib/tor-instances/posteulen/onion-$1/hs_ed25519_secret_key"
+}
+onion_loopback_only() { ! ss -Hltn | grep -E ':300[4-9] ' | grep -vq '127.0.0.1'; }
 onion_location() {
   curl -s --insecure -o /dev/null -D - --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/" | grep -qi "^onion-location: http://$(onion)/"
 }
@@ -108,6 +120,11 @@ tor_checks() {
   check "Tor-Instanz läuft ($1)" tor_running
   check "Onion-Adresse unverändert ($1)" test "$(onion)" = "$onion_before"
   check "Onion-Seite antwortet lokal ($1)" onion_local
+  if [[ -n $admin_onion_before ]] && has_panel_onions; then
+    check "Onion-Adressen von Adminpanel und Kontrollzentrum unverändert ($1)" \
+      test "$(onion_of admin) $(onion_of bots)" = "$admin_onion_before $bots_onion_before"
+    check "Onion-Seite des Adminpanels antwortet lokal ($1)" panel_onion_local admin
+  fi
 }
 account_registered=0
 wait_delivered() {
@@ -211,6 +228,8 @@ if [[ -f /etc/systemd/system/posteulen-stats.timer ]]; then
 fi
 check "systemd-Härtung (Bewertung ≤ 2,5)" hardening_score
 onion_before=''
+admin_onion_before=''
+bots_onion_before=''
 if has_tor_support; then
   echo "── 1a. Onion-Dienst (v0.9, SPEC 16.5)"
   check "Tor-Instanz tor@posteulen läuft" tor_running
@@ -224,6 +243,19 @@ if has_tor_support; then
   check "Onion-Location auf der normalen Seite" onion_location
   check "Footer-Link nennt die Onion-Adresse" footer_link
   check "Service-Umgebung kennt die Onion-Adresse" grep -qx "POSTEULEN_ONION=$onion_before" /etc/posteulen/service.env
+  if has_panel_onions; then
+    echo "── 1b. Adminpanel und Bots-Kontrollzentrum im Tor-Netz (v1.4)"
+    check "Onion-Adresse des Adminpanels (v3) vorhanden" bash -c "[[ \$(tr -d '[:space:]' </etc/posteulen/onion-admin/hostname) =~ ^[a-z2-7]{56}\\.onion\$ ]]"
+    check "Onion-Adresse des Kontrollzentrums (v3) vorhanden" bash -c "[[ \$(tr -d '[:space:]' </etc/posteulen/onion-bots/hostname) =~ ^[a-z2-7]{56}\\.onion\$ ]]"
+    admin_onion_before=$(onion_of admin)
+    bots_onion_before=$(onion_of bots)
+    check "Drei verschiedene Onion-Adressen" bash -c "[[ \$(printf '%s\\n' '$onion_before' '$admin_onion_before' '$bots_onion_before' | sort -u | wc -l) == 3 ]]"
+    check "Schlüssel des Adminpanels maßgeblich gesichert" panel_keys_saved admin
+    check "Schlüssel des Kontrollzentrums maßgeblich gesichert" panel_keys_saved bots
+    check "Onion-Seite des Adminpanels antwortet lokal" panel_onion_local admin
+    check "Onion-Seite des Kontrollzentrums antwortet lokal" panel_onion_local bots
+    check "Service-Umgebung kennt beide Adressen" bash -c "grep -qx 'POSTEULEN_ONION_ADMIN=$admin_onion_before' /etc/posteulen/service.env && grep -qx 'POSTEULEN_ONION_BOTS=$bots_onion_before' /etc/posteulen/service.env"
+  fi
   check "www leitet dauerhaft auf die Domain um (308, mit Pfad)" www_redirect
   check "Onion-Adresse über das Tor-Netz erreichbar" onion_over_tor
   echo "   Schalter im Adminpanel: aus (Einstellung in der Datenbank, Neustart gleicht ab)"
@@ -298,7 +330,9 @@ onion_backup_ok() {
   rm -rf /tmp/onion-test && install -d -m 0700 /tmp/onion-test
   age --decrypt --identity /root/posteulen-backup-schluessel.txt --output /tmp/onion-test/onion.tar "$file" || return 1
   tar -x -C /tmp/onion-test -f /tmp/onion-test/onion.tar || return 1
-  cmp -s /tmp/onion-test/onion/hs_ed25519_secret_key /etc/posteulen/onion/hs_ed25519_secret_key
+  cmp -s /tmp/onion-test/onion/hs_ed25519_secret_key /etc/posteulen/onion/hs_ed25519_secret_key &&
+    { [[ ! -d /etc/posteulen/onion-admin ]] ||
+      cmp -s /tmp/onion-test/onion-admin/hs_ed25519_secret_key /etc/posteulen/onion-admin/hs_ed25519_secret_key; }
   local result=$?
   rm -rf /tmp/onion-test
   return $result
@@ -380,6 +414,10 @@ new_backup_readable() {
 check "Neue Sicherungen mit dem bisherigen Schlüssel lesbar" new_backup_readable
 if [[ -n $onion_before ]]; then
   check "Neuer Server behält die Onion-Adresse" test "$(onion)" = "$onion_before"
+  if [[ -n $admin_onion_before ]]; then
+    check "Neuer Server behält die Onion-Adressen von Adminpanel und Kontrollzentrum" \
+      test "$(onion_of admin) $(onion_of bots)" = "$admin_onion_before $bots_onion_before"
+  fi
   check "Tor läuft auf dem neuen Server" tor_running
   check "Onion-Seite antwortet auf dem neuen Server" onion_local
 fi
