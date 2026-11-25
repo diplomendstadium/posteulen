@@ -36,7 +36,7 @@ PostEulen deliberately sits on the border between game and messenger. The owls a
 
 **Sparing with data from the start:** you need neither your real name nor an email address or phone number. You can play under a pseudonym and choose a fictional home. Using it via a VPN, the Tor network or Tor Browser works too – in Tor Browser at the security level “Standard” (the stricter levels switch off WebAssembly, which the login needs) and without notifications.
 
-**The owls also live in the Tor network:** PostEulen can additionally be reached as an onion service – a hidden owl tower with an entrance of its own. You will find the link “Tor network” on the start page in the bar of links below the sign-in box; if you open PostEulen in the Tor Browser, it even suggests the onion address by itself (“.onion available”). Everything there is as usual: the same account, the same letters, the same owls. You can switch as you like – but you are only ever signed in in one place at a time. Over Tor the server does not even learn your IP address; in return, all Tor users share the limits that protect against overload, as if they were one single visitor. If it gets busy there, a short wait helps. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
+**The owls also live in the Tor network:** PostEulen can additionally be reached as an onion service – a hidden owl tower with an entrance of its own. You will find the link “Tor network” on the start page in the bar of links below the sign-in box; if you open PostEulen in the Tor Browser, it even suggests the onion address by itself (“.onion available”). Everything there is as usual: the same account, the same letters, the same owls. You can switch as you like – but you are only ever signed in in one place at a time. Over Tor the server does not even learn your IP address; in return, all Tor users share the limits that protect against overload, as if they were one single visitor. If it gets busy there, a short wait helps. The admin panel and the bots control centre have onion addresses of their own too; all addresses are listed on the start page under “About this instance”. And the **admin panel** used to run the game server offers no views of player names, contact relationships or letter contents. The only thing it shows in plain text is the feedback on the software that users choose to send in the settings.
 
 So PostEulen is quite suitable as a secure way of communicating – as long as minutes do not matter. What it cannot hide: *who* writes to *whom* and *when*. And anyone holding your unlocked phone can of course read along. That is not the owl’s fault.
 
@@ -58,13 +58,17 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **ASCII art:** if you like drawing pictures with letters, switch on ASCII mode in the settings and send single letters in a typewriter font – for both sides.
 - **Gifts among the active:** gold and owls can only be given away by active players, once every two weeks.
 - **A pouch full of biscuits:** if a bot puts owl biscuits or treats into a letter for you (or you redeem a voucher for them), they go into your pouch. While there is something in it, feeding and treats cost nothing – every owl likes the treats. The post office, “My owls” and the rescue centre show at the top what is still in it.
-- **Tidy buttons:** the buttons under an owl form a neat block across the whole width; what has already been done today is simply crossed out.
+- **Tidy buttons:** the buttons under an owl form a neat block across the whole width – and only those that work right now are there. Whatever has already been done today or is not allowed at the moment disappears until it is possible again.
 - **Long correspondences in the cellar:** from 30 letters on, a correspondence first shows the latest 25 (and all unread ones); at the very top, “Search the cellar for older letters” brings up the rest. This also applies to the system messages and the bots.
 - **Help at hand:** the question mark at the top right next to the flag leads to the help, the on/off button next to it signs you out after asking; it is also at the very bottom of the settings and in your letters with the Explainer Bear. Large numbers have thousands separators.
 - **Something not working?** At the very bottom of the settings you send the admin of your instance a short message – for problems and ideas.
 - **Owls take a rest:** when writing, you choose how long the owl stays with each recipient (not at all, 1, 2, 6, 12, 24 or 48 hours; preselected 2 hours with your own owls, 24 with loan owls). There it may be pampered and takes a reply back to you – with a reply on board it flies on at once. In the recipient’s conversations a little owl symbol stands behind your name; they can also send it on earlier without a letter.
 - **Notifications that think along:** if an owl brings you post and rests with you, it announces itself only once. You are also notified when a new contact is connected with you or one of your owls falls ill. Tapping a notification opens the right page, and if one does not get through once, PostEulen tries again later. “New post!” in the bar at the top is only for letters; system messages just show their counter.
-- **Chicks need time:** you have five days for names and the gift before the lot decides. Owls can only be released into the wild while you have more than 20 of your own.
+- **Chicks need time:** you have five days for names and the gift before the lot decides. Owls can be released into the wild once you have more than 5 of your own.
+- **An aviary with room for every species:** everyone can have at most as many owls of their own as there are species (currently 21). Once the aviary is full, no new owls come in – healed wild owls then fly off into freedom, and chicks that hatch are given to friends who still have room.
+- **Owls want to carry letters:** if an owl takes no letter to a person for three weeks, it grows bored and gazes longingly out of the window. If you do not send it off soon after, it flies away – but your last owl always stays.
+- **Helping out at the post office:** your own owls help out at the owl post office for a week (once a quarter) and bring back a little gold. Loan owls arrive well rested, with at least three quarters of their energy.
+- **Holiday mode – a break without drawbacks:** holidays, a trip away or exams? In the settings you send your owls up to three times a year for up to six weeks to the owl care station on the little island of Inchlonaig in Loch Lomond. There they are well looked after, do not fall ill and do not get bored; all of them are home again exactly when it ends. You need not sign in during that time – your account does not count as inactive. On the map you see them fly there and back.
 - **Links as you like:** a switch in the settings decides whether links in letters can be clicked.
 - **German or English:** a little flag in the top right corner switches the whole app to English (and back). Accounts remember their language; the pen friends then write in English too.
 - **PostEulen is free** – no adverts, no paywall. Every five weeks a small system message asks, with a wink, for a voluntary donation via [ko-fi.com/posteulen](https://ko-fi.com/posteulen); the “Donate” link is also at the bottom of the start page. Nobody has to, everybody may. Why it still helps is explained below under “Who pays for all this?”.
@@ -76,6 +80,7 @@ PostEulen is also a great way to introduce children gently to messengers:
 - **No pull, no constant availability.** Letters take hours to arrive. Nobody waits for an instant reply, and there is nothing that tempts you to keep checking – the owl arrives when it arrives.
 - **No phone of their own needed.** PostEulen runs in an ordinary web browser – also on a parent’s phone, tablet or computer. The child signs in there with their own account and signs out again afterwards; they do not need a smartphone of their own.
 - **No strangers.** Only people who have entered each other with the exact name in the address book can write. There is no search for other users, and requests from strangers are invisible. This way parents keep track of who can write to their child.
+- **Breaks without drawbacks.** When holidays or exams come up, you switch on holiday mode: the owls relax for up to six weeks at an owl care station on a Scottish island, and nobody has to sign in meanwhile. And in general, PostEulen is built with few buttons and no pull – the letter is at the centre, not the game.
 - **Easy on the eyes.** PostEulen is designed to work perfectly in the device’s greyscale mode, so the colourful overload can simply be switched off – pleasant for children in particular.
 - **No real money.** PostEulen has no in-app purchases and no other way of spending real money. Every player automatically receives the in-game currency, gold, as a gift every day – owls, food and parchment are paid for with it alone. It is never about real money; the voluntary donation to the operators happens outside the app and gives nothing in the game.
 - The pen friends – the Explainer Bear and other bots – reply using AI (their letters are not encrypted and are sent to OpenAI to be answered). If you do not want that, remove them in their correspondence – or all at once, for good and for future bots too, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
@@ -116,7 +121,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.3.2** – sign out with an on/off button at the very right of the status bar (it asks first), the gold there shown just as a number; a moon 🌙 from 384,400 km and a crown 👑 from 1,000,000 km instead of the globe; the names of the day’s loan owls stay when the language is switched; long correspondences first show the latest 25 letters, the rest comes with “Search the cellar for older letters”; the start page has the box “About this instance” with figures from the statistics, and through the onion address the phone guide names the normal address; on a computer the cursor is already in the first sign-in field; the Northern Hawk Owl likes frosted cranberries. The update brings a small database migration that runs automatically during the update (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Anhang F).
+Version: **1.4.0** – holiday mode (up to three times a year a break of up to six weeks without drawbacks, the owls relax on the island of Inchlonaig); bored owls that threaten to fly off after three weeks without a letter to a person; at most as many own owls as species; releasing from six owls on; lending to the post office once a quarter; better-rested loan owls; under the owls only buttons that work right now; the door of post office and Menagerie right below the picture; one owl symbol per resting owl; onion addresses of their own for the admin panel and the bots control centre and all six addresses under “About this instance”. The update brings a database migration that runs automatically during the update (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Anhang F).
 
 **In short**
 
@@ -172,13 +177,13 @@ The script only asks what is necessary. All questions can also be answered with 
    | `/var/backups/posteulen` | encrypted backups |
    | `/etc/posteulen` | configuration and secrets file |
    | `/etc/posteulen/local` | your own adjustments (never overwritten) |
-   | `/etc/posteulen/onion` | keys of the onion address (never overwritten) |
+   | `/etc/posteulen/onion`, `onion-admin`, `onion-bots` | keys of the onion addresses of app, admin panel and control centre (never overwritten) |
 
    Before building, it checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
 
    Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database, sets up the onion service (see [section 3b](#3b-the-tor-network)) and writes the Caddyfile (with `www.posteulen.de` as a redirect if `www` points to the server in DNS), the hardened systemd service `posteulen` and the backup timer.
 5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work. It also checks every host name over **every** IPv4 and IPv6 address of the server with a valid certificate and compares the A and AAAA records with the server’s addresses. If a certificate is missing (for example after a new AAAA record), it nudges Caddy to fetch it; whatever is still missing then is reported as a warning. So if you later give the server an IPv6 address and the matching AAAA records, the next update or another run of `install.sh` is all it takes. It also checks `www.posteulen.de` (if it is in DNS) and reports when a name lacks its A or AAAA record although the server has a public IPv4 or IPv6 address. Afterwards it checks the onion address locally and once through the Tor network.
-6. At the end it shows a summary (with the onion address) and a big note about backups. **Everything that is not right but does not prevent operation** (DNS, IPv4/IPv6, www, Tor) is listed once more at the very end in a yellow box “ACHTUNG – bitte prüfen”. The installation still runs to the end. If you add `www` to DNS only later, run `sudo /opt/posteulen/current/deploy/configure.sh` afterwards.
+6. At the end it shows a summary (with the onion addresses) and a big note about backups. **Everything that is not right but does not prevent operation** (DNS, IPv4/IPv6, www, Tor) is listed once more at the very end in a yellow box “ACHTUNG – bitte prüfen”. The installation still runs to the end. If you add `www` to DNS only later, run `sudo /opt/posteulen/current/deploy/configure.sh` afterwards.
 
 > [!CAUTION]
 > **Back up the file `/etc/posteulen/secrets.json` outside the server immediately** (e.g. with scp to your own computer, and keep it encrypted there):
@@ -227,21 +232,22 @@ At `https://bots.posteulen.de` you create pen friends for all players. It is com
 
 ### 3b. The Tor network
 
-PostEulen can be reached as an **onion service** in parallel to the domain – the same app with the same accounts, letters and game states. This is set up automatically with every installation and every update, also afterwards on older installations:
+PostEulen can be reached as an **onion service** in parallel to the domain – the same app with the same accounts, letters and game states. The admin panel and the bots control centre each have an **onion address of their own** in the same Tor service. This is set up automatically with every installation and every update, also afterwards on older installations:
 
 - **Tor** comes as a Debian package and runs as an instance of its own, `tor@posteulen` (configuration `/etc/tor/instances/posteulen/torrc`, written anew with every update). If PostEulen installed Tor itself, it switches off the Tor client that would otherwise run as well (`tor@default`).
-- **The onion address never changes.** Its keys live authoritatively in `/etc/posteulen/onion` and are part of every backup (`posteulen-onion-…tar.age`). Reinstalling, updates and rollbacks leave them alone; a new server gets the same address with the keys put back ([section 5](#5-backups-and-restoring)).
-- **No HTTPS over Tor – on purpose:** Tor encrypts and authenticates the connection itself. The onion site therefore speaks `http://…onion` to a Caddy listener that only listens on `127.0.0.1:3005`; its API requests go to a separate, likewise local-only entrance of the backend (`127.0.0.1:3004`). No port needs to be opened.
-- **Limits without lock-outs:** over Tor the server cannot tell visitors apart. So that nobody can lock everybody else out, every sign-in over Tor needs the small proof-of-work puzzle (the device solves it by itself) instead of a shared waiting time; expensive actions of signed-in accounts count per account. Only for registration do all Tor users together count as one single IP address (at most 5 new accounts per hour for all of them together). The protection against password guessing (waiting time per name) is the same as on the clearnet. On top come Tor’s own protections (a proof-of-work puzzle when busy, limits per connection).
+- **The onion addresses never change.** Their keys live authoritatively in `/etc/posteulen/onion` (app), `/etc/posteulen/onion-admin` and `/etc/posteulen/onion-bots` and are part of every backup (`posteulen-onion-…tar.age`). Reinstalling, updates and rollbacks leave them alone; a new server gets the same address with the keys put back ([section 5](#5-backups-and-restoring)).
+- **No HTTPS over Tor – on purpose:** Tor encrypts and authenticates the connection itself. The onion site therefore speaks `http://…onion` to a Caddy listener that only listens on `127.0.0.1:3005`; its API requests go to a separate, likewise local-only entrance of the backend (`127.0.0.1:3004`). The admin panel and the control centre likewise on `127.0.0.1:3006` and `3007` (API `3008` and `3009`). Your own rules in `/etc/posteulen/local/admin-*.caddy` or `bots-*.caddy` (say, an IP allow-list) apply to their onion sites too – over Tor Caddy only sees `127.0.0.1`, so an allow-list shuts Tor out. No port needs to be opened.
+- **Limits without lock-outs:** over Tor the server cannot tell visitors apart. So that nobody can lock everybody else out, every sign-in over Tor needs the small proof-of-work puzzle (the device solves it by itself) instead of a shared waiting time; expensive actions of signed-in accounts count per account. Only for registration do all Tor users together count as one single IP address (at most 5 new accounts per hour for all of them together). The protection against password guessing (waiting time per name) is the same as on the clearnet; for the admin panel and the control centre failed attempts over Tor count separately, so nobody in the Tor network can block signing in on the web. On top come Tor’s own protections (a proof-of-work puzzle when busy, limits per connection).
 - **One session per account** applies to the whole instance: signing in over Tor signs you out on the clearnet and vice versa.
 - The start page shows the link **“Tor network”** as soon as everything runs. The normal site sends the Tor Browser the `Onion-Location` hint so that it offers the onion address by itself.
-- **Switching off:** in the admin panel under “Tor network (onion service)”. The switch stops Tor on the server within a few seconds (it stays off after a reboot too) and removes the link and the hint; the normal site keeps running. Switching on restores everything with the same address.
+- **Switching off:** in the admin panel under “Tor network (onion service)”. The switch stops Tor on the server within a few seconds (it stays off after a reboot too) and removes the link and the hint; the normal site keeps running. Switching on restores everything with the same address. The onion sites of the admin panel and the control centre each have a switch of their own there; switched off they no longer answer, and their link under “About this instance” disappears.
 - **Errors** of Tor appear in the error log of the admin panel (component “Tor”); the normal site always keeps running. On the server:
 
   ```bash
   systemctl status tor@posteulen
   journalctl -u tor@posteulen -n 50
-  sudo cat /etc/posteulen/onion/hostname      # the onion address
+  sudo cat /etc/posteulen/onion/hostname      # the onion address of the app
+  sudo cat /etc/posteulen/onion-admin/hostname /etc/posteulen/onion-bots/hostname
   ```
 
 ### 4. Functional test
@@ -264,7 +270,7 @@ Bots control centre: sign in, create a bot, set home and owl, activate it and pl
 
   Keep them there for at most 7 days as well (`rsync --delete` takes care of that).
 - Keep the secrets file and the private backup key safe and separate, once.
-- Every backup also stores `posteulen-onion-…tar.age`: the keys of the onion address, encrypted with the same backup key. With them a restored server keeps its onion address.
+- Every backup also stores `posteulen-onion-…tar.age`: the keys of the three onion addresses, encrypted with the same backup key. With them a restored server keeps its onion addresses.
 
 **Restore A – on the same server** (e.g. after an operating mistake): continue with step 2 below. The secrets file is still there.
 
@@ -277,7 +283,7 @@ Bots control centre: sign in, create a bot, set home and owl, activate it and pl
    sudo install -m 0600 posteulen-secrets.json /etc/posteulen/secrets.json
    ```
 
-   Do the same with the onion keys so that the new server gets the same onion address:
+   Do the same with the onion keys so that the new server gets the same onion addresses:
 
    ```bash
    sudo age --decrypt --identity posteulen-backup-schluessel.txt posteulen-onion-YYYYMMDDTHHMMSSZ-taeglich.tar.age \
@@ -332,7 +338,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.3.2      # installs a particular version
+sudo posteulen-update v1.4.0      # installs a particular version
 ```
 
 Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.

@@ -1,7 +1,7 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 1.3.2 (2026-11-24). Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
-> `npm audit` vom 2026-11-18: Laufzeit-Abhängigkeiten **0 Funde**. Entwicklungs-Abhängigkeiten: 2 niedrige Funde (`deepmerge` über `@sveltejs/vite-plugin-svelte`) und 14 hohe, alle aus **einem** neuen Hinweis zu `picomatch` 4.0.7 (über `vite`, `vitest`, `svelte-check`, `typescript-eslint`; siehe unten). Für beide gibt es noch keine korrigierte Version. Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
+> Stand: Version 1.4.0 (2026-11-25), ohne neue Abhängigkeiten. Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> `npm audit` vom 2026-11-25: **0 Funde** (Laufzeit- und Entwicklungs-Abhängigkeiten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
 ## Laufzeit – Backend
@@ -96,11 +96,9 @@ Die Liste wird im Browser nur beim Erstellen eines Kontos und beim Passwortwechs
 | `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
 | `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |
 
-## Bekannte Funde (`npm audit`, 2026-11-18)
+## Bekannte Funde (`npm audit`, Stand 2026-11-25: keine offenen)
 
 | Paket | Schwere | Advisory | Weg | Bewertung |
 |---|---|---|---|---|
 | `minimatch` 10.2.6 | mittel | GHSA-g3hv-75wg-m249 (DoS bei Glob-Mustern) | eslint, typescript-eslint (nur Entwicklung) | **Behoben:** per `overrides` auf 11.0.4 (`package.json`) |
-| `deepmerge` 4.3.1 | niedrig | GHSA-gcqx-w48m-w2h4 (Prototype Poisoning) | `@sveltejs/vite-plugin-svelte` (nur Build) | Keine korrigierte Version verfügbar; verarbeitet nur eigene Build-Konfiguration, keine fremden Eingaben |
-| `picomatch` 4.0.7 | hoch | GHSA-fc5q-39xc-vjpf (ReDoS bei wiederholten Extglobs) | `vite`, `tinyglobby`, `fdir` (`svelte-check`), `vitest`, `@typescript-eslint/typescript-estree` (nur Entwicklung und Build) | 4.0.7 ist die neueste Version, eine Korrektur gibt es noch nicht (Stand 2026-11-18). Die Muster stammen ausschließlich aus der eigenen Projektkonfiguration, nie aus fremden Eingaben; auf dem Server läuft nur der Build. Aktualisieren, sobald eine korrigierte Version mindestens 14 Tage alt ist (Sicherheitskorrekturen auch früher). |
 | `@serenity-kit/opaque` 1.1.0 | – (kein Advisory) | Changelog 1.1.1 (noch nicht veröffentlicht): Speicherleck im WASM bei Aufrufen mit falsch geformten Parametern; nach einigen tausend Aufrufen bricht die Instanz | Laufzeit | Abgefangen: Jede Eingabe wird vor dem Aufruf strikt per Schema geprüft (Typ, Base64url, exakte Länge); was die Bibliothek trotzdem nicht lesen kann (z. B. kein gültiger Punkt), ergibt seit v0.6.1 `400` statt `500` (`backend/src/auth/opaque-guard.ts`). Gemessen (D-178): 60 000 solche Aufrufe → etwa 20 MB mehr Speicher, die Instanz bleibt funktionsfähig. Auf 1.1.1 wechseln, sobald veröffentlicht (Stand 2026-11-08: neueste Version 1.1.0) |

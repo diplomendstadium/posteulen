@@ -34,7 +34,7 @@ PostEulen bewegt sich bewusst im Grenzbereich zwischen Spiel und Messenger. Die 
 
 **Datensparsam von Anfang an:** Du brauchst weder einen Klarnamen noch eine E-Mail-Adresse oder Telefonnummer. Du kannst unter einem Pseudonym spielen und einen fiktiven Wohnort wählen. Auch eine Nutzung über VPN, das Tor-Netz oder den Tor-Browser ist möglich – im Tor-Browser auf der Sicherheitsstufe „Standard“ (die strengeren Stufen schalten WebAssembly ab, das die Anmeldung braucht) und ohne Benachrichtigungen.
 
-**Die Eulen wohnen auch im Tor-Netz:** PostEulen ist zusätzlich als Onion-Dienst erreichbar – ein verborgener Eulenturm mit eigenem Eingang. Den Link „Tor-Netz“ findest du auf der Startseite in der Linkleiste unter der Anmeldung; öffnest du PostEulen im Tor Browser, schlägt er dir die Onion-Adresse sogar von selbst vor („.onion verfügbar“). Dort ist alles wie gewohnt: dasselbe Konto, dieselben Briefe, dieselben Eulen. Du kannst nach Belieben wechseln – angemeldet bist du aber immer nur an einer Stelle zugleich. Über Tor erfährt der Server nicht einmal deine IP-Adresse; dafür teilen sich alle Tor-Nutzer die Schutzgrenzen gegen Überlastung, als wären sie ein einziger Besucher. Wird es dort eng, hilft kurzes Warten. Und das **Adminpanel**, mit dem der Spieleserver verwaltet wird, bietet keine Ansichten für Spielernamen, Kontaktbeziehungen oder Briefinhalte. Im Klartext zeigt es nur das Feedback zur Software, das Nutzer freiwillig in den Einstellungen einsenden.
+**Die Eulen wohnen auch im Tor-Netz:** PostEulen ist zusätzlich als Onion-Dienst erreichbar – ein verborgener Eulenturm mit eigenem Eingang. Den Link „Tor-Netz“ findest du auf der Startseite in der Linkleiste unter der Anmeldung; öffnest du PostEulen im Tor Browser, schlägt er dir die Onion-Adresse sogar von selbst vor („.onion verfügbar“). Dort ist alles wie gewohnt: dasselbe Konto, dieselben Briefe, dieselben Eulen. Du kannst nach Belieben wechseln – angemeldet bist du aber immer nur an einer Stelle zugleich. Über Tor erfährt der Server nicht einmal deine IP-Adresse; dafür teilen sich alle Tor-Nutzer die Schutzgrenzen gegen Überlastung, als wären sie ein einziger Besucher. Wird es dort eng, hilft kurzes Warten. Auch das Adminpanel und das Bots-Kontrollzentrum haben eigene Onion-Adressen; alle Adressen stehen auf der Startseite unter „Über diese Instanz“. Und das **Adminpanel**, mit dem der Spieleserver verwaltet wird, bietet keine Ansichten für Spielernamen, Kontaktbeziehungen oder Briefinhalte. Im Klartext zeigt es nur das Feedback zur Software, das Nutzer freiwillig in den Einstellungen einsenden.
 
 PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nicht auf Minuten ankommt. Was es nicht verbergen kann: *wer* wem *wann* schreibt. Und wer dein entsperrtes Handy in der Hand hält, kann natürlich mitlesen. Das liegt nicht an der Eule.
 
@@ -56,13 +56,17 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **ASCII-Kunst:** Wer gern Bilder aus Buchstaben malt, schaltet in den Einstellungen den ASCII-Modus ein und kann dann einzelne Briefe in Schreibmaschinenschrift schicken – für beide Seiten.
 - **Geschenke unter Aktiven:** Gold und Eulen verschenken können nur aktive Spieler, und zwar alle zwei Wochen einmal.
 - **Ein Beutel voller Kekse:** Legt dir ein Bot Eulenkekse oder Leckerlis in den Brief (oder löst du einen Gutschein dafür ein), landen sie in deinem Beutel. Solange etwas darin ist, kosten Füttern und Leckerlis nichts – Leckerlis mag jede Eule. Oben im Postamt, bei „Meine Eulen“ und in der Rettungsstation steht, was noch drin ist.
-- **Ordentliche Knöpfe:** Die Knöpfe unter einer Eule bilden einen sauberen Block über die ganze Breite; was heute schon erledigt ist, wird einfach durchgestrichen.
+- **Ordentliche Knöpfe:** Die Knöpfe unter einer Eule bilden einen sauberen Block über die ganze Breite – und es stehen nur die da, die gerade gehen. Was heute schon erledigt oder gerade nicht erlaubt ist, verschwindet, bis es wieder geht.
 - **Lange Briefwechsel im Keller:** Ab 30 Briefen zeigt ein Briefwechsel zuerst die letzten 25 (und alle ungelesenen); ganz oben holt „Ältere Briefe im Keller suchen“ den Rest herauf. Das gilt auch für die Systemnachrichten und die Bots.
 - **Hilfe immer zur Hand:** Das Fragezeichen oben rechts neben dem Fähnchen führt zur Hilfe, der Ein-/Aus-Knopf daneben meldet dich nach einer Rückfrage ab; sie steht außerdem ganz unten in den Einstellungen und im Briefwechsel mit dem Erklärbären. Große Zahlen haben Tausenderpunkte.
 - **Klemmt etwas?** Ganz unten in den Einstellungen schickst du dem Admin deiner Instanz eine kurze Nachricht – für Probleme und Ideen.
 - **Eulen machen Rast:** Beim Schreiben wählst du, wie lange die Eule bei jedem Empfänger bleibt (gar nicht, 1, 2, 6, 12, 24 oder 48 Stunden; vorgewählt 2 Stunden mit eigenen Eulen, 24 mit Leiheulen). Dort darf sie verwöhnt werden und nimmt eine Antwort an dich mit – mit Antwort im Gepäck fliegt sie sofort weiter. Beim Empfänger steht im Briefwechsel ein kleines Eulensymbol hinter deinem Namen; er kann sie auch ohne Brief früher weiterfliegen lassen.
 - **Benachrichtigungen, die mitdenken:** Bringt eine Eule Post und rastet bei dir, meldet sie sich nur einmal. Benachrichtigt wird auch, wenn ein neuer Kontakt mit dir verbunden ist oder eine deiner Eulen krank wird. Ein Tipp darauf öffnet gleich die passende Seite, und kommt eine Benachrichtigung einmal nicht durch, versucht PostEulen es später noch einmal. „Neue Post!“ oben in der Leiste gibt es nur für Briefe; Systemnachrichten zeigen nur ihren Zähler.
-- **Küken brauchen Zeit:** Für Namen und Geschenk hast du fünf Tage, bevor das Los entscheidet. In die Freiheit entlassen lassen sich Eulen nur, solange man mehr als 20 eigene hat.
+- **Küken brauchen Zeit:** Für Namen und Geschenk hast du fünf Tage, bevor das Los entscheidet. In die Freiheit entlassen lassen sich Eulen ab mehr als 5 eigenen.
+- **Eine Voliere mit Platz für jede Art:** Jeder kann höchstens so viele eigene Eulen haben, wie es Eulenarten gibt (derzeit 21). Ist die Voliere voll, gibt es keine neuen Eulen mehr – geheilte wilde Eulen fliegen dann in die Freiheit, und schlüpfende Küken verschenkt man an Freunde, die noch Platz haben.
+- **Eulen wollen Briefe tragen:** Bringt eine Eule drei Wochen lang keinen Brief zu einem Menschen, langweilt sie sich und schaut sehnsüchtig aus dem Fenster. Wer sie dann nicht bald losschickt, dem fliegt sie davon – die letzte Eule bleibt aber immer.
+- **Aushelfen im Postamt:** Eigene Eulen helfen für eine Woche im Eulenpostamt aus (einmal im Quartal) und bringen dafür etwas Gold mit. Leiheulen kommen gut ausgeruht, mit mindestens drei Vierteln ihrer Energie.
+- **Urlaubsmodus – Pause ohne Nachteile:** Ferien, Urlaub oder eine Prüfungsphase? In den Einstellungen schickst du deine Eulen bis zu dreimal im Jahr für bis zu sechs Wochen in die Eulenpflegestation auf der kleinen Insel Inchlonaig im Loch Lomond. Dort sind sie bestens versorgt, werden nicht krank und langweilen sich nicht; pünktlich zum Ende sind alle wieder zu Hause. In der Zeit musst du dich nicht anmelden – dein Konto gilt nicht als inaktiv. Auf der Karte siehst du sie hin- und zurückfliegen.
 - **Links nach Wunsch:** In den Einstellungen bestimmt ein Regler, ob Links in Briefen anklickbar sind.
 - **Deutsch oder Englisch:** Ein kleines Fähnchen oben rechts stellt die ganze App auf Englisch um (und wieder zurück). Konten merken sich ihre Sprache; auch die Brieffreunde schreiben dann auf Englisch.
 - **PostEulen ist kostenlos** – ohne Werbung, ohne Bezahlschranke. Alle fünf Wochen bittet eine kleine Systemnachricht augenzwinkernd um eine freiwillige Spende über [ko-fi.com/posteulen](https://ko-fi.com/posteulen); der Link „Spenden“ steht auch unten auf der Startseite. Niemand muss, alle dürfen – warum es trotzdem hilft, steht unten unter „Wer bezahlt das eigentlich?“.
@@ -74,6 +78,7 @@ PostEulen eignet sich auch prima, um Kinder behutsam an Messenger heranzuführen
 - **Kein Sog, keine Dauerbereitschaft.** Briefe sind Stunden unterwegs. Niemand wartet auf eine Sofortantwort, und es gibt nichts, das zum ständigen Nachsehen verleitet – die Eule kommt, wann sie kommt.
 - **Kein eigenes Handy nötig.** PostEulen läuft ganz normal im Webbrowser – auch auf dem Handy, Tablet oder Computer der Eltern. Das Kind meldet sich dort mit seinem eigenen Konto an und danach wieder ab; ein eigenes Smartphone braucht es dafür nicht.
 - **Keine Fremden.** Schreiben kann nur, wer sich gegenseitig mit dem genauen Namen im Adressbuch eingetragen hat. Eine Suche nach anderen gibt es nicht, und Anfragen Unbekannter sind unsichtbar. Eltern behalten so den Überblick, wer ihrem Kind schreiben kann.
+- **Pausen ohne Nachteile.** Stehen Ferien, Urlaub oder Prüfungen an, schaltet man den Urlaubsmodus ein: Die Eulen erholen sich bis zu sechs Wochen in einer Eulenpflegestation auf einer schottischen Insel, und niemand muss sich in der Zeit anmelden. Und überhaupt gilt beim Bau von PostEulen: wenige Knöpfe, keine Sogwirkung – der Brief steht im Mittelpunkt, nicht das Spiel.
 - **Ruhig fürs Auge.** PostEulen ist so gestaltet, dass es auch im Graustufenmodus des Geräts tadellos funktioniert. So lässt sich die bunte Reizüberflutung ganz einfach abschalten – angenehm gerade für Kinder.
 - **Kein echtes Geld.** In PostEulen gibt es keine In-App-Käufe und auch sonst keine Möglichkeit, echtes Geld auszugeben. Die Spielwährung Gold bekommt jeder Spieler jeden Tag automatisch geschenkt – Eulen, Futter und Pergament bezahlt man nur damit. Es geht nie um echtes Geld; die freiwillige Spende an die Betreiber läuft außerhalb der App und bringt im Spiel nichts.
 - Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
@@ -112,7 +117,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.3.2** – Abmelden über einen Ein-/Aus-Knopf ganz rechts in der Statusleiste (mit Rückfrage), der Goldstand dort nur noch als Zahl; Mond 🌙 ab 384.400 km und Krone 👑 ab 1.000.000 km statt der Weltkugel; die Namen der Leiheulen des Tages bleiben beim Sprachwechsel; lange Briefwechsel zeigen zuerst die letzten 25 Briefe, der Rest kommt mit „Ältere Briefe im Keller suchen“; auf der Startseite die Box „Über diese Instanz“ mit Zahlen aus der Statistik, und über die Onion-Adresse nennt die Handy-Anleitung die normale Adresse; der Cursor steht am Computer gleich im ersten Anmeldefeld; die Sperbereule mag Moosbeeren. Das Update bringt eine kleine Datenbank-Migration mit, die beim Update automatisch läuft (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.4.0** – Urlaubsmodus (bis zu dreimal im Jahr bis zu sechs Wochen Pause ohne Nachteile, die Eulen erholen sich auf der Insel Inchlonaig); gelangweilte Eulen, die nach drei Wochen ohne Brief zu Menschen davonzufliegen drohen; höchstens so viele eigene Eulen wie Arten; Freilassen ab sechs Eulen; Verleih ans Postamt einmal im Quartal; ausgeruhtere Leiheulen; unter den Eulen nur Knöpfe, die gerade gehen; die Tür von Postamt und Menagerie direkt unter dem Bild; ein Eulensymbol je rastender Eule; eigene Onion-Adressen für Adminpanel und Bots-Kontrollzentrum und alle sechs Adressen unter „Über diese Instanz“. Das Update bringt eine Datenbank-Migration mit, die beim Update automatisch läuft (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -168,13 +173,13 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    | `/var/backups/posteulen` | verschlüsselte Sicherungen |
    | `/etc/posteulen` | Konfiguration und Geheimnis-Datei |
    | `/etc/posteulen/local` | eigene Anpassungen (werden nie überschrieben) |
-   | `/etc/posteulen/onion` | Schlüssel der Onion-Adresse (werden nie überschrieben) |
+   | `/etc/posteulen/onion`, `onion-admin`, `onion-bots` | Schlüssel der Onion-Adressen von App, Adminpanel und Kontrollzentrum (werden nie überschrieben) |
 
    Vor dem Bauen prüft es die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
 
    Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an, richtet den Onion-Dienst ein (siehe [Abschnitt 3b](#3b-das-tor-netz)) und schreibt die Caddyfile (mit `www.posteulen.de` als Weiterleitung, wenn `www` im DNS auf den Server zeigt), den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
 5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren. Es prüft außerdem jeden Hostnamen über **jede** IPv4- und IPv6-Adresse des Servers mit gültigem Zertifikat und vergleicht die A- und AAAA-Einträge mit den Adressen des Servers. Fehlt ein Zertifikat (etwa nach einem neu angelegten AAAA-Eintrag), stößt es Caddy an, es zu holen; was dann noch fehlt, meldet es als Warnung. Hast du dem Server später eine IPv6-Adresse und die passenden AAAA-Einträge gegeben, genügt also das nächste Update oder ein erneuter Lauf von `install.sh`. Es prüft auch `www.posteulen.de` (falls im DNS) und meldet, wenn einem Namen der A- oder AAAA-Eintrag fehlt, obwohl der Server eine öffentliche IPv4- bzw. IPv6-Adresse hat. Danach prüft es die Onion-Adresse lokal und einmal über das Tor-Netz.
-6. Am Ende zeigt es eine Zusammenfassung (mit der Onion-Adresse) und einen großen Hinweis zur Sicherung. **Alles, was nicht stimmt, aber den Betrieb nicht verhindert** (DNS, IPv4/IPv6, www, Tor), steht zum Schluss noch einmal gesammelt in einem gelben Kasten „ACHTUNG – bitte prüfen“. Die Installation läuft trotzdem zu Ende. Wer `www` erst später im DNS einträgt: danach `sudo /opt/posteulen/current/deploy/configure.sh` ausführen.
+6. Am Ende zeigt es eine Zusammenfassung (mit den Onion-Adressen) und einen großen Hinweis zur Sicherung. **Alles, was nicht stimmt, aber den Betrieb nicht verhindert** (DNS, IPv4/IPv6, www, Tor), steht zum Schluss noch einmal gesammelt in einem gelben Kasten „ACHTUNG – bitte prüfen“. Die Installation läuft trotzdem zu Ende. Wer `www` erst später im DNS einträgt: danach `sudo /opt/posteulen/current/deploy/configure.sh` ausführen.
 
 > [!CAUTION]
 > **Die Datei `/etc/posteulen/secrets.json` sofort außerhalb des Servers sichern** (z. B. per scp auf den eigenen Rechner und dort verschlüsselt aufbewahren):
@@ -222,21 +227,22 @@ Unter `https://bots.posteulen.de` legst du Brieffiguren für alle Spieler an. Es
 
 ### 3b. Das Tor-Netz
 
-PostEulen ist parallel zur Domain als **Onion-Dienst** erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Eingerichtet wird das automatisch bei jeder Installation und jedem Update, auch nachträglich auf älteren Installationen:
+PostEulen ist parallel zur Domain als **Onion-Dienst** erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Adminpanel und Bots-Kontrollzentrum haben jeweils eine **eigene Onion-Adresse** im selben Tor-Dienst. Eingerichtet wird das automatisch bei jeder Installation und jedem Update, auch nachträglich auf älteren Installationen:
 
 - **Tor** kommt als Paket aus Debian und läuft als eigene Instanz `tor@posteulen` (Konfiguration `/etc/tor/instances/posteulen/torrc`, wird bei jedem Update neu geschrieben). Hat PostEulen Tor selbst installiert, schaltet es den sonst mitlaufenden Tor-Client (`tor@default`) ab.
-- **Die Onion-Adresse ändert sich nie.** Ihre Schlüssel liegen maßgeblich in `/etc/posteulen/onion` und gehören zu jeder Sicherung (`posteulen-onion-…tar.age`). Erneute Installation, Updates und Rückfälle lassen sie unangetastet; ein neuer Server bekommt mit den zurückgelegten Schlüsseln dieselbe Adresse ([Abschnitt 5](#5-sicherungen-backups-und-wiederherstellung)).
-- **Kein HTTPS über Tor – mit Absicht:** Tor verschlüsselt und authentifiziert die Verbindung selbst. Die Onion-Seite spricht deshalb `http://…onion` mit einem Caddy-Listener, der nur auf `127.0.0.1:3005` lauscht; dessen API-Anfragen gehen an einen eigenen, ebenfalls nur lokalen Eingang des Backends (`127.0.0.1:3004`). Es muss kein Port geöffnet werden.
-- **Limits ohne Aussperren:** Über Tor sieht der Server keine einzelnen Besucher. Damit trotzdem niemand alle anderen aussperren kann, verlangt jede Anmeldung über Tor die kleine Rechenaufgabe (das Gerät löst sie von selbst) statt einer gemeinsamen Wartezeit; teure Aktionen angemeldeter Konten zählen je Konto. Nur bei der Registrierung zählen alle Tor-Nutzer zusammen wie eine einzige IP-Adresse (höchstens 5 neue Konten pro Stunde für alle zusammen). Der Schutz vor Passwort-Raten (Wartezeit je Name) ist derselbe wie im Clearnet. Dazu kommen die Schutzmechanismen von Tor selbst (Rechenaufgabe bei Andrang, Begrenzung je Verbindung).
+- **Die Onion-Adressen ändern sich nie.** Ihre Schlüssel liegen maßgeblich in `/etc/posteulen/onion` (App), `/etc/posteulen/onion-admin` und `/etc/posteulen/onion-bots` und gehören zu jeder Sicherung (`posteulen-onion-…tar.age`). Erneute Installation, Updates und Rückfälle lassen sie unangetastet; ein neuer Server bekommt mit den zurückgelegten Schlüsseln dieselbe Adresse ([Abschnitt 5](#5-sicherungen-backups-und-wiederherstellung)).
+- **Kein HTTPS über Tor – mit Absicht:** Tor verschlüsselt und authentifiziert die Verbindung selbst. Die Onion-Seite spricht deshalb `http://…onion` mit einem Caddy-Listener, der nur auf `127.0.0.1:3005` lauscht; dessen API-Anfragen gehen an einen eigenen, ebenfalls nur lokalen Eingang des Backends (`127.0.0.1:3004`). Adminpanel und Kontrollzentrum ebenso auf `127.0.0.1:3006` bzw. `3007` (API `3008` bzw. `3009`). Eigene Regeln in `/etc/posteulen/local/admin-*.caddy` bzw. `bots-*.caddy` (etwa eine IP-Freigabeliste) gelten auch für deren Onion-Seiten – über Tor sieht Caddy nur `127.0.0.1`, eine Freigabeliste sperrt Tor also aus. Es muss kein Port geöffnet werden.
+- **Limits ohne Aussperren:** Über Tor sieht der Server keine einzelnen Besucher. Damit trotzdem niemand alle anderen aussperren kann, verlangt jede Anmeldung über Tor die kleine Rechenaufgabe (das Gerät löst sie von selbst) statt einer gemeinsamen Wartezeit; teure Aktionen angemeldeter Konten zählen je Konto. Nur bei der Registrierung zählen alle Tor-Nutzer zusammen wie eine einzige IP-Adresse (höchstens 5 neue Konten pro Stunde für alle zusammen). Der Schutz vor Passwort-Raten (Wartezeit je Name) ist derselbe wie im Clearnet; für Adminpanel und Kontrollzentrum zählen Fehlversuche über Tor getrennt, damit niemand im Tor-Netz die Anmeldung im Web blockieren kann. Dazu kommen die Schutzmechanismen von Tor selbst (Rechenaufgabe bei Andrang, Begrenzung je Verbindung).
 - **Eine Sitzung je Konto** gilt für die ganze Instanz: Wer sich über Tor anmeldet, ist im Clearnet abgemeldet und umgekehrt.
 - Auf der Startseite erscheint der Link **„Tor-Netz“**, sobald alles läuft. Die normale Seite sendet dem Tor Browser den Hinweis `Onion-Location`, damit er die Onion-Adresse von selbst anbietet.
-- **Abschalten:** Im Adminpanel unter „Tor-Netz (Onion-Dienst)“. Der Schalter stoppt Tor auf dem Server innerhalb weniger Sekunden (auch nach einem Neustart bleibt es aus), entfernt den Link und den Hinweis; die normale Seite läuft weiter. Einschalten stellt alles mit derselben Adresse wieder her.
+- **Abschalten:** Im Adminpanel unter „Tor-Netz (Onion-Dienst)“. Der Schalter stoppt Tor auf dem Server innerhalb weniger Sekunden (auch nach einem Neustart bleibt es aus), entfernt den Link und den Hinweis; die normale Seite läuft weiter. Einschalten stellt alles mit derselben Adresse wieder her. Die Onion-Seiten von Adminpanel und Kontrollzentrum haben dort je einen eigenen Schalter; abgeschaltet antworten sie nicht mehr, und ihr Link unter „Über diese Instanz“ verschwindet.
 - **Fehler** von Tor stehen im Fehlerprotokoll des Adminpanels (Komponente „Tor“); die normale Seite läuft immer weiter. Auf dem Server:
 
   ```bash
   systemctl status tor@posteulen
   journalctl -u tor@posteulen -n 50
-  sudo cat /etc/posteulen/onion/hostname      # die Onion-Adresse
+  sudo cat /etc/posteulen/onion/hostname      # die Onion-Adresse der App
+  sudo cat /etc/posteulen/onion-admin/hostname /etc/posteulen/onion-bots/hostname
   ```
 
 ### 4. Funktionstest
@@ -259,7 +265,7 @@ Bots-Kontrollzentrum: anmelden, einen Bot anlegen, Wohnort und Eule einstellen, 
 
   Auch dort höchstens 7 Tage aufbewahren (`rsync --delete` erledigt das).
 - Geheimnis-Datei und privaten Backup-Schlüssel einmalig separat und sicher aufbewahren.
-- Jede Sicherung legt zusätzlich `posteulen-onion-…tar.age` ab: die Schlüssel der Onion-Adresse, mit demselben Backup-Schlüssel verschlüsselt. Damit behält ein wiederhergestellter Server seine Onion-Adresse.
+- Jede Sicherung legt zusätzlich `posteulen-onion-…tar.age` ab: die Schlüssel der drei Onion-Adressen, mit demselben Backup-Schlüssel verschlüsselt. Damit behält ein wiederhergestellter Server seine Onion-Adressen.
 
 **Wiederherstellung A – auf demselben Server** (z. B. nach einem Bedienfehler): weiter mit Schritt 2 unten. Die Geheimnis-Datei ist ja noch da.
 
@@ -272,7 +278,7 @@ Bots-Kontrollzentrum: anmelden, einen Bot anlegen, Wohnort und Eule einstellen, 
    sudo install -m 0600 posteulen-secrets.json /etc/posteulen/secrets.json
    ```
 
-   Ebenso die Onion-Schlüssel, damit der neue Server dieselbe Onion-Adresse bekommt:
+   Ebenso die Onion-Schlüssel, damit der neue Server dieselben Onion-Adressen bekommt:
 
    ```bash
    sudo age --decrypt --identity posteulen-backup-schluessel.txt posteulen-onion-JJJJMMTTTHHMMSSZ-taeglich.tar.age \
@@ -327,7 +333,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.3.2      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.4.0      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.

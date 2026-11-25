@@ -3,6 +3,41 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.4.0 – Ferien für die Eulen
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-467 bis D-482).
+
+**Neu:**
+
+- **Urlaubsmodus (Einstellungen):** bis zu 3 Urlaube je Kalenderjahr, je 1 Tag bis 6 Wochen, sofort oder bis 3 Monate im Voraus (geplante lassen sich absagen und zählen dann nicht). Alle eigenen Eulen samt Küken fliegen direkt zur Eulenpflegestation auf der Insel Inchlonaig im Loch Lomond und sind genau zum Ende wieder zu Hause; Nachzügler folgen, sobald sie frei sind; vorzeitiges Ende schickt alle sofort heim; ein Umzug lenkt die Reise um. Während des Urlaubs keine Inaktivität, keine Krankheit, keine Langeweile, kein Motivationsverlust. Hinweis oben in der App, Reise auf Eulenkarten und Karte (Insel mit Anzahl). Infotext der Startseite, Hilfe, FAQ und README erklären die Pause ohne Nachteile.
+- **Gelangweilte Eulen:** Eine eigene erwachsene Eule, die 21 Tage lang nicht von einem Flug zu einem Menschen heimkommt (krank, brütend, verliehen und im Urlaub zählt nicht), langweilt sich: Systemnachricht und neues Bild „Langeweile“ bis zum nächsten Abflug zu Menschen. Nach 7 weiteren Tagen fliegt sie für immer in die Freiheit (Systemnachricht und einmal das neue Bild „Frei“). Die letzte erwachsene Eule haut nie ab.
+- **Höchstzahl eigener Eulen = Zahl der Arten (21):** dann kein Kauf, kein Geschenk, kein Gutschein für eine Eule, Eulen von Bots und geheilte wilde Eulen der Rettungsstation fliegen in die Freiheit, schlüpfende Küken müssen alle verschenkt werden (an Kontakte mit Platz, sonst bleiben sie); wöchentliche Systemnachricht. Wer schon mehr hatte, behält alle.
+- **Tor für Adminpanel und Bots-Kontrollzentrum:** je eine eigene, dauerhafte Onion-Adresse im selben Tor-Dienst, mit eigenen Schaltern im Adminpanel, Cookies ohne Secure, Rechenaufgabe bei jeder Anmeldung und eigener Wartezeit nach Fehlversuchen (blockiert nie die Anmeldung im Web).
+- **„Über diese Instanz“:** die sechs Adressen (Startseite, Adminpanel, Kontrollzentrum – im Web und im Tor-Netz).
+- **Leitprinzip „Kein Sog“** in SPEC 2.5 und PROMPT.
+
+**Geändert:**
+
+- **Knöpfe unter Eulen:** was gerade nicht geht, wird ausgeblendet statt ausgegraut und durchgestrichen (eigene Eulen, Gast-Eulen, Rettungsstation); die Geschenkregel steht einmal über den Karten.
+- **Verleih:** an das Eulenpostamt statt an die Menagerie („An das Postamt verleihen“), je Eule einmal pro Kalenderquartal.
+- **Freilassen** schon ab mehr als 5 eigenen Eulen (bisher 20).
+- **Leiheulen** starten mit 75–100 % ihrer Energie (bisher 60–100 %).
+- **Postamt und Menagerie:** Knopf zum Eintreten direkt unter dem Bild, Einleitung darunter.
+- **Chatliste:** ein 🦉 je rastender Eule eines Kontakts (`owlsResting` statt `owlResting`).
+- **„Weiterfliegen lassen“** zeigt das Bild der Gast-Eule, wie sie ohne Brief davonfliegt.
+- Update-Nachricht, Hilfe, Erklärbär-Wissen und -Briefe, Startseite, Datenschutzerklärung (Urlaubszeiten), README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; die gelieferten Ordner „Eulen fliegen in die Freiheit“ und „gelangweilte Eulen“ sind eingepflegt und gelöscht.
+
+**Tests:** `shared/test/v140.test.ts`, `backend/test/v140.test.ts`, `e2e/v140.spec.ts`, VM-Szenario mit den Onion-Adressen von Adminpanel und Kontrollzentrum; angepasst u. a. `backend/test/owls.test.ts`, `v02.test.ts`, `v03.test.ts`, `v085.test.ts`, `v090.test.ts`, `v100.test.ts`, `v130.test.ts`, `v131.test.ts`, `v132.test.ts`, `shared/test/constants.test.ts`, `game.test.ts`, `e2e/owls.spec.ts`, `stage4.spec.ts`, `v03.spec.ts`, `v0100.spec.ts`, `v130.spec.ts`.
+
+### Hinweise für Betreiber
+
+- **Migration `0026_v140.sql`** (Schema-Version 26): baut die Tabelle `owls` neu auf (neuer Zustand `vacation`; alle abhängigen Daten – Pflegetage, Abwesenheiten, Rettungsfälle, Flüge – bleiben erhalten), neue Spalten für Leerlauf, Langeweile und Verleih-Quartal, neue Tabellen `vacations` und `owl_vacations`, neue Spalten `users.idle_ref`, `users.owl_limit_notice_at`, `clutches.gift_all`, `homecomings.kind`. Sie läuft beim Update automatisch; das Update legt vorher wie immer eine Sicherung an.
+- **Neuer täglicher Job** `boredom` (06:00 UTC: Langeweile und wöchentliche Nachricht zur Höchstzahl) und neue Ereignisse `vacation_start`, `vacation_end`, `vacation_owl_home`.
+- **Tor:** Das Update richtet zwei weitere Onion-Dienste ein (Adminpanel, Kontrollzentrum). Ihre Schlüssel liegen dauerhaft in `/etc/posteulen/onion-admin` und `/etc/posteulen/onion-bots` und gehören ab jetzt zur Sicherung `posteulen-onion-*.tar.age` – bitte die nächste Sicherung wie gewohnt außerhalb des Servers aufbewahren. Neue lokale Listener: Caddy 127.0.0.1:3006/3007, Backend 127.0.0.1:3008/3009. Eigene Regeln aus `/etc/posteulen/local/admin-*.caddy` und `bots-*.caddy` gelten auch für die Onion-Seiten. Beide Seiten lassen sich im Adminpanel unter „Tor-Netz“ einzeln abschalten.
+- **Neue Bilder:** 84 Dateien `images/<Art>-Langeweile(-Nacht).png` und `<Art>-Frei(-Nacht).png`; der Build erzeugt die Größen wie immer.
+- Keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.3.2 – Ein Blick in den Keller und bis zum Mond
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-456 bis D-466).
