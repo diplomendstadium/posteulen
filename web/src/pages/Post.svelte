@@ -105,10 +105,10 @@
 <!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). -->
 <BagNotice />
 {#if !inside}
-  <!-- v1.2: the entrance – picture, intro and the door. -->
+  <!-- The entrance – picture, the door right below it (v1.4) and the intro. -->
   <PlaceImage place="post" />
-  <p class="card intro">{t.post.intro}</p>
   <PlaceDoor href={INSIDE} label={t.post.enter} icons={['📯', '🦉']} />
+  <p class="card intro">{t.post.intro}</p>
 {:else}
   {#if offer}<PlaceImage place="postInside" {team} />{/if}
   <ErrorText message={error} />

@@ -218,19 +218,16 @@
     {:else}
       <div class="actions owl-actions">
         {#each ACTIONS as action (action)}
-          {@const done = action !== 'pet' && owl.today[action]}
-          <!-- v1.3.1: done today – the same text, crossed out and greyed. -->
-          <button
-            class="button secondary"
-            class:done
-            type="button"
-            data-action={action}
-            aria-label={done
-              ? fill(t.owls.doneAria, { action: label(owl, action), why: t.rescue.doneToday })
-              : undefined}
-            disabled={busy || done || !status.online}
-            onclick={() => void care(who, owl, action)}>{label(owl, action)}</button
-          >
+          <!-- v1.4: help already counted today is left out (stroking always stays, SPEC 8.13). -->
+          {#if action === 'pet' || !owl.today[action]}
+            <button
+              class="button secondary"
+              type="button"
+              data-action={action}
+              disabled={busy || !status.online}
+              onclick={() => void care(who, owl, action)}>{label(owl, action)}</button
+            >
+          {/if}
         {/each}
       </div>
     {/if}

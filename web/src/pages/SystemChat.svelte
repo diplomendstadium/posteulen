@@ -108,8 +108,14 @@
       if (typeof params['until'] === 'number') params['until'] = dateTime(params['until']);
     }
     // v0.8: an owl given by a bot names its species.
-    if (message.type === 'bot_owl_gift' && typeof params['species'] === 'string')
+    if (
+      (message.type === 'bot_owl_gift' || message.type === 'bot_owl_gift_full') &&
+      typeof params['species'] === 'string'
+    )
       params['species'] = speciesName(params['species']);
+    // v1.4: the end of a holiday (local time at home).
+    if (message.type === 'vacation_started' && typeof params['until'] === 'number')
+      params['until'] = dateTime(params['until']);
     // Returned gold or gift has its own wording (SPEC 9.5, Anhang C).
     const variant = params['cargo']
       ? texts[`${message.type}_${String(params['cargo'])}`]

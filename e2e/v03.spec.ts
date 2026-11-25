@@ -214,9 +214,9 @@ test.describe('Version 0.3', () => {
     await page.reload();
 
     const card = page.getByTestId('owl-card').filter({ hasText: 'Federchen' });
-    // v0.8.5: releasing only with more than 20 own owls.
+    // Releasing only with more than 5 own owls (v1.4).
     await expect(card.getByRole('button', { name: 'In die Freiheit entlassen' })).toHaveCount(0);
-    addOwls(name, 'bartkauz', 20);
+    addOwls(name, 'bartkauz', 5);
     await page.reload();
     await card.getByRole('button', { name: 'In die Freiheit entlassen' }).click();
     const dialog = page.getByRole('dialog', { name: 'Federchen in die Freiheit entlassen' });

@@ -8,6 +8,7 @@
   import { t, fill } from '../lib/i18n.svelte.ts';
   import { MAP, TIME } from '@posteulen/shared/constants.ts';
   import { positionAt } from '@posteulen/shared/game/flight.ts';
+  import { islandArrival, tripPosition } from '@posteulen/shared/game/vacation.ts';
   import { occupiedBoxes, placeLabels, type LabelRequest } from '@posteulen/shared/map/labels.ts';
   import MapView from '../components/MapView.svelte';
   import { mapInfo, type MapFlight, type MapInfo } from '../lib/owls.ts';
@@ -40,6 +41,28 @@
     (info?.flights ?? []).map((flight) => ({ flight, at: positionAt(flight.segments, now) })),
   );
 
+  /**
+   * v1.4: own owls on holiday (SPEC 9.12, 12.1) – each on its way to or from the island, and those
+   * resting at the owl care station together as one mark on Inchlonaig.
+   */
+  const holiday = $derived(
+    (info?.vacation?.owls ?? []).map((entry) => ({ ...entry, at: tripPosition(entry.trip, now) })),
+  );
+  const holidayFlying = $derived(
+    holiday.filter((entry) => entry.at.phase === 'out' || entry.at.phase === 'back'),
+  );
+  const onIsland = $derived(holiday.filter((entry) => entry.at.phase === 'island').length);
+
+  function holidayText(entry: (typeof holiday)[number]): string {
+    const back = dateTime(entry.trip.homeAt);
+    if (entry.at.phase === 'island') return fill(t.map.vacationIsland, { time: back });
+    if (entry.at.phase === 'back') return fill(t.map.vacationBack, { time: back });
+    const arrival = islandArrival(entry.trip);
+    return arrival === null
+      ? fill(t.map.vacationOutTurn, { time: back })
+      : fill(t.map.vacationOut, { time: dateTime(arrival) });
+  }
+
   type ToSvg = (lat: number, lon: number) => { x: number; y: number };
 
   /** Sizes in screen pixels (v0.2: readable on phones); `scale` converts to SVG units. */
@@ -65,6 +88,7 @@
             .filter((contact) => !contact.bot)
             .map((contact) => ({ lat: contact.lat, lon: contact.lon })),
           ...owls.flatMap(({ at }) => (at ? [at.position] : [])),
+          ...holiday.map((entry) => entry.at.point),
         ]
       : null,
   );
@@ -75,6 +99,12 @@
     const flying = owls.flatMap(({ flight, at }) =>
       at ? [{ flight, p: toSvg(at.position.lat, at.position.lon) }] : [],
     );
+    const travelling = holidayFlying.map((entry) => ({
+      entry,
+      p: toSvg(entry.at.point.lat, entry.at.point.lon),
+    }));
+    const island =
+      onIsland > 0 && map.vacation ? toSvg(map.vacation.island.lat, map.vacation.island.lon) : null;
     const contacts = map.contacts.map((contact) => ({
       contact,
       p: toSvg(contact.lat, contact.lon),
@@ -97,6 +127,26 @@
         text: flight.owl.name,
         fontSize: SIZE.owlFont * scale,
       })),
+      ...travelling.map(({ entry, p }) => ({
+        key: `holiday-${entry.id}`,
+        x: p.x,
+        y: p.y,
+        radius: SIZE.owl * scale,
+        text: entry.owl.name,
+        fontSize: SIZE.owlFont * scale,
+      })),
+      ...(island
+        ? [
+            {
+              key: 'island',
+              x: island.x,
+              y: island.y,
+              radius: SIZE.owl * scale,
+              text: fill(t.map.island, { count: onIsland }),
+              fontSize: SIZE.owlFont * scale,
+            },
+          ]
+        : []),
       ...contacts.map(({ contact, p, text }) => ({
         key: `contact-${contact.id}`,
         x: p.x,
@@ -113,6 +163,8 @@
       home,
       homeLabel: at('home'),
       flying,
+      travelling,
+      island,
       contacts,
       at,
       occupied: occupiedBoxes(requests, placed),
@@ -211,6 +263,42 @@
           <text x={label.x} y={label.y} font-size={SIZE.owlFont * scale}>{flight.owl.name}</text>
         </g>
       {/each}
+      {#each view.travelling as { entry, p } (entry.id)}
+        {@const label = view.at(`holiday-${entry.id}`)}
+        <g class="owl" data-testid="map-owl">
+          <circle cx={p.x} cy={p.y} r={SIZE.owl * scale} stroke-width={2.5 * scale} />
+          <text
+            class="owl-glyph"
+            x={p.x}
+            y={p.y + 0.36 * SIZE.glyph * scale}
+            font-size={SIZE.glyph * scale}>🦉</text
+          >
+          <text x={label.x} y={label.y} font-size={SIZE.owlFont * scale}>{entry.owl.name}</text>
+        </g>
+      {/each}
+      {#if view.island}
+        {@const label = view.at('island')}
+        <!-- v1.4: the owls resting at the owl care station, one mark with their number. -->
+        <g class="owl island" data-testid="map-island">
+          <rect
+            x={view.island.x - SIZE.owl * scale}
+            y={view.island.y - SIZE.owl * scale}
+            width={2 * SIZE.owl * scale}
+            height={2 * SIZE.owl * scale}
+            rx={4 * scale}
+            stroke-width={2.5 * scale}
+          />
+          <text
+            class="owl-glyph"
+            x={view.island.x}
+            y={view.island.y + 0.36 * SIZE.glyph * scale}
+            font-size={SIZE.glyph * scale}>🏝</text
+          >
+          <text x={label.x} y={label.y} font-size={SIZE.owlFont * scale}
+            >{fill(t.map.island, { count: onIsland })}</text
+          >
+        </g>
+      {/if}
     {/if}
   {/snippet}
 </MapView>
@@ -220,12 +308,15 @@
   <li><span class="key contact-key" aria-hidden="true"></span>{t.map.legendContact}</li>
   <li><span class="key bot-key" aria-hidden="true"></span>{t.map.legendBot}</li>
   <li><span class="key owl-key" aria-hidden="true"></span>{t.map.legendOwl}</li>
+  {#if holiday.length > 0}
+    <li><span class="key island-key" aria-hidden="true"></span>{t.map.legendIsland}</li>
+  {/if}
   <li><span class="key night-key" aria-hidden="true"></span>{t.map.legendNight}</li>
 </ul>
 
 <section class="card" aria-labelledby="flights-title">
   <h2 id="flights-title">{t.map.flightsTitle}</h2>
-  {#if owls.length === 0}
+  {#if owls.length === 0 && holiday.length === 0}
     <p>{t.map.flightsNone}</p>
   {:else}
     <ul class="flights">
@@ -235,6 +326,15 @@
             owl: flight.owl.name,
             purpose: purposeText(flight),
             where: whereText(flight, at?.phase),
+          })}
+        </li>
+      {/each}
+      {#each holiday as entry (entry.id)}
+        <li>
+          {fill(t.map.flightLine, {
+            owl: entry.owl.name,
+            purpose: t.map.purposeVacation,
+            where: holidayText(entry),
           })}
         </li>
       {/each}
@@ -261,7 +361,8 @@
     stroke: var(--paper);
   }
 
-  .owl circle {
+  .owl circle,
+  .island rect {
     fill: var(--wood);
     stroke: var(--paper);
   }
@@ -309,6 +410,12 @@
   .contact-key {
     border-radius: 50%;
     background: var(--paper);
+  }
+
+  /* v1.4: a rounded square – told apart from the round owls without colour (SPEC 14). */
+  .island-key {
+    border-radius: 0.2rem;
+    background: var(--wood);
   }
 
   .bot-key {

@@ -25,13 +25,14 @@
         <span class="icon" aria-hidden="true">{chat.peerKind === 'bot' ? '🤖' : '✉'}</span>
         <span class="who"
           ><span class="name">{chat.name ?? t.letters.unknown}</span
-          >{#if chat.owlResting}<!-- v0.8.5: an owl of this peer rests here right now. -->
-            {@const resting = fill(t.letters.owlRestingHere, {
-              name: chat.name ?? t.letters.unknown,
-            })}
-            <span class="resting" aria-hidden="true" title={resting}>🦉</span><span
-              class="visually-hidden">{` – ${resting}`}</span
-            >{/if}</span
+          >{#if (chat.owlsResting ?? 0) > 0}<!-- Owls of this peer rest here right now: one 🦉 each (v1.4). -->
+            {@const count = chat.owlsResting ?? 0}
+            {@const resting = fill(
+              count === 1 ? t.letters.owlRestingHere : t.letters.owlsRestingHere,
+              { name: chat.name ?? t.letters.unknown, count },
+            )}
+            <span class="resting" aria-hidden="true" title={resting}>{'🦉'.repeat(count)}</span
+            ><span class="visually-hidden">{` – ${resting}`}</span>{/if}</span
         >
         {#if chat.peerKind === 'bot'}<span class="bot-label">{t.bots.label}</span>{/if}
         <span class="when">{dateTime(chat.lastActivityAt)}</span>

@@ -66,10 +66,10 @@
 </script>
 
 {#if !inside}
-  <!-- v1.2.1: the entrance – picture, intro and the door. -->
+  <!-- The entrance – picture, the door right below it (v1.4) and the intro. -->
   <PlaceImage place="menagerie" />
-  <p class="card intro">{t.menagerie.intro}</p>
   <PlaceDoor href={INSIDE} label={t.menagerie.enter} icons={['🪶', '🦉']} />
+  <p class="card intro">{t.menagerie.intro}</p>
 {:else}
   <PlaceImage place="menagerieInside" />
   <ErrorText message={error} />

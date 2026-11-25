@@ -1,5 +1,6 @@
 <script lang="ts">
   import Banners from '../components/Banners.svelte';
+  import VacationBanner from '../components/VacationBanner.svelte';
   import { t, fill, formatGold } from '../lib/i18n.svelte.ts';
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
@@ -152,6 +153,8 @@
       >
     </p>
   {/if}
+  <!-- v1.4: holiday mode (SPEC 8.10). -->
+  <VacationBanner />
   <Banners />
 
   <div class="content">

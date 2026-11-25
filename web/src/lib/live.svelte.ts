@@ -21,7 +21,8 @@ export interface ChatSummary {
   readonly lastActivityAt: number;
   readonly unread: number;
   /** v0.8.5: an owl of this peer is resting here right now. */
-  readonly owlResting?: boolean;
+  /** v1.4: how many owls of this peer rest here right now (one 🦉 each). */
+  readonly owlsResting?: number;
 }
 
 export interface Contact {
@@ -30,6 +31,8 @@ export interface Contact {
   readonly since: number;
   readonly active: boolean;
   readonly keyWarning: boolean;
+  /** v1.4: has the most own owls – no owl or chick can be given to them (SPEC 9.2.3). */
+  readonly owlsFull?: boolean;
 }
 
 export interface BotContact {
@@ -133,7 +136,14 @@ const queuedHomecomings = new Set<string>();
 async function showHomecomings(context: AccountContext): Promise<void> {
   if (document.visibilityState !== 'visible') return;
   const { homecomings } = await api<{
-    homecomings: { id: string; owl: string; species: string; letters: number }[];
+    homecomings: {
+      id: string;
+      owl: string;
+      species: string;
+      letters: number;
+      /** v1.4: an owl that flew off into freedom (shown once with its freedom picture). */
+      kind?: 'home' | 'freedom';
+    }[];
   }>('GET', '/api/homecomings', undefined, { context });
   if (!isCurrent(context)) return;
   const fresh = homecomings.filter((item) => !queuedHomecomings.has(item.id));
@@ -143,6 +153,13 @@ async function showHomecomings(context: AccountContext): Promise<void> {
     queueOwlImage(() => {
       const home = account.profile?.home;
       const day = home ? isDay(Date.now(), home.lat, home.lon) : true;
+      // v1.4: a bored owl that flew off – once, at the next opportunity (SPEC 9.2.9).
+      if (item.kind === 'freedom')
+        return {
+          species: item.species,
+          kind: day ? 'free' : 'freeNight',
+          caption: fill(t.owls.flewOff, { name: item.owl }),
+        };
       const caption =
         item.letters === 0
           ? fill(t.owls.backHome, { name: item.owl })

@@ -2,6 +2,7 @@
   /**
    * v0.9: the onion service (SPEC 13 item 9, 16.5): address, state and the switch. Switching off
    * stops Tor on the server within a few seconds (root helper); the keys and thus the address stay.
+   * v1.4: the onion addresses of the admin panel and the bots control centre, each with a switch.
    */
   import { onMount } from 'svelte';
   import { t, fill, locale } from './lib/i18n.svelte.ts';
@@ -14,6 +15,10 @@
     status: 'ok' | 'error' | 'off' | null;
     statusAt: number | null;
     message: string | null;
+    adminOnion: string | null;
+    adminEnabled: boolean;
+    botsOnion: string | null;
+    botsEnabled: boolean;
   }
 
   let info = $state<Overview | null>(null);
@@ -46,6 +51,27 @@
   onMount(() => {
     void load();
   });
+
+  let panelSaved = $state(false);
+
+  async function togglePanel(site: 'admin' | 'bots', input: HTMLInputElement): Promise<void> {
+    const enabled = input.checked;
+    if (busy) return;
+    if (!enabled && !confirm(t.admin.torPanelOffConfirm)) {
+      input.checked = true;
+      return;
+    }
+    busy = true;
+    panelSaved = false;
+    try {
+      info = await api<Overview>('PUT', '/api/settings/tor', { [site]: enabled });
+      panelSaved = true;
+    } catch (caught) {
+      error = message(caught);
+    } finally {
+      busy = false;
+    }
+  }
 
   async function toggle(input: HTMLInputElement): Promise<void> {
     const enabled = input.checked;
@@ -97,6 +123,35 @@
     {#if saved}<p role="status">
         ✔ {info.enabled ? t.admin.torSavedOn : t.admin.torSavedOff}
       </p>{/if}
+    {#if info.adminOnion || info.botsOnion}
+      <h3>{t.admin.torPanelsTitle}</h3>
+      <p>{t.admin.torPanelsIntro}</p>
+      <dl>
+        <dt>{t.admin.torAdminAddress}</dt>
+        <dd class="address">{info.adminOnion ?? t.admin.torNoAddress}</dd>
+        <dt>{t.admin.torBotsAddress}</dt>
+        <dd class="address">{info.botsOnion ?? t.admin.torNoAddress}</dd>
+      </dl>
+      <label class="switch">
+        <input
+          type="checkbox"
+          checked={info.adminEnabled}
+          disabled={busy || !info.adminOnion}
+          onchange={(event) => void togglePanel('admin', event.currentTarget)}
+        />
+        {t.admin.torAdminSwitch}
+      </label>
+      <label class="switch">
+        <input
+          type="checkbox"
+          checked={info.botsEnabled}
+          disabled={busy || !info.botsOnion}
+          onchange={(event) => void togglePanel('bots', event.currentTarget)}
+        />
+        {t.admin.torBotsSwitch}
+      </label>
+      {#if panelSaved}<p role="status">✔ {t.admin.torPanelSaved}</p>{/if}
+    {/if}
   {/if}
 </section>
 
@@ -128,6 +183,10 @@
 
   .when {
     font-size: 0.9em;
+  }
+
+  h3 {
+    margin: 1.5rem 0 0.5rem;
   }
 
   .switch {

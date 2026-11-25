@@ -1,5 +1,6 @@
 /** Owls, flights, gold and the map – thin wrappers around the API (SPEC 8.5–8.9). */
 import type { OwlBadge } from '@posteulen/shared/game/badges.ts';
+import type { VacationTrip } from '@posteulen/shared/game/vacation.ts';
 import type { Segment } from '@posteulen/shared/game/flight.ts';
 import type { Cargo } from '@posteulen/shared/species.ts';
 import { api } from './api.ts';
@@ -44,6 +45,18 @@ export interface Owl {
   readonly awaySince: number | null;
   /** v1.3: in the rescue centre, with the progress in per cent (SPEC 8.13). */
   readonly rescue: { readonly progress: number } | null;
+  /** v1.4: bored – its picture until it flies to people with a letter (SPEC 9.2.9). */
+  readonly bored: boolean;
+  /** v1.4: on holiday at the owl care station on Inchlonaig (SPEC 9.12). */
+  readonly vacation: {
+    readonly phase: 'out' | 'island' | 'back';
+    readonly lat: number;
+    readonly lon: number;
+    readonly islandAt: number | null;
+    readonly backAt: number;
+    readonly returnsAt: number;
+    readonly daylight: boolean;
+  } | null;
   readonly actions: {
     readonly care: boolean;
     readonly gift: boolean;
@@ -120,18 +133,24 @@ export interface OwlChoice {
 export interface Clutch {
   readonly id: string;
   readonly giftDeadline: number;
+  /** v1.4: beyond the most own owls all chicks must be given away (SPEC 9.9). */
+  readonly giftAll?: boolean;
 }
 
 export function listOwls(): Promise<{
   owls: Owl[];
   guests?: GuestOwl[];
   canBuy: boolean;
+  /** v1.4: the most own owls (as many as species) and how many the player has (SPEC 9.2.3). */
+  maxOwls: number;
+  ownCount: number;
   clutches: Clutch[];
 }> {
   return api('GET', '/api/owls');
 }
 
-export function lendToMenagerie(id: string): Promise<{ owl: Owl }> {
+/** v1.4: lends the owl to the post office for 7 days (SPEC 9.7; the path is historical). */
+export function lendToPostOffice(id: string): Promise<{ owl: Owl }> {
   return api('POST', `/api/owls/${id}/menagerie`, {});
 }
 
@@ -296,6 +315,15 @@ export interface MapInfo {
     readonly lon: number;
   }[];
   readonly flights: readonly MapFlight[];
+  /** v1.4: own owls on holiday and the island of the owl care station (SPEC 9.12, 12.1). */
+  readonly vacation?: {
+    readonly island: { readonly lat: number; readonly lon: number };
+    readonly owls: readonly {
+      readonly id: string;
+      readonly owl: { readonly name: string; readonly species: string };
+      readonly trip: VacationTrip;
+    }[];
+  };
 }
 
 export function mapInfo(): Promise<MapInfo> {

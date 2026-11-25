@@ -18,7 +18,10 @@
   let busy = $state(false);
   let error = $state<string | null>(null);
   let done = $state<string | null>(null);
-  const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
+  // v1.4: not to contacts that already have the most own owls (SPEC 9.2.3).
+  const contacts = $derived(
+    live.contacts.filter((c) => c.active && !c.keyWarning && c.owlsFull !== true),
+  );
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
 

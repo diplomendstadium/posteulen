@@ -13,6 +13,7 @@
   import BotSettings from '../components/BotSettings.svelte';
   import FinanceSettings from '../components/FinanceSettings.svelte';
   import StatsSettings from '../components/StatsSettings.svelte';
+  import VacationSettings from '../components/VacationSettings.svelte';
   import Link from '../components/Link.svelte';
   import { account, changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -74,6 +75,8 @@
 
 <!-- v1.2.4: notifications right below signing out, above everything else. -->
 <PushSettings />
+<!-- v1.4: holiday mode right below the notifications (SPEC 8.10). -->
+<VacationSettings />
 
 <!-- v1.3: statistics of the account between notifications and gold (SPEC 8.10). -->
 <StatsSettings />

@@ -1,5 +1,8 @@
 <script lang="ts">
-  /** One chick of two or three must be given away within 24 hours (SPEC 9.9). */
+  /**
+   * One chick of two or three must be given away within five days (SPEC 9.9) – v1.4 beyond the
+   * most own owls all of them, one after the other, to contacts that still have room.
+   */
   import { t, fill } from '../lib/i18n.svelte.ts';
   import CoverInput from './CoverInput.svelte';
   import ErrorText from './ErrorText.svelte';
@@ -19,7 +22,9 @@
   let cover = $state<string | null>(null);
   let busy = $state(false);
   let error = $state<string | null>(null);
-  const contacts = $derived(live.contacts.filter((c) => c.active && !c.keyWarning));
+  const contacts = $derived(
+    live.contacts.filter((c) => c.active && !c.keyWarning && c.owlsFull !== true),
+  );
   const chosen = $derived(chicks.find((chick) => chick.id === chickId));
   const nameOf = (id: string): string =>
     live.contacts.find((c) => c.userId === id)?.name ?? t.letters.unknown;
@@ -45,8 +50,12 @@
 </script>
 
 <section class="card clutch" aria-labelledby={`clutch-${clutch.id}`}>
-  <h2 id={`clutch-${clutch.id}`}>{t.owls.clutchTitle}</h2>
-  <p>{fill(t.owls.clutchIntro, { until: dateTime(clutch.giftDeadline) })}</p>
+  <h2 id={`clutch-${clutch.id}`}>{clutch.giftAll ? t.owls.clutchTitleAll : t.owls.clutchTitle}</h2>
+  <p>
+    {fill(clutch.giftAll ? t.owls.clutchIntroAll : t.owls.clutchIntro, {
+      until: dateTime(clutch.giftDeadline),
+    })}
+  </p>
   <form
     onsubmit={(event) => {
       event.preventDefault();

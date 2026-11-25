@@ -67,16 +67,15 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     const card = page.getByTestId('rescue-own').filter({ hasText: 'Kränkel' });
     await expect(card.getByRole('img')).toHaveAttribute('src', /sick/);
     await card.getByRole('button', { name: 'Medizin geben' }).click();
-    await expect(
-      card.getByRole('button', { name: 'Medizin geben – heute schon erledigt' }),
-    ).toBeDisabled();
+    // v1.4: help already counted today is left out.
+    await expect(card.getByRole('button', { name: 'Medizin geben' })).toHaveCount(0);
     await expect(card.getByTestId('rescue-progress')).not.toContainText('Wieder gesund: 0 %');
     // v1.3.1: one wild sick owl waits as well; the free kinds of help come first.
     await expect(page.getByTestId('rescue-wild')).toHaveCount(1);
+    // The free kinds of help first; medicine is done for today and left out.
     await expect(card.locator('button[data-action]')).toHaveText([
       'Wasser geben',
       'Streicheln',
-      'Medizin geben',
       /^Füttern/,
       /geben \(0,2 Gold\)$/,
     ]);

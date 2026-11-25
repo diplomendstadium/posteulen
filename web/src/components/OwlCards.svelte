@@ -37,7 +37,7 @@
   import { careCost, spendableGold } from '../lib/purse.ts';
   import {
     feedOwl,
-    lendToMenagerie,
+    lendToPostOffice,
     nameOwl,
     petOwl,
     snackOwl,
@@ -92,10 +92,31 @@
   const canSendGold = (owl: Owl): boolean =>
     goldPossible && owl.ready && cargoCovers(owl.cargo, 'gold');
   /**
-   * v1.3: gold and owls can only be given by active players, once in two weeks (SPEC 9.1.5) –
-   * the buttons stay, but are off with a short note. Gold with a loan owl counts as well.
+   * Gold and owls can only be given by active players, once in two weeks (SPEC 9.1.5). v1.4:
+   * while not allowed, the buttons are left out, and one note above the cards says why.
    */
   const giftAllowed = $derived(account.profile?.canGift ?? true);
+  const giftBlocked = $derived(
+    !giftAllowed && owls.some((owl) => owl.actions.gift || canSendGold(owl)),
+  );
+
+  /**
+   * v1.4: only buttons that can be pressed right now stand under an owl (SPEC 8.5) – what does not
+   * come into question is left out, so the cards stay small. Off only while offline.
+   */
+  const shows = (owl: Owl) => ({
+    write: owl.ready,
+    gold: canSendGold(owl) && giftAllowed,
+    water: owl.actions.care && !owl.wateredToday,
+    pet: owl.actions.care,
+    feed: owl.actions.care && owl.feedable,
+    snack: owl.actions.care && owl.snackable,
+    lend: owl.actions.menagerie,
+    rename: owl.actions.rename,
+    gift: owl.actions.gift && giftAllowed,
+    release: owl.actions.release,
+  });
+  const hasActions = (owl: Owl): boolean => Object.values(shows(owl)).some(Boolean);
   /** v1.3: the name as shown everywhere – with 🌍 after more than 40 030 km (SPEC 9.2.1). */
   const label = (owl: Owl): string => owlDisplayName(owl.name ?? '', owl.badge);
 
@@ -152,9 +173,6 @@
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
 
-  /** v1.3.1: the reason a care button is off today – read out only (SPEC 8.5). */
-  const doneAria = (action: string, why: string): string => fill(t.owls.doneAria, { action, why });
-
   /** Speed (km/h) and recovery (% per hour) of the species, as on the Menagerie (v0.5). */
   function speedOf(owl: Owl): string {
     return decimal(owlSpeedKmh(speciesById(owl.species)?.speedFactor ?? 1), 1);
@@ -180,8 +198,8 @@
   const menagerie = (owl: Owl) =>
     act(async () => {
       const wage = goldText(menagerieWage(speciesPrice(owl.species)));
-      if (!confirm(fill(t.owls.menagerieConfirm, { name: owl.name ?? '', amount: wage }))) return;
-      onchange((await lendToMenagerie(owl.id)).owl);
+      if (!confirm(fill(t.owls.lendConfirm, { name: owl.name ?? '', amount: wage }))) return;
+      onchange((await lendToPostOffice(owl.id)).owl);
     });
 
   /**
@@ -213,6 +231,22 @@
    */
   const restingAway = (owl: Owl): boolean => owl.state === 'flying' && !!owl.absence?.resting;
 
+  /** v1.4: on holiday and at the care station on Inchlonaig – not here, the empty perch. */
+  const onIsland = (owl: Owl): boolean =>
+    owl.state === 'vacation' && owl.vacation?.phase === 'island';
+
+  /**
+   * v1.4: a bored owl shows its bored picture whatever it would show otherwise – until it flies
+   * off with a letter (SPEC 9.2.9); on a flight or on holiday the picture of the flight or the perch.
+   */
+  const boredHere = (owl: Owl): boolean =>
+    owl.bored && owl.state !== 'flying' && owl.state !== 'vacation';
+
+  /** The empty perch: lent to the post office, in the rescue centre, resting away, on the island. */
+  const perch = (owl: Owl): boolean =>
+    !boredHere(owl) &&
+    (owl.state === 'menagerie' || owl.state === 'sick' || restingAway(owl) || onIsland(owl));
+
   /** v0.10: an owl at its lowest motivation (80 %) looks grumpy at home. */
   const grumpy = (owl: Owl): boolean => owl.motivation <= MOTIVATION.MIN;
 
@@ -222,6 +256,10 @@
    * empty perch instead (OwlPicture `perch`).
    */
   function pictureKind(owl: Owl): OwlImageKind {
+    if (boredHere(owl)) return 'bored';
+    // v1.4: on the way to the island or back home, by day or at night where it is right now.
+    if (owl.state === 'vacation' && owl.vacation)
+      return owl.vacation.daylight ? 'flyingDay' : 'flyingNight';
     if (owl.state === 'flying' && owl.absence) {
       // v0.5.1: asleep on the way, by day or at night where it is right now.
       if (owl.absence.sleeping) return owl.absence.daylight ? 'sleepDay' : 'sleepNight';
@@ -237,6 +275,10 @@
   function pictureAlt(owl: Owl): string {
     const name = owl.name ?? '';
     const species = speciesName(owl.species);
+    if (boredHere(owl)) return `${fill(t.owls.boredAlt, { name })}, ${species}`;
+    if (onIsland(owl)) return fill(t.owls.perchVacationAlt, { name });
+    if (owl.state === 'vacation')
+      return `${fill(owl.vacation?.daylight === false ? t.owls.flyingNightAlt : t.owls.flyingDayAlt, { name })}, ${species}`;
     if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
     if (owl.state === 'sick') return fill(t.owls.perchRescueAlt, { name });
     if (restingAway(owl))
@@ -273,12 +315,27 @@
         return fill(t.owls.stateMenagerie, { until });
       case 'flying':
         return absenceText(owl);
+      case 'vacation':
+        return vacationText(owl);
     }
     if (owl.kind === 'loan' && owl.loanExpiresAt !== null)
       return fill(t.owls.loanUntil, { until: dateTime(owl.loanExpiresAt) });
     if (owl.isChick && owl.adultAt !== null)
       return fill(t.owls.chick, { until: dateTime(owl.adultAt) });
     return t.owls.stateHome;
+  }
+
+  /** v1.4: where the owl is on its holiday and when it is back (SPEC 9.12). */
+  function vacationText(owl: Owl): string {
+    const trip = owl.vacation;
+    if (!trip) return t.owls.vacationIsland;
+    const back = dateTime(trip.returnsAt);
+    if (trip.phase === 'back') return fill(t.owls.vacationBack, { time: back });
+    if (trip.phase === 'island')
+      return fill(t.owls.vacationStay, { leaves: dateTime(trip.backAt), time: back });
+    return trip.islandAt === null
+      ? fill(t.owls.vacationOutTurn, { time: back })
+      : fill(t.owls.vacationOut, { arrives: dateTime(trip.islandAt), time: back });
   }
 
   function absenceText(owl: Owl): string {
@@ -327,6 +384,13 @@
 
 <ErrorText message={error} />
 
+{#if giftBlocked}
+  <!-- v1.4: once above the cards instead of under every card (SPEC 9.1.5, 8.5). -->
+  <p class="notice" data-testid="gift-rule">
+    <span aria-hidden="true">ℹ</span><span>{t.owls.giftRule}</span>
+  </p>
+{/if}
+
 {#if released}<p class="notice" role="status">
     <span aria-hidden="true">🕊</span><span>{released}</span>
   </p>{/if}
@@ -339,7 +403,7 @@
           wide
           speciesId={owl.species}
           kind={pictureKind(owl)}
-          perch={owl.state === 'menagerie' || owl.state === 'sick' || restingAway(owl)}
+          perch={perch(owl)}
           alt={pictureAlt(owl)}
         />
       </div>
@@ -405,106 +469,97 @@
             <Link href="/app/rettungsstation" class="button secondary">{t.owls.toRescue}</Link>
           </p>
         {/if}
-        <div class="actions owl-actions">
-          {#if owl.ready}
-            <!-- v0.8.5: write a letter with exactly this owl. -->
-            <button
-              class="button"
-              type="button"
-              disabled={!status.online}
-              onclick={() => (writing = owl)}>{t.owls.write}</button
-            >
-          {/if}
-          {#if canSendGold(owl)}
-            <!-- v0.10: gold with exactly this owl (before: on the finance page). -->
-            <button
-              class="button"
-              type="button"
-              disabled={!status.online || !giftAllowed}
-              onclick={() => (sendingGold = owl)}>{t.owls.sendGold}</button
-            >
-          {/if}
-          {#if owl.actions.care}
-            {@const feedText = fill(t.owls.feed, { price: careCost('feed', GOLD.FEED_PRICE) })}
-            <!-- v1.3.1: used today – the same text, crossed out and greyed (SPEC 8.5). -->
-            <button
-              class="button secondary"
-              class:done={owl.wateredToday}
-              type="button"
-              aria-label={owl.wateredToday
-                ? doneAria(t.owls.water, t.owls.wateredToday)
-                : undefined}
-              disabled={busy || owl.wateredToday || !status.online}
-              onclick={() => void water(owl)}>{t.owls.water}</button
-            >
-            <button
-              class="button secondary"
-              type="button"
-              disabled={busy || !status.online}
-              onclick={() => void pet(owl)}>{t.owls.pet}</button
-            >
-            <!-- v0.10: again and again while the energy is not full (each time paid). -->
-            <button
-              class="button secondary"
-              class:done={!owl.feedable}
-              type="button"
-              aria-label={owl.feedable ? undefined : doneAria(feedText, t.owls.fedToday)}
-              disabled={busy || !owl.feedable || !status.online}
-              onclick={() => void feed(owl)}>{feedText}</button
-            >
-            <button
-              class="button secondary"
-              class:done={!owl.snackable}
-              type="button"
-              aria-label={owl.snackable
-                ? undefined
-                : doneAria(snackButton(owl), t.owls.snackedToday)}
-              disabled={busy || !owl.snackable || !status.online}
-              onclick={() => void snack(owl)}>{snackButton(owl)}</button
-            >
-          {/if}
-          {#if owl.actions.menagerie}
-            <button
-              class="button secondary"
-              type="button"
-              disabled={busy || !status.online}
-              onclick={() => void menagerie(owl)}>{t.owls.menagerie}</button
-            >
-          {/if}
-          {#if owl.actions.rename}
-            <button
-              class="button secondary"
-              type="button"
-              onclick={() => {
-                renaming = renaming === owl.id ? null : owl.id;
-                newName = owl.name ?? '';
-              }}>{t.owls.rename}</button
-            >
-          {/if}
-          {#if owl.actions.gift}
-            <button
-              class="button secondary"
-              type="button"
-              disabled={!giftAllowed}
-              onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{t.owls.gift}</button
-            >
-          {/if}
-          {#if owl.actions.release}
-            <button
-              class="button danger"
-              type="button"
-              disabled={busy || !status.online}
-              onclick={() => (releasing = owl)}>{t.owls.release}</button
-            >
-          {/if}
-        </div>
-        <!-- v1.3.1: notes below the buttons, so that they stay a neat rectangle. -->
-        {#if !owl.actions.rename && owl.kind === 'own'}
-          <p class="hint">{t.owls.renameBlocked}</p>
-        {/if}
-        {#if !giftAllowed && (owl.actions.gift || canSendGold(owl))}
-          <!-- v1.3: only "active players" may give something, every two weeks (SPEC 9.1.5). -->
-          <p class="hint" data-testid="gift-rule">{t.owls.giftRule}</p>
+        {#if hasActions(owl)}
+          {@const show = shows(owl)}
+          <!-- v1.4: only what can be pressed right now (SPEC 8.5); off only while offline. -->
+          <div class="actions owl-actions">
+            {#if show.write}
+              <!-- v0.8.5: write a letter with exactly this owl. -->
+              <button
+                class="button"
+                type="button"
+                disabled={!status.online}
+                onclick={() => (writing = owl)}>{t.owls.write}</button
+              >
+            {/if}
+            {#if show.gold}
+              <!-- v0.10: gold with exactly this owl (before: on the finance page). -->
+              <button
+                class="button"
+                type="button"
+                disabled={!status.online}
+                onclick={() => (sendingGold = owl)}>{t.owls.sendGold}</button
+              >
+            {/if}
+            {#if show.water}
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void water(owl)}>{t.owls.water}</button
+              >
+            {/if}
+            {#if show.pet}
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void pet(owl)}>{t.owls.pet}</button
+              >
+            {/if}
+            {#if show.feed}
+              <!-- v0.10: again and again while the energy is not full (each time paid). -->
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void feed(owl)}
+                >{fill(t.owls.feed, { price: careCost('feed', GOLD.FEED_PRICE) })}</button
+              >
+            {/if}
+            {#if show.snack}
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void snack(owl)}>{snackButton(owl)}</button
+              >
+            {/if}
+            {#if show.lend}
+              <!-- v1.4: to the post office, once per owl and quarter (SPEC 9.7). -->
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void menagerie(owl)}>{t.owls.lend}</button
+              >
+            {/if}
+            {#if show.rename}
+              <button
+                class="button secondary"
+                type="button"
+                onclick={() => {
+                  renaming = renaming === owl.id ? null : owl.id;
+                  newName = owl.name ?? '';
+                }}>{t.owls.rename}</button
+              >
+            {/if}
+            {#if show.gift}
+              <button
+                class="button secondary"
+                type="button"
+                onclick={() => (gifting = gifting === owl.id ? null : owl.id)}>{t.owls.gift}</button
+              >
+            {/if}
+            {#if show.release}
+              <button
+                class="button danger"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => (releasing = owl)}>{t.owls.release}</button
+              >
+            {/if}
+          </div>
         {/if}
         {#if renaming === owl.id}
           <form

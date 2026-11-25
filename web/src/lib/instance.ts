@@ -15,6 +15,18 @@ export interface InstanceInfo {
     readonly letters: { readonly total: number; readonly last7: number };
     readonly owls: number;
   };
+  /**
+   * v1.4: the addresses of this instance – start page, admin panel and bots control centre on
+   * the web and (while Tor runs and their switch is on) in the Tor network; null: not offered.
+   */
+  readonly links?: {
+    readonly web: string;
+    readonly admin: string;
+    readonly bots: string;
+    readonly webOnion: string | null;
+    readonly adminOnion: string | null;
+    readonly botsOnion: string | null;
+  };
 }
 
 let pending: Promise<InstanceInfo | null> | null = null;

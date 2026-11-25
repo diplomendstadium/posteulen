@@ -233,7 +233,9 @@ test.describe('Version 1.3.0: Oberfläche', () => {
     await expect(page.getByRole('heading', { name: 'Hilfe', level: 2 })).toBeVisible();
     const titles = await page.locator('section.card h2').allTextContents();
     const at = (title: string) => titles.indexOf(title);
-    expect(at('Statistik')).toBe(at('Benachrichtigungen') + 1);
+    // v1.4: holiday mode between notifications and statistics.
+    expect(at('Urlaubsmodus')).toBe(at('Benachrichtigungen') + 1);
+    expect(at('Statistik')).toBe(at('Urlaubsmodus') + 1);
     expect(at('Gold und Buchungen')).toBe(at('Statistik') + 1);
     expect(titles.at(-1)).toBe('Hilfe');
     const stats = page.getByTestId('stats');
@@ -270,10 +272,10 @@ test.describe('Version 1.3.0: Oberfläche', () => {
     const card = page.getByTestId('owl-card').filter({ hasText: 'Helfer 1' });
     await expect(card.getByRole('heading', { level: 3 })).toHaveText('Helfer 1 🌍');
     await expect(card).toContainText('41.000 km');
-    // A new account is not "active" yet: the button stays, but is off with a short note.
-    await expect(card.getByRole('button', { name: 'Verschenken' })).toBeDisabled();
-    await expect(card.getByTestId('gift-rule')).toHaveText(
-      'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
+    // A new account is not "active" yet: v1.4 the button is left out, one note above the cards.
+    await expect(card.getByRole('button', { name: 'Verschenken' })).toHaveCount(0);
+    await expect(page.getByTestId('gift-rule')).toHaveText(
+      /^ℹ\s*Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken\.$/,
     );
   });
 
