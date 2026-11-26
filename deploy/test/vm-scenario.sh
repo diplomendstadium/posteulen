@@ -407,6 +407,9 @@ if has_tor_support; then
   cp "$(find /var/backups/posteulen -name 'posteulen-onion-*-taeglich.tar.age' | sort | tail -1)" "$rescue/"
 fi
 rescued_onion=$(find "$rescue" -name 'posteulen-onion-*.tar.age' | head -1)
+# v1.4.1: vorher merken, ob die Version schlanke Releases kennt (danach ist /opt/posteulen weg).
+lean_before_loss=0
+has_lean_releases && lean_before_loss=1
 # Der Server ist weg: nur der Testlauf löscht hier, nie die Skripte selbst.
 systemctl stop posteulen.service posteulen-backup.timer
 rm -rf /etc/posteulen /var/lib/posteulen /var/backups/posteulen /opt/posteulen /root/posteulen-backup-schluessel.txt
@@ -424,7 +427,7 @@ old_pub=$(sed -n 's/^# public key: //p' "$rescue/posteulen-backup-schluessel.txt
 # Schritt 2: installieren, mit dem bisherigen öffentlichen Backup-Schlüssel.
 # v1.4.1: wie in der readme aus dem kleinen Startklon (nur die Deployment-Dateien, keine Bilder).
 start_clone=/root/posteulen
-if has_lean_releases; then
+if [[ $lean_before_loss -eq 1 ]]; then
   start_clone=/root/posteulen-klein
   rm -rf "$start_clone"
   git clone --quiet --depth=1 --filter=blob:none --sparse --branch "$v1" file:///srv/posteulen.git "$start_clone"
