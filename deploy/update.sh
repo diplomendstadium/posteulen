@@ -4,9 +4,11 @@
 #   update.sh --apply <bisheriges Release>   dieses Release einspielen
 #   update.sh --rollback                     zum vorigen Release zurück (aus dem aktiven Release)
 #
-# Ablauf: Update-Schritte → Bauen (alter Stand läuft weiter) → Sicherung → Dienst stoppen →
-# Migrationen → Umschalten → Konfiguration → Start → Funktionsprüfung. Schlägt ein Schritt ab
-# der Sicherung fehl, geht es automatisch samt Datenbank zum bisherigen Release zurück.
+# Ablauf: Aufräumen → Update-Schritte → Bauen im Staging (alter Stand läuft weiter) → Release →
+# Sicherung → Dienst stoppen → Migrationen → Umschalten → Konfiguration → Start → Funktionsprüfung
+# → Aufräumen. Schlägt ein Schritt ab der Sicherung fehl, geht es automatisch samt Datenbank zum
+# bisherigen Release zurück. v1.4.1: Was ein gescheitertes Update hinterlässt (Staging oder neues
+# Release), wird in jedem Fall entfernt.
 # -E: die Fehlerbehandlung (trap ERR) gilt auch in Funktionen.
 set -Eeuo pipefail
 SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -63,8 +65,37 @@ old_version=$(release_version "$old_release")
 new_version=$(release_version "$RELEASE")
 info "Update von $old_version auf $new_version"
 
+# v1.4.1: Was dieses Update anlegt (Staging bzw. das neue Release), verschwindet wieder, wenn es
+# nicht zum aktiven Release wird – ob der Build, eine Prüfung oder der Start scheitert.
+finished=0
+discard_failed() {
+  local active
+  rm -rf "$PE_NPM_CACHE"
+  [[ $finished -eq 1 ]] && return 0
+  active=$(readlink -f "$PE_CURRENT" 2>/dev/null || true)
+  if [[ $RELEASE != "$active" && $RELEASE != "$old_release" ]]; then
+    rm -rf "$RELEASE"
+    printf '%s\n' "Das unfertige Release $(basename "$RELEASE") wurde entfernt." >&2
+  fi
+}
+trap discard_failed EXIT
+
+# v1.4.1: Aufräumen vor dem Build (SPEC 16.3) – auch dann, wenn eine ältere Version das Update
+# gestartet hat (deren posteulen-update räumt noch nicht auf): verwaiste Staging-Verzeichnisse,
+# alle Releases außer dem aktiven, dem vorigen und diesem; die bleibenden werden verkleinert.
+clean_staging "$RELEASE"
+prune_releases "$RELEASE"
+
 "$RELEASE/deploy/update-steps.sh" "$old_version"
 build_release "$RELEASE" || die "Der Build ist fehlgeschlagen; der bisherige Stand läuft unverändert weiter." "Ausgabe oben lesen und erneut versuchen."
+
+# v1.4.1: Erst der fertige, verkleinerte Build wird ein Release.
+if [[ $RELEASE == "$PE_STAGING"/* ]]; then
+  target_dir="$PE_RELEASES/$(basename "$RELEASE")"
+  rm -rf "$target_dir"
+  mv -T "$RELEASE" "$target_dir"
+  RELEASE=$target_dir
+fi
 
 "$old_release/deploy/backup.sh" --reason update
 snapshot=$(cat "$PE_STATE/last-snapshot")
@@ -92,15 +123,16 @@ switch_symlink "$RELEASE" "$PE_CURRENT"
 systemctl start posteulen.service
 health_check "$domain" "$test_mode"
 trap - ERR
+finished=1
 "$RELEASE/deploy/tor.sh" check --network || true
 
 printf '%s\n' "$old_release" >"$PE_STATE/previous-release"
 printf '%s\n' "$snapshot" >"$PE_STATE/previous-snapshot"
-# Die letzten Releases behalten (SPEC 16.3), nie das aktive oder das vorige löschen.
-mapfile -t old < <(find "$PE_RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2- | tail -n +$((PE_RELEASES_KEPT + 1)))
-for dir in "${old[@]}"; do
-  [[ $dir == "$RELEASE" || $dir == "$old_release" ]] || rm -rf "$dir"
-done
+# v1.4.1: Es bleiben das aktive und das unmittelbar vorige Release (SPEC 16.3); beide sind
+# geschützt. Dazu die einmalige Umstellung: Das dauerhafte Update-Repository bis 1.4.0 entfällt.
+prune_releases
+clean_staging
+remove_legacy_repo
 ok "PostEulen läuft jetzt in Version $new_version."
 admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
 if [[ -n $admin_password ]]; then

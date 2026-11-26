@@ -48,6 +48,16 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.4.1',
+    title: 'Aufgeräumte Volieren: Version 1.4.1',
+    paragraphs: [
+      'Im Eulenturm wurde der Dachboden entrümpelt – alte Kisten mit Federn und Skizzen hat der Hausmeister endlich zum Altpapier gebracht. Für dich ändert sich dabei nur wenig:',
+      '• Bei „Meine Eulen“ stehen ganz oben die Eulen, die bereit für Post sind. Darunter folgen die Eulen, die gerade bei dir zu Gast sind, und erst danach alle, die unterwegs oder beschäftigt sind.',
+      '• In den Einstellungen hat der Urlaubsmodus wieder etwas Abstand zur Statistik darunter.',
+      'Frohes Schreiben!',
+    ],
+  },
+  {
     version: '1.4.0',
     title: 'Ferien für die Eulen: Version 1.4.0',
     paragraphs: [
@@ -487,6 +497,16 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.4.1',
+    title: 'Tidy aviaries: version 1.4.1',
+    paragraphs: [
+      'The attic of the owl tower has been cleared out – the caretaker has finally taken the old boxes of feathers and sketches to the paper bin. For you, only little changes:',
+      '• Under “My owls” the owls that are ready for post now come first. Below them follow the owls visiting you right now, and only then all those that are out or busy.',
+      '• In the settings, holiday mode has some space to the statistics below it again.',
+      'Happy writing!',
+    ],
+  },
   {
     version: '1.4.0',
     title: 'Holidays for the owls: version 1.4.0',

@@ -316,9 +316,7 @@ describe('server scripts (v1.0, SPEC 16.3)', () => {
     expect(script).toMatch(/version_older "\$target_version" "\$current_version"/);
     // The signature is checked first, the release is unpacked only after both checks.
     expect(script.indexOf('verify_release_tag')).toBeLessThan(script.indexOf('version_older'));
-    expect(script.indexOf('version_older')).toBeLessThan(
-      script.indexOf('git -C "$PE_REPO" archive'),
-    );
+    expect(script.indexOf('version_older')).toBeLessThan(script.indexOf('git -C "$full" archive'));
   });
 
   it('root touches nothing below the data directory of the service', () => {

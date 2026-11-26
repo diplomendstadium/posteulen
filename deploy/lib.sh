@@ -5,8 +5,14 @@
 
 # Pfade (SPEC Anhang L.7)
 readonly PE_OPT=/opt/posteulen
-readonly PE_REPO=$PE_OPT/repo
+# v1.4.1: Bis 1.4.0 lag hier dauerhaft ein Update-Repository; es wuchs mit jedem Update (alle Tags
+# und Branches, nachgeladene Bilder) und wird nach dem ersten erfolgreichen Update entfernt.
+readonly PE_LEGACY_REPO=$PE_OPT/repo
 readonly PE_RELEASES=$PE_OPT/releases
+# v1.4.1: Neue Versionen entstehen hier (Staging), erst ein fertiger Build wird ein Release. Hier
+# liegt auch das vorübergehende Repository eines Updates. Alles darunter darf weg, sobald kein
+# Update läuft (SPEC 16.3).
+readonly PE_STAGING=$PE_OPT/staging
 readonly PE_CURRENT=$PE_OPT/current
 readonly PE_STATE=$PE_OPT/state
 readonly PE_DATA=/var/lib/posteulen
@@ -20,8 +26,9 @@ readonly PE_BACKUP_PUB=$PE_ETC/backup.pub
 readonly PE_BACKUPS=/var/backups/posteulen
 readonly PE_USER=posteulen
 readonly PE_NODE_MAJOR=26
-readonly PE_RELEASES_KEPT=3
 readonly PE_BACKUP_DAYS=7
+# v1.4.1: eigener npm-Downloadcache des Builds, nach jedem Build geleert (SPEC 16.3).
+readonly PE_NPM_CACHE=/var/cache/posteulen/npm
 
 # v0.9: Onion-Dienst (SPEC 16.5). Eigene Tor-Instanz nach Debian-Art („tor@posteulen“), damit die
 # Konfiguration ganz PostEulen gehört; die Schlüssel liegen zusätzlich als maßgebliche Kopie in
@@ -344,6 +351,74 @@ newest_tag() {
   git -C "$1" -c versionsort.suffix=- tag --list 'v*' --sort=-v:refname | head -n1
 }
 
+# v1.4.1: Quelle der Versionen (aus posteulen.conf; bei sehr alten Installationen die Herkunft des
+# früheren Update-Repositorys). Ein lokaler Pfad wird zur file://-Adresse, damit flache Abrufe gehen.
+repo_url() {
+  local url
+  url=$(conf_get POSTEULEN_REPO)
+  [[ -n $url ]] || url=$(git -C "$PE_LEGACY_REPO" remote get-url origin 2>/dev/null || true)
+  [[ $url == /* ]] && url="file://$url"
+  printf '%s' "$url"
+}
+
+# v1.4.1: Legt ein leeres, vorübergehendes Repository unter $PE_STAGING an und gibt seinen Pfad
+# aus. $1 = Quelle. Es enthält nie mehr als die eine Version, die gerade gebraucht wird.
+temp_repo() {
+  local url=$1 dir
+  install -d -m 0755 "$PE_STAGING"
+  dir=$(mktemp -d "$PE_STAGING/repo.XXXXXX")
+  git init --quiet --bare "$dir"
+  git -C "$dir" remote add origin "$url"
+  printf '%s' "$dir"
+}
+
+# v1.4.1: Neueste Version (Tag) der Quelle, ohne etwas herunterzuladen (Sortierung wie newest_tag).
+# $1 = vorübergehendes Repository.
+newest_remote_tag() {
+  git -C "$1" -c versionsort.suffix=- ls-remote --quiet --tags --refs --sort=-v:refname origin 'refs/tags/v*' |
+    sed -n '1s#^[0-9a-f]*[[:space:]]*refs/tags/##p'
+}
+
+# v1.4.1: Holt genau eine Version flach (nur ihr Stand, keine Geschichte) ins vorübergehende
+# Repository. $1 = Repository, $2 = Tag, Branch oder vollständige Commit-Kennung,
+# $3 = „light“ für nur Commit, Verzeichnisse und Tag ohne Dateiinhalte (die werden bei Bedarf
+# einzeln nachgeladen, z. B. CHANGELOG.md für --check). Danach findet release_commit die Version.
+fetch_release() {
+  local repo=$1 ref=$2 mode=${3:-full} refspec
+  local -a opts=(--quiet --depth=1 --no-tags)
+  [[ $mode == light ]] && opts+=(--filter=blob:none)
+  if [[ -n $(git -C "$repo" ls-remote --tags --refs origin "refs/tags/$ref") ]]; then
+    refspec="+refs/tags/$ref:refs/tags/$ref"
+  elif [[ -n $(git -C "$repo" ls-remote --heads origin "refs/heads/$ref") ]]; then
+    refspec="+refs/heads/$ref:refs/heads/$ref"
+  elif [[ $ref =~ ^[0-9a-f]{40}$ ]]; then
+    git -C "$repo" fetch "${opts[@]}" origin "$ref" || return 1
+    return 0
+  else
+    return 1
+  fi
+  git -C "$repo" fetch "${opts[@]}" origin "$refspec"
+}
+
+# v1.4.1: Commit (12 Zeichen) einer Version direkt bei der Quelle, ohne Download (für „ist schon
+# installiert?“). Leer, wenn er sich so nicht ermitteln lässt. $1 = Repository, $2 = Version.
+remote_commit() {
+  local repo=$1 ref=$2 line
+  if [[ $ref =~ ^[0-9a-f]{40}$ ]]; then
+    printf '%s' "${ref:0:12}"
+    return 0
+  fi
+  line=$(git -C "$repo" ls-remote origin "refs/tags/$ref^{}" | head -n1)
+  [[ -n $line ]] || line=$(git -C "$repo" ls-remote origin "refs/tags/$ref" "refs/heads/$ref" | head -n1)
+  [[ -n $line ]] && printf '%s' "${line:0:12}"
+  return 0
+}
+
+# Name des Release-Verzeichnisses einer Version: <Version>-<Commit>.
+release_name() {
+  printf '%s-%s' "$(tr -c 'A-Za-z0-9._-' '_' <<<"$1" | sed 's/_$//')" "$2"
+}
+
 # v1.0: Ist Version $1 älter als Version $2? Nach Semantic Versioning: Zahlen zählen als Zahlen,
 # und eine Vorabversion (1.0.0-stufe.6) ist älter als die fertige Version (1.0.0).
 version_older() {
@@ -390,13 +465,77 @@ release_version() {
   sed -n "s/^export const VERSION = '\(.*\)';$/\1/p" "$1/shared/src/version.ts"
 }
 
-# Baut ein Release-Verzeichnis (während der alte Stand weiterläuft, SPEC 16.3).
-build_release() {
+# v1.4.1: Ist das Release fertig gebaut (alle drei Oberflächen da)?
+release_built() {
+  [[ -f $1/web/dist/index.html && -f $1/admin/dist/index.html && -f $1/bots/dist/index.html ]]
+}
+
+# v1.4.1: Entfernt aus einem fertig gebauten Release, was nur der Build brauchte: die Bildquellen
+# (images/, rund 1,8 GB) und die daraus erzeugten Zwischenbilder (web/src/generated/owl-images/).
+# Die WebP-Bilder für die Website liegen danach nur noch in web/dist. Backend, Migrationen, Shared,
+# Produktionsabhängigkeiten und die drei dist-Verzeichnisse bleiben. Ein nicht fertig gebautes
+# Verzeichnis bleibt unangetastet (es braucht die Quellen noch).
+trim_release() {
   local dir=$1
+  release_built "$dir" || return 0
+  rm -rf "$dir/images" "$dir/web/src/generated/owl-images"
+}
+
+# v1.4.1: Räumt vor und nach einem Build auf (SPEC 16.3): Es bleiben nur das aktive und das
+# unmittelbar vorige Release (Rückfall) sowie die als Argumente genannten Verzeichnisse; beide
+# sind ausdrücklich geschützt. Alles andere unter releases/ wird gelöscht, die verbleibenden
+# Releases werden verkleinert (trim_release). Nur unter der Update-Sperre aufrufen.
+# shellcheck disable=SC2120 # Die Argumente sind optional.
+prune_releases() {
+  local current previous dir keep protected
+  current=$(readlink -f "$PE_CURRENT" 2>/dev/null || true)
+  previous=$(cat "$PE_STATE/previous-release" 2>/dev/null || true)
+  [[ -d $PE_RELEASES ]] || return 0
+  for dir in "$PE_RELEASES"/*; do
+    [[ -d $dir ]] || continue
+    keep=0
+    [[ $dir == "$current" || $dir == "$previous" ]] && keep=1
+    for protected in "$@"; do [[ $dir == "$protected" ]] && keep=1; done
+    if [[ $keep -eq 1 ]]; then
+      trim_release "$dir"
+    else
+      info "Entferne altes Release $(basename "$dir") …"
+      rm -rf "$dir"
+    fi
+  done
+}
+
+# v1.4.1: Verwaiste Staging-Verzeichnisse (abgebrochene Builds, vorübergehende Repositorys)
+# entfernen. $1 = ein Verzeichnis darunter, das bleiben soll (das gerade laufende Update).
+# shellcheck disable=SC2120 # Das Argument ist optional.
+clean_staging() {
+  local keep=${1:-} dir
+  [[ -d $PE_STAGING ]] || return 0
+  for dir in "$PE_STAGING"/* "$PE_STAGING"/.[!.]*; do
+    [[ -e $dir && $dir != "$keep" ]] || continue
+    rm -rf "$dir"
+  done
+}
+
+# v1.4.1: Einmalige Umstellung – das dauerhafte Update-Repository der Versionen bis 1.4.0 (bei
+# lange laufenden Servern mehrere GB) wird nicht mehr gebraucht.
+remove_legacy_repo() {
+  [[ -d $PE_LEGACY_REPO ]] || return 0
+  info "Entferne das frühere Update-Repository $PE_LEGACY_REPO (Updates holen seit 1.4.1 nur noch die eine benötigte Version) …"
+  rm -rf "$PE_LEGACY_REPO"
+}
+
+# Baut ein Release-Verzeichnis (während der alte Stand weiterläuft, SPEC 16.3).
+# v1.4.1: mit eigenem npm-Downloadcache, der danach immer geleert wird, und anschließend
+# verkleinert (trim_release).
+build_release() {
+  local dir=$1 status=0
   info "Baue $(release_version "$dir") in $dir …"
+  rm -rf "$PE_NPM_CACHE"
+  install -d -m 0700 "$PE_NPM_CACHE"
   (
     cd "$dir"
-    export HOME=/root npm_config_update_notifier=false
+    export HOME=/root npm_config_update_notifier=false npm_config_cache=$PE_NPM_CACHE
     # v0.7: minimal fontconfig configuration – a fresh Debian 13 has none, and the image
     # library printed "Fontconfig error: Cannot load default config file" (harmless).
     if [ -f deploy/fontconfig/fonts.conf ]; then
@@ -405,6 +544,10 @@ build_release() {
     npm ci --ignore-scripts --no-audit --no-fund --loglevel=error
     npm run build --silent
     npm prune --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
-  ) || return 1
+  ) || status=1
+  rm -rf "$PE_NPM_CACHE"
+  [[ $status -eq 0 ]] || return 1
+  release_built "$dir" || { warn "Der Build hat nicht alle drei Oberflächen erzeugt."; return 1; }
+  trim_release "$dir"
   chmod -R u=rwX,go=rX "$dir"
 }

@@ -200,6 +200,11 @@
 </section>
 
 <style>
+  /* v1.4.1: the gap to "Statistik" below, like every card of the settings. */
+  section {
+    margin-bottom: 1.5rem;
+  }
+
   fieldset {
     border: none;
     margin: 0 0 0.75rem;

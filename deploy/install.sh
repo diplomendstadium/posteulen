@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # PostEulen – Installation auf einem frischen Debian 13 mit einem Befehl (SPEC 16.2).
 #
-#   git clone <Repository> posteulen && sudo ./posteulen/deploy/install.sh
+#   git clone --depth=1 --filter=blob:none --sparse <Repository> posteulen
+#   git -C posteulen sparse-checkout set deploy && sudo ./posteulen/deploy/install.sh
+#
+# Für den Start genügt dieser kleine Klon mit den Deployment-Dateien (v1.4.1); die zu
+# installierende Version lädt das Skript selbst – flach, nur sie – und behält kein Repository.
 #
 # Parameter (alle Rückfragen lassen sich so beantworten):
 #   --domain <domain>          z. B. posteulen.de (admin.<domain> wird automatisch genutzt)
 #   --repo <url>               Quelle für Updates (Standard: Herkunft dieses Klons)
-#   --ref <tag|commit>         zu installierende Version (Standard: neuestes Tag)
+#   --ref <tag|commit>         zu installierende Version (Standard: neuestes Tag; ein Commit mit
+#                              vollständiger Kennung aus 40 Zeichen)
 #   --admin-allowlist <ips>    kommagetrennte IP-Bereiche, die das Adminpanel sehen dürfen
 #   --backup-pubkey <age1…>    eigener öffentlicher age-Schlüssel für Backups (empfohlen)
 #   --ssh-hardening ja|nein    SSH nur noch mit Schlüssel (nur wenn ein Schlüssel hinterlegt ist)
@@ -41,7 +46,7 @@ while [[ $# -gt 0 ]]; do
     --test-mode) test_mode=1; shift ;;
     --no-verify-tags) verify=0; shift ;;
     --yes) PE_ASSUME_YES=1; shift ;;
-    -h | --help) sed -n '2,26p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,27p' "$0"; exit 0 ;;
     *) die "Unbekannter Parameter: $1" "Hilfe mit „$0 --help“." ;;
   esac
 done
@@ -223,26 +228,40 @@ if [[ ! -f $PE_CONF ]]; then
   umask 022
 fi
 
-if [[ ! -d $PE_REPO ]]; then
-  git clone --quiet --bare --filter=blob:none "$repo" "$PE_REPO" || die "Repository $repo nicht erreichbar." "Adresse und Zugang (z. B. Deploy-Key) prüfen."
-fi
-git -C "$PE_REPO" fetch --quiet --force --tags origin '+refs/heads/*:refs/heads/*' || warn "Konnte keine neuen Versionen holen – nutze den vorhandenen Stand."
+# v1.4.1: Kein dauerhaftes Repository mehr. Die Version kommt flach (nur ihr Stand) in ein
+# vorübergehendes Repository unter staging/, wird ins Staging ausgepackt, dort gebaut und erst
+# fertig und verkleinert zum Release. Repository und Staging verschwinden danach in jedem Fall.
+[[ $repo == /* ]] && repo="file://$repo"
+clean_staging
+staging=''
+fetch_repo=''
+install_cleanup() {
+  [[ -n $fetch_repo ]] && rm -rf "$fetch_repo"
+  [[ -n $staging ]] && rm -rf "$staging"
+  rm -rf "$PE_NPM_CACHE"
+  return 0
+}
+trap install_cleanup EXIT
+fetch_repo=$(temp_repo "$repo")
 
 if [[ -L $PE_CURRENT ]]; then
   release=$(readlink -f "$PE_CURRENT")
   if [[ -n $ref ]]; then
-    wanted=$(release_commit "$PE_REPO" "$ref" 2>/dev/null || true)
-    [[ $release == *"-$wanted" ]] || die "Hier ist bereits $(release_version "$release") installiert." "Für andere Versionen „sudo posteulen-update <Version>“ verwenden."
+    wanted=$(remote_commit "$fetch_repo" "$ref")
+    [[ -n $wanted && $release == *"-$wanted" ]] || die "Hier ist bereits $(release_version "$release") installiert." "Für andere Versionen „sudo posteulen-update <Version>“ verwenden."
   fi
   ok "Vorhandenes Release bleibt: $release"
 else
   if [[ -z $ref ]]; then
-    ref=$(newest_tag "$PE_REPO")
-    [[ -n $ref ]] || die "Im Repository gibt es noch keine Version (Tag)." "Mit „--ref <Commit>“ eine Version angeben."
+    ref=$(newest_remote_tag "$fetch_repo") || die "Repository $repo nicht erreichbar." "Adresse und Zugang (z. B. Deploy-Key) prüfen."
+    [[ -n $ref ]] || die "Im Repository gibt es noch keine Version (Tag)." "Mit „--ref <Commit>“ (vollständige Kennung, 40 Zeichen) eine Version angeben."
   fi
-  commit=$(release_commit "$PE_REPO" "$ref" 2>/dev/null) || die "Version „$ref“ nicht gefunden."
+  info "Lade $ref …"
+  fetch_release "$fetch_repo" "$ref" ||
+    die "Version „$ref“ nicht gefunden oder Repository $repo nicht erreichbar." "Adresse, Zugang und Versionsangabe (Tag, Branch oder vollständige Commit-Kennung) prüfen."
+  commit=$(release_commit "$fetch_repo" "$ref" 2>/dev/null) || die "Version „$ref“ nicht gefunden."
   if [[ $verify -eq 1 ]]; then
-    signature=$(verify_release_tag "$PE_REPO" "$ref" "$SOURCE_CLONE/deploy/allowed_signers") ||
+    signature=$(verify_release_tag "$fetch_repo" "$ref" "$SOURCE_CLONE/deploy/allowed_signers") ||
       die "Die Signatur von $ref ist ungültig oder fehlt (oder „$ref“ ist kein signiertes Tag)." \
         "Nur signierte Versionen installieren. Für bewusst unsignierte eigene Stände: --no-verify-tags."
     ok "Signatur von $ref geprüft: $signature"
@@ -250,12 +269,25 @@ else
   else
     warn "Die Signatur von $ref wird NICHT geprüft (--no-verify-tags)."
   fi
-  release="$PE_RELEASES/$(tr -c 'A-Za-z0-9._-' '_' <<<"$ref" | sed 's/_$//')-$commit"
+  name=$(release_name "$ref" "$commit")
+  staging="$PE_STAGING/$name"
+  rm -rf "$staging"
+  mkdir -p "$staging"
+  git -C "$fetch_repo" archive --format=tar "$commit" | tar -x -C "$staging"
+  rm -rf "$fetch_repo"
+  fetch_repo=''
+  build_release "$staging" || die "Der Build ist fehlgeschlagen." "Ausgabe oben lesen; bei Speichermangel mit „--swap ja“ erneut versuchen."
+  release="$PE_RELEASES/$name"
   rm -rf "$release"
-  mkdir -p "$release"
-  git -C "$PE_REPO" archive --format=tar "$commit" | tar -x -C "$release"
-  build_release "$release" || die "Der Build ist fehlgeschlagen." "Ausgabe oben lesen; bei Speichermangel mit „--swap ja“ erneut versuchen."
+  mv -T "$staging" "$release"
+  staging=''
 fi
+rm -rf "$fetch_repo"
+fetch_repo=''
+# v1.4.1: Reste abgebrochener Läufe und die einmalige Umstellung (siehe update.sh).
+clean_staging
+prune_releases "$release"
+remove_legacy_repo
 
 # Geheimnisse (nur anlegen, nie überschreiben, SPEC 4.4).
 secrets_created=0

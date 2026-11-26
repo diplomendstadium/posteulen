@@ -5,8 +5,9 @@
 #   npm run test:vm                  testet den committeten Stand (HEAD)
 #   KEEP_VM=1 npm run test:vm        VM danach nicht beenden (SSH: Port 2222)
 #
-# Ablauf: Cloud-Image laden und prüfen → VM starten → aus HEAD drei Test-Versionen bauen
-# (gut, gut, mit kaputter Migration) → Szenario deploy/test/vm-scenario.sh in der VM.
+# Ablauf: Cloud-Image laden und prüfen → VM starten → aus HEAD vier Test-Versionen bauen
+# (gut, gut, mit kaputter Migration, mit kaputtem Build) → Szenario deploy/test/vm-scenario.sh
+# in der VM.
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 CACHE=${POSTEULEN_VM_CACHE:-$HOME/.cache/posteulen-vm}
@@ -74,6 +75,13 @@ printf -- '-- Absichtlich kaputt (VM-Test: Rückfall).\nCREATE TABLE vmtest_brok
 git -C "$work" add -A
 git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -m "VM-Test 3 (kaputt)"
 signed_tag "v$version-vmtest.3"
+# v1.4.1: ein Build, der scheitert (auf Version 2) – das Staging darf danach nicht liegen bleiben.
+git -C "$work" checkout --quiet --detach "v$version-vmtest.2^{commit}"
+set_version "$version-vmtest.4"
+node -e 'const f=process.argv[1];const p=JSON.parse(require("fs").readFileSync(f,"utf8"));p.scripts.build="node scripts/build-images.ts && node -e \"process.exit(1)\"";require("fs").writeFileSync(f,JSON.stringify(p,null,2)+"\n")' "$work/web/package.json"
+git -C "$work" -c user.name=vmtest -c user.email=vmtest@invalid commit --quiet -am "VM-Test 4 (Build kaputt)"
+signed_tag "v$version-vmtest.4"
+git -C "$work" checkout --quiet -
 git -C "$work" bundle create --quiet "$run_dir/posteulen.bundle" --all
 # Vorige Stufe: das neueste Release-Tag vor HEAD (SPEC 17.6: Update vom Tag der vorigen Stufe).
 previous=$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)

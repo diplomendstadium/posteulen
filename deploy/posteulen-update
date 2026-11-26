@@ -16,6 +16,9 @@
 # sonst als „neueste Version“ unterschieben. Der Weg zurück ist --rollback.
 # Dieser Befehl holt die neue Version und übergibt dann an deren eigenes Update-Skript, damit
 # neue Versionen eigene Schritte mitbringen können.
+# Seit v1.4.1 bleibt dabei kein Repository auf dem Server: Jede Version kommt flach in ein
+# vorübergehendes Repository unter /opt/posteulen/staging, wird dort ins Staging ausgepackt und
+# gebaut; nur ein fertiger Build wird ein Release. Es bleiben das aktive und das vorige Release.
 set -euo pipefail
 # shellcheck source=deploy/lib.sh
 source /opt/posteulen/current/deploy/lib.sh
@@ -31,7 +34,7 @@ while [[ $# -gt 0 ]]; do
     --no-verify-tags) verify=0; shift ;;
     --allow-downgrade) downgrade=1; shift ;;
     --yes) PE_ASSUME_YES=1; shift ;;
-    -h | --help) sed -n '2,19p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,21p' "$0"; exit 0 ;;
     -*) die "Unbekannter Parameter: $1" "Hilfe mit „posteulen-update --help“." ;;
     *) target=$1; shift ;;
   esac
@@ -53,15 +56,40 @@ if [[ $rollback -eq 1 ]]; then
   exec "$current_release/deploy/update.sh" --rollback
 fi
 
+# v1.4.1: Vor jedem Update aufräumen (SPEC 16.3): Reste abgebrochener Läufe in staging/ und alle
+# Releases außer dem aktiven und dem vorigen. Die bleibenden Releases werden verkleinert.
+clean_staging
+prune_releases
+
+# v1.4.1: Jede Version kommt in ein vorübergehendes Repository, das nur sie enthält und danach
+# gelöscht wird – nichts davon bleibt auf dem Server liegen. Zuerst ein leichter Abruf ohne
+# Dateiinhalte (Signatur, Versionsnummer, CHANGELOG.md), erst nach allen Prüfungen der volle Stand.
+url=$(repo_url)
+[[ -n $url ]] || die "Keine Quelle für Updates bekannt." "In $PE_CONF die Zeile „POSTEULEN_REPO=<Adresse>“ ergänzen."
+meta=''
+full=''
+staging=''
+cleanup() {
+  [[ -n $meta ]] && rm -rf "$meta"
+  [[ -n $full ]] && rm -rf "$full"
+  [[ -n $staging ]] && rm -rf "$staging"
+  return 0
+}
+trap cleanup EXIT
+meta=$(temp_repo "$url")
+
 info "Hole verfügbare Versionen …"
-git -C "$PE_REPO" fetch --quiet --force --tags origin '+refs/heads/*:refs/heads/*' || die "Repository nicht erreichbar." "Netzwerk und Zugang prüfen."
-[[ -n $target ]] || target=$(newest_tag "$PE_REPO")
+if [[ -z $target ]]; then
+  target=$(newest_remote_tag "$meta") || die "Repository $url nicht erreichbar." "Netzwerk und Zugang prüfen."
+fi
 [[ -n $target ]] || die "Keine Version gefunden."
-commit=$(release_commit "$PE_REPO" "$target" 2>/dev/null) || die "Version „$target“ gibt es nicht." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
+fetch_release "$meta" "$target" light ||
+  die "Version „$target“ gibt es nicht (oder das Repository ist nicht erreichbar)." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
+commit=$(release_commit "$meta" "$target" 2>/dev/null) || die "Version „$target“ gibt es nicht." "Mit „posteulen-update --check“ die verfügbaren Versionen ansehen."
 
 if [[ $check -eq 1 ]]; then
   printf 'Installiert: %s (%s)\nVerfügbar:   %s (%s)\n\n' "$current_version" "$(basename "$current_release")" "$target" "$commit"
-  git -C "$PE_REPO" show "$commit:CHANGELOG.md" 2>/dev/null | sed -n '1,60p' || true
+  git -C "$meta" show "$commit:CHANGELOG.md" 2>/dev/null | sed -n '1,60p' || true
   exit 0
 fi
 
@@ -71,7 +99,7 @@ if [[ $current_release == *"-$commit" ]]; then
 fi
 
 if [[ $verify -eq 1 ]]; then
-  signature=$(verify_release_tag "$PE_REPO" "$target" "$current_release/deploy/allowed_signers") ||
+  signature=$(verify_release_tag "$meta" "$target" "$current_release/deploy/allowed_signers") ||
     die "Die Signatur von $target ist ungültig oder fehlt (oder „$target“ ist kein signiertes Tag)." \
       "Nicht aktualisieren und die Herkunft prüfen. Nur für bewusst unsignierte eigene Stände: --no-verify-tags."
   ok "Signatur von $target geprüft: $signature"
@@ -80,15 +108,32 @@ else
 fi
 
 # v1.0: keine ältere Version als die installierte (Schutz vor untergeschobenen alten Tags).
-target_version=$(git -C "$PE_REPO" show "$commit:shared/src/version.ts" 2>/dev/null | sed -n "s/^export const VERSION = '\(.*\)';$/\1/p")
+target_version=$(git -C "$meta" show "$commit:shared/src/version.ts" 2>/dev/null | sed -n "s/^export const VERSION = '\(.*\)';$/\1/p")
 [[ -n $target_version ]] || die "Die Versionsnummer von „$target“ ließ sich nicht lesen." "Ist „$target“ eine Version von PostEulen?"
 if [[ $downgrade -eq 0 ]] && version_older "$target_version" "$current_version"; then
   die "Version $target_version ist älter als die installierte Version $current_version." \
     "Zurück zum Stand vor dem letzten Update geht mit „posteulen-update --rollback“. Nur bewusst: --allow-downgrade."
 fi
+rm -rf "$meta"
+meta=''
 
-release="$PE_RELEASES/$(tr -c 'A-Za-z0-9._-' '_' <<<"$target" | sed 's/_$//')-$commit"
-rm -rf "$release"
-mkdir -p "$release"
-git -C "$PE_REPO" archive --format=tar "$commit" | tar -x -C "$release"
-exec "$release/deploy/update.sh" --apply "$current_release"
+# Jetzt erst der volle Stand dieser einen Version – und noch einmal dieselben Prüfungen an genau
+# dem, was ausgepackt wird (dasselbe Tag-Objekt, derselbe Commit).
+info "Lade $target …"
+full=$(temp_repo "$url")
+fetch_release "$full" "$target" || die "Version $target ließ sich nicht laden." "Netzwerk und freien Speicher („df -h /“) prüfen."
+[[ $(release_commit "$full" "$target") == "$commit" ]] || die "Version $target hat sich während des Updates geändert." "Herkunft prüfen und erneut versuchen."
+if [[ $verify -eq 1 ]]; then
+  verify_release_tag "$full" "$target" "$current_release/deploy/allowed_signers" >/dev/null ||
+    die "Die Signatur von $target ist ungültig oder fehlt." "Nicht aktualisieren und die Herkunft prüfen."
+fi
+# v1.4.1: ausgepackt wird ins Staging; update.sh macht erst den fertigen Build zum Release.
+staging="$PE_STAGING/$(release_name "$target" "$commit")"
+rm -rf "$staging"
+mkdir -p "$staging"
+git -C "$full" archive --format=tar "$commit" | tar -x -C "$staging"
+rm -rf "$full"
+full=''
+# Ab hier räumt update.sh auf (auch das Staging, wenn etwas schiefgeht).
+trap - EXIT
+exec "$staging/deploy/update.sh" --apply "$current_release"

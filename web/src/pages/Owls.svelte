@@ -83,17 +83,19 @@
   }
 
   /**
-   * v1.2.1: own and loan owls together – on top the owls ready for post (fullest energy first),
-   * below the ones on their way or busy (expected back soonest first).
+   * v1.2.1: own and loan owls together – on top the owls ready for post, below them (v1.4.1) the
+   * visiting owls, then the ones on their way or busy (SPEC 8.5).
    */
   const named = $derived(owls.filter((owl) => owl.name !== null));
-  const groups = $derived.by(() => {
-    const { ready, busy } = overviewOrder(named, (a, b) => a.localeCompare(b, i18n.lang));
-    return [
-      { id: 'ready-owls', title: t.owls.readyGroup, list: ready },
-      { id: 'busy-owls', title: t.owls.busyGroup, list: busy },
-    ].filter((group) => group.list.length > 0);
-  });
+  const order = $derived(overviewOrder(named, (a, b) => a.localeCompare(b, i18n.lang)));
+  const ready = $derived(
+    order.ready.length > 0
+      ? { id: 'ready-owls', title: t.owls.readyGroup, list: order.ready }
+      : null,
+  );
+  const away = $derived(
+    order.busy.length > 0 ? { id: 'busy-owls', title: t.owls.busyGroup, list: order.busy } : null,
+  );
 </script>
 
 <!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). -->
@@ -149,19 +151,7 @@
   <p><Link href="/app/menagerie" class="button">{t.owls.toMenagerie}</Link></p>
 {/if}
 
-{#if guests.length > 0}
-  <!-- v0.7: visiting owls first – they only rest here for a while. -->
-  <section aria-labelledby="guest-owls">
-    <h2 id="guest-owls" class="group plate">{t.owls.guestGroup}</h2>
-    <ul class="owls">
-      {#each guests as guest (guest.id)}
-        <GuestOwlCard {guest} onchanged={() => void load()} />
-      {/each}
-    </ul>
-  </section>
-{/if}
-
-{#each groups as group (group.id)}
+{#snippet ownGroup(group: { id: string; title: string; list: typeof named })}
   <section aria-labelledby={group.id}>
     <h2 id={group.id} class="group plate">{group.title}</h2>
     <OwlCards
@@ -172,7 +162,24 @@
       onremove={(id) => (owls = owls.filter((other) => other.id !== id))}
     />
   </section>
-{/each}
+{/snippet}
+
+<!-- v1.4.1: "Bereit für Post" first, then the visiting owls, then the rest (SPEC 8.5). -->
+{#if ready}{@render ownGroup(ready)}{/if}
+
+{#if guests.length > 0}
+  <!-- v0.7: visiting owls – they only rest here for a while. -->
+  <section aria-labelledby="guest-owls">
+    <h2 id="guest-owls" class="group plate">{t.owls.guestGroup}</h2>
+    <ul class="owls">
+      {#each guests as guest (guest.id)}
+        <GuestOwlCard {guest} onchanged={() => void load()} />
+      {/each}
+    </ul>
+  </section>
+{/if}
+
+{#if away}{@render ownGroup(away)}{/if}
 
 <!-- v0.8.5: the explanation of motivation, care and sickness at the end of the page. -->
 {#if loaded && owls.length > 0}

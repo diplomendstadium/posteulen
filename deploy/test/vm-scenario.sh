@@ -4,7 +4,7 @@
 set -euo pipefail
 base=$1
 previous=${2:-}
-v1="v$base-vmtest.1" v2="v$base-vmtest.2" v3="v$base-vmtest.3"
+v1="v$base-vmtest.1" v2="v$base-vmtest.2" v3="v$base-vmtest.3" v4="v$base-vmtest.4"
 # Unsigniert bzw. ein signiertes Tag unter fremdem Namen (v0.6.1: beides muss scheitern).
 unsigned="v$base-vmtest.0" renamed="v$base-vmtest.00"
 DOMAIN=posteulen.test
@@ -126,6 +126,29 @@ tor_checks() {
     check "Onion-Seite des Adminpanels antwortet lokal ($1)" panel_onion_local admin
   fi
 }
+# v1.4.1: schlanke Releases (SPEC 16.3) – kein dauerhaftes Repository, nur aktives und voriges
+# Release, ohne Bildquellen und Zwischenbilder, leeres Staging, geleerter npm-Cache.
+has_lean_releases() { grep -q 'trim_release' /opt/posteulen/current/deploy/lib.sh 2>/dev/null; }
+release_count() { find /opt/posteulen/releases -mindepth 1 -maxdepth 1 -type d | wc -l; }
+no_build_sources() {
+  ! compgen -G '/opt/posteulen/releases/*/images' >/dev/null &&
+    ! compgen -G '/opt/posteulen/releases/*/web/src/generated/owl-images' >/dev/null
+}
+all_built() {
+  local ui
+  for ui in web admin bots; do [[ -f /opt/posteulen/current/$ui/dist/index.html ]] || return 1; done
+}
+staging_empty() { [[ -z $(ls -A /opt/posteulen/staging 2>/dev/null) ]]; }
+lean_checks() {
+  has_lean_releases || return 0
+  check "Kein dauerhaftes Update-Repository ($1)" test ! -e /opt/posteulen/repo
+  check "Höchstens zwei Releases, aktiv und vorig ($1)" test "$(release_count)" -le 2
+  check "Keine Bildquellen und Zwischenbilder in den Releases ($1)" no_build_sources
+  check "Aktives Release vollständig gebaut ($1)" all_built
+  check "Staging leer ($1)" staging_empty
+  check "npm-Cache des Builds geleert ($1)" test ! -e /var/cache/posteulen/npm
+  echo "   Belegung ($1): $(du -sh /opt/posteulen | cut -f1) unter /opt/posteulen, $(du -sh /opt/posteulen/current/ | cut -f1) aktives Release"
+}
 account_registered=0
 wait_delivered() {
   local _
@@ -177,6 +200,9 @@ if [[ -n $previous ]]; then
   check "Daten der vorigen Stufe erhalten" has_previous_marker
   check "Geheimnisse beim Update unverändert" test "$(fingerprint)" = "$before_update"
   [[ $account_registered -eq 1 ]] && check "Konto der vorigen Stufe meldet sich nach dem Update an" account login
+  # v1.4.1: die einmalige Umstellung – das frühere Update-Repository ist weg, alte Releases sind
+  # verkleinert bzw. entfernt.
+  lean_checks "Update von $previous"
 else
   echo "── 1. Frische Installation ($v1)"
   git -C /root/posteulen checkout --quiet "$v1"
@@ -185,6 +211,7 @@ else
     --repo file:///srv/posteulen.git --ref "$v1" --ssh-hardening ja
   echo "   Dauer: $(($(date +%s) - start)) s"
   check "Version $v1 antwortet" test "$(api_version)" = "${v1#v}"
+  lean_checks "Installation"
 fi
 git -C /root/posteulen checkout --quiet "$v1"
 if has_account_support; then
@@ -295,6 +322,7 @@ has_bots_support && check "Passwort des Kontrollzentrums beim Update unveränder
 has_account_support && check "Konto nach Update" account login
 has_letter_support && check "Brief nach Update für beide lesbar" letters letters-check --delivered
 has_tor_support && tor_checks "Update"
+lean_checks "Update"
 
 echo "── 3a. Nur signierte Tags (v0.6.1)"
 if posteulen-update "$unsigned" --yes; then check "unsigniertes Tag abgelehnt" false; else check "unsigniertes Tag abgelehnt" true; fi
@@ -302,6 +330,7 @@ if posteulen-update "$renamed" --yes; then check "umbenanntes signiertes Tag abg
 # v1.0: Ein älteres, echt signiertes Tag wird nicht als Update eingespielt (nur mit --allow-downgrade).
 if posteulen-update "$v1" --yes; then check "ältere signierte Version abgelehnt" false; else check "ältere signierte Version abgelehnt" true; fi
 check "Version $v2 läuft unverändert" test "$(api_version)" = "${v2#v}"
+lean_checks "abgelehnte Versionen"
 
 echo "── 4. Kaputtes Update $v2 → $v3 wird zurückgerollt"
 if posteulen-update "$v3" --yes; then check "kaputtes Update schlägt fehl" false; else check "kaputtes Update schlägt fehl" true; fi
@@ -311,6 +340,17 @@ check "Kaputte Migration nicht in der DB" no_broken_table
 has_account_support && check "Konto nach Rückfall" account login
 has_letter_support && check "Brief nach Rückfall für beide lesbar" letters letters-check --delivered
 has_tor_support && tor_checks "automatischer Rückfall"
+lean_checks "automatischer Rückfall"
+has_lean_releases && check "Release der kaputten Version entfernt" bash -c "! compgen -G '/opt/posteulen/releases/$v3-*' >/dev/null"
+
+if has_lean_releases; then
+  echo "── 4a. Kaputter Build $v2 → $v4: Staging wird entfernt (v1.4.1)"
+  if posteulen-update "$v4" --yes; then check "kaputter Build schlägt fehl" false; else check "kaputter Build schlägt fehl" true; fi
+  check "Version $v2 läuft unverändert" test "$(api_version)" = "${v2#v}"
+  check "Kein Release der kaputten Version" bash -c "! compgen -G '/opt/posteulen/releases/$v4-*' >/dev/null"
+  lean_checks "kaputter Build"
+  has_account_support && check "Konto nach kaputtem Build" account login
+fi
 
 echo "── 5. posteulen-update --rollback ($v2 → $v1)"
 check "Rollback" posteulen-update --rollback --yes
@@ -319,6 +359,7 @@ check "Daten von vor dem Update" has_marker
 has_account_support && check "Konto nach --rollback" account login
 has_letter_support && check "Brief nach --rollback für beide lesbar" letters letters-check --delivered
 has_tor_support && tor_checks "--rollback"
+lean_checks "--rollback"
 
 echo "── 6. Sicherung und Wiederherstellung nach README.md"
 check "Sicherung manuell" systemctl start posteulen-backup.service
@@ -381,8 +422,19 @@ if [[ -n $rescued_onion ]]; then
 fi
 old_pub=$(sed -n 's/^# public key: //p' "$rescue/posteulen-backup-schluessel.txt")
 # Schritt 2: installieren, mit dem bisherigen öffentlichen Backup-Schlüssel.
-check "Neuinstallation mit geretteter Geheimnis-Datei" /root/posteulen/deploy/install.sh --domain "$DOMAIN" --test-mode --yes \
+# v1.4.1: wie in der readme aus dem kleinen Startklon (nur die Deployment-Dateien, keine Bilder).
+start_clone=/root/posteulen
+if has_lean_releases; then
+  start_clone=/root/posteulen-klein
+  rm -rf "$start_clone"
+  git clone --quiet --depth=1 --filter=blob:none --sparse --branch "$v1" file:///srv/posteulen.git "$start_clone"
+  git -C "$start_clone" sparse-checkout set deploy
+  check "Kleiner Startklon: Deployment-Dateien da, keine Bilder" bash -c "[[ -x $start_clone/deploy/install.sh && ! -e $start_clone/images ]]"
+  echo "   Startklon: $(du -sh "$start_clone" | cut -f1)"
+fi
+check "Neuinstallation mit geretteter Geheimnis-Datei" "$start_clone/deploy/install.sh" --domain "$DOMAIN" --test-mode --yes \
   --repo file:///srv/posteulen.git --ref "$v1" --ssh-hardening ja --backup-pubkey "$old_pub"
+lean_checks "Neuinstallation"
 check "Geheimnis-Datei unverändert übernommen" cmp -s "$rescue/posteulen-secrets.json" /etc/posteulen/secrets.json
 check "Backup-Schlüssel ist der bisherige" test "$(cat /etc/posteulen/backup.pub)" = "$old_pub"
 check "Kein neuer privater Backup-Schlüssel" test ! -e /root/posteulen-backup-schluessel.txt
