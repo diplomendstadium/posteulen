@@ -159,7 +159,7 @@ git -C posteulen sparse-checkout set deploy
 sudo ./posteulen/deploy/install.sh --domain posteulen.de
 ```
 
-The clone is small on purpose: it contains only the installation scripts (a few hundred kilobytes), no images and no history. The script downloads the actual version itself – only that one, without history – and deletes the download again after the build. You can delete the folder `posteulen` after the installation.
+The clone is small on purpose: it contains only the installation scripts and the text files in the main folder (about 2 MB), no images and no history. The script downloads the actual version itself – only that one, without history – and deletes the download again after the build. You can delete the folder `posteulen` after the installation.
 
 The script only asks what is necessary. All questions can also be answered with parameters (overview: `sudo ./posteulen/deploy/install.sh --help`). It does the following:
 

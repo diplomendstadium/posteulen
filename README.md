@@ -155,7 +155,7 @@ git -C posteulen sparse-checkout set deploy
 sudo ./posteulen/deploy/install.sh --domain posteulen.de
 ```
 
-Der Klon ist absichtlich klein: Er enthält nur die Installationsskripte (ein paar hundert Kilobyte), keine Bilder und keine Geschichte. Die eigentliche Version lädt das Skript selbst – nur sie, ohne Geschichte – und löscht den Download nach dem Bau wieder. Den Ordner `posteulen` kann man nach der Installation löschen.
+Der Klon ist absichtlich klein: Er enthält nur die Installationsskripte und die Textdateien im Hauptordner (rund 2 MB), keine Bilder und keine Geschichte. Die eigentliche Version lädt das Skript selbst – nur sie, ohne Geschichte – und löscht den Download nach dem Bau wieder. Den Ordner `posteulen` kann man nach der Installation löschen.
 
 Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter beantworten (Übersicht: `sudo ./posteulen/deploy/install.sh --help`). Es macht Folgendes:
 
