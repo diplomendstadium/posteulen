@@ -117,7 +117,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.4.0** – Urlaubsmodus (bis zu dreimal im Jahr bis zu sechs Wochen Pause ohne Nachteile, die Eulen erholen sich auf der Insel Inchlonaig); gelangweilte Eulen, die nach drei Wochen ohne Brief zu Menschen davonzufliegen drohen; höchstens so viele eigene Eulen wie Arten; Freilassen ab sechs Eulen; Verleih ans Postamt einmal im Quartal; ausgeruhtere Leiheulen; unter den Eulen nur Knöpfe, die gerade gehen; die Tür von Postamt und Menagerie direkt unter dem Bild; ein Eulensymbol je rastender Eule; eigene Onion-Adressen für Adminpanel und Bots-Kontrollzentrum und alle sechs Adressen unter „Über diese Instanz“. Das Update bringt eine Datenbank-Migration mit, die beim Update automatisch läuft (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.4.1** – PostEulen läuft dauerhaft auch auf kleinen vServern (1 GB Arbeitsspeicher, 20 GB Festplatte): Auf dem Server bleiben nur die laufende und die vorige Version, ohne Bildquellen und ohne Git-Kopie; Installation und Update laden nur noch die eine benötigte, signierte Version und räumen danach auf – auch wenn etwas schiefgeht. Auf einem lange laufenden Server macht das erste Update auf 1.4.1 mehrere GB frei ([Abschnitt 6](#6-updates)). In der App stehen bei „Meine Eulen“ die Gast-Eulen jetzt unter „Bereit für Post“. Keine Datenbank-Migration (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -129,7 +129,7 @@ Stand: **Version 1.4.0** – Urlaubsmodus (bis zu dreimal im Jahr bis zu sechs W
 
 ### 1. Voraussetzungen
 
-- Ein VPS mit frisch installiertem Debian 13 (amd64 oder arm64). Mindestens 1 GB Arbeitsspeicher (2 GB empfohlen), 1 CPU-Kern, 10 GB Speicher. Bei weniger als 2 GB Arbeitsspeicher legt das Skript nach Rückfrage eine Swap-Datei an, damit der Build nicht abbricht.
+- Ein VPS mit frisch installiertem Debian 13 (amd64 oder arm64). Mindestens 1 GB Arbeitsspeicher (2 GB empfohlen), 1 CPU-Kern, 10 GB Speicher. Bei weniger als 2 GB Arbeitsspeicher legt das Skript nach Rückfrage eine Swap-Datei an, damit der Build nicht abbricht. PostEulen ist ausdrücklich für kleine vServer mit 1 GB Arbeitsspeicher und 20 GB Festplatte gedacht: Die Software selbst belegt dauerhaft nur etwa 0,5 GB (zwei gebaute Versionen), dazu kommen Datenbank und Sicherungen. Während eines Updates braucht sie kurzzeitig etwa 4 GB mehr (die Bildquellen werden für den Bau geladen und danach wieder gelöscht).
 - Eine eigene Domain, z. B. `posteulen.de`.
 - Drei DNS-Einträge (A für IPv4 und – wenn der Server eine IPv6-Adresse hat – AAAA für IPv6), die auf die Adresse des Servers zeigen, dazu optional `www`:
 
@@ -150,9 +150,12 @@ Auf dem Server als normaler Benutzer mit sudo-Rechten (oder als root):
 
 ```bash
 sudo apt update && sudo apt install -y git
-git clone https://github.com/diplomendstadium/posteulen.git posteulen
+git clone --depth=1 --filter=blob:none --sparse https://github.com/diplomendstadium/posteulen.git posteulen
+git -C posteulen sparse-checkout set deploy
 sudo ./posteulen/deploy/install.sh --domain posteulen.de
 ```
+
+Der Klon ist absichtlich klein: Er enthält nur die Installationsskripte (ein paar hundert Kilobyte), keine Bilder und keine Geschichte. Die eigentliche Version lädt das Skript selbst – nur sie, ohne Geschichte – und löscht den Download nach dem Bau wieder. Den Ordner `posteulen` kann man nach der Installation löschen.
 
 Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter beantworten (Übersicht: `sudo ./posteulen/deploy/install.sh --help`). Es macht Folgendes:
 
@@ -166,8 +169,8 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
 
    | Pfad | Inhalt |
    |---|---|
-   | `/opt/posteulen/repo` | Kopie des Git-Repositorys (für Updates) |
-   | `/opt/posteulen/releases/…` | gebaute Versionen (die letzten 3 bleiben erhalten) |
+   | `/opt/posteulen/releases/…` | gebaute Versionen: die laufende und die vorige (für den Rückfall); nur, was der Betrieb braucht |
+   | `/opt/posteulen/staging` | Arbeitsplatz während Installation und Update (danach leer) |
    | `/opt/posteulen/current` | Verweis auf die laufende Version |
    | `/var/lib/posteulen` | Datenbank (nur für den Dienst lesbar) und Messwerte für das Server-Dashboard |
    | `/var/backups/posteulen` | verschlüsselte Sicherungen |
@@ -175,9 +178,9 @@ Das Skript fragt nur das Nötigste. Alle Fragen lassen sich auch per Parameter b
    | `/etc/posteulen/local` | eigene Anpassungen (werden nie überschrieben) |
    | `/etc/posteulen/onion`, `onion-admin`, `onion-bots` | Schlüssel der Onion-Adressen von App, Adminpanel und Kontrollzentrum (werden nie überschrieben) |
 
-   Vor dem Bauen prüft es die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
+   Dann holt es die gewünschte Version (Standard: die neueste) in ein vorübergehendes Git-Repository, prüft die **Signatur** der Version (siehe [Abschnitt 6](#6-updates)) und zeigt den Fingerabdruck des Signaturschlüssels an.
 
-   Dann baut es die Software, erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an, richtet den Onion-Dienst ein (siehe [Abschnitt 3b](#3b-das-tor-netz)) und schreibt die Caddyfile (mit `www.posteulen.de` als Weiterleitung, wenn `www` im DNS auf den Server zeigt), den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
+   Dann baut es die Software in `/opt/posteulen/staging` und verschiebt erst den fertigen Bau nach `releases/` – ohne die Bildquellen (`images/`, rund 1,8 GB), aus denen der Bau die Bilder für die Website erzeugt; das vorübergehende Repository ist da schon gelöscht. Danach erzeugt einmalig die Geheimnis-Datei `/etc/posteulen/secrets.json`, legt die Datenbank an, richtet den Onion-Dienst ein (siehe [Abschnitt 3b](#3b-das-tor-netz)) und schreibt die Caddyfile (mit `www.posteulen.de` als Weiterleitung, wenn `www` im DNS auf den Server zeigt), den gehärteten systemd-Dienst `posteulen` und den Sicherungs-Timer.
 5. Es startet alles und prüft über HTTPS, dass Website, Adminpanel, Health-Endpunkt und Sicherheits-Header funktionieren. Es prüft außerdem jeden Hostnamen über **jede** IPv4- und IPv6-Adresse des Servers mit gültigem Zertifikat und vergleicht die A- und AAAA-Einträge mit den Adressen des Servers. Fehlt ein Zertifikat (etwa nach einem neu angelegten AAAA-Eintrag), stößt es Caddy an, es zu holen; was dann noch fehlt, meldet es als Warnung. Hast du dem Server später eine IPv6-Adresse und die passenden AAAA-Einträge gegeben, genügt also das nächste Update oder ein erneuter Lauf von `install.sh`. Es prüft auch `www.posteulen.de` (falls im DNS) und meldet, wenn einem Namen der A- oder AAAA-Eintrag fehlt, obwohl der Server eine öffentliche IPv4- bzw. IPv6-Adresse hat. Danach prüft es die Onion-Adresse lokal und einmal über das Tor-Netz.
 6. Am Ende zeigt es eine Zusammenfassung (mit den Onion-Adressen) und einen großen Hinweis zur Sicherung. **Alles, was nicht stimmt, aber den Betrieb nicht verhindert** (DNS, IPv4/IPv6, www, Tor), steht zum Schluss noch einmal gesammelt in einem gelben Kasten „ACHTUNG – bitte prüfen“. Die Installation läuft trotzdem zu Ende. Wer `www` erst später im DNS einträgt: danach `sudo /opt/posteulen/current/deploy/configure.sh` ausführen.
 
@@ -333,10 +336,18 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.4.0      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.4.1      # spielt eine bestimmte Version ein
 ```
 
-Ablauf: neue Version holen → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.
+Ablauf: aufräumen (Reste abgebrochener Läufe, alte Versionen) → neue Version prüfen (Signatur, Versionsnummer – dafür lädt es nur ein paar Kilobyte) → nur diese eine Version laden → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.
+
+**Speicherplatz:** Auf dem Server bleibt nach einem Update nur, was der Betrieb braucht: die laufende und die vorige Version (je etwa 250 MB, ohne Bildquellen), keine Git-Kopie, kein Download-Zwischenspeicher. Ein abgebrochener oder fehlgeschlagener Lauf hinterlässt nichts; das nächste Update räumt sonst noch übrige Reste vor dem Bau weg. Bei Installationen, die mit einer Version bis 1.4.0 begonnen haben, löscht das erste erfolgreiche Update auf 1.4.1 außerdem die alte Git-Kopie `/opt/posteulen/repo` (oft mehrere GB) und verkleinert die aufbewahrten Versionen. Nachsehen lässt es sich mit:
+
+```bash
+sudo du -xhd1 /opt/posteulen /var/backups/posteulen /var/lib/posteulen/snapshots
+```
+
+Frühere Versionen haben ihren npm-Zwischenspeicher unter `/root/.npm` abgelegt. Er wird nicht mehr benutzt; wer dort nichts Eigenes liegen hat, kann ihn mit `sudo rm -rf /root/.npm` löschen.
 
 Nach dem ersten Start einer neuen Version bekommt jedes bestehende Konto einmal eine Systemnachricht, die die Neuerungen in einfachen Worten erklärt (ohne Push-Benachrichtigung). Wer Versionen überspringt, bekommt die Nachrichten aller übersprungenen Versionen. Eine frische Installation verschickt nichts. Die Texte stehen in `shared/src/texts/messages.ts` (Deutsch und Englisch); zu jeder neuen Version gehört dort ein neuer Eintrag. Die Nachricht erscheint in der Sprache, die der Nutzer gerade eingestellt hat.
 
@@ -359,6 +370,8 @@ Nachträglich zurück zur vorigen Version (alles, was seit dem Update entstanden
 ```bash
 sudo posteulen-update --rollback
 ```
+
+Zurück geht es immer nur zur unmittelbar vorigen Version – nur sie wird aufbewahrt. Wer von 1.4.1 oder neuer per `--rollback` auf 1.4.0 oder älter zurückgeht, braucht für das nächste Update wieder die Git-Kopie, die diese alten Versionen erwarten: vorher einmal `sudo /opt/posteulen/current/deploy/install.sh` ausführen (es legt sie neu an und ändert sonst nichts).
 
 Rückfälle lassen die Onion-Adresse unangetastet. Geht es auf eine Version ohne Onion-Dienst zurück, ruht Tor nur, bis das nächste Update ihn mit derselben Adresse wieder startet.
 
@@ -387,6 +400,7 @@ Die Logs enthalten bewusst keine IP-Adressen, keine Namen und keine Inhalte. Die
 - Alte Briefe sind weg: Das ist Absicht. Briefe und Systemnachrichten werden ein Jahr nach der Zustellung gelöscht, auf Wunsch der Nutzer auch früher – einmal pro Woche, montags um 04:00 UTC (ein ausgefallener Lauf wird erst am nächsten Montag nachgeholt). Betroffene bekommen eine Systemnachricht, wie viele Briefe aus welchen Chats gelöscht wurden.
 - Link „Tor-Netz“ fehlt auf der Startseite: Ist Tor im Adminpanel eingeschaltet? Steht im Fehlerprotokoll etwas zu „Tor“? `systemctl status tor@posteulen` zeigt, ob der Dienst läuft; `sudo posteulen-update` (oder ein erneuter Lauf von `install.sh`) richtet ihn neu ein – mit derselben Adresse. Direkt nach der ersten Einrichtung kann es ein paar Minuten dauern, bis die Adresse im Tor-Netz erreichbar ist.
 - Tor-Nutzer bekommen „Die Eulen kommen nicht hinterher“: Für Registrierung und Anfragen ohne Anmeldung teilen sich alle Tor-Nutzer ein Budget – das ist Absicht und gibt sich nach kurzer Zeit.
+- „Version … ließ sich nicht laden“ oder der Bau bricht ab: freien Speicher prüfen (`df -h /`; ein Update braucht kurzzeitig etwa 4 GB). Danach einfach erneut `sudo posteulen-update` – Reste des abgebrochenen Laufs räumt es selbst weg.
 - „Fontconfig error: Cannot load default config file“ beim Build: harmlos (die Bildbibliothek sucht beim Umrechnen des Logos eine Schrift-Konfiguration, die ein frisches Debian nicht hat). Posteulen bringt für den Build eine eigene, minimale Konfiguration mit, und die Meldung erscheint nicht mehr.
 
 ### 8. Optional

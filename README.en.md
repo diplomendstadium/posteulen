@@ -121,7 +121,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.4.0** – holiday mode (up to three times a year a break of up to six weeks without drawbacks, the owls relax on the island of Inchlonaig); bored owls that threaten to fly off after three weeks without a letter to a person; at most as many own owls as species; releasing from six owls on; lending to the post office once a quarter; better-rested loan owls; under the owls only buttons that work right now; the door of post office and Menagerie right below the picture; one owl symbol per resting owl; onion addresses of their own for the admin panel and the bots control centre and all six addresses under “About this instance”. The update brings a database migration that runs automatically during the update (details in [CHANGELOG.md](CHANGELOG.md) and SPEC Anhang F).
+Version: **1.4.1** – PostEulen now runs permanently even on small virtual servers (1 GB of RAM, 20 GB disk): only the running and the previous version stay on the server, without image sources and without a Git copy; installation and updates download just the one signed version needed and clean up afterwards – even if something goes wrong. On a long-running server the first update to 1.4.1 frees several GB ([section 6](#6-updates)). In the app, the visiting owls under “My owls” now come right below “Ready for post”. No database migration (details in [CHANGELOG.md](CHANGELOG.md) and SPEC appendix F).
 
 **In short**
 
@@ -133,7 +133,7 @@ Version: **1.4.0** – holiday mode (up to three times a year a break of up to s
 
 ### 1. Requirements
 
-- A VPS with a freshly installed Debian 13 (amd64 or arm64). At least 1 GB of RAM (2 GB recommended), 1 CPU core, 10 GB of storage. With less than 2 GB of RAM the script offers to create a swap file so that the build does not fail.
+- A VPS with a freshly installed Debian 13 (amd64 or arm64). At least 1 GB of RAM (2 GB recommended), 1 CPU core, 10 GB of storage. With less than 2 GB of RAM the script offers to create a swap file so that the build does not fail. PostEulen is explicitly meant for small virtual servers with 1 GB of RAM and a 20 GB disk: the software itself permanently takes only about 0.5 GB (two built versions), plus the database and backups. During an update it briefly needs about 4 GB more (the image sources are downloaded for the build and deleted again afterwards).
 - Your own domain, e.g. `posteulen.de`.
 - Three DNS records (A for IPv4 and – if the server has an IPv6 address – AAAA for IPv6) pointing to the server’s address, plus `www` if you like:
 
@@ -154,9 +154,12 @@ On the server, as a normal user with sudo rights (or as root):
 
 ```bash
 sudo apt update && sudo apt install -y git
-git clone https://github.com/diplomendstadium/posteulen.git posteulen
+git clone --depth=1 --filter=blob:none --sparse https://github.com/diplomendstadium/posteulen.git posteulen
+git -C posteulen sparse-checkout set deploy
 sudo ./posteulen/deploy/install.sh --domain posteulen.de
 ```
+
+The clone is small on purpose: it contains only the installation scripts (a few hundred kilobytes), no images and no history. The script downloads the actual version itself – only that one, without history – and deletes the download again after the build. You can delete the folder `posteulen` after the installation.
 
 The script only asks what is necessary. All questions can also be answered with parameters (overview: `sudo ./posteulen/deploy/install.sh --help`). It does the following:
 
@@ -170,8 +173,8 @@ The script only asks what is necessary. All questions can also be answered with 
 
    | Path | Content |
    |---|---|
-   | `/opt/posteulen/repo` | copy of the Git repository (for updates) |
-   | `/opt/posteulen/releases/…` | built versions (the last 3 are kept) |
+   | `/opt/posteulen/releases/…` | built versions: the running one and the previous one (for rollbacks); only what operation needs |
+   | `/opt/posteulen/staging` | workspace during installation and updates (empty afterwards) |
    | `/opt/posteulen/current` | link to the running version |
    | `/var/lib/posteulen` | database (readable only by the service) and measurements for the server dashboard |
    | `/var/backups/posteulen` | encrypted backups |
@@ -179,9 +182,9 @@ The script only asks what is necessary. All questions can also be answered with 
    | `/etc/posteulen/local` | your own adjustments (never overwritten) |
    | `/etc/posteulen/onion`, `onion-admin`, `onion-bots` | keys of the onion addresses of app, admin panel and control centre (never overwritten) |
 
-   Before building, it checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
+   Then it downloads the requested version (default: the newest) into a temporary Git repository, checks the **signature** of the version (see [section 6](#6-updates)) and shows the fingerprint of the signing key.
 
-   Then it builds the software, creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database, sets up the onion service (see [section 3b](#3b-the-tor-network)) and writes the Caddyfile (with `www.posteulen.de` as a redirect if `www` points to the server in DNS), the hardened systemd service `posteulen` and the backup timer.
+   Then it builds the software in `/opt/posteulen/staging` and only moves the finished build to `releases/` – without the image sources (`images/`, about 1.8 GB) from which the build creates the pictures for the website; by then the temporary repository is already deleted. After that it creates the secrets file `/etc/posteulen/secrets.json` once, sets up the database, sets up the onion service (see [section 3b](#3b-the-tor-network)) and writes the Caddyfile (with `www.posteulen.de` as a redirect if `www` points to the server in DNS), the hardened systemd service `posteulen` and the backup timer.
 5. It starts everything and checks over HTTPS that website, admin panel, health endpoint and security headers work. It also checks every host name over **every** IPv4 and IPv6 address of the server with a valid certificate and compares the A and AAAA records with the server’s addresses. If a certificate is missing (for example after a new AAAA record), it nudges Caddy to fetch it; whatever is still missing then is reported as a warning. So if you later give the server an IPv6 address and the matching AAAA records, the next update or another run of `install.sh` is all it takes. It also checks `www.posteulen.de` (if it is in DNS) and reports when a name lacks its A or AAAA record although the server has a public IPv4 or IPv6 address. Afterwards it checks the onion address locally and once through the Tor network.
 6. At the end it shows a summary (with the onion addresses) and a big note about backups. **Everything that is not right but does not prevent operation** (DNS, IPv4/IPv6, www, Tor) is listed once more at the very end in a yellow box “ACHTUNG – bitte prüfen”. The installation still runs to the end. If you add `www` to DNS only later, run `sudo /opt/posteulen/current/deploy/configure.sh` afterwards.
 
@@ -338,10 +341,18 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.4.0      # installs a particular version
+sudo posteulen-update v1.4.1      # installs a particular version
 ```
 
-Sequence: fetch the new version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.
+Sequence: clean up (leftovers of aborted runs, old versions) → check the new version (signature, version number – this downloads only a few kilobytes) → download just this one version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.
+
+**Disk space:** after an update, only what operation needs stays on the server: the running and the previous version (about 250 MB each, without image sources), no Git copy, no download cache. An aborted or failed run leaves nothing behind; otherwise the next update clears away any leftovers before building. On installations that started with a version up to 1.4.0, the first successful update to 1.4.1 also deletes the old Git copy `/opt/posteulen/repo` (often several GB) and slims down the kept versions. To have a look:
+
+```bash
+sudo du -xhd1 /opt/posteulen /var/backups/posteulen /var/lib/posteulen/snapshots
+```
+
+Earlier versions kept their npm cache in `/root/.npm`. It is no longer used; if you keep nothing of your own there, you can delete it with `sudo rm -rf /root/.npm`.
 
 After the first start of a new version, every existing account gets one system message that explains what is new in simple words (without a push notification). Anyone skipping versions gets the messages of all skipped versions. A fresh installation sends nothing. The texts are in `shared/src/texts/messages.ts` (German and English); every new version gets a new entry there. The message appears in the language the user currently has set.
 
@@ -364,6 +375,8 @@ Going back to the previous version afterwards (everything created since the upda
 ```bash
 sudo posteulen-update --rollback
 ```
+
+You can only ever go back to the immediately previous version – only that one is kept. Anyone going back from 1.4.1 or newer with `--rollback` to 1.4.0 or older needs the Git copy these old versions expect for the next update: run `sudo /opt/posteulen/current/deploy/install.sh` once beforehand (it creates it again and changes nothing else).
 
 Rollbacks leave the onion address alone. If you go back to a version without the onion service, Tor merely rests until the next update starts it again with the same address.
 
@@ -392,6 +405,7 @@ The logs deliberately contain no IP addresses, no names and no content. The owls
 - Old letters are gone: that is on purpose. Letters and system messages are deleted one year after delivery, or sooner if users choose so – once a week, on Mondays at 04:00 UTC (a missed run is only made up the next Monday). Those affected get a system message saying how many letters from which chats were deleted.
 - The link “Tor network” is missing on the start page: is Tor switched on in the admin panel? Is there anything about “Tor” in the error log? `systemctl status tor@posteulen` shows whether the service runs; `sudo posteulen-update` (or another run of `install.sh`) sets it up again – with the same address. Right after the first setup it can take a few minutes until the address is reachable in the Tor network.
 - Tor users get “Slow down, the owls cannot keep up”: for registration and for requests without a sign-in all Tor users share one budget – that is on purpose and passes after a short while.
+- “Version … could not be downloaded” or the build stops: check the free disk space (`df -h /`; an update briefly needs about 4 GB). Then simply run `sudo posteulen-update` again – it clears away the leftovers of the aborted run itself.
 - “Fontconfig error: Cannot load default config file” during the build: harmless (the image library looks for a font configuration while converting the logo, which a fresh Debian does not have). PostEulen brings its own minimal configuration for the build, and the message no longer appears.
 
 ### 8. Optional

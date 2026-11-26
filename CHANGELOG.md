@@ -3,6 +3,38 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.4.1 – Aufgeräumte Volieren
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-483 bis D-490): PostEulen soll dauerhaft auch auf kleinen vServern mit 1 GB RAM und 20 GB Festplatte laufen. Auf einer seit v0.2 laufenden Instanz belegten Releases und Update-Repository zusammen 8,5 GB bei einer Datenbank von 20 MB.
+
+**Neu:**
+
+- **Wichtiges Ziel in SPEC 2.3:** dauerhafter Betrieb auf kleinen vServern (1 GB RAM, 20 GB Festplatte); was der Betrieb ablegt, wächst nur mit den Spieldaten.
+- **Schlanke Releases:** Nach dem Build werden die Bildquellen (`images/`, rund 1,8 GB) und die Zwischenbilder (`web/src/generated/owl-images/`) entfernt; Backend, Migrationen, Shared-Dateien, Produktionsabhängigkeiten und die drei `dist`-Verzeichnisse bleiben. Ein Release ist danach rund 250 MB groß. Bereits aufbewahrte Releases werden beim Update nachträglich verkleinert.
+- **Staging:** Neue Versionen werden in `/opt/posteulen/staging` gebaut; erst der fertige Build wird ein Release. Was ein gescheitertes Update hinterlässt (Staging oder neues Release), wird immer entfernt – auch nach einem kaputten Build oder einem Rückfall.
+- **Kein dauerhaftes Repository mehr:** Installation und Update laden nur die eine benötigte, signierte Version flach in ein vorübergehendes Repository – erst leicht ohne Dateiinhalte für Signatur, Versionsnummer und `--check`, erst nach allen Prüfungen den vollen Stand (Signatur dort erneut geprüft) – und löschen es sofort nach dem Auspacken. Abgelehnte Versionen (unsigniert, älter) laden keine Bilder mehr.
+- **Kleiner Startklon** für die Installation: `git clone --depth=1 --filter=blob:none --sparse …` und `git -C posteulen sparse-checkout set deploy`.
+- **Eigener npm-Downloadcache** des Builds (`/var/cache/posteulen/npm`), vor und nach jedem Build geleert.
+
+**Geändert:**
+
+- **Aufbewahrte Releases:** nur noch das aktive und das vorige (bisher die letzten 3); beide sind vor der Bereinigung geschützt. Aufgeräumt wird vor jedem Build, nicht erst nach einem erfolgreichen Update.
+- **`install.sh --ref`** nimmt Tags, Branches und Commits mit vollständiger Kennung (40 Zeichen).
+- **Meine Eulen:** „Zu Gast bei dir“ steht jetzt zwischen „Bereit für Post“ und „Unterwegs und beschäftigt“.
+- **Einstellungen:** Abstand zwischen „Urlaubsmodus“ und „Statistik“.
+- Update-Nachricht, Hilfe, Erklärbär-Wissen, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert.
+
+**Tests:** `backend/test/v141.test.ts` (Verkleinern, Bereinigen, Staging, flacher Abruf mit Signaturprüfung, Reihenfolge der Schritte), `e2e/v141.spec.ts`; VM-Szenario mit kaputtem Build (Test-Tag `…-vmtest.4`), Prüfungen auf schlanke Releases nach Installation, Update von der vorigen Version, abgelehnten Versionen, Rückfall, kaputtem Build, `--rollback` und Neuinstallation aus dem kleinen Startklon; angepasst `backend/test/v03.test.ts`, `v100.test.ts`.
+
+### Hinweise für Betreiber
+
+- **Das erste Update auf 1.4.1 räumt auf:** Es löscht alle Releases außer dem laufenden und dem vorigen, entfernt aus beiden die Bildquellen und – nach dem erfolgreichen Update – das frühere Update-Repository `/opt/posteulen/repo`. Auf einer lange laufenden Instanz werden so mehrere GB frei. Schlägt das Update fehl, bleibt das Repository erhalten, und die alte Version läuft wie gewohnt weiter.
+- **Platz für das Update:** Das Update selbst wird noch mit dem bisherigen Verfahren geholt (es lädt die neuen Bilder einmal ins alte Repository) und packt die neue Version noch neben die alten Releases aus; dafür braucht es rund 2,5 GB frei. Danach beginnt das Aufräumen, bevor gebaut wird. Spätere Updates brauchen kurzzeitig etwa 4 GB.
+- **Zurück auf 1.4.0 oder älter:** Nach einem `posteulen-update --rollback` auf eine solche Version vor dem nächsten Update einmal `sudo /opt/posteulen/current/deploy/install.sh` ausführen – die alten Versionen erwarten das Repository.
+- **`/root/.npm`** wird nicht mehr benutzt und kann gelöscht werden (`sudo rm -rf /root/.npm`), sofern dort nichts Eigenes liegt.
+- Neues Verzeichnis `/opt/posteulen/staging` (außerhalb eines Laufs leer). Keine Migration, keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.4.0 – Ferien für die Eulen
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-467 bis D-482).
