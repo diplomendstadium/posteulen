@@ -62,7 +62,8 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
 
     // v1.2.1: the server dashboard at the very top – without measurements only the disk.
     const dashboard = page.getByTestId('server-load');
-    await expect(dashboard.getByRole('heading', { name: 'Server-Auslastung' })).toBeVisible();
+    // v1.4.3: renamed to „Server der Instanz“.
+    await expect(dashboard.getByRole('heading', { name: 'Server der Instanz' })).toBeVisible();
     // v1.2.2: the same distance to the next card (statistics) as between all other cards.
     expect(await dashboard.evaluate((element) => getComputedStyle(element).marginBottom)).toBe(
       await page
@@ -89,6 +90,31 @@ test.describe('Adminpanel (Stufe 1, SPEC 13)', () => {
     await expect(cpu).toHaveAttribute('aria-valuenow', '25');
     await expect(ram).toHaveAttribute('aria-valuenow', '50');
     await expect(cpu).toContainText('25 %');
+    // v1.4.3: below the rings uptime, waiting updates, automatic updates and blocklists.
+    const adminDir = path.join(process.env['POSTEULEN_E2E_DIR'] ?? '', 'admin');
+    await expect(page.getByTestId('server-info')).toContainText('noch nicht geprüft');
+    fs.writeFileSync(
+      path.join(adminDir, 'server-info'),
+      `checked_at=${seconds}\nboot_at=${seconds - 3 * 86_400 - 4 * 3600 - 60}\napt_ok=1\napt_updates=3\nreboot_required=0\nposteulen_latest=v99.0.0\n`,
+    );
+    fs.writeFileSync(
+      path.join(adminDir, 'blocklists'),
+      `checked_at=${seconds}\nresult zen.spamhaus.org 203.0.113.5 clean\nresult stevenblack posteulen.test listed\n`,
+    );
+    await page.reload();
+    const info = page.getByTestId('server-info');
+    await expect(info).toContainText('3 Tage, 4 Stunden');
+    await expect(info).toContainText('3 Pakete warten');
+    await expect(info).toContainText('Version 99.0.0 ist verfügbar');
+    await expect(page.getByTestId('blocklists-spam_ip')).toContainText('nicht gelistet');
+    await expect(page.getByTestId('blocklists-ads')).toContainText('GELISTET');
+    const autoUpdate = page.getByLabel('Automatische Updates jede Nacht');
+    await expect(autoUpdate).toBeChecked();
+    await autoUpdate.uncheck();
+    await expect(page.getByText('Automatische Updates sind ausgeschaltet.')).toBeVisible();
+    expect(fs.readFileSync(path.join(adminDir, 'auto-update-switch'), 'utf8')).toBe('off\n');
+    await autoUpdate.check();
+    await expect(page.getByText('Automatische Updates sind eingeschaltet.')).toBeVisible();
     const statistics = page.getByRole('heading', { name: 'Statistik' });
     expect((await dashboard.boundingBox())!.y).toBeLessThan((await statistics.boundingBox())!.y);
     await shoot(page, test.info(), 'verwaltung-server', true);

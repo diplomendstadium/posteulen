@@ -70,8 +70,8 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     // v1.4: help already counted today is left out.
     await expect(card.getByRole('button', { name: 'Medizin geben' })).toHaveCount(0);
     await expect(card.getByTestId('rescue-progress')).not.toContainText('Wieder gesund: 0 %');
-    // v1.3.1: one wild sick owl waits as well; the free kinds of help come first.
-    await expect(page.getByTestId('rescue-wild')).toHaveCount(1);
+    // v1.4.3: two wild sick owls wait as well; the free kinds of help come first.
+    await expect(page.getByTestId('rescue-wild')).toHaveCount(2);
     // The free kinds of help first; medicine is done for today and left out.
     await expect(card.locator('button[data-action]')).toHaveText([
       'Wasser geben',

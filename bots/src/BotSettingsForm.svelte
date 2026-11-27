@@ -20,6 +20,7 @@
   let owlMode = $state<'own' | 'loan'>('own');
   let owlSpecies = $state('');
   let owlName = $state('');
+  let owlSex = $state<'f' | 'm'>('f');
   let motivation = $state(1);
   let restHours = $state(24);
   let playerOwls = $state(false);
@@ -31,6 +32,7 @@
     owlMode = bot.owlMode;
     owlSpecies = bot.owlSpecies ?? '';
     owlName = bot.owlName ?? '';
+    owlSex = bot.owlSex;
     motivation = bot.motivation / 10;
     restHours = bot.restHours;
     playerOwls = bot.playerOwls;
@@ -53,6 +55,7 @@
         owlMode,
         owlSpecies: owlSpecies === '' ? null : owlSpecies,
         owlName: owlName.trim() === '' ? null : owlName.trim(),
+        owlSex,
         motivation: Math.round(Number(motivation) * 10),
         restHours: Math.round(Number(restHours)),
         playerOwls,
@@ -123,7 +126,17 @@
       </select>
       <label for="owl-name">{t.centre.owlName}</label>
       <input id="owl-name" type="text" maxlength="20" bind:value={owlName} />
-      <p class="hint">{bot.owlSex === 'f' ? t.centre.owlSexF : t.centre.owlSexM}</p>
+      <fieldset class="sex">
+        <legend>{t.centre.owlSex}</legend>
+        <label class="choice"
+          ><input type="radio" name="owl-sex" value="f" bind:group={owlSex} />
+          {t.centre.owlSexF}</label
+        >
+        <label class="choice"
+          ><input type="radio" name="owl-sex" value="m" bind:group={owlSex} />
+          {t.centre.owlSexM}</label
+        >
+      </fieldset>
     {/if}
     <label for="motivation">{t.centre.motivation}</label>
     <input

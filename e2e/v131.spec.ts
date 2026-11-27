@@ -62,8 +62,9 @@ test.describe('Version 1.3.1', () => {
     await expect(page.getByTestId('bag-notice')).toBeVisible();
     await page.goto('/app/rettungsstation/innen');
     await expect(page.getByTestId('bag-notice')).toBeVisible();
-    const wild = page.getByTestId('rescue-wild');
-    await expect(wild).toHaveCount(1);
+    // v1.4.3: two wild owls; the first one is fed from the pouch.
+    await expect(page.getByTestId('rescue-wild')).toHaveCount(2);
+    const wild = page.getByTestId('rescue-wild').first();
     await expectRectangle(wild.locator('.owl-actions'));
     await wild.getByRole('button', { name: /^Füttern \(Eulenkeks, aus dem Beutel\)$/ }).click();
     await page.keyboard.press('Escape');

@@ -11,6 +11,7 @@
   import { message } from './lib/messages.ts';
   import { SERVER_LOAD, TIME } from '@posteulen/shared/constants.ts';
   import LoadRing from './LoadRing.svelte';
+  import ServerInfo from './ServerInfo.svelte';
 
   interface Load {
     cpu: number | null;
@@ -82,6 +83,7 @@
       </p>
     {/if}
   {/if}
+  <ServerInfo />
 </section>
 
 <style>

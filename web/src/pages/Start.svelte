@@ -5,6 +5,7 @@
   import Link from '../components/Link.svelte';
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
+  import TwoFactorInput from '../components/TwoFactorInput.svelte';
   import { login } from '../lib/auth.svelte.ts';
   import { navigate } from '../lib/router.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
@@ -28,6 +29,26 @@
   let password = $state('');
   let busy = $state<string | null>(null);
   let error = $state<string | null>(null);
+  /** v1.4.3: the login waits for the code of the second factor (SPEC 5.11). */
+  let codeAsked = $state(false);
+  let code = $state('');
+  let answerCode: ((code: string | null) => void) | null = null;
+
+  const askCode = (wrong: boolean): Promise<string | null> =>
+    new Promise((resolve) => {
+      code = '';
+      error = wrong ? t.twoFactor.wrong : null;
+      busy = null;
+      codeAsked = true;
+      answerCode = resolve;
+    });
+
+  function giveCode(value: string | null): void {
+    const resolve = answerCode;
+    answerCode = null;
+    codeAsked = false;
+    resolve?.(value);
+  }
   /** v0.9: the onion address – only once the server has set up Tor and it is running (SPEC 8.1). */
   let onion = $state<string | null>(null);
 
@@ -44,18 +65,37 @@
 
   async function submit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
+    if (codeAsked) {
+      if (code.trim() === '') return;
+      busy = t.twoFactor.stepCode;
+      error = null;
+      giveCode(code.trim());
+      return;
+    }
     if (busy || !status.online) return;
     error = null;
     busy = t.start.loggingIn;
     try {
-      const outcome = await login(name, password, (step) => {
-        busy = step === 'captcha' ? t.start.stepCaptcha : t.start.stepPassword;
-      });
+      const outcome = await login(
+        name,
+        password,
+        (step) => {
+          busy =
+            step === 'captcha'
+              ? t.start.stepCaptcha
+              : step === 'code'
+                ? t.twoFactor.stepCode
+                : t.start.stepPassword;
+        },
+        askCode,
+      );
       if (outcome === 'ok') {
         password = '';
         navigate('/app', true);
       } else if (outcome === 'wrong') {
         error = t.start.wrong;
+      } else if (outcome === 'cancelled') {
+        error = null;
       } else {
         error = fill(t.start.wait, { seconds: outcome.wait });
       }
@@ -96,12 +136,28 @@
           autocomplete="current-password"
           bind:value={password}
         />
+        {#if codeAsked}
+          <div class="code" data-testid="login-code">
+            <h3>{t.twoFactor.loginHeading}</h3>
+            <p>{t.twoFactor.loginIntro}</p>
+            <TwoFactorInput id="login-code" bind:value={code} autofocus />
+          </div>
+        {/if}
         <ErrorText message={error} />
         <div class="actions">
-          <button class="button" type="submit" disabled={busy !== null || !status.online}
-            >{t.start.login}</button
-          >
-          <Link href="/konto-erstellen" class="button secondary">{t.start.createAccount}</Link>
+          {#if codeAsked}
+            <button class="button" type="submit" disabled={code.trim() === ''}
+              >{t.twoFactor.loginSubmit}</button
+            >
+            <button class="button secondary" type="button" onclick={() => giveCode(null)}
+              >{t.twoFactor.cancel}</button
+            >
+          {:else}
+            <button class="button" type="submit" disabled={busy !== null || !status.online}
+              >{t.start.login}</button
+            >
+            <Link href="/konto-erstellen" class="button secondary">{t.start.createAccount}</Link>
+          {/if}
         </div>
         {#if busy}<p class="notice" role="status">
             <span aria-hidden="true">⏳</span><span>{busy}</span>

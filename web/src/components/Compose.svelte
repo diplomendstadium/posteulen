@@ -5,7 +5,7 @@
    * it only reloads when recipients or the rest change. The rest is preselected by the kind of
    * owl (own 2 hours, loan 24 hours) until the writer picks one by hand.
    */
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { t, fill, locale } from '../lib/i18n.svelte.ts';
   import { countCodePoints } from '@posteulen/shared/names.ts';
   import { LETTER } from '@posteulen/shared/constants.ts';
@@ -251,11 +251,24 @@
     return () => clearInterval(timer);
   });
 
+  let errorBox = $state<HTMLElement | null>(null);
+
+  /**
+   * v1.4.3: a letter that cannot be sent shows why, and the page jumps to the message (the send
+   * button is far below it, often outside the screen).
+   */
+  async function sendFailed(message: string): Promise<void> {
+    error = message;
+    await tick();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    errorBox?.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
+  }
+
   async function send(): Promise<void> {
     if (!prepared || !owlId || busy || !status.online) return;
     error = null;
-    if (text.trim() === '') return void (error = t.letters.empty);
-    if (count > max) return void (error = t.letters.tooLong);
+    if (text.trim() === '') return void sendFailed(t.letters.empty);
+    if (count > max) return void sendFailed(t.letters.tooLong);
     busy = true;
     try {
       // Bots: plain text, one recipient (SPEC 10.1); people: end-to-end encrypted (5.8).
@@ -282,10 +295,11 @@
       // so its editor closes anyway).
       if (!bot) void loadChoices();
     } catch (caught) {
-      error =
+      void sendFailed(
         caught instanceof KeyMismatchError
           ? fill(t.contacts.keyWarningLong, { name: nameOf(caught.message) })
-          : errorMessage(caught);
+          : errorMessage(caught),
+      );
       // Something changed (keys, owl, gold): the choice is loaded again on request.
       prepared = null;
     } finally {
@@ -391,7 +405,7 @@
   {#if guestGone}<p class="notice" role="status">
       <span aria-hidden="true">🦉</span><span>{t.letters.guestGone}</span>
     </p>{/if}
-  <ErrorText message={error} />
+  <div bind:this={errorBox}><ErrorText message={error} /></div>
   {#if prepared}
     <OwlChoice choices={shown ?? []} bind:selected={owlId} name="letter-owl" {need} />
   {:else if loading}

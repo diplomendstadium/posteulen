@@ -52,6 +52,8 @@ export interface Profile {
   readonly bag?: { readonly biscuits: number; readonly treats: number };
   /** v1.3.1: special status set by the admin – unlimited gold (SPEC 9.1.7). */
   readonly privileged?: { readonly until: number | null } | null;
+  /** v1.4.3: second factor switched on, backup codes left (SPEC 5.11). */
+  readonly twoFactor?: { readonly active: boolean; readonly backupLeft: number };
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */
@@ -247,7 +249,25 @@ async function restoreOnce(options: { quiet?: boolean }): Promise<void> {
   }
 }
 
-export type LoginOutcome = 'ok' | 'wrong' | { wait: number };
+export type LoginOutcome = 'ok' | 'wrong' | 'cancelled' | { wait: number };
+
+/**
+ * v1.4.3: asks the person for the code of the second factor (`wrong`: the last one did not fit);
+ * null cancels the login (SPEC 5.11).
+ */
+export type AskCode = (wrong: boolean) => Promise<string | null>;
+
+/** v1.4.3: outcome of a fresh login before a critical action (`code`: second factor wrong). */
+export type ReauthOutcome = 'ok' | 'wrong' | 'code' | { wait: number };
+
+interface LoginFinish {
+  userId: string;
+  deletionCancelled: boolean;
+  keyPackage: import('@posteulen/shared/crypto/keypackage.ts').KeyPackage;
+  ed25519Public: string;
+  x25519Public: string;
+  profile: Profile;
+}
 
 interface LoginStart {
   status: 'ok' | 'captcha_required' | 'wait';
@@ -260,6 +280,7 @@ export async function login(
   name: string,
   password: string,
   onStep: (step: string) => void = () => undefined,
+  askCode: AskCode = async () => null,
 ): Promise<LoginOutcome> {
   const { client, keys, encoding } = await cryptoModules();
   const start = client.startLogin(password);
@@ -284,16 +305,9 @@ export async function login(
   await paint();
   const result = client.finishLogin(password, start.state, first.loginResponse);
   if (!result) return 'wrong';
-  let finish;
+  let answer: LoginFinish | { twoFactor: true; ticket: string };
   try {
-    finish = await api<{
-      userId: string;
-      deletionCancelled: boolean;
-      keyPackage: import('@posteulen/shared/crypto/keypackage.ts').KeyPackage;
-      ed25519Public: string;
-      x25519Public: string;
-      profile: Profile;
-    }>(
+    answer = await api<LoginFinish | { twoFactor: true; ticket: string }>(
       'POST',
       '/api/login/finish',
       { attemptId: first.attemptId, finishLoginRequest: result.finishRequest },
@@ -303,6 +317,30 @@ export async function login(
     if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
     throw error;
   }
+  // v1.4.3: with a second factor the server waits for a code (SPEC 5.11).
+  let finish: LoginFinish | null = 'twoFactor' in answer ? null : answer;
+  let wrong = false;
+  while (finish === null && 'twoFactor' in answer) {
+    const code = await askCode(wrong);
+    if (code === null) return 'cancelled';
+    onStep('code');
+    try {
+      finish = await api<LoginFinish>(
+        'POST',
+        '/api/login/two-factor',
+        { ticket: answer.ticket, code },
+        { context: null },
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'two_factor_wrong') {
+        wrong = true;
+        continue;
+      }
+      if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
+      throw error;
+    }
+  }
+  if (finish === null) return 'wrong';
   const unlocked = await keys.unlockAccount(finish.userId, finish.keyPackage, result.exportKey, {
     ed25519: encoding.fromBase64Url(finish.ed25519Public),
     x25519: encoding.fromBase64Url(finish.x25519Public),
@@ -391,12 +429,16 @@ type Reauth = {
   result: { exportKey: Uint8Array };
 };
 
-/** Fresh OPAQUE login before a critical action (SPEC 5.6, 7.5). */
+/**
+ * Fresh OPAQUE login before a critical action (SPEC 5.6, 7.5); v1.4.3 with the code of the
+ * second factor, if it is switched on (SPEC 5.11).
+ */
 async function reauthenticate(
   password: string,
-  purpose: 'password' | 'delete',
+  purpose: 'password' | 'delete' | 'two_factor',
   onChecking: () => void = () => undefined,
-): Promise<Reauth | 'wrong' | { wait: number }> {
+  code?: string,
+): Promise<Reauth | 'wrong' | 'code' | { wait: number }> {
   const { client } = await cryptoModules();
   const start = client.startLogin(password);
   let first = await api<LoginStart>('POST', '/api/reauth/start', {
@@ -416,18 +458,64 @@ async function reauthenticate(
   await paint();
   const result = client.finishLogin(password, start.state, first.loginResponse);
   if (!result) return 'wrong';
-  const reauth = await api<Reauth['reauth']>('POST', '/api/reauth/finish', {
-    attemptId: first.attemptId,
-    finishLoginRequest: result.finishRequest,
+  try {
+    const reauth = await api<Reauth['reauth']>('POST', '/api/reauth/finish', {
+      attemptId: first.attemptId,
+      finishLoginRequest: result.finishRequest,
+      ...(code !== undefined && code.trim() !== '' ? { code: code.trim() } : {}),
+    });
+    return { reauth, result };
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'two_factor_wrong') return 'code';
+    if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
+    throw error;
+  }
+}
+
+/** v1.4.3: step 1 of switching on the second factor – password, then a new secret (SPEC 5.11). */
+export async function startTwoFactor(
+  password: string,
+): Promise<{ secret: string; uri: string } | 'wrong' | 'code' | { wait: number }> {
+  const checked = await reauthenticate(password, 'two_factor');
+  if (checked === 'wrong' || checked === 'code' || 'wait' in checked) return checked;
+  return api<{ secret: string; uri: string }>('POST', '/api/two-factor/setup', {
+    token: checked.reauth.token,
   });
-  return { reauth, result };
+}
+
+/** v1.4.3: step 2 – the first code of the app switches it on; returns the backup codes. */
+export async function enableTwoFactor(code: string): Promise<string[]> {
+  const context = currentContext();
+  const result = await api<{ backupCodes: string[]; profile: Profile }>(
+    'POST',
+    '/api/two-factor/enable',
+    { code: code.trim() },
+    { context },
+  );
+  if (context) setProfile(context, result.profile);
+  return result.backupCodes;
+}
+
+/** v1.4.3: switching off needs the password and a code of the app or a backup code. */
+export async function disableTwoFactor(password: string, code: string): Promise<ReauthOutcome> {
+  const context = currentContext();
+  const checked = await reauthenticate(password, 'two_factor', () => undefined, code);
+  if (checked === 'wrong' || checked === 'code' || 'wait' in checked) return checked;
+  const { profile } = await api<{ profile: Profile }>(
+    'POST',
+    '/api/two-factor/disable',
+    { token: checked.reauth.token },
+    { context },
+  );
+  if (context) setProfile(context, profile);
+  return 'ok';
 }
 
 /** Deletes the account after a fresh password check; logged out at once (SPEC 7.5). */
-export async function deleteAccount(password: string): Promise<'ok' | 'wrong' | { wait: number }> {
+export async function deleteAccount(password: string, code?: string): Promise<ReauthOutcome> {
   const context = currentContext();
-  const checked = await reauthenticate(password, 'delete');
-  if (checked === 'wrong' || 'wait' in checked) return checked;
+  const checked = await reauthenticate(password, 'delete', () => undefined, code);
+  if (checked === 'wrong' || checked === 'code' || 'wait' in checked) return checked;
   await api('POST', '/api/account/delete', { token: checked.reauth.token }, { context });
   await forget(context);
   return 'ok';
@@ -464,10 +552,11 @@ export async function changePassword(
   oldPassword: string,
   newPassword: string,
   onStep: (step: string) => void = () => undefined,
-): Promise<'ok' | 'wrong' | { wait: number }> {
+  code?: string,
+): Promise<ReauthOutcome> {
   const { client, keys } = await cryptoModules();
-  const checked = await reauthenticate(oldPassword, 'password', () => onStep('old'));
-  if (checked === 'wrong' || 'wait' in checked) return checked;
+  const checked = await reauthenticate(oldPassword, 'password', () => onStep('old'), code);
+  if (checked === 'wrong' || checked === 'code' || 'wait' in checked) return checked;
   const { reauth, result } = checked;
   onStep('new');
   await paint();

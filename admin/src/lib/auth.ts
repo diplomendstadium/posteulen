@@ -25,7 +25,15 @@ async function captcha(): Promise<unknown> {
   return { challenge, solution: { counter: solution.counter, derivedKey: solution.derivedKey } };
 }
 
-export async function login(password: string): Promise<'ok' | 'wrong' | { wait: number }> {
+/** v1.4.3: asks for the code of the second factor (`wrong`: the last one did not fit). */
+export type AskCode = (wrong: boolean) => Promise<string | null>;
+
+export type Outcome = 'ok' | 'wrong' | 'code' | 'cancelled' | { wait: number };
+
+export async function login(
+  password: string,
+  askCode: AskCode = async () => null,
+): Promise<Outcome> {
   const client = await opaqueClient();
   const start = client.startLogin(password);
   let first = await api<Start>('POST', '/api/login/start', { startLoginRequest: start.request });
@@ -40,8 +48,9 @@ export async function login(password: string): Promise<'ok' | 'wrong' | { wait: 
   await paint();
   const result = client.finishLogin(password, start.state, first.loginResponse);
   if (!result) return 'wrong';
+  let answer: { twoFactor?: boolean; ticket?: string };
   try {
-    await api('POST', '/api/login/finish', {
+    answer = await api<{ twoFactor?: boolean; ticket?: string }>('POST', '/api/login/finish', {
       attemptId: first.attemptId,
       finishLoginRequest: result.finishRequest,
     });
@@ -49,25 +58,103 @@ export async function login(password: string): Promise<'ok' | 'wrong' | { wait: 
     if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
     throw error;
   }
+  // v1.4.3: with a second factor the server waits for a code (SPEC 5.11).
+  let wrong = false;
+  while (answer.twoFactor === true && answer.ticket) {
+    const code = await askCode(wrong);
+    if (code === null) return 'cancelled';
+    try {
+      await api('POST', '/api/login/two-factor', { ticket: answer.ticket, code });
+      return 'ok';
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'two_factor_wrong') {
+        wrong = true;
+        continue;
+      }
+      if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
+      throw error;
+    }
+  }
+  return 'ok';
+}
+
+/** Fresh login before the password change or switching the second factor (v1.4.3 with code). */
+async function reauth(
+  password: string,
+  purpose: 'password' | 'two_factor',
+  code?: string,
+): Promise<{ token: string } | 'wrong' | 'code' | { wait: number }> {
+  const client = await opaqueClient();
+  const start = client.startLogin(password);
+  const first = await api<Start>('POST', '/api/reauth/start', {
+    startLoginRequest: start.request,
+    purpose,
+  });
+  if (first.status === 'wait') return { wait: first.retryAfterSeconds ?? 60 };
+  if (first.status !== 'ok' || !first.loginResponse) return 'wrong';
+  await paint();
+  const result = client.finishLogin(password, start.state, first.loginResponse);
+  if (!result) return 'wrong';
+  try {
+    return await api<{ token: string }>('POST', '/api/reauth/finish', {
+      attemptId: first.attemptId,
+      finishLoginRequest: result.finishRequest,
+      ...(code !== undefined && code.trim() !== '' ? { code: code.trim() } : {}),
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'two_factor_wrong') return 'code';
+    if (error instanceof ApiError && error.code === 'login_failed') return 'wrong';
+    throw error;
+  }
+}
+
+export interface TwoFactorState {
+  readonly active: boolean;
+  readonly backupLeft: number;
+}
+
+/** v1.4.3: whether the second factor of this panel is on (SPEC 5.11). */
+export async function twoFactorState(): Promise<TwoFactorState> {
+  const me = await api<{ twoFactor?: TwoFactorState }>('GET', '/api/me');
+  return me.twoFactor ?? { active: false, backupLeft: 0 };
+}
+
+export async function startTwoFactor(
+  password: string,
+): Promise<{ secret: string; uri: string } | 'wrong' | 'code' | { wait: number }> {
+  const checked = await reauth(password, 'two_factor');
+  if (typeof checked === 'string' || 'wait' in checked) return checked;
+  return api<{ secret: string; uri: string }>('POST', '/api/two-factor/setup', {
+    token: checked.token,
+  });
+}
+
+export async function enableTwoFactor(code: string): Promise<string[]> {
+  const result = await api<{ backupCodes: string[] }>('POST', '/api/two-factor/enable', {
+    code: code.trim(),
+  });
+  return result.backupCodes;
+}
+
+export async function disableTwoFactor(
+  password: string,
+  code: string,
+): Promise<'ok' | 'wrong' | 'code' | { wait: number }> {
+  const checked = await reauth(password, 'two_factor', code);
+  if (typeof checked === 'string' || 'wait' in checked) return checked;
+  await api('POST', '/api/two-factor/disable', { token: checked.token });
   return 'ok';
 }
 
 export async function changePassword(
   current: string,
   next: string,
-): Promise<'ok' | 'wrong' | { wait: number }> {
+  code?: string,
+): Promise<'ok' | 'wrong' | 'code' | { wait: number }> {
   const client = await opaqueClient();
-  const start = client.startLogin(current);
-  const first = await api<Start>('POST', '/api/reauth/start', { startLoginRequest: start.request });
-  if (first.status === 'wait') return { wait: first.retryAfterSeconds ?? 60 };
-  if (first.status !== 'ok' || !first.loginResponse) return 'wrong';
-  await paint();
-  const result = client.finishLogin(current, start.state, first.loginResponse);
-  if (!result) return 'wrong';
-  const { token } = await api<{ token: string }>('POST', '/api/reauth/finish', {
-    attemptId: first.attemptId,
-    finishLoginRequest: result.finishRequest,
-  });
+  const checked = await reauth(current, 'password', code);
+  if (typeof checked === 'string' || 'wait' in checked) return checked;
+  const { token } = checked;
   const registration = client.startRegistration(next);
   const { registrationResponse } = await api<{ registrationResponse: string }>(
     'POST',

@@ -5,6 +5,7 @@
   import { api } from './lib/api.ts';
   import { message } from './lib/messages.ts';
   import PasswordForm from './PasswordForm.svelte';
+  import TwoFactor from './TwoFactor.svelte';
   import Operations from './Operations.svelte';
   import OpenAi from './OpenAi.svelte';
   import Vouchers from './Vouchers.svelte';
@@ -206,6 +207,9 @@
   <PasswordForm ondone={() => (passwordChanged = true)} />
   {#if passwordChanged}<p role="status">✔ {t.admin.changed}</p>{/if}
 </section>
+
+<!-- v1.4.3: two-factor sign-in right below the password (SPEC 5.11). -->
+<TwoFactor command="admin-reset" />
 
 <!-- v0.7.1: last item: messages of users, without sender. -->
 <Feedback />

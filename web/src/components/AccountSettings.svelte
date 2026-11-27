@@ -5,6 +5,7 @@
   import ErrorText from './ErrorText.svelte';
   import MapView from './MapView.svelte';
   import PasswordInput from './PasswordInput.svelte';
+  import TwoFactorInput from './TwoFactorInput.svelte';
   import { account, changeHome, changeName, deleteAccount } from '../lib/auth.svelte.ts';
   import { landMask } from '../lib/map/map-data.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -18,6 +19,8 @@
   let homeError = $state<string | null>(null);
   let homeDone = $state(false);
   let password = $state('');
+  let code = $state('');
+  const twoFactor = $derived(account.profile?.twoFactor?.active === true);
   let deleteError = $state<string | null>(null);
   let busy = $state(false);
 
@@ -87,9 +90,10 @@
       async () => {
         deleteError = null;
         if (!confirm(t.settings.deleteConfirm)) return;
-        const outcome = await deleteAccount(password);
+        const outcome = await deleteAccount(password, twoFactor ? code : undefined);
         if (outcome === 'ok') navigate('/', true);
         else if (outcome === 'wrong') deleteError = t.settings.wrongOld;
+        else if (outcome === 'code') deleteError = t.twoFactor.wrong;
         else deleteError = fill(t.start.wait, { seconds: outcome.wait });
       },
       (message) => (deleteError = message),
@@ -193,6 +197,7 @@
       autocomplete="current-password"
       bind:value={password}
     />
+    {#if twoFactor}<TwoFactorInput id="delete-code" bind:value={code} />{/if}
     <ErrorText message={deleteError} />
     <button class="button danger" type="submit" disabled={busy || !password || !status.online}
       >{t.settings.deleteButton}</button

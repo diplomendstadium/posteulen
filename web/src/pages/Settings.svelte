@@ -15,6 +15,8 @@
   import FinanceSettings from '../components/FinanceSettings.svelte';
   import StatsSettings from '../components/StatsSettings.svelte';
   import VacationSettings from '../components/VacationSettings.svelte';
+  import TwoFactorInput from '../components/TwoFactorInput.svelte';
+  import TwoFactorSettings from '../components/TwoFactorSettings.svelte';
   import Link from '../components/Link.svelte';
   import { account, changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
@@ -24,6 +26,8 @@
   let oldPassword = $state('');
   let newPassword = $state('');
   let repeat = $state('');
+  let code = $state('');
+  const twoFactor = $derived(account.profile?.twoFactor?.active === true);
   let busy = $state<string | null>(null);
   let error = $state<string | null>(null);
   let done = $state(false);
@@ -44,13 +48,19 @@
     if (error) return;
     busy = t.settings.stepOld;
     try {
-      const outcome = await changePassword(oldPassword, newPassword, (step) => {
-        busy = step === 'old' ? t.settings.stepOld : t.settings.stepNew;
-      });
+      const outcome = await changePassword(
+        oldPassword,
+        newPassword,
+        (step) => {
+          busy = step === 'old' ? t.settings.stepOld : t.settings.stepNew;
+        },
+        twoFactor ? code : undefined,
+      );
       if (outcome === 'ok') {
         done = true;
-        oldPassword = newPassword = repeat = '';
+        oldPassword = newPassword = repeat = code = '';
       } else if (outcome === 'wrong') error = t.settings.wrongOld;
+      else if (outcome === 'code') error = t.twoFactor.wrong;
       else error = fill(t.start.wait, { seconds: outcome.wait });
     } catch (caught) {
       error = errorMessage(caught);
@@ -114,6 +124,8 @@
       autocomplete="new-password"
       bind:value={repeat}
     />
+    <!-- v1.4.3: with two-factor sign-in also a code (SPEC 5.11). -->
+    {#if twoFactor}<TwoFactorInput id="password-code" bind:value={code} />{/if}
     <ErrorText message={error} />
     {#if done}<p class="notice" role="status">
         <span aria-hidden="true">✔</span><span>{t.settings.changed}</span>
@@ -126,6 +138,9 @@
       </p>{/if}
   </form>
 </section>
+
+<!-- v1.4.3: two-factor sign-in right below the password (SPEC 5.11). -->
+<TwoFactorSettings />
 
 <!-- v0.7.2: remove all bots. -->
 <BotSettings />

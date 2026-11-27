@@ -6,21 +6,18 @@
   import { onMount } from 'svelte';
   import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
   import { api, SESSION_ENDED_EVENT, setIdleTime, touchSession } from '../../admin/src/lib/api.ts';
-  import { login } from '../../admin/src/lib/auth.ts';
   import { message } from '../../admin/src/lib/messages.ts';
   import { fill, panel, t } from '../../admin/src/lib/i18n.svelte.ts';
   import LanguageSwitch from '../../admin/src/LanguageSwitch.svelte';
   import PasswordForm from '../../admin/src/PasswordForm.svelte';
+  import PanelLogin from '../../admin/src/PanelLogin.svelte';
   import Overview from './Overview.svelte';
   import BotPage from './BotPage.svelte';
   import { deviceTimeZone } from '../../admin/src/lib/time.ts';
-  import { autofocus } from '@posteulen/shared/autofocus.ts';
 
   setIdleTime(ACCOUNT.BOTS_SESSION_IDLE_HOURS * TIME.HOUR);
 
   let view = $state<'loading' | 'login' | 'change' | 'ready'>('loading');
-  let password = $state('');
-  let busy = $state(false);
   let error = $state<string | null>(null);
   let initial = $state('');
   /** The open bot (null: overview). */
@@ -45,7 +42,6 @@
     const ended = (): void => {
       if (view === 'login' || view === 'loading') return;
       view = 'login';
-      password = '';
       initial = '';
       botId = null;
       error = t.centre.sessionExpired;
@@ -53,25 +49,6 @@
     window.addEventListener(SESSION_ENDED_EVENT, ended);
     return () => window.removeEventListener(SESSION_ENDED_EVENT, ended);
   });
-
-  async function submit(event: SubmitEvent): Promise<void> {
-    event.preventDefault();
-    busy = true;
-    error = null;
-    try {
-      const outcome = await login(password);
-      if (outcome === 'ok') {
-        initial = password;
-        password = '';
-        await check();
-      } else if (outcome === 'wrong') error = t.admin.wrong;
-      else error = fill(t.start.wait, { seconds: outcome.wait });
-    } catch (caught) {
-      error = message(caught);
-    } finally {
-      busy = false;
-    }
-  }
 
   async function logout(): Promise<void> {
     await api('POST', '/api/logout', {}).catch(() => undefined);
@@ -95,23 +72,15 @@
 {#key panel.lang}
   <main id="main" class="page">
     {#if view === 'login'}
-      <section class="card" aria-labelledby="centre-login">
-        <h1 id="centre-login">{t.centre.loginHeading}</h1>
-        <form onsubmit={submit} novalidate>
-          <label for="centre-password">{t.admin.password}</label>
-          <input
-            id="centre-password"
-            type="password"
-            autocomplete="current-password"
-            bind:value={password}
-            use:autofocus
-          />
-          {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
-          <p class="actions">
-            <button class="button" type="submit" disabled={busy}>{t.admin.login}</button>
-          </p>
-        </form>
-      </section>
+      <PanelLogin
+        id="centre"
+        heading={t.centre.loginHeading}
+        bind:error
+        ondone={(password) => {
+          initial = password;
+          void check();
+        }}
+      />
     {:else if view === 'change'}
       <section class="card" aria-labelledby="centre-change">
         <h1 id="centre-change">{t.admin.changeTitle}</h1>
@@ -163,23 +132,5 @@
     max-width: 64rem;
     margin: 2rem auto;
     padding: 0 1rem;
-  }
-
-  .actions {
-    margin-top: 1rem;
-  }
-
-  .error {
-    color: var(--seal);
-    font-weight: 700;
-  }
-
-  input {
-    display: block;
-    width: 100%;
-    max-width: 30rem;
-    min-height: 2.75rem;
-    font: inherit;
-    padding: 0.5rem 0.75rem;
   }
 </style>

@@ -8,6 +8,7 @@
   import { time } from './lib/format.ts';
   import BotMap from './BotMap.svelte';
   import ImportExport from './ImportExport.svelte';
+  import TwoFactor from '../../admin/src/TwoFactor.svelte';
   import type { BotView, MapHome, MapOwl } from './lib/types.ts';
 
   let { onopen }: { onopen: (id: string) => void } = $props();
@@ -116,6 +117,9 @@
 </section>
 
 <ImportExport bots={bots ?? []} ondone={() => void load()} />
+
+<!-- v1.4.3: two-factor sign-in of the control centre (SPEC 5.11). -->
+<TwoFactor command="bots-reset" />
 
 <style>
   .bots {
