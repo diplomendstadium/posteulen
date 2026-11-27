@@ -44,6 +44,7 @@ import {
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
 import { requireRoom } from './limit.ts';
+import { assignLook, hasSecondLook } from './look.ts';
 import {
   cancelVacation,
   endVacation,
@@ -174,6 +175,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         utcDay(now),
         now,
       );
+      assignLook(ctx, id);
       return ownOwl(ctx, me, id);
     });
     ctx.hub.notify(me, 'owls', 'profile', 'finance');
@@ -382,6 +384,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           // v1.3: with 🌍 for an owl that has flown around the Earth (SPEC 9.2.1).
           name: owlLabel({ name: owl.name, km_flown: kmOf(ctx, owl.id) }),
           species: owl.species,
+          second: hasSecondLook(ctx, owl.id),
           energy: Math.round(owl.energy),
           maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
           arrivals: [
@@ -419,6 +422,7 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         offer: owlId.startsWith(LOAN_REF_PREFIX),
         name: owlLabel({ name: owl.name, km_flown: kmOf(ctx, owl.id) }),
         species: owl.species,
+        second: hasSecondLook(ctx, owl.id),
         energy: Math.round(owl.energy),
         maxEnergy: speciesById(owl.species)?.maxEnergy ?? 0,
         arrivals: planned.route

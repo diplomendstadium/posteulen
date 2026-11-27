@@ -21,12 +21,17 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
       throw new HttpError(429, 'rate_limited', { retryAfterSeconds: Math.ceil(wait / 1000) });
   };
 
-  app.get('/api/push/key', { preHandler: authenticated }, async () => ({
+  /** v1.4.2: a Tor-only instance has no notifications (SPEC 16.6). */
+  const withPush = async (): Promise<void> => {
+    if (ctx.config.torOnly) throw new HttpError(404, 'not_found');
+  };
+
+  app.get('/api/push/key', { preHandler: [withPush, authenticated] }, async () => ({
     publicKey: ctx.secrets.vapid.publicKey,
   }));
 
   /** One subscription per account, bound to the last device (SPEC 11.3); starts the test. */
-  app.put('/api/push/subscription', { preHandler: authenticated }, async (request) => {
+  app.put('/api/push/subscription', { preHandler: [withPush, authenticated] }, async (request) => {
     if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
       throw new HttpError(429, 'rate_limited');
     pushLimit(userOf(request).id);
@@ -67,21 +72,25 @@ export function registerPushRoutes(app: FastifyInstance, ctx: Context): void {
     },
   );
 
-  app.post('/api/push/test', { preHandler: [authenticated, emptyBody] }, async (request) => {
-    if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
-      throw new HttpError(429, 'rate_limited');
-    const me = userOf(request).id;
-    pushLimit(me);
-    if (!ctx.db.get('SELECT 1 FROM push_subscriptions WHERE user_id = ?', me))
-      throw new HttpError(400, 'push_not_subscribed');
-    const after: (() => void)[] = [];
-    const testId = ctx.db.transaction(() => {
-      ctx.db.run("DELETE FROM notifications WHERE user_id = ? AND type = 'push_test'", me);
-      return ctx.push.notify(me, 'push_test', null, ctx.now(), (work) => after.push(work));
-    });
-    for (const work of after) work();
-    return { testId };
-  });
+  app.post(
+    '/api/push/test',
+    { preHandler: [withPush, authenticated, emptyBody] },
+    async (request) => {
+      if (ctx.limits.expensive.hit(accountClientKey(request, userOf(request).id), ctx.now()) > 0)
+        throw new HttpError(429, 'rate_limited');
+      const me = userOf(request).id;
+      pushLimit(me);
+      if (!ctx.db.get('SELECT 1 FROM push_subscriptions WHERE user_id = ?', me))
+        throw new HttpError(400, 'push_not_subscribed');
+      const after: (() => void)[] = [];
+      const testId = ctx.db.transaction(() => {
+        ctx.db.run("DELETE FROM notifications WHERE user_id = ? AND type = 'push_test'", me);
+        return ctx.push.notify(me, 'push_test', null, ctx.now(), (work) => after.push(work));
+      });
+      for (const work of after) work();
+      return { testId };
+    },
+  );
 
   /**
    * Status for the settings and the start check (SPEC 11.4 step 4): re-verify if the last

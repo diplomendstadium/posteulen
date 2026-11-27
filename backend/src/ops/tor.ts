@@ -133,6 +133,12 @@ export function setPanelTorEnabled(ctx: Context, site: PanelSite, enabled: boole
   store(ctx.db, `tor_${site}_enabled`, enabled ? '1' : '0');
 }
 
+/** v1.4.2: on a Tor-only instance all three onion sites are always on (SPEC 16.6). */
+export function keepTorOn(ctx: Context): void {
+  for (const key of ['tor_enabled', 'tor_admin_enabled', 'tor_bots_enabled'])
+    store(ctx.db, key, '1');
+}
+
 /** The onion address of this instance (from the server configuration), if Tor is set up. */
 export function onionAddress(ctx: Context): string | null {
   return ctx.config.torOrigin ?? null;
@@ -152,10 +158,12 @@ export function instanceLinks(ctx: Context) {
   const running = torEnabled(ctx.db) && torStatus(ctx.db)?.state === 'ok';
   const onion = (origin: string | null, on: boolean): string | null =>
     origin !== null && running && on ? `${origin}/` : null;
+  // v1.4.2: a Tor-only instance has no addresses on the web (SPEC 16.6).
+  const web = (origin: string): string | null => (ctx.config.torOnly ? null : `${origin}/`);
   return {
-    web: `${ctx.config.userOrigin}/`,
-    admin: `${ctx.config.adminOrigin}/`,
-    bots: `${ctx.config.botsOrigin}/`,
+    web: web(ctx.config.userOrigin),
+    admin: web(ctx.config.adminOrigin),
+    bots: web(ctx.config.botsOrigin),
     webOnion: onion(onionAddress(ctx), true),
     adminOnion: onion(panelOnionAddress(ctx, 'admin'), panelTorEnabled(ctx.db, 'admin')),
     botsOnion: onion(panelOnionAddress(ctx, 'bots'), panelTorEnabled(ctx.db, 'bots')),
@@ -176,6 +184,8 @@ export function footerOnionLink(ctx: Context, viaTor: boolean): string | null {
 export function torOverview(ctx: Context) {
   const status = torStatus(ctx.db);
   return {
+    // v1.4.2: Tor only – the switches are gone (SPEC 16.6).
+    torOnly: ctx.config.torOnly,
     onion: onionAddress(ctx),
     enabled: torEnabled(ctx.db),
     adminOnion: panelOnionAddress(ctx, 'admin'),

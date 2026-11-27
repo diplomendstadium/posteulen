@@ -27,7 +27,12 @@ function fail(message: string): never {
 
 function configFromEnv() {
   try {
-    return loadConfig({ POSTEULEN_DOMAIN: 'localhost.invalid', ...process.env });
+    return loadConfig({
+      ...(process.env['POSTEULEN_TOR_ONLY'] === '1'
+        ? {}
+        : { POSTEULEN_DOMAIN: 'localhost.invalid' }),
+      ...process.env,
+    });
   } catch (error) {
     return fail(error instanceof Error ? error.message : String(error));
   }
@@ -203,9 +208,14 @@ async function main(argv: string[]): Promise<void> {
           // v1.4: the onion sites of the admin panel and the bots control centre.
           'onion-admin': { type: 'string' },
           'onion-bots': { type: 'string' },
+          // v1.4.2: only the onion sites (SPEC 16.6).
+          'tor-only': { type: 'boolean', default: false },
         },
       });
-      if (!values.domain) fail('--domain fehlt');
+      const torOnly = values['tor-only'];
+      if (!values.domain && !torOnly) fail('--domain fehlt');
+      if (torOnly && (!values.onion || !values['onion-admin'] || !values['onion-bots']))
+        fail('--tor-only braucht --onion, --onion-admin und --onion-bots');
       const onion = values.onion
         ? { host: values.onion, listenPort: 3005, apiPort: 3004, active: values['onion-active'] }
         : undefined;
@@ -217,7 +227,8 @@ async function main(argv: string[]): Promise<void> {
         : undefined;
       process.stdout.write(
         generateCaddyfile({
-          domain: values.domain,
+          domain: values.domain ?? '',
+          torOnly,
           testMode: values['test-mode'],
           webRoot: values['web-root'],
           adminRoot: values['admin-root'],

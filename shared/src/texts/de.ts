@@ -78,15 +78,11 @@ export const de = {
     title: 'Willkommen bei PostEulen',
     intro:
       'Hier schreibst du Briefe, die von Eulen überbracht werden – sicher verschlüsselt und mit etwas Geduld.',
-    groupAlt:
-      'Siebzehn Posteulen verschiedener Arten sitzen nebeneinander auf drei Holzstangen vor einer Steinwand.',
+    groupAlt: 'Posteulen auf Holzstangen',
     /** v1.1: the group picture by night and in the Christmas season. */
-    groupAltNight:
-      'Siebzehn Posteulen verschiedener Arten sitzen nachts hellwach nebeneinander auf drei Holzstangen vor einer Steinwand.',
-    groupAltChristmasDay:
-      'Siebzehn Posteulen verschiedener Arten sitzen auf drei weihnachtlich geschmückten Holzstangen vor einer Steinwand.',
-    groupAltChristmasNight:
-      'Siebzehn Posteulen verschiedener Arten sitzen nachts hellwach auf drei weihnachtlich geschmückten Holzstangen vor einer Steinwand.',
+    groupAltNight: 'Posteulen bei Nacht',
+    groupAltChristmasDay: 'Posteulen zur Weihnachtszeit',
+    groupAltChristmasNight: 'Posteulen in der Weihnachtsnacht',
     loginHeading: 'Anmelden',
     userName: 'Nutzername',
     password: 'Passwort',
@@ -298,21 +294,18 @@ export const de = {
      * v1.2.1: the picture on top of the letters page – the desk of the season at home, by day or
      * by night; `view` is one of the desk_… texts below.
      */
-    picture:
-      'Ein Schreibtisch voller Briefe mit Federkiel und Tintenfass vor hohen Bogenfenstern, draußen {view}',
-    desk_christmas_day: 'ein verschneites Dorf im Tageslicht, am Fenster hängt ein Mistelzweig',
-    desk_christmas_night:
-      'ein verschneites Dorf bei Nacht, im Zimmer Kerzenschein und ein geschmücktes Bäumchen',
-    desk_winter_day: 'ein verschneites Dorf im Tageslicht',
-    desk_winter_night: 'ein verschneites Dorf bei Nacht, auf dem Tisch brennen Kerzen',
-    desk_spring_day: 'blühende Bäume im Frühlingslicht, auf dem Tisch ein Blumenstrauß',
-    desk_spring_night: 'blühende Bäume in einer Frühlingsnacht, auf dem Tisch brennen Kerzen',
-    desk_summer_day: 'sattgrüne Bäume im Sommerlicht',
-    desk_summer_night: 'sattgrüne Bäume in einer Sommernacht, auf dem Tisch brennen Kerzen',
-    desk_autumn_day: 'buntes Herbstlaub im Tageslicht',
-    desk_autumn_night: 'buntes Herbstlaub in einer Herbstnacht, auf dem Tisch brennen Kerzen',
-    desk_november_day: 'kahle Bäume an einem grauen Novembertag',
-    desk_november_night: 'kahle Bäume in einer Novembernacht, auf dem Tisch brennen Kerzen',
+    desk_christmas_day: 'Schreibtisch zur Weihnachtszeit',
+    desk_christmas_night: 'Schreibtisch in der Weihnachtsnacht',
+    desk_winter_day: 'Schreibtisch im Winter',
+    desk_winter_night: 'Schreibtisch in der Winternacht',
+    desk_spring_day: 'Schreibtisch im Frühling',
+    desk_spring_night: 'Schreibtisch in der Frühlingsnacht',
+    desk_summer_day: 'Schreibtisch im Sommer',
+    desk_summer_night: 'Schreibtisch in der Sommernacht',
+    desk_autumn_day: 'Schreibtisch im Herbst',
+    desk_autumn_night: 'Schreibtisch in der Herbstnacht',
+    desk_november_day: 'Schreibtisch im November',
+    desk_november_night: 'Schreibtisch in der Novembernacht',
     none: 'Noch keine Briefe. Füge im Adressbuch einen Kontakt hinzu und schreib den ersten Brief.',
     system: 'Systemnachrichten',
     /** v0.8.5: behind the name in the chat list. */
@@ -403,7 +396,7 @@ export const de = {
     deleteConfirm:
       'Alle deine Briefe in diesem Chat unwiderruflich verbrennen? Dein Gegenüber behält seine Kopien.',
     burnCaption: 'Die Briefe gehen im Kamin in Flammen auf.',
-    burnAlt: 'Briefe brennen im Kamin',
+    burnAlt: 'Briefe im Kamin',
     noReply: 'Auf Systemnachrichten kann man nicht antworten.',
     notContact: 'Ihr seid nicht mehr verbunden. Alte Briefe bleiben lesbar.',
   },
@@ -424,7 +417,7 @@ export const de = {
       '{count} Briefe aus folgenden Chats wurden gelöscht, weil sie älter als deine Löschfrist waren: {chats}.',
     letters_purged_one:
       '1 Brief aus folgendem Chat wurde gelöscht, weil er älter als deine Löschfrist war: {chats}.',
-    letters_purged_alt: 'Alte Briefe brennen im Kamin',
+    letters_purged_alt: 'Alte Briefe im Kamin',
     owl_home: '{owl} ist wieder zu Hause und sitzt schon auf dem Fensterbrett.',
     owl_home_letter:
       '{owl} ist wieder zu Hause, sitzt schon auf dem Fensterbrett und hat einen Antwortbrief dabei.',
@@ -633,7 +626,7 @@ export const de = {
     type_central: 'Brieffigur',
     botOwlOnly:
       'Diesem Bot kannst du nur antworten, solange seine Eule bei dir rastet (unter „Eulen“: „Antwort … mitgeben“).',
-    pictureAlt: 'Bild {n} zum Brief von {name}',
+    pictureAlt: 'Bild {n} von {name}',
     /** v0.8.5: pictures open full screen. */
     pictureOpen: 'Bild vergrößern',
     pictureClose: 'Tippen, klicken oder Escape schließt das Bild.',
@@ -675,7 +668,7 @@ export const de = {
     /** v1.3: a sick owl is nursed in the rescue centre (SPEC 8.13). */
     stateRescue: 'Krank – wird in der Rettungsstation gepflegt (Genesung {progress} %).',
     toRescue: 'Zur Rettungsstation',
-    perchRescueAlt: 'Leere Stange – {name} wird gerade in der Rettungsstation gepflegt',
+    perchRescueAlt: 'Leere Stange',
     /** v1.3: the rule on gifts, as the players learn it (SPEC 9.1.5). */
     giftRule: 'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
     stateBrooding: 'Brütet bis {until}.',
@@ -745,18 +738,18 @@ export const de = {
     guestSendOn: 'Weiterfliegen lassen',
     guestSendOnConfirm: '{name} jetzt ohne Antwort weiterfliegen lassen?',
     restingAt: 'Rastet bei {name} bis {until}.',
-    flyingDayAlt: '{name} im Flug bei Tag',
-    flyingNightAlt: '{name} im Flug bei Nacht',
-    sleepDayAlt: '{name} schläft unterwegs bei Tag',
-    sleepNightAlt: '{name} macht unterwegs eine Nachtpause',
-    napAlt: '{name} hält zu Hause ein Nickerchen',
+    flyingDayAlt: '{name} im Flug',
+    flyingNightAlt: '{name} im Nachtflug',
+    sleepDayAlt: '{name} schläft unterwegs',
+    sleepNightAlt: '{name} rastet nachts',
+    napAlt: '{name} hält ein Nickerchen',
     /** v0.10: an owl at home with a motivation of 80 %. */
-    grumpyAlt: '{name} schaut grummelig drein – die Motivation ist ganz unten',
-    broodingAlt: '{name} brütet im Nest auf ihren Eiern',
-    perchAlt: 'Leere Stange – {name} hilft gerade im Eulenpostamt aus',
+    grumpyAlt: '{name} schaut grummelig',
+    broodingAlt: '{name} brütet',
+    perchAlt: 'Leere Stange',
     /** v1.4: bored (SPEC 9.2.9) and on holiday (SPEC 9.12). */
-    boredAlt: '{name} sitzt gelangweilt am Fenster und schaut sehnsüchtig hinaus',
-    perchVacationAlt: 'Leere Stange – {name} erholt sich gerade auf der Insel Inchlonaig',
+    boredAlt: '{name} langweilt sich',
+    perchVacationAlt: 'Leere Stange',
     vacationOut:
       'Fliegt in den Urlaub zur Eulenpflegestation auf Inchlonaig im Loch Lomond (Ankunft ca. {arrives}). Wieder zu Hause ca. {time}.',
     vacationOutTurn:
@@ -768,7 +761,7 @@ export const de = {
     /** v1.4: a visiting owl sent on without a reply flies off free (freedom picture). */
     guestFlewOn: '{name} fliegt ohne Brief davon',
     /** v0.8.5 */
-    perchRestingAlt: 'Leere Stange – {name} rastet gerade bei {host}',
+    perchRestingAlt: 'Leere Stange',
     write: 'Brief schreiben',
     writeTitle: 'Brief mit {name} schicken',
     writeIntro:
@@ -778,8 +771,10 @@ export const de = {
     writeGo: 'Weiter zum Brief',
     writeNobody:
       'Gerade kannst du niemandem schreiben. Füge im Adressbuch einen Kontakt hinzu – ihr müsst euch beide eintragen.',
-    homeDayAlt: '{name} sitzt bei Tag auf dem Fensterbrett',
-    homeNightAlt: '{name} sitzt bei Nacht im Kerzenschein auf dem Fensterbrett',
+    homeDayAlt: '{name} am Fenster',
+    homeNightAlt: '{name} bei Kerzenschein',
+    /** v1.4.2: the feeding elf owl in the info text of the start page. */
+    feedingAlt: '{name} beim Fressen',
     nameTitle: 'Wie soll dein Neuzugang heißen? ({species})',
     renameTitle: 'Neuer Name für {name}',
     nameLabel: 'Name (2–20 Zeichen)',
@@ -810,7 +805,6 @@ export const de = {
     drinking: '{name} trinkt einen Schluck',
     snacking: '{name} genießt {snack}',
     petting: '{name} genießt das Streicheln',
-    imageAlt: '{species}: {what}',
   },
   /** v1.3: the owl rescue centre (SPEC 8.13; texts of the client, lightly edited). */
   rescue: {
@@ -838,35 +832,27 @@ export const de = {
     freedom: '{name} macht sich dankbar auf den Weg zurück in die Freiheit.',
     stays: '{name} möchte sich nicht von dir trennen, sondern sich dir als Posteule anschließen.',
     healedHint: '{name} ist wieder gesund!',
-    sickAlt: '{name} ist krank und wird gepflegt, {species}',
-    pictureDay:
-      'Die Eulenrettungsstation hinter einem Holztor, mit Volieren, Bach und Wasserfall, bei Tag',
-    pictureNight:
-      'Die Eulenrettungsstation hinter einem Holztor, mit Volieren und Laternen, bei Nacht',
-    insideDay: 'In der Eulenrettungsstation bei Tag: Pflegeplätze für kranke Eulen',
-    insideNight:
-      'In der Eulenrettungsstation bei Nacht: Pflegeplätze für kranke Eulen im Lampenlicht',
+    sickAlt: '{name} ist krank',
+    pictureDay: 'Rettungsstation bei Tag',
+    pictureNight: 'Rettungsstation bei Nacht',
+    insideDay: 'In der Rettungsstation',
+    insideNight: 'Nachts in der Rettungsstation',
   },
   menagerie: {
     intro:
       'Die Menagerie: Hier kannst du Eulen kaufen. Leiheulen gibt es im Eulenpostamt – dorthin kannst du auch eigene Eulen verleihen.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
-    pictureDay: 'Die Menagerie in einem alten Gemäuer, bei Tag',
-    pictureNight: 'Die Menagerie in einem alten Gemäuer, bei Nacht',
+    pictureDay: 'Menagerie bei Tag',
+    pictureNight: 'Menagerie bei Nacht',
     /** v1.1 */
-    pictureChristmasDay: 'Die verschneite Menagerie mit Weihnachtsschmuck, bei Tag',
-    pictureChristmasNight:
-      'Die verschneite Menagerie mit Weihnachtsschmuck und Lichtern, bei Nacht',
+    pictureChristmasDay: 'Verschneite Menagerie',
+    pictureChristmasNight: 'Verschneite Menagerie bei Nacht',
     /** v1.2.1: the entrance leads inside, where the owls for sale are. */
     enter: 'Menagerie betreten',
-    insideDay:
-      'In der Menagerie bei Tag: Eulen in Mauernischen, auf Ästen und an einer Wendeltreppe, eine Pflegerin fegt neben der Ladentheke mit Kasse und dem Buch „Eulenpflege A–Z“',
-    insideNight:
-      'In der Menagerie bei Nacht: Eulen in Mauernischen, auf Ästen und an einer Wendeltreppe im Laternenlicht, eine Pflegerin fegt neben der Ladentheke',
-    insideChristmasDay:
-      'In der weihnachtlich geschmückten Menagerie bei Tag: Eulen zwischen Tannengrün, Kränzen und einem Christbaum, eine Pflegerin fegt neben der Ladentheke',
-    insideChristmasNight:
-      'In der weihnachtlich geschmückten Menagerie bei Nacht: Eulen im Lichterglanz zwischen Tannengrün, Kränzen und einem Christbaum, eine Pflegerin fegt neben der Ladentheke',
+    insideDay: 'In der Menagerie',
+    insideNight: 'Nachts in der Menagerie',
+    insideChristmasDay: 'Weihnachten in der Menagerie',
+    insideChristmasNight: 'Weihnachtsnacht in der Menagerie',
     buyTitle: 'Eulen kaufen',
     price: 'Preis: {price}',
     stats: 'Energie {energy} · Geschwindigkeit {speed} km/h · Erholung {recovery} %/h',
@@ -879,22 +865,17 @@ export const de = {
   post: {
     intro:
       'Das Eulenpostamt: Hier leihst du Eulen für einen Brief oder für Gold – jeden Tag andere. Deine geliehenen Eulen kannst du auch gleich hier versorgen und losschicken.',
-    pictureDay: 'Das Eulenpostamt bei Tag',
-    pictureNight: 'Das Eulenpostamt bei Nacht',
+    pictureDay: 'Eulenpostamt bei Tag',
+    pictureNight: 'Eulenpostamt bei Nacht',
     /** v1.1 */
-    pictureChristmasDay: 'Das verschneite Eulenpostamt mit Weihnachtsschmuck, bei Tag',
-    pictureChristmasNight:
-      'Das verschneite Eulenpostamt mit Weihnachtsschmuck und Lichtern, bei Nacht',
+    pictureChristmasDay: 'Verschneites Eulenpostamt',
+    pictureChristmasNight: 'Verschneites Eulenpostamt bei Nacht',
     /** v1.2: the entrance leads inside, where the loan owls of the day are. */
     enter: 'Eulenpostamt betreten',
-    insideDay:
-      'Im Eulenpostamt bei Tag: die Leiheulen von heute zwischen Schalter, Regalen und Paketen',
-    insideNight:
-      'Im Eulenpostamt bei Nacht: die Leiheulen von heute im Laternenlicht zwischen Schalter, Regalen und Paketen',
-    insideChristmasDay:
-      'Im weihnachtlich geschmückten Eulenpostamt bei Tag: die Leiheulen von heute zwischen Schalter, Regalen und Geschenken',
-    insideChristmasNight:
-      'Im weihnachtlich geschmückten Eulenpostamt bei Nacht: die Leiheulen von heute im Lichterglanz zwischen Schalter, Regalen und Geschenken',
+    insideDay: 'Im Eulenpostamt',
+    insideNight: 'Nachts im Eulenpostamt',
+    insideChristmasDay: 'Weihnachten im Eulenpostamt',
+    insideChristmasNight: 'Weihnachtsnacht im Eulenpostamt',
     loanTitle: 'Eulen leihen',
     /** v1.2.4: followed by who is ready to travel right now (loanReady in texts/species.ts). */
     loanWelcome: 'Herzlich willkommen! Möchtest du eine Eule leihen?',
@@ -1052,6 +1033,9 @@ export const de = {
   /** v0.8.2: timed banners of the admin. */
   banner: {
     hide: 'Hinweis ausblenden',
+    /** v1.4.2: hardly any free space left on the server (SPEC 13 item 14). */
+    storageFull:
+      'Im Eulenturm wird der Platz knapp. Bitte sag dem Administrator Bescheid, damit im Eulenturm neuer Platz geschaffen wird. Bis dahin können keine Briefe geschrieben werden.',
   },
   admin: {
     title: 'PostEulen – Verwaltung',
@@ -1088,6 +1072,19 @@ export const de = {
     save: 'Speichern',
     changed: 'Das Adminpasswort wurde geändert.',
     registrationTitle: 'Registrierung',
+    /** v1.4.2: free space for the database (SPEC 13 item 14). */
+    registrationStorage:
+      'Wegen Platzmangel im Eulenturm geht die Registrierung gerade nur mit Einladungscode.',
+    storageTitle: 'Speicherplatz für die Datenbank',
+    storageIntro:
+      'Ist auf der Partition der Datenbank höchstens so viel frei wie die Schranke, können Spieler keine Briefe mehr schreiben, die offene Registrierung geht nur noch mit Einladungscode, und alle sehen einen Hinweis, dass im Eulenturm Platz geschaffen werden muss. Ab der Warnschwelle steht ein Hinweis im Fehlerprotokoll. Sind wieder mehr als die Warnschwelle frei, ist alles wieder wie vorher.',
+    storageFree: '{gb} GB frei',
+    storageFreeUnknown: 'Freier Platz unbekannt',
+    storageStateOk: 'alles in Ordnung',
+    storageStateLow: 'Warnschwelle erreicht',
+    storageStateFull: 'Schranke erreicht: Briefe und offene Registrierung sind gesperrt',
+    storageBlock: 'Schranke in GB (Briefe gesperrt)',
+    storageWarn: 'Warnschwelle in GB (Hinweis im Fehlerprotokoll)',
     modeClosed: 'geschlossen',
     modeInvite: 'nur mit Einladungscode',
     modeOpen: 'offen für alle',
@@ -1160,6 +1157,9 @@ export const de = {
     torTitle: 'Tor-Netz (Onion-Dienst)',
     torIntro:
       'PostEulen ist parallel als Onion-Dienst im Tor-Netz erreichbar – dieselbe App mit denselben Konten, Briefen und Spielständen. Die Adresse ändert sich nie; ihre Schlüssel sind Teil jeder Sicherung. Über Tor sieht der Server keine IP-Adressen: Jede Anmeldung braucht dort die Rechenaufgabe, teure Aktionen zählen je Konto, und bei der Registrierung zählen alle Tor-Besucher zusammen wie eine einzige IP-Adresse.',
+    /** v1.4.2: a Tor-only instance (SPEC 16.6). */
+    torOnlyIntro:
+      'Diese Instanz läuft nur im Tor-Netz (installiert mit „--tor-only“). Sie hat keine Domain im Web, und der Zugang über Tor lässt sich nicht abschalten – sonst wäre sie nicht mehr erreichbar.',
     torAddress: 'Onion-Adresse',
     torNoAddress: 'noch keine',
     torState: 'Zustand',
@@ -1458,6 +1458,10 @@ export const de = {
     unsupported_media_type: 'Bitte nur JSON senden.',
     payload_too_large: 'Die Anfrage ist zu groß.',
     client_outdated: 'Die App ist veraltet. Bitte neu laden.',
+    storage_full:
+      'Im Eulenturm ist gerade kein Platz für neue Briefe. Bitte sag dem Administrator Bescheid.',
+    storage_limits_invalid:
+      'Bitte ganze oder halbe Gigabyte eingeben (0,5 bis 1.000), die Warnung größer als die Schranke.',
     rate_limited: 'Langsam, die Eulen kommen nicht hinterher. Bitte warte kurz.',
     tor_disabled:
       'Der Zugang über das Tor-Netz ist gerade abgeschaltet. Bitte versuch es später noch einmal oder nutze die normale Adresse.',
@@ -1557,7 +1561,7 @@ export const de = {
     transfer_remaining: 'Nach der Überweisung müssen dir mehr als 10,0 Gold bleiben.',
   },
   images: {
-    placeholderAlt: 'Platzhalter: Bild folgt',
+    placeholderAlt: 'Bild folgt',
   },
 } as const;
 

@@ -188,7 +188,8 @@ export function createBots(ctx: Context, userId: string, now: number): void {
   );
   // v0.4: fixed letters in the language the account was created in.
   const language: Language = languageOf(ctx, userId);
-  const letters = botLetters(language);
+  // v1.4.2: on a Tor-only instance without the sentences about notifications.
+  const letters = botLetters(language, ctx.config.torOnly);
   // Day 0: already in the letter box, "brought" by an owl of the Erklärbär (SPEC 10.2).
   ctx.db.run(
     `INSERT INTO letters (id, sender_id, recipient_id, kind, parchment, sent_at, arrives_at, plaintext,
@@ -297,7 +298,7 @@ export function registerBotHandlers(ctx: Context): void {
     const [botId, which] = event.ref.split(':');
     const bot = botId ? botById(ctx, botId) : undefined;
     if (bot?.type !== 'explainer' || !which) return;
-    const letters = botLetters(languageOf(ctx, bot.owner_id)).explainer;
+    const letters = botLetters(languageOf(ctx, bot.owner_id), ctx.config.torOnly).explainer;
     const text = letters[which as keyof typeof letters] as string | undefined;
     if (!text || !claimFixed(ctx, bot, which)) return;
     dispatchBotLetter(ctx, bot, text, event.logicalAt);

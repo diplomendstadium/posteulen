@@ -38,7 +38,7 @@ import { logError } from './ops/error-log.ts';
 import { CentralRunner } from './central/runner.ts';
 import { registerCentralHandlers } from './central/service.ts';
 import { registerBotsCentreRoutes } from './central/routes.ts';
-import { panelTorEnabled, syncTorSwitch, torEnabled } from './ops/tor.ts';
+import { keepTorOn, panelTorEnabled, syncTorSwitch, torEnabled } from './ops/tor.ts';
 import { registerVacationHandlers } from './owls/vacation.ts';
 
 export interface App {
@@ -109,6 +109,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
       config.torOrigin === undefined
         ? undefined
         : { origin: config.torOrigin, enabled: () => torEnabled(db) },
+    torOnly: config.torOnly,
   });
   // v1.4: the admin panel and the bots control centre have onion sites of their own (SPEC 16.5).
   const adminApi = buildApi({
@@ -121,6 +122,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
       config.adminTorOrigin === undefined
         ? undefined
         : { origin: config.adminTorOrigin, enabled: () => panelTorEnabled(db, 'admin') },
+    torOnly: config.torOnly,
   });
   const botsApi = buildApi({
     kind: 'bots',
@@ -132,6 +134,7 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
       config.botsTorOrigin === undefined
         ? undefined
         : { origin: config.botsTorOrigin, enabled: () => panelTorEnabled(db, 'bots') },
+    torOnly: config.torOnly,
   });
   ctx.push = new PushService(ctx, options.pushSender, options.pushTimer);
   ctx.botReplies = new BotReplies(ctx, ctx.ai);
@@ -176,6 +179,9 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   backfillStats(ctx, ctx.now());
   // v1.3: owls that flew around the Earth before get their 🌍 announced once.
   announceAllBadges(ctx, ctx.now());
+  // v1.4.2: a Tor-only instance cannot switch Tor off – also not with a restored backup of an
+  // instance that had it switched off (SPEC 16.6).
+  if (config.torOnly) keepTorOn(ctx);
   // v0.9: hand the Tor switch of the admin panel to the root helper (also after a restore).
   if (config.env === 'production') syncTorSwitch(ctx);
   registerGoldJobs(ctx);

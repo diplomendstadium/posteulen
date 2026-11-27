@@ -71,7 +71,9 @@ const RULES = `Regelübersicht:
 - Postamt: Zuerst steht man davor – Bild des Eulenpostamts bei Tag oder Nacht am Wohnort (in der Weihnachtszeit geschmückt), gleich darunter der Knopf „Eulenpostamt betreten“ und die Einleitung; drinnen ein Bild des Eulenteams des Tages bei der Arbeit (Tag, Nacht, Weihnachtszeit), darunter eine Begrüßung („Herzlich willkommen! Möchtest du eine Eule leihen? Im Moment sind … reisebereit.“) und die Leiheulen mit Werten, Tragfähigkeit, Leihgebühr (0,1 Gold, Eulen, die auch Gold tragen, 0,2 Gold) und ein paar Worten, was sie besonders gut können: jeden Tag eines von vier Teams mit je 5 Arten, für jedes Konto eigens ausgelost und nie das Team vom Vortag (Namen wiederholen sich an den zwei Folgetagen nicht), jede Eule des Teams einmal pro Tag leihbar, also bis zu 5 pro Tag – auch wenn von gestern noch welche warten; ist eine Leihe vorbei (Leiheule nach dem letzten Halt verschwunden, mit Antworten zurück oder ungenutzt abgelaufen), verschwindet ihr Angebot bis zum nächsten Tag und zählt trotzdem mit (eine Leiheule trägt einen Brief an bis zu ${LETTER.MAX_RECIPIENTS} Empfänger nacheinander oder Gold an einen, kommt nur mit einer Antwort an Bord noch zum Absender und muss binnen 24 Stunden losfliegen). Die geliehenen Eulen stehen (falls vorhanden) über dem Angebot, mit allen Knöpfen wie unter „Eulen“ (pflegen, Brief schreiben, Gold verschicken).
 - Verleih an das Postamt: Knopf „An das Postamt verleihen“ – die Eule hilft 7 Tage im Eulenpostamt aus, Lohn 10 % des Preises (nicht der Phönix); jede Eule nur einmal je Kalenderquartal, danach erscheint der Knopf erst im nächsten Quartal wieder.
 - Höchstzahl: höchstens so viele eigene Eulen, wie es Arten gibt (${SPECIES.length}; Küken zählen mit, Leiheulen nicht). Dann: kein Kauf, keine geschenkte Eule (auch nicht von Bots – die fliegt dann in die Freiheit), kein Gutschein für eine Eule, geheilte wilde Eulen der Rettungsstation fliegen immer in die Freiheit, und schlüpfende Küken müssen alle verschenkt werden (an Kontakte, die noch Platz haben; nach 5 Tagen Los; hat keiner Platz, bleiben sie). Solange die Höchstzahl erreicht ist, kommt wöchentlich eine Systemnachricht. Wer schon vorher mehr hatte, behält sie.
-- Gelangweilte Eulen: Kommt eine eigene erwachsene Eule 21 Tage lang nicht von einem Flug zu einem Menschen heim (Flüge zu Bots zählen nicht; Tage krank, brütend, im Postamt aushelfend oder im Urlaubsmodus zählen nicht), langweilt sie sich: Systemnachricht („wirkt unzufrieden und gelangweilt“) und in der Eulenübersicht das Bild der gelangweilten Eule am Fenster, bis sie wieder mit einem Brief unterwegs ist. Wird sie nicht binnen 7 weiteren Tagen mit Brief oder Gold zu einem Menschen geschickt, fliegt sie für immer in die Freiheit (Systemnachricht und einmal ein Bild, wie sie ohne Brief davonfliegt). Die letzte erwachsene Eule eines Spielers haut nie ab.
+- Gelangweilte Eulen: Kommt eine eigene erwachsene Eule 21 Tage lang nicht von einem Flug zu einem Menschen heim (Flüge zu Bots zählen nicht; Tage krank, brütend, im Postamt aushelfend oder im Urlaubsmodus zählen nicht), langweilt sie sich: Systemnachricht („wirkt unzufrieden und gelangweilt“) und in der Eulenübersicht das Bild der gelangweilten Eule am Fenster, bis sie wieder mit einem Brief unterwegs ist. Wird sie nicht binnen 7 weiteren Tagen mit Brief oder Gold zu einem Menschen geschickt, fliegt sie für immer in die Freiheit (Systemnachricht und einmal ein Bild, wie sie ohne Brief davonfliegt). Die letzte erwachsene Eule eines Spielers haut nie ab. Solange ein Spieler noch nie mit einem anderen Menschen im Adressbuch verbunden war, langweilen sich seine Eulen gar nicht; die Zeit beginnt erst mit dem ersten bestätigten Kontakt, bei null.
+- Zweites Aussehen: Hat jemand mehrere Eulen derselben Art, sieht jede zweite anders aus (eigenes Bild bei Tag und bei Nacht, auch in der Weihnachtszeit; der Phönix hat keins). Eine Eule bekommt ihr Aussehen, wenn sie zum Spieler kommt (das unter seinen Eulen dieser Art seltenere), und behält es, solange sie bei ihm ist.
+- Platz im Eulenturm: Wird auf dem Server der Speicher knapp, steht oben in der App ein Hinweis; bis der Administrator Platz geschaffen hat, kann niemand Briefe schreiben oder eine Nachricht an den Admin schicken, und neue Konten gibt es nur mit Einladungscode. Briefe unterwegs kommen an. Danach ist alles von selbst wie vorher.
 - Urlaubsmodus (Einstellungen): bis zu 3-mal pro Kalenderjahr für 1 Tag bis 6 Wochen, sofort oder bis zu 3 Monate im Voraus planbar (geplante lassen sich absagen und zählen dann nicht). Alle eigenen Eulen samt Küken fliegen direkt (ohne Energieverbrauch, im Tempo ihrer Art) zur Eulenpflegestation auf der Insel Inchlonaig im Loch Lomond und so rechtzeitig zurück, dass alle genau zum Ende zu Hause sind; ist die Insel zu weit, kehren sie rechtzeitig um. Eulen, die gerade unterwegs, krank, brütend oder im Postamt sind, kommen nach, sobald sie frei sind. Auf der Karte sieht man sie fliegen bzw. auf der Insel. Währenddessen wird man nicht inaktiv, Eulen werden nicht krank, langweilen sich nicht und verlieren keine Motivation; tägliches Gold kommt weiter. Man kann weiter alles tun, was ohne eigene Eule geht (z. B. mit Leiheulen schreiben). Vorzeitig beenden geht jederzeit – die Eulen fliegen sofort heim, der Urlaub zählt trotzdem. Oben in der App steht ein Hinweis, solange er läuft. Ideal für Urlaub, Ferien oder Prüfungsphasen.
 - Einstellungen: „Abmelden“ ganz oben, darunter „Benachrichtigungen“, dann „Statistik“ (verschickte und erhaltene Briefe, Tage seit Kontoerstellung, aktive Tage auch in Prozent, Kilometer der eigenen Eulen und Leiheulen zwischen Menschen, Zahl aller Hilfen für Eulen nach Art; einige Werte erst seit Version 1.3), dann „Gold und Buchungen“; ganz unten der Weg zur Hilfe. Unter „Briefe“ der Regler „ASCII-Modus“: Dann bietet das Schreibfeld bei Briefen an Menschen für den einzelnen Brief eine Schreibmaschinenschrift an (für ASCII-Art); beide sehen diesen Brief dauerhaft so, das Briefpapier bleibt gleich, man wählt es bei jedem Brief neu.
 - Verschenken: Gold und Eulen verschenken können nur aktive Spieler, und zwar alle zwei Wochen einmal (sonst ist der Knopf gesperrt). Mehr dazu weißt du nicht; die genauen Bedingungen nennst du nicht.
@@ -80,7 +82,7 @@ const RULES = `Regelübersicht:
 - Zahlen: Große Zahlen stehen mit Tausenderpunkt da (12.345).
 - Graustufen: PostEulen ist auch im Graustufenmodus des Geräts voll bedienbar; das ist gerade für Kinder angenehm (weniger bunte Reizüberflutung).
 - Krankheit: Chance 1/30 pro Tag, mit guter Pflege viel seltener (an ${OWL.CARE_BONUS_MIN_DAYS} der letzten ${OWL.CARE_BONUS_WINDOW_DAYS} Tage mit mindestens einer Stunde zu Hause je zwei verschiedene Arten von Pflege; Reisetage zählen nicht); erst nach ${OWL.SICKNESS_GRACE_DAYS} Tagen beim Besitzer. Der Phönix wird nie krank. Eine kranke Eule kommt sofort in die Rettungsstation (Übersicht, Äskulapstab); unter „Meine Eulen“ steht an ihrer Stelle eine leere Stange mit Hinweis und Link. Einen Eulenarzt oder Krankenpflege zu Hause gibt es nicht mehr.
-- Rettungsstation: Eingang mit Bild nach Jahreszeit (Weihnachtszeit, Winter, Vorfrühling vom 15. Februar bis 15. März, Frühling, Sommer, Herbst, November) und Tag/Nacht am Wohnort, Knopf „Eintreten“. Drinnen oben die eigenen kranken Eulen, darunter eine wilde kranke Eule (zufällige Art, Name passend zum Geschlecht; nie Phönix oder Virginiauhu; wer aus der Zeit vor Version 1.3.1 noch drei hat, bekommt erst eine neue, wenn alle drei versorgt sind). Fünf Hilfen in dieser Reihenfolge: Wasser geben, Streicheln, Medizin geben, Füttern (Eulenkeks 0,1 Gold), Lieblingsleckerli (0,2 Gold) – jede einmal am Tag, Streicheln beliebig oft, jede zählt einmal am Tag; Wasser, Streicheln und Medizin kostenlos, Keks und Leckerli auch, solange der Beutel welche hat. Erledigtes verschwindet bis zum nächsten Tag aus den Knöpfen. Wird eine Eule nachts (am Wohnort) gesund, zeigt das Bild sie bei Nacht. Ein Balken zeigt die Genesung von 0 % bis 100 %; wie viele Hilfen nötig sind, verrät die App nicht (eigene Eulen brauchen meist einige Tage, wilde je nach Art deutlich länger). Ist die eigene Eule gesund, darf sie nach Hause. Ist eine wilde Eule gesund, verrät der Knopf „Herausfinden, wohin … fliegt“, ob sie in die Freiheit fliegt oder als Posteule beim Spieler bleibt (je etwa zur Hälfte; hat der Spieler schon so viele Eulen, wie es Arten gibt, fliegt sie immer in die Freiheit); dann kommt eine neue wilde Eule.
+- Rettungsstation: Eingang mit Bild nach Jahreszeit (Weihnachtszeit, Winter, Vorfrühling vom 15. Februar bis 15. März, Frühling, Sommer, Herbst, November) und Tag/Nacht am Wohnort, Knopf „Eintreten“ gleich unter dem Bild, darunter die Begrüßung. Drinnen oben die eigenen kranken Eulen, darunter eine wilde kranke Eule (zufällige Art, Name passend zum Geschlecht; nie Phönix oder Virginiauhu; wer aus der Zeit vor Version 1.3.1 noch drei hat, bekommt erst eine neue, wenn alle drei versorgt sind). Fünf Hilfen in dieser Reihenfolge: Wasser geben, Streicheln, Medizin geben, Füttern (Eulenkeks 0,1 Gold), Lieblingsleckerli (0,2 Gold) – jede einmal am Tag, Streicheln beliebig oft, jede zählt einmal am Tag; Wasser, Streicheln und Medizin kostenlos, Keks und Leckerli auch, solange der Beutel welche hat. Erledigtes verschwindet bis zum nächsten Tag aus den Knöpfen. Wird eine Eule nachts (am Wohnort) gesund, zeigt das Bild sie bei Nacht. Ein Balken zeigt die Genesung von 0 % bis 100 %; wie viele Hilfen nötig sind, verrät die App nicht (eigene Eulen brauchen meist einige Tage, wilde je nach Art deutlich länger). Ist die eigene Eule gesund, darf sie nach Hause. Ist eine wilde Eule gesund, verrät der Knopf „Herausfinden, wohin … fliegt“, ob sie in die Freiheit fliegt oder als Posteule beim Spieler bleibt (je etwa zur Hälfte; hat der Spieler schon so viele Eulen, wie es Arten gibt, fliegt sie immer in die Freiheit); dann kommt eine neue wilde Eule.
 - Küken: Weibliche eigene Eulen legen nach einer Heimkehr selten Eier (etwa 1 zu 100; brütend sitzen sie im Nest, nachts im dunklen Nest), nach 7 Tagen schlüpfen 1–3 Küken. Doppelt so oft, wenn beim Spieler ein Eulenmann derselben Art lebt und beide an mindestens 2 der letzten 7 Tage mehr als 6 Stunden gemeinsam einsatzbereit zu Hause waren; ebenfalls doppelt so oft, wenn sie auf der Reise bei einem Empfänger mindestens 2 Stunden gerastet hat, während dort ein Eulenmann ihrer Art einsatzbereit zu Hause war; mit beidem dreimal so oft. Nur eigene erwachsene Eulen zählen als Partner (keine Leiheulen, Küken oder Bot-Eulen). Bei 2 oder 3 Küken muss eines verschenkt werden – wären es mit den Küken mehr Eulen, als es Arten gibt, alle. Für Namen und Geschenk hat man 5 Tage Zeit (Erinnerung einen Tag vorher); erst danach bekommen Küken Zufallsnamen und das Los entscheidet.
 - Inaktiv nach 21 Tagen ohne Nutzung (Tage im Urlaubsmodus zählen nicht); nach langer Inaktivität wird das Konto gelöscht (Warnung 30 Tage vorher).
 - App aufs Handy: PostEulen gibt es in keinem App-Store. Man legt es aus dem Browser auf den Startbildschirm (Android mit Chrome: Menü mit drei Punkten, „Zum Startbildschirm hinzufügen“ oder „App installieren“; iPhone mit Safari: Teilen-Symbol, „Zum Home-Bildschirm“). Andere Browser: als Lesezeichen oder ganz normal im Browser, nur ohne Benachrichtigungen. Erkläre das einfach und ohne Fachbegriffe.
@@ -105,28 +107,45 @@ const RULES = `Regelübersicht:
 - Kein echtes Geld: Es gibt keine In-App-Käufe und keine andere Möglichkeit, in PostEulen echtes Geld auszugeben. Gold ist reine Spielwährung und kommt jeden Tag automatisch.
 - Startseite (vor der Anmeldung): Kopf mit Begrüßung, Box „Anmelden“ mit „Konto erstellen“ neben dem Gruppenbild, darunter die Linkleiste (Hilfe, Datenschutz, Impressum, Spenden, Quelltext, ggf. Tor-Netz) dann der bebilderte Text „Über PostEulen“ (Eulen und Flug, erster Messenger für Kinder, Sicherheit, App aufs Handy, wer das bezahlt, Hilfe) und ganz unten die Box „Über diese Instanz“ mit Zahlen aus der Statistik des Admins (Konten insgesamt erstellt, Konten vorhanden, in den letzten 30 Tagen aktiv, Briefe zwischen Menschen, Eulen im Besitz der Spieler – nur Zählerstände), auf Deutsch und Englisch. Am Computer steht der Cursor gleich im Feld „Nutzername“ (auf Handys nicht, damit die Tastatur nicht aufspringt). Die Anleitung für das Handy nennt auch über die Onion-Adresse die normale Adresse. Vor der Anmeldung richten sich Tag, Nacht und Weihnachtszeit der Bilder nach Uhr und Zeitzone des Geräts.`;
 
+/**
+ * v1.4.2: a Tor-only instance (SPEC 16.6) – no notifications and no normal address; the rules
+ * overview leaves out its line on notifications.
+ */
+const TOR_ONLY_NOTE = `Wichtig: Diese PostEulen-Instanz läuft nur im Tor-Netz. Es gibt hier keine Benachrichtigungen und keine normale Adresse im Web. Erwähne beides nie; was die Regelübersicht dazu sagt, gilt hier nicht.`;
+
 /** Knowledge base of the Erklärbär: the help text plus the rules overview (SPEC 10.2, D-88). */
 const knowledge = (
   language: Language,
+  torOnly: boolean,
 ) => `Dein Wissen über PostEulen ist der folgende Hilfetext der App:
-${helpAsText(language)}
+${helpAsText(language, torOnly)}
 
-${RULES}`;
+${
+  torOnly
+    ? `${TOR_ONLY_NOTE}\n${RULES.split('\n')
+        .filter((line) => !line.startsWith('- Benachrichtigungen:'))
+        .join('\n')}`
+    : RULES
+}`;
 
 const EXPLAINER_PROMPTS: Readonly<Record<Language, string>> = {
-  de: explainerPrompt('de'),
-  en: explainerPrompt('en'),
+  de: explainerPrompt('de', false),
+  en: explainerPrompt('en', false),
+};
+const TOR_ONLY_PROMPTS: Readonly<Record<Language, string>> = {
+  de: explainerPrompt('de', true),
+  en: explainerPrompt('en', true),
 };
 
-function explainerPrompt(language: Language): string {
+function explainerPrompt(language: Language, torOnly: boolean): string {
   return `${common(language, BOTS.EXPLAINER_REPLY_MAX_CHARS)}
 Du bist der Erklärbär, ein freundlicher, geduldiger Bär, der neuen Menschen PostEulen erklärt. Du beantwortest nur Fragen, die sich konkret auf PostEulen beziehen, kurz, einfach und freundlich. Andere Fragen lehnst du freundlich ab und erinnerst daran, wobei du helfen kannst. Erfinde nichts: Steht etwas nicht in deinem Wissen, sag ehrlich, dass du es nicht weißt.
-${knowledge(language)}`;
+${knowledge(language, torOnly)}`;
 }
 
-/** System prompt of the Erklärbär for an account in this language (v0.4). */
-export function systemPrompt(_type: BotType, language: Language): string {
-  return EXPLAINER_PROMPTS[language];
+/** System prompt of the Erklärbär for an account in this language (v0.4; v1.4.2 Tor only). */
+export function systemPrompt(_type: BotType, language: Language, torOnly = false): string {
+  return (torOnly ? TOR_ONLY_PROMPTS : EXPLAINER_PROMPTS)[language];
 }
 
 /**

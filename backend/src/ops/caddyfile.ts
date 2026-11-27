@@ -6,7 +6,13 @@ import {
 } from '@posteulen/shared/security/headers.ts';
 
 export interface CaddyfileOptions {
+  /** Empty for a Tor-only instance (v1.4.2). */
   readonly domain: string;
+  /**
+   * v1.4.2: Tor only (SPEC 16.6): no sites on the web, no certificates – only the three onion
+   * sites on their loopback listeners.
+   */
+  readonly torOnly?: boolean;
   /** Test mode: Caddy's internal CA instead of Let's Encrypt (SPEC 16.2). */
   readonly testMode: boolean;
   readonly webRoot: string;
@@ -123,7 +129,10 @@ ${headerBlock(pageHeaders, '\t\t\t')}
  * Local adjustments live in `localDir` and are only imported, never written (SPEC 16.3).
  */
 export function generateCaddyfile(options: CaddyfileOptions): string {
-  if (!DOMAIN_PATTERN.test(options.domain)) throw new Error('invalid domain');
+  const torOnly = options.torOnly === true;
+  if (!torOnly && !DOMAIN_PATTERN.test(options.domain)) throw new Error('invalid domain');
+  if (torOnly && (!options.onion || !options.adminOnion || !options.botsOnion))
+    throw new Error('tor-only needs all three onion sites');
   for (const p of [options.webRoot, options.adminRoot, options.botsRoot, options.localDir]) {
     if (!PATH_PATTERN.test(p)) throw new Error(`invalid path: ${p}`);
   }
@@ -141,7 +150,7 @@ export function generateCaddyfile(options: CaddyfileOptions): string {
   const global = `# Erzeugt von posteulen-cli caddyfile. Nicht von Hand ändern:
 # Eigene Anpassungen gehören nach ${options.localDir}/*.caddy (werden nie überschrieben).
 {
-${options.testMode ? '\tlocal_certs\n' : ''}	log default {
+${options.testMode && !torOnly ? '\tlocal_certs\n' : ''}${torOnly ? '\tauto_https off\n' : ''}	log default {
 		output stderr
 		exclude http.log.access http.stdlib
 		format filter {
@@ -158,8 +167,21 @@ ${options.testMode ? '\tlocal_certs\n' : ''}	log default {
 
 import ${options.localDir}/global-*.caddy
 `;
-  const sites = [
-    global,
+  const sites = [global];
+  if (!torOnly) addWebSites(sites, options, tls, location);
+  addOnionSites(sites, options);
+  return sites.join('\n');
+}
+
+/** The sites on the web: the app, www (redirect), admin panel and bots control centre. */
+function addWebSites(
+  sites: string[],
+  options: CaddyfileOptions,
+  tls: string,
+  location: (panel: OnionSite | undefined) => { pageHeaders?: Record<string, string> },
+): void {
+  const onion = options.onion;
+  sites.push(
     site({
       address: options.domain,
       root: options.webRoot,
@@ -169,7 +191,7 @@ import ${options.localDir}/global-*.caddy
       // v0.9: the Tor Browser offers the onion address („.onion verfügbar“) – only while Tor is on.
       ...(onion?.active ? { pageHeaders: { 'Onion-Location': `http://${onion.host}{uri}` } } : {}),
     }),
-  ];
+  );
   if (options.www) {
     sites.push(`www.${options.domain} {
 ${tls}	header {
@@ -200,6 +222,11 @@ ${headerBlock(commonHeaders({ hsts: true }), '\t\t')}
       ...location(options.botsOnion),
     }),
   );
+}
+
+/** The onion sites: plain http on loopback listeners that only the local Tor reaches. */
+function addOnionSites(sites: string[], options: CaddyfileOptions): void {
+  const onion = options.onion;
   if (onion) {
     // Plain http on loopback only: Tor itself encrypts and authenticates the connection to the
     // onion address. No HSTS, no certificate, no Onion-Location.
@@ -231,5 +258,4 @@ ${headerBlock(commonHeaders({ hsts: true }), '\t\t')}
       );
     }
   }
-  return sites.join('\n');
 }

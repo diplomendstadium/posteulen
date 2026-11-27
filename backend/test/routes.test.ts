@@ -81,6 +81,8 @@ const PUBLIC = [
   'bots POST /api/login/finish',
   'bots POST /api/login/start',
   'user GET /api/altcha/challenge',
+  // v1.4.2: whether the instance runs in the Tor network only (background, notifications).
+  'user GET /api/edition',
   'user GET /api/health',
   // v1.3.2: the figures of "Über diese Instanz" on the start page (only counters).
   'user GET /api/instance',

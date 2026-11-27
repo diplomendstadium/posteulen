@@ -4,6 +4,7 @@
  * answered with its owl while it rests at the player; with own or loan owls only if the bot
  * allows it (SPEC 10.7).
  */
+import { requireStorage } from '../ops/storage.ts';
 import { christmasAt } from '../letters/season.ts';
 import type { FastifyInstance } from 'fastify';
 import { SECURITY } from '@posteulen/shared/constants.ts';
@@ -47,6 +48,7 @@ export function registerBotRoutes(app: FastifyInstance, ctx: Context): void {
       const body = parse(BotLetterSend, request.body);
       const me = userOf(request).id;
       const now = ctx.now();
+      requireStorage(ctx, now);
       checkRecipients(ctx, me, [body.botId], now, { allowBots: true });
       const bot = playerBot(ctx, me, body.botId);
       if (!bot) throw new HttpError(400, 'recipient_invalid');

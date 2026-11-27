@@ -11,6 +11,7 @@ import {
   CACHE_IMMUTABLE,
   CACHE_REVALIDATE,
 } from '@posteulen/shared/security/headers.ts';
+import { measureFree } from '../ops/storage.ts';
 import { createApp, listen, startWorkers } from '../app.ts';
 import { loadConfig } from '../config.ts';
 import { createSecretsFileIfMissing } from '../secrets.ts';
@@ -127,9 +128,21 @@ const relaxed = process.env['POSTEULEN_PREVIEW_RELAXED_LIMITS'] === '1';
 if (relaxed && config.env !== 'development') throw new Error('relaxed limits only in development');
 // Automated local tests only: flights run this many times faster (energy rules unchanged).
 const timeScale = Number(process.env['POSTEULEN_PREVIEW_FLIGHT_TIME_SCALE'] ?? 1);
+// v1.4.2: local tests can pretend the disk is nearly full – a number of free gigabytes in
+// `preview-free-gb` in the data folder replaces the measurement.
+const FREE_FILE = path.join(DATA_DIR, 'preview-free-gb');
 const app = await createApp(config, {
   relaxedLimits: relaxed,
   flightTimeScale: Number.isFinite(timeScale) && timeScale >= 1 ? timeScale : 1,
+  freeBytes: () => {
+    try {
+      const gb = Number(fs.readFileSync(FREE_FILE, 'utf8').trim());
+      if (Number.isFinite(gb) && gb >= 0) return gb * 1024 ** 3;
+    } catch {
+      // No pretence: the real measurement.
+    }
+    return measureFree(DATA_DIR);
+  },
 });
 // Local convenience only: an admin with a one-time password (written to the data folder)
 // and, if requested, an initial registration mode.

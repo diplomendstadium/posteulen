@@ -21,6 +21,7 @@ import { userCookieSpec, requireUser, userOf } from '../auth/sessions.ts';
 import { SERVER_CONTEXTS } from '@posteulen/shared/crypto/contexts.ts';
 import { deriveServerKey } from '../secrets.ts';
 import { hasRoom } from '../owls/limit.ts';
+import { firstHumanContact } from '../owls/boredom.ts';
 import {
   ACTIVE_DAY_SQL,
   displayName,
@@ -83,6 +84,8 @@ export async function registerContactRoutes(app: FastifyInstance, ctx: Context):
         // Both added each other: connected (SPEC 8.8).
         const [lo, hi] = pair(me, target.id);
         ctx.db.run('INSERT INTO contacts (user_lo, user_hi, since) VALUES (?, ?, ?)', lo, hi, now);
+        firstHumanContact(ctx, me, now);
+        firstHumanContact(ctx, target.id, now);
         ctx.db.run('DELETE FROM contact_requests WHERE id = ?', reverse.id);
         ctx.db.run(
           'DELETE FROM contact_requests WHERE from_id = ? AND target_hmac = ?',

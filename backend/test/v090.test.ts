@@ -226,6 +226,8 @@ describe('Adminpanel: Tor-Schalter und Eulen-Statistik (SPEC 13)', () => {
     setTorStatus(app.db, 'ok', app.clock.now);
     const overview = await admin.json('GET', '/api/settings/tor');
     expect(overview.body).toEqual({
+      // v1.4.2: not a Tor-only instance (SPEC 16.6).
+      torOnly: false,
       onion: TOR_ORIGIN,
       enabled: true,
       status: 'ok',

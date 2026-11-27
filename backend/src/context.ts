@@ -17,6 +17,7 @@ import { EventHub } from './events/hub.ts';
 import { EventQueue } from './queue/queue.ts';
 import type { PushService } from './push/service.ts';
 import { openAiClient } from './bots/ai.ts';
+import { measureFree, StorageWatch } from './ops/storage.ts';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -102,6 +103,8 @@ export interface Context {
   readonly flightTimeScale: number;
   /** Uniform random number in [0, 1) – tests inject a fixed sequence (SPEC 17.2). */
   random(): number;
+  /** v1.4.2: free space for the database (SPEC 13 item 14). */
+  readonly storage: StorageWatch;
 }
 
 /** A prepared transport (letter, gold, gift), valid for 5 minutes (SPEC Anhang L.4). */
@@ -150,6 +153,8 @@ export interface ContextOptions {
   readonly pushSender?: import('./push/service.ts').PushSender;
   /** Replaces the timer of push retries (tests, v1.2.4). */
   readonly pushTimer?: import('./push/service.ts').RetryTimer;
+  /** Replaces the measurement of free bytes for the database (tests, local preview; v1.4.2). */
+  readonly freeBytes?: () => number | null;
 }
 
 export async function createContext(
@@ -220,5 +225,6 @@ export async function createContext(
     centralBots: undefined as unknown as import('./central/runner.ts').CentralRunner,
     flightTimeScale: options.flightTimeScale ?? 1,
     random: options.random ?? secureRandom,
+    storage: new StorageWatch(options.freeBytes ?? (() => measureFree(config.dataDir))),
   };
 }

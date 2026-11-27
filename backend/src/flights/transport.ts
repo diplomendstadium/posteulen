@@ -2,6 +2,7 @@
  * Common steps of every transport (letter, gold, gift): choosing the owl, preparing letter
  * IDs and keys, checking the encrypted letters, and the departure itself.
  */
+import { requireStorage } from '../ops/storage.ts';
 import { christmasAt } from '../letters/season.ts';
 import { LETTER, TIME } from '@posteulen/shared/constants.ts';
 import { isBotId, lastLetterDay, playerBot } from '../bots/registry.ts';
@@ -310,6 +311,8 @@ export function depart(
   now: number,
   after: (work: () => void) => void = (work) => work(),
 ): { flightId: string; route: RouteStop[]; owl: ChosenOwl } {
+  // v1.4.2: no letters of players while the free space for the database is used up (13).
+  if (letters.length > 0) requireStorage(ctx, now);
   if (guestRefOwl(token.owlId) !== null) {
     // v0.7: a visiting owl carries only a letter back to its holder – no gold, no gift.
     if (token.purpose !== 'letter' || token.kind !== 'letter')
@@ -457,6 +460,7 @@ export function departWithBotReply(
   now: number,
   after: (work: () => void) => void,
 ): { flightId: string; letterId: string; arrivesAt: number; owl: ChosenOwl } {
+  requireStorage(ctx, now);
   const owl = chooseOwl(ctx, senderId, owlRef, now, { parchment });
   const guest = owl.guest;
   if (!guest || guest.flight.holder_id !== botId) throw new HttpError(400, 'owl_recipients');

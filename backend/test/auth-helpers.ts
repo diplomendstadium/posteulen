@@ -26,6 +26,8 @@ export const PARIS = { lat: 48.86, lon: 2.35 };
 
 export interface TestApp extends App {
   clock: { now: number };
+  /** v1.4.2: free bytes for the database the server measures (default 100 GB). */
+  disk: { free: number | null };
   /** v1.3: the rule on giving gold and owls applies (else accounts look active). */
   giftRule?: boolean;
 }
@@ -64,6 +66,7 @@ export async function testApp(
   const secretsFile = path.join(dir, 'secrets.json');
   await createSecretsFileIfMissing(secretsFile);
   const clock = { now: Date.UTC(2026, 10, 5, 12) };
+  const disk: { free: number | null } = { free: 100 * 1024 ** 3 };
   const app = await createApp(
     loadConfig({
       POSTEULEN_ENV: 'test',
@@ -81,6 +84,7 @@ export async function testApp(
         pushes.push({ endpoint: subscription.endpoint, payload });
         return { status: options.pushStatus ?? 201 };
       },
+      freeBytes: () => disk.free,
     },
   );
   setRegistrationMode(app.db, 'open');
@@ -90,7 +94,7 @@ export async function testApp(
       WHEN NEW.last_gift_day IS NOT NULL
       BEGIN UPDATE users SET last_gift_day = NULL WHERE id = NEW.id; END`);
   }
-  return Object.assign(app, { clock, pushes, giftRule: options.giftRule === true });
+  return Object.assign(app, { clock, disk, pushes, giftRule: options.giftRule === true });
 }
 
 let nextIp = 1;

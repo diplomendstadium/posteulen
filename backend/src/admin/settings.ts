@@ -1,4 +1,5 @@
 /** Registration mode and invite codes (SPEC 13 item 3). Codes are stored only as HMAC. */
+import { storageFull } from '../ops/storage.ts';
 import crypto from 'node:crypto';
 import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import type { Context } from '../context.ts';
@@ -15,6 +16,15 @@ export function getRegistrationMode(db: Database): RegistrationMode {
   return MODES.includes(row?.value as RegistrationMode)
     ? (row?.value as RegistrationMode)
     : 'closed';
+}
+
+/**
+ * v1.4.2: the mode that applies right now – while the free space for the database is used up,
+ * open registration needs an invite code (SPEC 13 item 14); the admin's setting stays as it is.
+ */
+export function effectiveRegistrationMode(ctx: Context, now: number): RegistrationMode {
+  const mode = getRegistrationMode(ctx.db);
+  return mode === 'open' && storageFull(ctx, now) ? 'invite' : mode;
 }
 
 export function setRegistrationMode(db: Database, mode: RegistrationMode): void {

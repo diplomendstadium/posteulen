@@ -120,6 +120,12 @@ export const RegistrationModeUpdate = v.strictObject({
   mode: v.picklist(['closed', 'invite', 'open']),
 });
 
+/** v1.4.2: free space barrier and warning in gigabytes (SPEC 13 item 14). */
+export const StorageUpdate = v.strictObject({
+  blockGb: v.pipe(v.number(), v.finite()),
+  warnGb: v.pipe(v.number(), v.finite()),
+});
+
 export const ErrorLogUpdate = v.strictObject({
   read: v.literal(true),
 });

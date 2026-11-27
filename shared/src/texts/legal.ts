@@ -129,8 +129,43 @@ export interface LegalTexts {
   readonly imprint: readonly HelpSection[];
 }
 
-/** Privacy policy and imprint in a language (v0.4). */
-export function legalOf(language: 'de' | 'en'): LegalTexts {
+/**
+ * v1.4.2: on a Tor-only instance (SPEC 16.6) there are no notifications – nothing goes to push
+ * services, so the privacy policy leaves out what it says about them.
+ */
+const PUSH_ITEMS = [
+  'Benachrichtigungen: die Adresse deines Push-Abos und noch nicht bestätigte Benachrichtigungen (ohne Inhalte).',
+  'Notifications: the address of your push subscription and notifications not yet confirmed (without content).',
+];
+const PUSH_PHRASES: readonly (readonly [string, string])[] = [
+  [', ob du den Hinweis zu Benachrichtigungen ausgeblendet hast und', ' und'],
+  [', whether you have hidden the note about notifications and', ' and'],
+  ['Sitzungen, Push-Abo, ', 'Sitzungen, '],
+  ['sessions, push subscription, ', 'sessions, '],
+];
+
+function withoutPush(sections: readonly HelpSection[]): readonly HelpSection[] {
+  const text = (value: string): string =>
+    PUSH_PHRASES.reduce((result, [from, to]) => result.split(from).join(to), value);
+  return sections
+    .filter((section) => section.id !== 'push')
+    .map((section) => ({
+      ...section,
+      blocks: section.blocks.map((block) =>
+        typeof block === 'string'
+          ? text(block)
+          : block.filter((item) => !PUSH_ITEMS.includes(item)).map(text),
+      ),
+    }));
+}
+
+/** Privacy policy and imprint in a language (v0.4; v1.4.2 Tor only). */
+export function legalOf(language: 'de' | 'en', torOnly = false): LegalTexts {
+  const texts = legalTexts(language);
+  return torOnly ? { ...texts, privacy: withoutPush(texts.privacy) } : texts;
+}
+
+function legalTexts(language: 'de' | 'en'): LegalTexts {
   return language === 'en'
     ? {
         privacyIntro: PRIVACY_INTRO_EN,

@@ -48,6 +48,20 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.4.2',
+    title: 'Zwillingsfedern: Version 1.4.2',
+    paragraphs: [
+      'In der Menagerie ist eine neue Lieferung Federkleider eingetroffen – und auch sonst hat sich im Eulenturm einiges getan:',
+      '• Hast du mehrere Eulen derselben Art, sieht jetzt jede zweite von ihnen ein bisschen anders aus – bei Tag, bei Nacht und auch in der Weihnachtszeit. So erkennst du deine Eulen schon am Gefieder.',
+      '• Eulen langweilen sich erst, wenn ihr Mensch schon einmal einen anderen Menschen in seinem Adressbuch hatte. Wer gerade erst angekommen ist und noch niemanden kennt, muss sich also keine Sorgen machen.',
+      '• Die Karte lässt sich auf älteren Handys deutlich flüssiger verschieben und zoomen.',
+      '• Die Beschreibungen der Bilder sind jetzt kurz und knapp – praktisch, wenn die Bilder bei langsamer Verbindung noch unterwegs sind.',
+      '• In der Rettungsstation steht der Knopf „Eintreten“ jetzt direkt unter dem Bild, wie im Postamt und in der Menagerie.',
+      '• Und sollte im Eulenturm einmal der Platz knapp werden, sagt dir ein Hinweis oben in der App Bescheid.',
+      'Frohes Schreiben!',
+    ],
+  },
+  {
     version: '1.4.1',
     title: 'Aufgeräumte Volieren: Version 1.4.1',
     paragraphs: [
@@ -497,6 +511,20 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.4.2',
+    title: 'Twin feathers: version 1.4.2',
+    paragraphs: [
+      'A new delivery of plumage has arrived at the Menagerie – and quite a bit else has happened in the owl tower:',
+      '• If you have several owls of the same species, every second one of them now looks a little different – by day, by night and at Christmas time too. So you can tell your owls apart by their feathers.',
+      '• Owls only get bored once their person has had another person in their address book. If you have only just arrived and do not know anyone yet, there is nothing to worry about.',
+      '• On older phones the map now moves and zooms much more smoothly.',
+      '• The descriptions of the pictures are now short and to the point – handy while the pictures are still on their way over a slow connection.',
+      '• In the rescue centre the “Step inside” button now sits right below the picture, as at the post office and the Menagerie.',
+      '• And should space ever run short in the owl tower, a notice at the top of the app will let you know.',
+      'Happy writing!',
+    ],
+  },
   {
     version: '1.4.1',
     title: 'Tidy aviaries: version 1.4.1',

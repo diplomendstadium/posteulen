@@ -91,7 +91,10 @@ describe('admin (SPEC 13)', () => {
 
     expect(await changePassword(admin, initial, 'neues sicheres Adminpasswort')).toBe(200);
     expect((await admin.json('GET', '/api/me')).body).toEqual({ mustChangePassword: false });
-    expect((await admin.json('GET', '/api/settings/registration')).body).toEqual({ mode: 'open' });
+    expect((await admin.json('GET', '/api/settings/registration')).body).toEqual({
+      mode: 'open',
+      storageFull: false,
+    });
     expect(await adminLogin(new Agent(app.adminApi, ADMIN_ORIGIN), initial)).toBe('client');
     expect(
       await adminLogin(new Agent(app.adminApi, ADMIN_ORIGIN), 'neues sicheres Adminpasswort'),

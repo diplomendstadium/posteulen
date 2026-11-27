@@ -1,4 +1,5 @@
 /** Account settings (SPEC 7.3–7.5, 8.10): change name or home, delete the account. */
+import { requireStorage } from '../ops/storage.ts';
 import type { FastifyInstance } from 'fastify';
 import { statsOf } from './stats.ts';
 import { isLand, roundHome } from '@posteulen/shared/map/landmask.ts';
@@ -34,6 +35,7 @@ export function registerAccountRoutes(app: FastifyInstance, ctx: Context): void 
     const body = parse(FeedbackSend, request.body);
     const me = userOf(request).id;
     const now = ctx.now();
+    requireStorage(ctx, now);
     ctx.db.transaction(() => sendFeedback(ctx, me, body.text, now));
     ctx.hub.notify(me, 'profile');
     return { profile: profileOf(ctx, me) };

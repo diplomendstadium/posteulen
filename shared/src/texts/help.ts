@@ -28,7 +28,9 @@ import {
 import { formatGold } from '../game/gold.ts';
 import { CHEAPEST_SPECIES as CHEAPEST, SPECIES } from '../species.ts';
 import { de } from './de.ts';
+import { en } from './en.ts';
 import { HELP_EN } from './help-en.ts';
+import { torOnlyHelp } from './help-tor-only.ts';
 import { teamList } from './help-team.ts';
 
 /** A paragraph (string) or a bullet list (array of strings). */
@@ -132,6 +134,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Nach der Anmeldung siehst du die Übersicht mit Kacheln für alle Bereiche: Briefwechsel, Meine Eulen, Postamt, Menagerie, Adressbuch, Karte, Einstellungen und Rettungsstation. Deinen Goldstand siehst du immer oben rechts als Zahl hinter der Münze ⛀; Buchungen und das tägliche Gold stehen in den Einstellungen. Auf dem Handy erreichst du die wichtigsten Bereiche auch über die Leiste am unteren Rand.',
       'Ist ein neuer Brief da, hüpft oben in der braunen Leiste „Neue Post!“ – ein Tipp darauf führt dich zum Briefwechsel. Neue Systemnachrichten zeigen dort nur ihren Zähler. Auf der Übersicht steht neben dem Schriftzug klein die Version der App. Auf großen Bildschirmen sitzen daneben alle Eulen auf ihren Stangen – bei Nacht hellwach im Dunkeln, in der Weihnachtszeit festlich geschmückt. Sind Benachrichtigungen nicht eingerichtet, erscheint darunter ein Hinweis, der dich zu den Einstellungen führt. Stört er dich, blende ihn mit „Ausblenden bis zur nächsten Anmeldung“ aus.',
       'Was du schon gelesen hast, gilt sofort als gelesen – die Zähler in der Übersicht und in der Leiste gehen ohne Neuladen zurück.',
+      'Wird im Eulenturm – auf dem Server deiner PostEulen-Instanz – einmal der Platz knapp, steht oben in der App ein Hinweis. Bis der Administrator wieder Platz geschaffen hat, kannst du keine Briefe schreiben und keine Nachricht an den Admin schicken; Briefe, die schon unterwegs sind, kommen trotzdem an, und alles andere geht wie immer. Neue Konten gibt es so lange nur mit Einladungscode. Danach ist von selbst alles wieder wie vorher.',
       'Unter „Neuigkeiten“ zeigt die Übersicht alles, was dich nicht per Benachrichtigung erreicht hat – zum Beispiel weil das Handy aus war.',
       'Darunter begrüßt dich PostEulen mit deinem Namen – passend zur Tageszeit an deinem fiktiven Wohnort, also nach der Uhrzeit, die dort gerade gilt (mit Sommerzeit). Wer spät abends oder nachts vorbeischaut, wird als Nachteule begrüßt. Auch alle anderen Uhrzeiten in der App – Ankunft, Heimkehr, Rast, Fristen – stehen in dieser Ortszeit deines Wohnorts.',
       'Oben rechts sitzt auf jeder Seite ein kleines Fähnchen. Ein Tipp auf die britische Flagge stellt PostEulen auf Englisch um, die deutsche Flagge stellt wieder zurück (siehe Sprache). Gleich daneben führt das Fragezeichen zu dieser Hilfe (auf der Hilfeseite selbst fehlt es); du findest sie außerdem ganz unten in den Einstellungen und im Briefwechsel mit dem Erklärbären direkt über dem Schreibfeld. Ganz rechts, hinter dem Fragezeichen, sitzt der Ein-/Aus-Knopf: Damit meldest du dich ab – vorher fragt PostEulen noch einmal nach.',
@@ -240,6 +243,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Unter jeder Eule stehen nur die Knöpfe, die gerade gehen – so bleiben die Karten klein und übersichtlich. Hat sie heute schon getrunken, fehlt „Wasser geben“; ist sie satt, fehlen Eulenkeks und Lieblingsleckerli; Umbenennen, Verschenken, Gold verschicken, An das Postamt verleihen und In die Freiheit entlassen erscheinen nur, wenn es gerade erlaubt ist. Darfst du gerade nichts verschenken, steht einmal oben über den Eulen, warum.',
       'Rastet die Eule eines Kontakts bei dir, steht sie unter „Zu Gast bei dir“, gleich unter den Eulen, die bereit für Post sind – mit dem Hinweis, dass sie nur zur Rast hier ist und bis wann. Du kannst sie tränken, streicheln und füttern (Eulenkeks und Leckerli bezahlst du, wie bei deinen eigenen Eulen auch mehrmals, solange sie nicht satt ist) – das hebt ihre Motivation, und sie fliegt gestärkt weiter. Über „Antwort … mitgeben“ kommst du direkt in euren Chat; hat sie noch Briefe für andere dabei, steht dort, dass sie diese zuerst zustellt. Wenn sie bei dir ankommt, bekommst du (wenn eingerichtet) eine Benachrichtigung, und im Briefwechsel steht ein kleines Eulensymbol hinter dem Namen ihres Halters, solange sie bleibt. Möchtest du sie früher ziehen lassen, tippe auf „Weiterfliegen lassen“ – nach einer Rückfrage fliegt sie ohne Brief davon, und du siehst sie frei und ohne Brief losfliegen.',
       'Eulen sind nachtaktiv: Ist es bei dir zu Hause hell, döst eine gesunde Eule manchmal vor sich hin – ob sie gerade schläft, entscheidet sich bei jedem Öffnen der Eulenübersicht neu, etwa jedes zweite Mal. Nachts und in den zehn Minuten nach deiner letzten Pflege ist sie immer wach. Pflegen und losschicken kannst du sie trotzdem jederzeit.',
+      'Hast du mehrere Eulen derselben Art, sieht jede zweite von ihnen etwas anders aus: Sie hat ein eigenes Bild bei Tag und bei Nacht, auch in der Weihnachtszeit. So erkennst du deine Eulen schon am Gefieder. Ihr Aussehen bekommt eine Eule, wenn sie zu dir kommt – sie nimmt das, das unter deinen Eulen dieser Art gerade seltener ist –, und sie behält es, solange sie bei dir ist.',
       'Jede Art hat einen Preis, eine maximale Energie, einen Geschwindigkeitsfaktor und einen Erholungsfaktor. Eulen werden nicht alt und sterben nicht.',
       [
         `Umbenennen: einmal pro Kalenderjahr je Eule (${OWL.NAME_MIN_CHARS}–${OWL.NAME_MAX_CHARS} Zeichen). Die erste Benennung nach Kauf oder Schlupf zählt nicht.`,
@@ -257,6 +261,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Eulen wollen Briefe tragen. Ist eine deiner erwachsenen Eulen ${BOREDOM.BORED_AFTER_DAYS} Tage lang nicht von einem Flug zu einem Menschen heimgekommen, wird ihr langweilig: Eine Systemnachricht sagt dir, dass sie unzufrieden und gelangweilt wirkt, und unter „Meine Eulen“ sitzt sie gelangweilt am Fenster – bei Tag oder bei Nacht.`,
       `Schick sie in den nächsten ${BOREDOM.ESCAPE_AFTER_DAYS} Tagen mit einem Brief oder mit Gold zu einem deiner Kontakte, dann ist alles wieder gut. Flüge zu Bots zählen dafür nicht. Tust du es nicht, fliegt sie davon und kommt nie wieder zurück; beim nächsten Öffnen der App siehst du sie ein letztes Mal, wie sie in die Freiheit fliegt, und eine Systemnachricht erzählt davon. Deine letzte erwachsene Eule haut nie ab – sie langweilt sich nur.`,
       'Die Zeit läuft ab dem Tag, an dem die Eule zu dir gekommen (oder erwachsen geworden) ist, und beginnt mit jeder Heimkehr von einem Menschen von vorn. Nicht mitgezählt werden die Tage, an denen sie krank in der Rettungsstation ist, brütet, im Eulenpostamt aushilft oder du im Urlaubsmodus bist.',
+      'Solange du noch nie mit einem anderen Menschen im Adressbuch verbunden warst, langweilen sich deine Eulen überhaupt nicht – wer gerade erst angekommen ist und noch niemanden kennt, muss sich keine Sorgen machen. Die Zeit beginnt erst mit deinem ersten bestätigten Kontakt, und zwar bei null.',
     ],
   },
   {
@@ -394,7 +399,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     id: 'rettungsstation',
     title: 'Die Eulenrettungsstation',
     blocks: [
-      'In der Übersicht findest du die Rettungsstation mit dem Äskulapstab. Zuerst stehst du vor dem Holztor – das Bild wechselt mit den Jahreszeiten an deinem Wohnort (Weihnachtszeit, Winter, Vorfrühling, Frühling, Sommer, Herbst und November) und mit Tag und Nacht. Mit „Eintreten“ gehst du hinein.',
+      'In der Übersicht findest du die Rettungsstation mit dem Äskulapstab. Zuerst stehst du vor dem Holztor – das Bild wechselt mit den Jahreszeiten an deinem Wohnort (Weihnachtszeit, Winter, Vorfrühling, Frühling, Sommer, Herbst und November) und mit Tag und Nacht. Mit dem Knopf „Eintreten“ gleich unter dem Bild gehst du hinein; darunter begrüßt dich die Station mit ein paar Worten.',
       'Drinnen stehen oben deine eigenen kranken Eulen, darunter eine wilde kranke Eule, die jemanden braucht. Jede Eule hat einen Balken, der zeigt, wie weit sie schon wieder gesund ist – von 0 % bis 100 %. Jede Hilfe bewegt ihn sofort.',
       [
         'Wasser geben, Streicheln, Medizin geben, Füttern (Eulenkeks) und Lieblingsleckerli – jede dieser Hilfen geht einmal am Tag und zählt einmal am Tag. Was heute schon erledigt ist, verschwindet bis morgen aus den Knöpfen.',
@@ -620,9 +625,15 @@ const HELP_DE: Help = {
   words: { faq: 'Häufige Fragen', question: 'Frage', answer: 'Antwort' },
 };
 
-/** The help in a language (v0.4). */
-export function helpOf(language: 'de' | 'en'): Help {
-  return language === 'en' ? HELP_EN : HELP_DE;
+/**
+ * The help in a language (v0.4). v1.4.2: on a Tor-only instance without notifications and
+ * without a normal address (SPEC 16.6).
+ */
+export function helpOf(language: 'de' | 'en', torOnly = false): Help {
+  const help = language === 'en' ? HELP_EN : HELP_DE;
+  if (!torOnly) return help;
+  const words = language === 'en' ? en.welcome : de.welcome;
+  return torOnlyHelp(help, [`${words.push1} ${words.push2}`]);
 }
 
 function blockText(block: HelpBlock): string {
@@ -630,8 +641,8 @@ function blockText(block: HelpBlock): string {
 }
 
 /** The help text as plain text, e.g. as the Erklärbär's knowledge base. */
-export function helpAsText(language: 'de' | 'en' = 'de'): string {
-  const help = helpOf(language);
+export function helpAsText(language: 'de' | 'en' = 'de', torOnly = false): string {
+  const help = helpOf(language, torOnly);
   const sections = help.sections.map(
     (section) => `${section.title}\n${section.blocks.map(blockText).join('\n')}`,
   );

@@ -448,3 +448,18 @@ export const SERVER_LOAD = {
   /** The measurement file is never read beyond this size (a week is about 50 KB). */
   MAX_FILE_BYTES: 256 * 1024,
 } as const;
+
+/**
+ * v1.4.2: free space on the partition of the database (SPEC 13 item 14). At or below `BLOCK_GB`
+ * players cannot write letters and open registration needs an invite code; above `WARN_GB` all
+ * is as before. At or below `WARN_GB` the admin gets a note in the error log. The admin can
+ * change both values (whole or half gigabytes; the warning always above the barrier).
+ */
+export const STORAGE = {
+  BLOCK_GB: 3,
+  WARN_GB: 4,
+  MIN_GB: 0.5,
+  MAX_GB: 1000,
+  /** The server measures at most this often, when it needs to know (no timer of its own). */
+  CHECK_SECONDS: 60,
+} as const;

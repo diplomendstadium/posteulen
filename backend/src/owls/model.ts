@@ -70,6 +70,8 @@ export interface OwlRow {
   readonly idle_at?: number | null;
   readonly bored_at?: number | null;
   readonly lent_quarter?: string | null;
+  /** v1.4.2: 1 – the second pictures of its species (9.2.6). */
+  readonly look?: number;
 }
 
 export function facts(owl: OwlRow): {
@@ -176,6 +178,8 @@ export interface OwlView {
   readonly rescue: { readonly progress: number } | null;
   /** v1.4: bored – the overview shows the bored picture until it flies to people (9.2.9). */
   readonly bored: boolean;
+  /** The second look: standard pictures by day and night from the second set (9.2.6). */
+  readonly second: boolean;
   /** v1.4: on holiday at the owl care station on Inchlonaig: where and until when (9.12). */
   readonly vacation: VacationTripView | null;
   readonly actions: {
@@ -226,6 +230,8 @@ export interface GuestView {
   readonly restUntil: number;
   /** v0.8.5: letters for others still on board – a reply comes after them (names private). */
   readonly moreStops: boolean;
+  /** The second look of the visiting owl (9.2.6). */
+  readonly second: boolean;
 }
 
 export function guestView(
@@ -267,6 +273,7 @@ export function guestView(
     moreStops: routeOf(flight).some(
       (later, at) => at > index && later.type === 'deliver' && later.status === 'pending',
     ),
+    second: owl.kind === 'own' && owl.look === 1,
   };
 }
 
@@ -320,6 +327,7 @@ export function botGuestView(
     // A bot owl flies to one player only.
     moreStops: false,
     bot: true,
+    second: false,
   };
 }
 
@@ -415,6 +423,7 @@ export function owlView(
     awaySince,
     rescue: rescue ? { progress: rescueProgress(rescue.done, rescue.needed) } : null,
     bored: owl.kind === 'own' && (owl.bored_at ?? null) !== null,
+    second: owl.kind === 'own' && owl.look === 1,
     vacation,
     actions: {
       care: canCare(ownFacts),

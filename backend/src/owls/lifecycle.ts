@@ -5,6 +5,7 @@
  */
 import { ACCOUNT, BOREDOM, MENAGERIE, MOTIVATION, OWL, TIME } from '@posteulen/shared/constants.ts';
 import { owlLabel } from './globe.ts';
+import { assignLook } from './look.ts';
 import {
   chickCount,
   giftRequired,
@@ -337,6 +338,7 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
       clutchId,
       at,
     );
+    assignLook(ctx, id);
     ctx.queue.schedule('chick_adult', id, at + OWL.CHICK_ADULT_AT_MOTHER_DAYS * TIME.DAY);
   }
   ctx.queue.schedule('clutch_names', clutchId, at + OWL.CHICK_NAME_DEADLINE_HOURS * TIME.HOUR);

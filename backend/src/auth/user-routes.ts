@@ -33,7 +33,7 @@ import { scheduleDonations } from '../messages/periodic.ts';
 import { accountClientKey, clientKey, TOR_CLIENT_KEY, TOR_LOGIN_KEY } from '../security/ip.ts';
 import { footerOnionLink, instanceLinks } from '../ops/tor.ts';
 import { cachedInstanceStats, webHost } from '../accounts/instance.ts';
-import { getRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
+import { effectiveRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
 import {
   clearSessionCookie,
@@ -143,7 +143,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.get('/api/registration', async (request) => {
     limit(ctx, 'general', request);
-    return { mode: getRegistrationMode(ctx.db) };
+    return { mode: effectiveRegistrationMode(ctx, ctx.now()) };
   });
 
   // v0.9: target of the footer link „Tor-Netz“ – only once Tor is set up and running (SPEC 8.1).
@@ -170,7 +170,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     limit(ctx, 'registration', request);
     const body = parse(RegisterStart, request.body);
     const now = ctx.now();
-    const mode = getRegistrationMode(ctx.db);
+    const mode = effectiveRegistrationMode(ctx, now);
     if (mode === 'closed') throw new HttpError(403, 'registration_closed');
     let invite: Buffer | null = null;
     if (mode === 'invite') {
@@ -242,7 +242,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
           now,
         );
         if (used.changes !== 1) throw new HttpError(403, 'invite_invalid');
-      } else if (getRegistrationMode(ctx.db) !== 'open') {
+      } else if (effectiveRegistrationMode(ctx, now) !== 'open') {
         throw new HttpError(403, 'registration_closed');
       }
       ctx.db.run(

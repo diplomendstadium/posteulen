@@ -111,6 +111,10 @@ export const OWL_IMAGE_KINDS = [
   { kind: 'boredNight', suffix: 'Langeweile-Nacht' },
   { kind: 'free', suffix: 'Frei' },
   { kind: 'freeNight', suffix: 'Frei-Nacht' },
+  // v1.4.2: the second look by day and by night – the standard pictures of every second owl of a
+  // species with the same owner (SPEC 9.2.6; 34 kinds, the phoenix has 24).
+  { kind: 'second', suffix: 'Zweit' },
+  { kind: 'secondNight', suffix: 'Zweit-Nacht' },
 ] as const;
 
 /** Picture kinds a mythical species does not have: no eggs, no chicks, never sick. */
@@ -123,6 +127,8 @@ const NOT_MYTHICAL: readonly string[] = [
   'medicine',
   'healthy',
   'healthyNight',
+  'second',
+  'secondNight',
 ];
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */

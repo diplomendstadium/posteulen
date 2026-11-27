@@ -82,6 +82,31 @@ const GERMAN: BotLetters = {
 };
 
 /** Fixed letters and titles in the language of the account (v0.4). */
-export function botLetters(language: 'de' | 'en'): BotLetters {
-  return language === 'en' ? BOT_LETTERS_EN : GERMAN;
+export function botLetters(language: 'de' | 'en', torOnly = false): BotLetters {
+  const letters = language === 'en' ? BOT_LETTERS_EN : GERMAN;
+  return torOnly ? withoutNotifications(letters) : letters;
+}
+
+/** v1.4.2: the sentences about notifications in the Erklärbär's letters (SPEC 16.6). */
+export const NOTIFICATION_SENTENCES: readonly (readonly [string, string])[] = [
+  [
+    'Danach wohnt eine Eule auf deinem Startbildschirm, und Benachrichtigungen klappen auch. Mit anderen Browsern geht es als Lesezeichen, nur ohne Benachrichtigungen. Ein echter Briefkasten klingelt ja auch nicht.',
+    'Danach wohnt eine Eule auf deinem Startbildschirm. Mit anderen Browsern geht es als Lesezeichen.',
+  ],
+  [
+    'After that an owl lives on your home screen, and notifications work too. With other browsers it works as a bookmark, just without notifications. A real letterbox does not ring either.',
+    'After that an owl lives on your home screen. With other browsers it works as a bookmark.',
+  ],
+];
+
+/** The letters of a Tor-only instance: there are no notifications there. */
+function withoutNotifications(letters: BotLetters): BotLetters {
+  const strip = (text: string): string =>
+    NOTIFICATION_SENTENCES.reduce((result, [from, to]) => result.split(from).join(to), text);
+  return {
+    ...letters,
+    explainer: Object.fromEntries(
+      Object.entries(letters.explainer).map(([key, text]) => [key, strip(text)]),
+    ) as BotLetters['explainer'],
+  };
 }

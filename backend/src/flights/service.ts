@@ -24,6 +24,7 @@ import { isDay } from '@posteulen/shared/game/sun.ts';
 import { isLandAnywhere } from '@posteulen/shared/map/landmask.ts';
 import { backHome } from '../owls/care.ts';
 import { resetIdle, toPeople } from '../owls/boredom.ts';
+import { assignLook } from '../owls/look.ts';
 import { sendOwlsOnVacation } from '../owls/vacation.ts';
 import type { Context } from '../context.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -704,6 +705,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       utcDay(at),
       flight.owl_id,
     );
+    assignLook(ctx, flight.owl_id);
     backHome(ctx, flight.owl_id, at);
     const chick = isChickFlight(flight);
     if (chick) {

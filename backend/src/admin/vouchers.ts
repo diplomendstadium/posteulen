@@ -14,6 +14,7 @@ import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { credit } from '../gold/ledger.ts';
 import { addToBag } from '../gold/privilege.ts';
 import { hasRoom } from '../owls/limit.ts';
+import { assignLook } from '../owls/look.ts';
 
 /** Easy to type: no 0/O, 1/I/L (as invitation codes). 12 characters ≈ 59 bits. */
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -129,10 +130,11 @@ export function redeemVoucher(
       ? (pool[Math.min(pool.length - 1, Math.floor(ctx.random() * pool.length))] ?? pool[0])
       : speciesById(row.species);
   if (!species) throw new HttpError(400, 'voucher_invalid');
+  const owlId = randomId();
   ctx.db.run(
     `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
      VALUES (?, ?, 'own', ?, ?, NULL, ?, ?, ?, ?)`,
-    randomId(),
+    owlId,
     userId,
     species.id,
     randomSex(ctx.random()),
@@ -141,5 +143,6 @@ export function redeemVoucher(
     utcDay(now),
     now,
   );
+  assignLook(ctx, owlId);
   return { kind: 'owl', species: species.id };
 }

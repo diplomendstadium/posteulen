@@ -273,6 +273,8 @@ describe('bored owls (v1.4, SPEC 9.2.9)', () => {
   };
 
   it('are bored after 21 days, fly off after 7 more – never the last adult owl', async () => {
+    // v1.4.2: only owls of a player who has had a contact with a person get bored.
+    await couple(anna, ben);
     fillOwls(anna, 2);
     days(BOREDOM.BORED_AFTER_DAYS);
     expect(systemTypes(anna)).not.toContain('owl_bored');

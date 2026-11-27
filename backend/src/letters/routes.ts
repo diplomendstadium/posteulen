@@ -4,6 +4,7 @@
  * Since stage 3 letters travel with real owls (flights/service.ts). The `deliver` handler is
  * kept for letters that were already on the way with the stage-2 placeholder owl.
  */
+import { requireStorage } from '../ops/storage.ts';
 import { christmasPaperOf } from './season.ts';
 import { owlLabel } from '../owls/globe.ts';
 import { windowStart } from '@posteulen/shared/chat-window.ts';
@@ -127,6 +128,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     const body = parse(LetterPrepare, request.body);
     const me = userOf(request).id;
     const now = ctx.now();
+    requireStorage(ctx, now);
     checkRecipients(ctx, me, body.recipients, now);
     const owl = chooseOwl(ctx, me, body.owlId, now, { parchment: body.parchment });
     if (body.recipients.length > owl.maxRecipients) throw new HttpError(400, 'owl_recipients');
@@ -618,9 +620,13 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
     return reply.send(Buffer.from(media.data));
   });
 
-  /** v0.8.2: the admin's banners that run right now, in the account's language (SPEC 13). */
+  /**
+   * v0.8.2: the admin's banners that run right now, in the account's language (SPEC 13). v1.4.2:
+   * with `storageFull` – the barrier of free space is reached (the app shows its own banner).
+   */
   app.get('/api/banners', { preHandler: authenticated }, async (request) => {
     const now = ctx.now();
+    const storageFull = ctx.storage.status(ctx, now).full;
     const english =
       ctx.db.get<{ language: string }>(
         'SELECT language FROM users WHERE id = ?',
@@ -638,6 +644,7 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
           text: english && row.text_en !== '' ? row.text_en : row.text_de,
           endsAt: row.ends_at,
         })),
+      storageFull,
     };
   });
 

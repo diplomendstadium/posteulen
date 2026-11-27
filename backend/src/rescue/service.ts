@@ -6,6 +6,7 @@
  */
 import { GOLD, MOTIVATION, RESCUE } from '@posteulen/shared/constants.ts';
 import { owlLabel } from '../owls/globe.ts';
+import { assignLook } from '../owls/look.ts';
 import { energyAfterFeeding, energyAfterSnack } from '@posteulen/shared/game/energy.ts';
 import { owlBadge, type OwlBadge } from '@posteulen/shared/game/badges.ts';
 import type { Interaction } from '@posteulen/shared/game/motivation.ts';
@@ -364,6 +365,7 @@ export function releaseWild(
       MOTIVATION.START,
       now,
     );
+    assignLook(ctx, owlId);
     addSystemMessage(ctx, userId, 'rescue_joined', { owl: wild.name }, now, after);
     sendOwlsOnVacation(ctx, userId, now, after);
   }

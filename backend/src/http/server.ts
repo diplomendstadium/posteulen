@@ -31,6 +31,8 @@ export interface ApiOptions {
    * switch) is off (SPEC 16.5).
    */
   readonly tor?: { readonly origin: string; readonly enabled: () => boolean } | undefined;
+  /** v1.4.2: the instance runs in the Tor network only (SPEC 16.6). */
+  readonly torOnly?: boolean;
 }
 
 declare module 'fastify' {
@@ -229,6 +231,12 @@ export function buildApi(options: ApiOptions): FastifyInstance {
   });
 
   app.get('/api/version', async () => ({ version: VERSION }));
+
+  /**
+   * v1.4.2: which kind of instance this is – the pages choose their background and leave out
+   * notifications on a Tor-only instance (SPEC 16.6).
+   */
+  app.get('/api/edition', async () => ({ torOnly: options.torOnly === true }));
 
   return app;
 }

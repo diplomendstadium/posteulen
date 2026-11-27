@@ -36,6 +36,12 @@ export interface Config {
   /** v1.2.1: measurements of posteulen-stats.timer for the server dashboard (SPEC 13 item 13). */
   readonly serverLoadFile: string;
   readonly logLevel: string;
+  /**
+   * v1.4.2: the instance runs in the Tor network only (SPEC 16.6, `install.sh --tor-only`): no
+   * domain, the onion sites are the only way in, Tor cannot be switched off and there are no
+   * notifications.
+   */
+  readonly torOnly: boolean;
 }
 
 function readEnvironment(value: string | undefined): Environment {
@@ -72,12 +78,17 @@ function readOnion(value: string | undefined): string | undefined {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const environment = readEnvironment(env['POSTEULEN_ENV']);
   const dataDir = path.resolve(env['POSTEULEN_DATA_DIR'] ?? '/var/lib/posteulen');
-  const domain = readDomain(env['POSTEULEN_DOMAIN']);
-  const userOrigin = env['POSTEULEN_USER_ORIGIN'] ?? (domain ? `https://${domain}` : undefined);
+  const torOnly = env['POSTEULEN_TOR_ONLY'] === '1';
+  // v1.4.2: without a domain the regular listeners keep running on loopback, but nothing routes
+  // to them – their origins are addresses that can never occur (RFC 6761).
+  const given = readDomain(env['POSTEULEN_DOMAIN']);
+  const domain = given ?? (torOnly ? 'tor-only.invalid' : undefined);
+  const scheme = given === undefined && torOnly ? 'http' : 'https';
+  const userOrigin = env['POSTEULEN_USER_ORIGIN'] ?? (domain ? `${scheme}://${domain}` : undefined);
   const adminOrigin =
-    env['POSTEULEN_ADMIN_ORIGIN'] ?? (domain ? `https://admin.${domain}` : undefined);
+    env['POSTEULEN_ADMIN_ORIGIN'] ?? (domain ? `${scheme}://admin.${domain}` : undefined);
   const botsOrigin =
-    env['POSTEULEN_BOTS_ORIGIN'] ?? (domain ? `https://bots.${domain}` : undefined);
+    env['POSTEULEN_BOTS_ORIGIN'] ?? (domain ? `${scheme}://bots.${domain}` : undefined);
   const onion = readOnion(env['POSTEULEN_ONION']);
   const adminOnion = readOnion(env['POSTEULEN_ONION_ADMIN']);
   const botsOnion = readOnion(env['POSTEULEN_ONION_BOTS']);
@@ -111,5 +122,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     torSwitchFile: path.join(dataDir, 'tor-switch'),
     serverLoadFile: path.join(dataDir, 'server-load'),
     logLevel: env['POSTEULEN_LOG_LEVEL'] ?? 'info',
+    torOnly,
   };
 }

@@ -8,8 +8,10 @@ import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import {
   ErrorLogUpdate,
   RegistrationModeUpdate,
+  StorageUpdate,
   TorUpdate,
 } from '@posteulen/shared/schemas/auth.ts';
+import { setStorageLimits, validLimits } from '../ops/storage.ts';
 import { Id } from '@posteulen/shared/schemas/common.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
@@ -53,7 +55,25 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   // ── Registrierung und Einladungscodes (SPEC 13 item 3) ──
   app.get('/api/settings/registration', { preHandler: authenticated }, async () => ({
     mode: getRegistrationMode(ctx.db),
+    // v1.4.2: open registration takes invite codes only while the disk is nearly full.
+    storageFull: ctx.storage.status(ctx, ctx.now()).full,
   }));
+
+  // ── Speicherplatz für die Datenbank (v1.4.2, SPEC 13 item 14) ──
+  app.get('/api/settings/storage', { preHandler: authenticated }, async () => {
+    const status = ctx.storage.status(ctx, ctx.now(), true);
+    return { ...status.limits, full: status.full, low: status.low, freeBytes: status.freeBytes };
+  });
+
+  app.put('/api/settings/storage', { preHandler: authenticated }, async (request) => {
+    const body = parse(StorageUpdate, request.body);
+    const limits = { blockGb: body.blockGb, warnGb: body.warnGb };
+    if (!validLimits(limits)) throw new HttpError(400, 'storage_limits_invalid');
+    const now = ctx.now();
+    setStorageLimits(ctx, limits, now);
+    const status = ctx.storage.status(ctx, now);
+    return { ...status.limits, full: status.full, low: status.low, freeBytes: status.freeBytes };
+  });
 
   app.put('/api/settings/registration', { preHandler: authenticated }, async (request) => {
     const body = parse(RegistrationModeUpdate, request.body);
@@ -134,6 +154,8 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.put('/api/settings/tor', { preHandler: authenticated }, async (request) => {
     const body = parse(TorUpdate, request.body);
+    // v1.4.2: switched off, a Tor-only instance could no longer be reached at all.
+    if (ctx.config.torOnly) throw new HttpError(400, 'tor_only');
     if (body.enabled !== undefined) setTorEnabled(ctx, body.enabled);
     // v1.4: the onion sites of the admin panel and the bots control centre (SPEC 16.5).
     if (body.admin !== undefined) setPanelTorEnabled(ctx, 'admin', body.admin);

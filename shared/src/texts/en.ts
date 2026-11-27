@@ -72,15 +72,11 @@ export const en: Texts = {
     title: 'Welcome to PostEulen',
     intro:
       'Here you write letters that are delivered by owls – securely encrypted and with a little patience.',
-    groupAlt:
-      'Seventeen post owls of different species sit side by side on three wooden perches in front of a stone wall.',
+    groupAlt: 'Post owls on perches',
     /** v1.1 */
-    groupAltNight:
-      'Seventeen post owls of different species sit wide awake at night, side by side on three wooden perches in front of a stone wall.',
-    groupAltChristmasDay:
-      'Seventeen post owls of different species sit on three wooden perches decorated for Christmas in front of a stone wall.',
-    groupAltChristmasNight:
-      'Seventeen post owls of different species sit wide awake at night on three wooden perches decorated for Christmas in front of a stone wall.',
+    groupAltNight: 'Post owls at night',
+    groupAltChristmasDay: 'Post owls at Christmas',
+    groupAltChristmasNight: 'Post owls, Christmas night',
     loginHeading: 'Sign in',
     userName: 'User name',
     password: 'Password',
@@ -287,21 +283,18 @@ export const en: Texts = {
      * v1.2.1: the picture on top of the letters page – the desk of the season at home, by day or
      * by night; `view` is one of the desk_… texts below.
      */
-    picture:
-      'A desk full of letters with a quill and an inkwell in front of tall arched windows, outside {view}',
-    desk_christmas_day: 'a snowy village in daylight, a sprig of mistletoe hanging in the window',
-    desk_christmas_night:
-      'a snowy village at night, candlelight and a decorated little tree in the room',
-    desk_winter_day: 'a snowy village in daylight',
-    desk_winter_night: 'a snowy village at night, candles burning on the desk',
-    desk_spring_day: 'trees in blossom in the spring light, a bunch of flowers on the desk',
-    desk_spring_night: 'trees in blossom on a spring night, candles burning on the desk',
-    desk_summer_day: 'lush green trees in the summer light',
-    desk_summer_night: 'lush green trees on a summer night, candles burning on the desk',
-    desk_autumn_day: 'colourful autumn leaves in daylight',
-    desk_autumn_night: 'colourful autumn leaves on an autumn night, candles burning on the desk',
-    desk_november_day: 'bare trees on a grey November day',
-    desk_november_night: 'bare trees on a November night, candles burning on the desk',
+    desk_christmas_day: 'Desk at Christmas',
+    desk_christmas_night: 'Desk, Christmas night',
+    desk_winter_day: 'Desk in winter',
+    desk_winter_night: 'Desk, winter night',
+    desk_spring_day: 'Desk in spring',
+    desk_spring_night: 'Desk, spring night',
+    desk_summer_day: 'Desk in summer',
+    desk_summer_night: 'Desk, summer night',
+    desk_autumn_day: 'Desk in autumn',
+    desk_autumn_night: 'Desk, autumn night',
+    desk_november_day: 'Desk in November',
+    desk_november_night: 'Desk, November night',
     none: 'No letters yet. Add a contact in the address book and write the first letter.',
     system: 'System messages',
     owlRestingHere: 'An owl of {name} is resting with you right now',
@@ -385,7 +378,7 @@ export const en: Texts = {
     deleteConfirm:
       'Burn all your letters in this chat for good? The other person keeps their copies.',
     burnCaption: 'The letters go up in flames in the fireplace.',
-    burnAlt: 'Letters burning in the fireplace',
+    burnAlt: 'Letters in the fireplace',
     noReply: 'You cannot reply to system messages.',
     notContact: 'You are no longer connected. Old letters remain readable.',
   },
@@ -406,7 +399,7 @@ export const en: Texts = {
       '{count} letters from these chats were deleted because they were older than your deletion period: {chats}.',
     letters_purged_one:
       '1 letter from this chat was deleted because it was older than your deletion period: {chats}.',
-    letters_purged_alt: 'Old letters burning in the fireplace',
+    letters_purged_alt: 'Old letters burning',
     owl_home: '{owl} is back home and already sitting on the window sill.',
     owl_home_letter:
       '{owl} is back home, already sitting on the window sill – with a reply on board.',
@@ -603,7 +596,7 @@ export const en: Texts = {
     type_central: 'pen friend',
     botOwlOnly:
       'You can only reply to this bot while its owl is resting with you (under “Owls”: “Give it a reply …”).',
-    pictureAlt: 'Picture {n} with the letter from {name}',
+    pictureAlt: 'Picture {n} from {name}',
     pictureOpen: 'Enlarge picture',
     pictureClose: 'Tap, click or press Escape to close the picture.',
     title: 'Bots',
@@ -643,7 +636,7 @@ export const en: Texts = {
     sleepingHome: 'Is asleep on the way home.',
     stateRescue: 'Ill – being looked after in the rescue centre (recovery {progress} %).',
     toRescue: 'To the rescue centre',
-    perchRescueAlt: 'Empty perch – {name} is being looked after in the rescue centre',
+    perchRescueAlt: 'Empty perch',
     giftRule: 'Only active players can give away gold or an owl, once every two weeks.',
     stateBrooding: 'Brooding until {until}.',
     stateMenagerie: 'Helping out at the owl post office until {until}.',
@@ -707,15 +700,15 @@ export const en: Texts = {
     busyGroup: 'Out and about',
     /** v1.2.1: behind the name of a loan owl in the owl overview. */
     loanMark: '(loan owl)',
-    flyingDayAlt: '{name} in flight by day',
-    flyingNightAlt: '{name} in flight by night',
-    sleepDayAlt: '{name} is asleep on the way by day',
-    sleepNightAlt: '{name} is taking a night rest on the way',
+    flyingDayAlt: '{name} in flight',
+    flyingNightAlt: '{name} flying by night',
+    sleepDayAlt: '{name} asleep en route',
+    sleepNightAlt: '{name} resting by night',
     /** v0.10: an owl at home with a motivation of 80 %. */
-    grumpyAlt: '{name} looks grumpy – motivation is at rock bottom',
-    broodingAlt: '{name} is brooding on her eggs in the nest',
-    napAlt: '{name} is having a nap at home',
-    perchRestingAlt: 'Empty perch – {name} is resting with {host} right now',
+    grumpyAlt: '{name} looking grumpy',
+    broodingAlt: '{name} brooding',
+    napAlt: '{name} taking a nap',
+    perchRestingAlt: 'Empty perch',
     write: 'Write a letter',
     writeTitle: 'Send a letter with {name}',
     writeIntro:
@@ -725,9 +718,9 @@ export const en: Texts = {
     writeGo: 'On to the letter',
     writeNobody:
       'You cannot write to anyone right now. Add a contact in the address book – you both need to add each other.',
-    perchAlt: 'Empty perch – {name} is helping out at the owl post office',
-    boredAlt: '{name} sits bored at the window, gazing out longingly',
-    perchVacationAlt: 'Empty perch – {name} is resting on the island of Inchlonaig',
+    perchAlt: 'Empty perch',
+    boredAlt: '{name} is bored',
+    perchVacationAlt: 'Empty perch',
     vacationOut:
       'Flying on holiday to the owl care station on Inchlonaig in Loch Lomond (arriving about {arrives}). Home again about {time}.',
     vacationOutTurn:
@@ -737,8 +730,10 @@ export const en: Texts = {
     vacationBack: 'Flying home from the holiday. Home again about {time}.',
     vacationIsland: 'On holiday on Inchlonaig.',
     guestFlewOn: '{name} flies off without a letter',
-    homeDayAlt: '{name} sits on the window sill by day',
-    homeNightAlt: '{name} sits on the window sill by candlelight at night',
+    homeDayAlt: '{name} at the window',
+    homeNightAlt: '{name} by candlelight',
+    /** v1.4.2: the feeding elf owl in the info text of the start page. */
+    feedingAlt: '{name} having a snack',
     nameTitle: 'What should your new {species} be called?',
     renameTitle: 'New name for {name}',
     nameSex: 'Sex: {sex}',
@@ -768,7 +763,6 @@ export const en: Texts = {
     drinking: '{name} is having a drink',
     snacking: '{name} is enjoying {snack}',
     petting: '{name} is enjoying being petted',
-    imageAlt: '{species}: {what}',
   },
   rescue: {
     intro:
@@ -795,33 +789,27 @@ export const en: Texts = {
     freedom: '{name} sets off gratefully back into freedom.',
     stays: '{name} does not want to leave you and would like to join you as a post owl.',
     healedHint: '{name} is well again!',
-    sickAlt: '{name} is ill and being nursed, {species}',
-    pictureDay:
-      'The owl rescue centre behind a wooden gate, with aviaries, a stream and a waterfall, by day',
-    pictureNight:
-      'The owl rescue centre behind a wooden gate, with aviaries and lanterns, at night',
-    insideDay: 'Inside the owl rescue centre by day: places to nurse sick owls',
-    insideNight: 'Inside the owl rescue centre at night: places to nurse sick owls by lamplight',
+    sickAlt: '{name} is ill',
+    pictureDay: 'Rescue centre by day',
+    pictureNight: 'Rescue centre by night',
+    insideDay: 'Inside the rescue centre',
+    insideNight: 'Rescue centre at night',
   },
   menagerie: {
     intro:
       'The Menagerie: here you can buy owls. Loan owls are at the owl post office – where you can also lend your own owls.',
     /** v0.10: picture of the place, by day or by night at the player's home. */
-    pictureDay: 'The Menagerie in old stone walls, by day',
-    pictureNight: 'The Menagerie in old stone walls, at night',
+    pictureDay: 'Menagerie by day',
+    pictureNight: 'Menagerie by night',
     /** v1.1 */
-    pictureChristmasDay: 'The snowy Menagerie decorated for Christmas, by day',
-    pictureChristmasNight: 'The snowy Menagerie decorated for Christmas with its lights, at night',
+    pictureChristmasDay: 'Snowy Menagerie',
+    pictureChristmasNight: 'Snowy Menagerie by night',
     /** v1.2.1: the entrance leads inside, where the owls for sale are. */
     enter: 'Enter the Menagerie',
-    insideDay:
-      'Inside the Menagerie by day: owls in wall niches, on branches and along a spiral staircase, a keeper sweeping next to the counter with its till and the book “Owl Care A–Z”',
-    insideNight:
-      'Inside the Menagerie at night: owls in wall niches, on branches and along a spiral staircase in the lantern light, a keeper sweeping next to the counter',
-    insideChristmasDay:
-      'Inside the Menagerie decorated for Christmas, by day: owls among fir branches, wreaths and a Christmas tree, a keeper sweeping next to the counter',
-    insideChristmasNight:
-      'Inside the Menagerie decorated for Christmas, at night: owls in the glow of the lights among fir branches, wreaths and a Christmas tree, a keeper sweeping next to the counter',
+    insideDay: 'Inside the Menagerie',
+    insideNight: 'Menagerie at night',
+    insideChristmasDay: 'Menagerie at Christmas',
+    insideChristmasNight: 'Menagerie, Christmas night',
     buyTitle: 'Buy owls',
     price: 'Price: {price}',
     stats: 'Energy {energy} · speed {speed} km/h · recovery {recovery}%/h',
@@ -835,22 +823,17 @@ export const en: Texts = {
   post: {
     intro:
       'The owl post office: here you borrow owls for a letter or for gold – different ones every day. You can also look after your borrowed owls and send them off right here.',
-    pictureDay: 'The owl post office by day',
-    pictureNight: 'The owl post office at night',
+    pictureDay: 'Post office by day',
+    pictureNight: 'Post office by night',
     /** v1.1 */
-    pictureChristmasDay: 'The snowy owl post office decorated for Christmas, by day',
-    pictureChristmasNight:
-      'The snowy owl post office decorated for Christmas with its lights, at night',
+    pictureChristmasDay: 'Snowy post office',
+    pictureChristmasNight: 'Post office, Christmas night',
     /** v1.2: the entrance leads inside, where the loan owls of the day are. */
     enter: 'Enter the owl post office',
-    insideDay:
-      "Inside the owl post office by day: today's loan owls among counter, shelves and parcels",
-    insideNight:
-      "Inside the owl post office at night: today's loan owls in lantern light among counter, shelves and parcels",
-    insideChristmasDay:
-      "Inside the owl post office decorated for Christmas, by day: today's loan owls among counter, shelves and presents",
-    insideChristmasNight:
-      "Inside the owl post office decorated for Christmas, at night: today's loan owls in the glow of the lights among counter, shelves and presents",
+    insideDay: 'Inside the post office',
+    insideNight: 'Post office at night',
+    insideChristmasDay: 'Post office at Christmas',
+    insideChristmasNight: 'Post office, Christmas night',
     loanTitle: 'Borrow owls',
     /** v1.2.4: followed by who is ready to travel right now (loanReady in texts/species.ts). */
     loanWelcome: 'A warm welcome! Would you like to borrow an owl?',
@@ -1000,6 +983,9 @@ export const en: Texts = {
   },
   banner: {
     hide: 'Hide notice',
+    /** v1.4.2: hardly any free space left on the server (SPEC 13 item 14). */
+    storageFull:
+      'Space is running out in the owl tower. Please let the administrator know so that room can be made in the owl tower. Until then no letters can be written.',
   },
   admin: {
     /** v1.2.1: the server dashboard at the top of the panel (SPEC 13 item 13). */
@@ -1034,6 +1020,19 @@ export const en: Texts = {
     save: 'Save',
     changed: 'The admin password has been changed.',
     registrationTitle: 'Registration',
+    /** v1.4.2: free space for the database (SPEC 13 item 14). */
+    registrationStorage:
+      'Space is short in the owl tower: registration currently needs an invitation code.',
+    storageTitle: 'Disk space for the database',
+    storageIntro:
+      'If no more than the barrier is free on the partition of the database, players cannot write letters, open registration needs an invitation code and everyone sees a notice that room has to be made in the owl tower. From the warning threshold on, a note appears in the error log. Once more than the warning threshold is free again, everything is as before.',
+    storageFree: '{gb} GB free',
+    storageFreeUnknown: 'Free space unknown',
+    storageStateOk: 'all fine',
+    storageStateLow: 'warning threshold reached',
+    storageStateFull: 'barrier reached: letters and open registration are blocked',
+    storageBlock: 'Barrier in GB (letters blocked)',
+    storageWarn: 'Warning threshold in GB (note in the error log)',
     modeClosed: 'closed',
     modeInvite: 'invitation code only',
     modeOpen: 'open to everyone',
@@ -1106,6 +1105,9 @@ export const en: Texts = {
     torTitle: 'Tor network (onion service)',
     torIntro:
       'PostEulen can also be reached as an onion service in the Tor network – the same app with the same accounts, letters and game states. The address never changes; its keys are part of every backup. Over Tor the server sees no IP addresses: every sign-in there needs the proof-of-work puzzle, expensive actions count per account, and for registration all Tor visitors together count as one single IP address.',
+    /** v1.4.2: a Tor-only instance (SPEC 16.6). */
+    torOnlyIntro:
+      'This instance runs in the Tor network only (installed with “--tor-only”). It has no domain on the web, and access through Tor cannot be switched off – otherwise it could no longer be reached.',
     torAddress: 'Onion address',
     torNoAddress: 'none yet',
     torState: 'State',
@@ -1395,6 +1397,10 @@ export const en: Texts = {
     unsupported_media_type: 'Please send JSON only.',
     payload_too_large: 'The request is too large.',
     client_outdated: 'The app is out of date. Please reload.',
+    storage_full:
+      'There is no room for new letters in the owl tower right now. Please let the administrator know.',
+    storage_limits_invalid:
+      'Please enter whole or half gigabytes (0.5 to 1,000), the warning larger than the barrier.',
     rate_limited: 'Slow down, the owls cannot keep up. Please wait a moment.',
     tor_disabled:
       'Access through the Tor network is switched off at the moment. Please try again later or use the normal address.',
@@ -1490,7 +1496,7 @@ export const en: Texts = {
     transfer_remaining: 'After the transfer you must have more than 10.0 gold left.',
   },
   images: {
-    placeholderAlt: 'Placeholder: picture to follow',
+    placeholderAlt: 'Picture to follow',
   },
 };
 

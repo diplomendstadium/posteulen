@@ -15,6 +15,7 @@ import { credit } from '../gold/ledger.ts';
 import { addToBag } from '../gold/privilege.ts';
 import { addSystemMessage } from '../messages/system.ts';
 import { hasRoom } from '../owls/limit.ts';
+import { assignLook } from '../owls/look.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import {
   setCentralFlightHooks,
@@ -178,10 +179,11 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
         after,
       );
     } else if (species) {
+      const owlId = randomId();
       ctx.db.run(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, owned_since, created_at)
          VALUES (?, ?, 'own', ?, ?, NULL, ?, ?, ?, ?)`,
-        randomId(),
+        owlId,
         userId,
         species.id,
         randomSex(ctx.random()),
@@ -190,6 +192,7 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
         utcDay(at),
         at,
       );
+      assignLook(ctx, owlId);
       addSystemMessage(
         ctx,
         userId,

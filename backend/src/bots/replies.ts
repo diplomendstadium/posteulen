@@ -207,7 +207,10 @@ export class BotReplies {
         key,
         model,
         [
-          { role: 'system', content: systemPrompt(bot.type, languageOf(ctx, bot.owner_id)) },
+          {
+            role: 'system',
+            content: systemPrompt(bot.type, languageOf(ctx, bot.owner_id), ctx.config.torOnly),
+          },
           ...(summary
             ? [{ role: 'system' as const, content: `Bisheriger Briefwechsel in Kürze: ${summary}` }]
             : []),
