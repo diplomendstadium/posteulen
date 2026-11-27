@@ -1,6 +1,6 @@
 # PostEulen.de – Abhängigkeiten
 
-> Stand: Version 1.4.1 (2026-11-26), ohne neue Abhängigkeiten. Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
+> Stand: Version 1.4.3 (2026-11-27): neu `uqr` (QR-Code der Zwei-Faktor-Anmeldung); TOTP läuft mit dem eingebauten `node:crypto`. Alle Versionen sind im Lockfile exakt gepinnt (`package-lock.json`). Regel für die Versionswahl: die neueste Version, die mindestens 14 Tage alt ist; Ausnahmen nur für Sicherheitskorrekturen. Zu 1.0.0 wurden alle direkten Abhängigkeiten nach dieser Regel aktualisiert (`@fastify/cookie`, `altcha-lib`, `svelte`, `@types/node`, `eslint`, `typescript-eslint`, `svelte-check`, `globals`); `typescript` bleibt bei 6.x, die indirekten Pakete auf dem Stand des Lockfiles. `sharp` ist auch Laufzeitabhängigkeit des Backends (Bilder der Bots); auf dem Server kommt das Debian-Paket `tor` für den Onion-Dienst dazu. Alle Lizenzen sind OSI-anerkannt bzw. für Schriften die SIL OFL 1.1.
 > `npm audit` vom 2026-11-25: **0 Funde** (Laufzeit- und Entwicklungs-Abhängigkeiten). Regel: Laufzeit 0 Funde Pflicht, Entwicklung blockiert ab „hoch“.
 > Vollständige Liste aller indirekten Pakete mit Lizenz: `npm run deps:report` (Lizenzen MIT, Apache-2.0, ISC, BSD-2/3-Clause, MPL-2.0, LGPL-3.0-or-later (libvips in sharp, Build und seit v0.8 Bilder der Bots), BlueOak-1.0.0, 0BSD, OFL-1.1).
 
@@ -30,6 +30,7 @@ Indirekte Laufzeit-Abhängigkeiten: rund 100 Pakete (vor allem Fastify und Pino)
 |---|---|---|---|
 | `svelte` | 5.57.3 | MIT | UI-Framework (kompiliert, ohne SSR) |
 | `@serenity-kit/opaque`, `libsodium-wrappers-sumo`, `@hpke/*`, `valibot`, `suncalc` | wie oben | wie oben | Client-Kryptografie, Schemas, Kartenanzeige |
+| `uqr` | 0.1.3 | MIT | QR-Code für Authenticator-Apps bei der Zwei-Faktor-Anmeldung (App, Adminpanel, Kontrollzentrum; `shared/src/qr.ts`, als SVG-Pfad gezeichnet), ohne Abhängigkeiten |
 | `altcha-lib` | 2.8.0 | MIT | Lösen der Proof-of-Work-Aufgabe im Browser; eigene kleine Oberfläche statt des ALTCHA-Widgets (strikte CSP) |
 | `@fontsource/atkinson-hyperlegible-next` | 5.3.0 | OFL-1.1 | Fließtext und alle Namen |
 | `@fontsource/cinzel-decorative` | 5.3.0 | OFL-1.1 | Zierschrift für Überschriften (F-08) |
@@ -96,7 +97,7 @@ Die Liste wird im Browser nur beim Erstellen eines Kontos und beim Passwortwechs
 | `shellcheck` 0.10.0 | Debian (nur Entwicklung und Test, D-36) | GPL-3.0 | Skriptprüfung |
 | `qemu-system-x86`, `xorriso` | Debian (nur Entwicklungsrechner) | GPL-2.0 | VM-Test (D-22) |
 
-## Bekannte Funde (`npm audit`, Stand 2026-11-25: keine offenen)
+## Bekannte Funde (`npm audit`, Stand 2026-11-27: keine offenen)
 
 | Paket | Schwere | Advisory | Weg | Bewertung |
 |---|---|---|---|---|

@@ -3,6 +3,36 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.4.3 – Ein zweites Schloss am Eulenturm
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-505 bis D-524).
+
+**Neu:**
+
+- **Zwei-Faktor-Anmeldung** (TOTP nach RFC 6238, z. B. mit KeePassXC, Aegis oder FreeOTP) für Spieler (Einstellungen), Adminpanel und Bots-Kontrollzentrum: Einschalten mit Passwort, QR-Code bzw. Schlüssel zum Abtippen und dem ersten Code; danach einmalig zehn Notfallcodes. Ein Code (oder Notfallcode) ist dann bei jeder Anmeldung nötig und vor Passwortwechsel, Kontolöschung und Ein-/Ausschalten. Ausschalten geht auch mit einem Notfallcode. Ein Spielerkonto ohne App und Notfallcode bleibt ausgesperrt – niemand kann es zurücksetzen; Adminpanel und Kontrollzentrum setzt `posteulen-cli admin-reset` bzw. `bots-reset` zurück. Das Geheimnis liegt verschlüsselt, die Notfallcodes nur als HMAC in der Datenbank.
+- **Vorfilter für die Bots:** Jeder Brief eines Spielers geht vor jeder KI-Antwort zuerst allein und ohne Zusammenhang an die KI, die nur Sätze und Absätze über Drogen, Sexualität und Gewalt entfernt. Nur diese bereinigte Fassung (einmal je Brief gespeichert) sieht die KI danach – für Antwort, angepasste Briefe, Verlauf und Zusammenfassung. Bleibt nichts übrig, antwortet der Bot nicht darauf. Gilt für den Erklärbär und alle Bots des Kontrollzentrums, auch im KI-Test.
+- **Automatische Updates jede Nacht** nach der Sicherung: `apt-get full-upgrade` und `posteulen-update`, Neustart nur, wenn Debian ihn verlangt; im Adminpanel abschaltbar; Fehler verständlich im Fehlerprotokoll.
+- **„Server der Instanz“** (bisher „Server-Auslastung“) im Adminpanel: zusätzlich Laufzeit, wartende Updates für Debian und PostEulen (stündlich geprüft), die automatischen Updates mit Schalter und letztem Lauf und eine tägliche Prüfung öffentlicher Blocklisten für Spam, Werbung und Tracking (nicht bei Tor-only).
+- **Fortschrittsbalken** bei Installation und Update: „Schritt x von y“ mit verständlichem Satz, lange Schritte mit Drehsymbol und Zeit.
+- **Bots-Kontrollzentrum:** Das Geschlecht der eigenen Bot-Eule ist wählbar.
+
+**Geändert:**
+
+- **Rettungsstation:** wieder zwei wilde Eulen je Konto.
+- **Briefe schreiben:** Lässt sich ein Brief nicht abschicken, springt die Seite zur Fehlermeldung.
+- Update-Nachricht, Hilfe, Erklärbär-Wissen, Startseite, Datenschutzerklärung (Zwei-Faktor-Anmeldung, Vorfilter), README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert. Für diese Version lagen keine Dateien zum Einpflegen im Entwicklungsordner.
+
+**Tests:** `shared/test/v143.test.ts`, `backend/test/v143.test.ts` (TOTP mit den Testvektoren aus RFC 6238, Zwei-Faktor-Anmeldung für Spieler und Panels, Vorfilter, Server-Infos, Skripte), `e2e/v143.spec.ts`; angepasst `e2e/admin.spec.ts`, `stage4.spec.ts`, `v131.spec.ts`, `backend/test/v130.test.ts`, `bots.test.ts`, `v080.test.ts`, `v083.test.ts`, `admin.test.ts`, `routes.test.ts`, `v02.test.ts`, `v03.test.ts`, `shared/test/v142.test.ts`. Der VM-Test prüft zusätzlich Zeitgeber, Server-Infos, Blocklisten, abgeschaltete automatische Updates und `posteulen-cli report`.
+
+### Hinweise für Betreiber
+
+- **Automatische Updates sind ab jetzt eingeschaltet:** Jede Nacht nach der Sicherung (gegen 02:30 UTC) installiert der Server die Updates für Debian und PostEulen selbst und startet neu, wenn Debian es verlangt (z. B. neuer Kernel). Wer das nicht möchte, schaltet es im Adminpanel unter „Server der Instanz“ ab. Eine Sicherung von Hand (`sudo systemctl start posteulen-backup`) löst keine Updates aus.
+- **Neue Units:** `posteulen-nightly.service` (vom bisherigen `posteulen-backup.timer` gestartet), `posteulen-autoupdate.service`, `posteulen-check.timer` (stündlich) und `posteulen-blocklists.timer` (täglich). Die Prüfung der Blocklisten fragt DNS-Blocklisten ab und lädt einmal am Tag etwa 12 MB Werbe- und Tracking-Listen (GitHub, oisd.nl); sie entfällt auf Tor-only-Instanzen.
+- **Migration `0028_v143.sql`** (Schema-Version 28): neue Spalte `letters.ai_text` und Tabelle `two_factor`. Ältere Briefe an Bots werden beim ersten Gebrauch bereinigt – das kostet einmalig ein paar zusätzliche KI-Aufrufe aus dem Tageslimit.
+- **Neue Abhängigkeit:** `uqr` (MIT) für den QR-Code. Keine neuen Pakete auf dem Server.
+- Die Zwei-Faktor-Anmeldung des Adminpanels bzw. Kontrollzentrums setzt `sudo posteulen-cli admin-reset` bzw. `bots-reset` mit zurück.
+- Update wie immer mit `sudo posteulen-update` – die Fortschrittsanzeige gibt es ab dem nächsten Update auch schon während des Ladens.
+
 ## v1.4.2 – Zwillingsfedern
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-491 bis D-504).
