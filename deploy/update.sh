@@ -134,16 +134,21 @@ prune_releases
 clean_staging
 remove_legacy_repo
 ok "PostEulen läuft jetzt in Version $new_version."
+# v1.4.2: Eine Tor-only-Instanz hat ihre Panels nur unter den Onion-Adressen (SPEC 16.6).
+admin_url=https://admin.$domain bots_url=https://bots.$domain
+if tor_only; then
+  admin_url="http://$(onion_host "$PE_ONION_KEYS_ADMIN") (im Tor Browser)"
+  bots_url="http://$(onion_host "$PE_ONION_KEYS_BOTS") (im Tor Browser)"
+fi
 admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
 if [[ -n $admin_password ]]; then
   banner "Neu: Adminpanel. Erstpasswort (wird nur jetzt angezeigt): $admin_password" \
-    "Anmelden unter https://admin.$domain – beim ersten Login muss es geändert werden."
+    "Anmelden unter $admin_url – beim ersten Login muss es geändert werden."
 fi
 bots_password=$(sed -n 's/^BOTS-ERSTPASSWORT: //p' <<<"$bots_output")
 if [[ -n $bots_password ]]; then
   banner "Neu: Bots-Kontrollzentrum. Erstpasswort (wird nur jetzt angezeigt): $bots_password" \
-    "Anmelden unter https://bots.$domain – beim ersten Login muss es geändert werden." \
-    "Dafür braucht bots.$domain einen DNS-Eintrag (A/AAAA) auf diesen Server." \
+    "Anmelden unter $bots_url – beim ersten Login muss es geändert werden." \
     "Vergessen? „sudo posteulen-cli bots-reset“ erzeugt ein neues."
 fi
 if [[ -f $RELEASE/CHANGELOG.md ]]; then

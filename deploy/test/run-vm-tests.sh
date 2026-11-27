@@ -7,7 +7,8 @@
 #
 # Ablauf: Cloud-Image laden und prüfen → VM starten → aus HEAD vier Test-Versionen bauen
 # (gut, gut, mit kaputter Migration, mit kaputtem Build) → Szenario deploy/test/vm-scenario.sh
-# in der VM.
+# in der VM. v1.4.2: danach eine zweite, frische VM für die Installation nur im Tor-Netz
+# (deploy/test/vm-tor-only.sh; überspringen mit POSTEULEN_VM_TOR_ONLY=0).
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 CACHE=${POSTEULEN_VM_CACHE:-$HOME/.cache/posteulen-vm}
@@ -87,10 +88,16 @@ git -C "$work" bundle create --quiet "$run_dir/posteulen.bundle" --all
 previous=$(git -C "$ROOT" describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)
 echo "Vorige Stufe: ${previous:-keine}"
 
-say "VM starten"
-qemu-img create -q -f qcow2 -b "$CACHE/$IMAGE" -F qcow2 "$run_dir/disk.qcow2" 20G
-mkdir -p "$run_dir/seed"
-cat >"$run_dir/seed/user-data" <<UD
+# v1.4.2: startet eine frische VM (neue Platte); eine laufende wird vorher beendet.
+start_vm() {
+  if [[ -f $run_dir/qemu.pid ]]; then
+    kill "$(cat "$run_dir/qemu.pid")" 2>/dev/null || true
+    sleep 2
+    rm -f "$run_dir/qemu.pid" "$run_dir/disk.qcow2"
+  fi
+  qemu-img create -q -f qcow2 -b "$CACHE/$IMAGE" -F qcow2 "$run_dir/disk.qcow2" 20G
+  mkdir -p "$run_dir/seed"
+  cat >"$run_dir/seed/user-data" <<UD
 #cloud-config
 hostname: posteulen-vm
 users:
@@ -100,21 +107,25 @@ users:
     ssh_authorized_keys:
       - $(cat "$CACHE/vm_key.pub")
 UD
-printf 'instance-id: posteulen-%s\nlocal-hostname: posteulen-vm\n' "$(date +%s)" >"$run_dir/seed/meta-data"
-xorriso -as mkisofs -quiet -output "$run_dir/seed.iso" -volid cidata -joliet -rock "$run_dir/seed" 2>/dev/null
-qemu-system-x86_64 -machine q35,accel=kvm -cpu host -m 2048 -smp 2 \
-  -drive "file=$run_dir/disk.qcow2,if=virtio" -drive "file=$run_dir/seed.iso,media=cdrom" \
-  -netdev "user,id=n0,hostfwd=tcp:127.0.0.1:$SSH_PORT-:22,hostfwd=tcp:127.0.0.1:$HTTPS_PORT-:443" \
-  -device virtio-net-pci,netdev=n0 -display none -serial "file:$run_dir/console.log" \
-  -daemonize -pidfile "$run_dir/qemu.pid"
+  printf 'instance-id: posteulen-%s\nlocal-hostname: posteulen-vm\n' "$(date +%s)" >"$run_dir/seed/meta-data"
+  xorriso -as mkisofs -quiet -output "$run_dir/seed.iso" -volid cidata -joliet -rock "$run_dir/seed" 2>/dev/null
+  qemu-system-x86_64 -machine q35,accel=kvm -cpu host -m 2048 -smp 2 \
+    -drive "file=$run_dir/disk.qcow2,if=virtio" -drive "file=$run_dir/seed.iso,media=cdrom" \
+    -netdev "user,id=n0,hostfwd=tcp:127.0.0.1:$SSH_PORT-:22,hostfwd=tcp:127.0.0.1:$HTTPS_PORT-:443" \
+    -device virtio-net-pci,netdev=n0 -display none -serial "file:$run_dir/console.log" \
+    -daemonize -pidfile "$run_dir/qemu.pid"
+  for _ in $(seq 1 60); do ssh_vm true 2>/dev/null && break; sleep 3; done
+  ssh_vm true || fail "VM per SSH nicht erreichbar (Konsole: $run_dir/console.log)."
+  echo "VM läuft."
+}
 
 ssh_vm() {
   ssh -q -i "$CACHE/vm_key" -p "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     -o ConnectTimeout=5 -o BatchMode=yes debian@127.0.0.1 "$@"
 }
-for _ in $(seq 1 60); do ssh_vm true 2>/dev/null && break; sleep 3; done
-ssh_vm true || fail "VM per SSH nicht erreichbar (Konsole: $run_dir/console.log)."
-echo "VM läuft."
+
+say "VM starten"
+start_vm
 
 say "Szenario in der VM"
 # v1.2.1: nach /var/tmp (Festplatte) – /tmp ist in Debian 13 ein RAM-Dateisystem und für das
@@ -141,6 +152,17 @@ if curl --silent --insecure --max-time 10 --resolve "posteulen.test:$HTTPS_PORT:
 else
   echo "✘ Von außen nicht erreichbar."
   status=1
+fi
+
+if [[ ${POSTEULEN_VM_TOR_ONLY:-1} != 0 ]]; then
+  say "Zweite, frische VM: Installation nur im Tor-Netz"
+  start_vm
+  scp -q -i "$CACHE/vm_key" -P "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-tor-only.sh" debian@127.0.0.1:/var/tmp/
+  set +e
+  ssh_vm "sudo bash /var/tmp/vm-tor-only.sh '$version'" 2>&1 | tee "$run_dir/tor-only.log"
+  [[ ${PIPESTATUS[0]} -eq 0 ]] || status=1
+  set -e
 fi
 
 echo

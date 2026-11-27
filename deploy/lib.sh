@@ -150,8 +150,52 @@ switch_symlink() {
   mv -T "$link.new" "$link"
 }
 
+# v1.4.2: Tor-only-Instanz (SPEC 16.6) – keine Domain, nur die drei Onion-Seiten.
+tor_only() {
+  [[ $(conf_get POSTEULEN_TOR_ONLY) == 1 ]]
+}
+
+# v1.4.2: Funktionsprüfung einer Tor-only-Instanz über die lokalen Listener der Onion-Seiten –
+# genau der Weg, den Tor nimmt (ohne HTTPS, deshalb ohne HSTS).
+health_check_tor() {
+  local onion onion_admin attempt target host port headers header health
+  local -a curl_opts=(--silent --show-error --fail --max-time 10)
+  onion=$(onion_host)
+  onion_admin=$(onion_host "$PE_ONION_KEYS_ADMIN")
+  if [[ -z $onion || -z $onion_admin ]]; then
+    warn "Die Onion-Adressen fehlen – Tor ist nicht eingerichtet."
+    return 1
+  fi
+  for attempt in $(seq 1 30); do
+    if curl "${curl_opts[@]}" -H "Host: $onion" "http://127.0.0.1:$PE_ONION_LISTEN_PORT/api/health" >/dev/null 2>&1 &&
+      curl "${curl_opts[@]}" -H "Host: $onion_admin" "http://127.0.0.1:$PE_ONION_ADMIN_LISTEN_PORT/api/health" >/dev/null 2>&1; then
+      break
+    fi
+    [[ $attempt -eq 30 ]] && { warn "Health-Endpunkt antwortet nicht."; return 1; }
+    sleep 2
+  done
+  for target in "$onion $PE_ONION_LISTEN_PORT" "$onion_admin $PE_ONION_ADMIN_LISTEN_PORT"; do
+    read -r host port <<<"$target"
+    headers=$(curl "${curl_opts[@]}" -H "Host: $host" --dump-header - --output /dev/null "http://127.0.0.1:$port/") || { warn "http://$host/ nicht erreichbar."; return 1; }
+    for header in content-security-policy x-content-type-options referrer-policy cross-origin-opener-policy; do
+      if ! grep -qi "^$header:" <<<"$headers"; then
+        warn "Sicherheits-Header $header fehlt bei http://$host/."
+        return 1
+      fi
+    done
+  done
+  health=$(curl "${curl_opts[@]}" -H "Host: $onion" "http://127.0.0.1:$PE_ONION_LISTEN_PORT/api/health") || return 1
+  grep -q '"status":"ok"' <<<"$health" || { warn "Unerwartete Antwort: $health"; return 1; }
+  ok "Funktionsprüfung bestanden: Onion-Seiten von App und Verwaltung, Health-Endpunkt und Sicherheits-Header."
+}
+
 # Funktionsprüfung über HTTPS (SPEC 16.2 Schritt 5). $1 = Domain, $2 = Testmodus (0|1).
+# v1.4.2: Auf einer Tor-only-Instanz über die Onion-Seiten.
 health_check() {
+  if tor_only; then
+    health_check_tor
+    return
+  fi
   local domain=$1 test_mode=$2 attempt host url headers
   local -a curl_opts=(--silent --show-error --fail --max-time 10 --resolve "$domain:443:127.0.0.1" --resolve "admin.$domain:443:127.0.0.1" --resolve "bots.$domain:443:127.0.0.1")
   if [[ $test_mode -eq 1 ]]; then
@@ -207,7 +251,11 @@ ensure_firewall() {
     info "Firewall: IPv6 eingeschaltet."
   fi
   local rule
-  for rule in 22/tcp 80/tcp 443/tcp 443/udp; do ufw allow "$rule" >/dev/null; done
+  local -a rules=(22/tcp 80/tcp 443/tcp 443/udp)
+  # v1.4.2: Eine Tor-only-Instanz braucht keine offenen Ports außer SSH – Tor baut seine
+  # Verbindungen selbst nach außen auf (SPEC 16.6).
+  tor_only && rules=(22/tcp)
+  for rule in "${rules[@]}"; do ufw allow "$rule" >/dev/null; done
   if ufw status | grep -q '^Status: active'; then ufw reload >/dev/null; fi
 }
 
@@ -227,7 +275,9 @@ onion_host() {
 }
 
 # v0.9: Soll Tor laufen? Ja, außer der Schalter im Adminpanel steht auf „aus“ (SPEC 16.5).
+# v1.4.2: Auf einer Tor-only-Instanz immer (SPEC 16.6).
 tor_wanted() {
+  tor_only && return 0
   [[ $(cat "$PE_TOR_SWITCH" 2>/dev/null || true) != off ]]
 }
 

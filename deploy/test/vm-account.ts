@@ -19,6 +19,9 @@ import { fromBase64Url, toBase64Url } from '../../shared/src/crypto/encoding.ts'
 import type { IdentityKeys } from '../../shared/src/crypto/keypackage.ts';
 
 const BASE = process.env['POSTEULEN_TEST_BASE'] ?? 'https://posteulen.test';
+// v1.4.2: the onion site is reached on its local listener (port in BASE), the origin stays the
+// onion address without a port (Tor-only test, SPEC 16.6).
+const ORIGIN = process.env['POSTEULEN_TEST_ORIGIN'] ?? BASE;
 const STATE = process.env['POSTEULEN_TEST_STATE'] ?? '/root/vmtest-account.json';
 let cookie = '';
 
@@ -26,7 +29,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   const response = await fetch(`${BASE}${path}`, {
     method,
     headers: {
-      origin: BASE,
+      origin: ORIGIN,
       'x-posteulen': '1',
       ...(cookie ? { cookie } : {}),
       ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
@@ -61,8 +64,8 @@ async function loginAs(
   userPassword: string,
 ): Promise<{ userId: string; identity: IdentityKeys }> {
   cookie = '';
-  const start = client.startLogin(userPassword);
-  const first = await call<{ status: string; attemptId: string; loginResponse: string }>(
+  let start = client.startLogin(userPassword);
+  let first = await call<{ status: string; attemptId: string; loginResponse: string }>(
     'POST',
     '/api/login/start',
     {
@@ -70,6 +73,15 @@ async function loginAs(
       startLoginRequest: start.request,
     },
   );
+  // v1.4.2: over Tor every login needs the captcha (SPEC 5.10) – the Tor-only VM test.
+  if (first.status === 'captcha_required') {
+    start = client.startLogin(userPassword);
+    first = await call<{ status: string; attemptId: string; loginResponse: string }>(
+      'POST',
+      '/api/login/start',
+      { name: userName, startLoginRequest: start.request, altcha: await captcha() },
+    );
+  }
   if (first.status !== 'ok') throw new Error(`login start: ${first.status}`);
   const result = client.finishLogin(userPassword, start.state, first.loginResponse);
   if (!result) throw new Error('falsches Passwort');

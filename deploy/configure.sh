@@ -2,6 +2,7 @@
 # Schreibt alle erzeugten Konfigurationsdateien aus dem gerade aktiven Release:
 # service.env, systemd-Units, Caddyfile, Befehle in /usr/local/sbin, Platzhalter in local/.
 # v0.9: mit www-Weiterleitung (wenn www im DNS auf diesen Server zeigt) und Onion-Seite (SPEC 16.5).
+# v1.4.2: Eine Tor-only-Instanz (SPEC 16.6) hat keine Domain – nur die drei Onion-Seiten.
 # Lokale Anpassungen in /etc/posteulen/local/ werden nie überschrieben (SPEC 16.3).
 set -euo pipefail
 SELF_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -12,7 +13,8 @@ RELEASE=$(cd "$SELF_DIR/.." && pwd)
 require_root
 domain=$(conf_get POSTEULEN_DOMAIN)
 test_mode=$(conf_get POSTEULEN_TEST_MODE)
-valid_domain "$domain" || die "Keine gültige Domain in $PE_CONF." "Die Datei prüfen oder install.sh erneut ausführen."
+tor_only && domain=''
+tor_only || valid_domain "$domain" || die "Keine gültige Domain in $PE_CONF." "Die Datei prüfen oder install.sh erneut ausführen."
 
 # v0.9: Onion-Adresse aus der maßgeblichen Schlüsselkopie (leer, solange Tor nicht eingerichtet ist).
 onion=$(onion_host)
@@ -22,7 +24,7 @@ onion_bots=$(onion_host "$PE_ONION_KEYS_BOTS")
 
 umask 022
 {
-  printf 'POSTEULEN_DOMAIN=%s\n' "$domain"
+  if tor_only; then printf 'POSTEULEN_TOR_ONLY=1\n'; else printf 'POSTEULEN_DOMAIN=%s\n' "$domain"; fi
   [[ -n $onion ]] && printf 'POSTEULEN_ONION=%s\n' "$onion"
   [[ -n $onion_admin ]] && printf 'POSTEULEN_ONION_ADMIN=%s\n' "$onion_admin"
   [[ -n $onion_bots ]] && printf 'POSTEULEN_ONION_BOTS=%s\n' "$onion_bots"
@@ -34,8 +36,8 @@ mv "$PE_SERVICE_ENV.new" "$PE_SERVICE_ENV"
 # Platzhalter für lokale Anpassungen (nur anlegen, nie überschreiben).
 install -d -m 0755 "$PE_LOCAL"
 [[ -e $PE_LOCAL/global-00-leer.caddy ]] || printf '# Eigene globale Caddy-Blöcke hier oder in weiteren global-*.caddy-Dateien.\n' >"$PE_LOCAL/global-00-leer.caddy"
-[[ -e $PE_LOCAL/admin-00-leer.caddy ]] || printf '# Eigene Regeln für admin.%s hier oder in weiteren admin-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/admin-00-leer.caddy"
-[[ -e $PE_LOCAL/bots-00-leer.caddy ]] || printf '# Eigene Regeln für bots.%s hier oder in weiteren bots-*.caddy-Dateien.\n' "$domain" >"$PE_LOCAL/bots-00-leer.caddy"
+[[ -e $PE_LOCAL/admin-00-leer.caddy ]] || printf '# Eigene Regeln für das Adminpanel hier oder in weiteren admin-*.caddy-Dateien.\n' >"$PE_LOCAL/admin-00-leer.caddy"
+[[ -e $PE_LOCAL/bots-00-leer.caddy ]] || printf '# Eigene Regeln für das Bots-Kontrollzentrum hier oder in weiteren bots-*.caddy-Dateien.\n' >"$PE_LOCAL/bots-00-leer.caddy"
 
 # v0.8.2: Firewall auch für IPv6 (eine später hinzugefügte IPv6-Adresse funktioniert dann sofort).
 ensure_firewall
@@ -59,10 +61,16 @@ caddyfile=/etc/caddy/Caddyfile
 if [[ -f $caddyfile ]] && ! grep -q '^# Erzeugt von posteulen-cli caddyfile' "$caddyfile"; then
   [[ -e $caddyfile.vor-posteulen ]] || cp -a "$caddyfile" "$caddyfile.vor-posteulen"
 fi
-args=(caddyfile --domain "$domain")
-[[ $test_mode == 1 ]] && args+=(--test-mode)
-# v0.9: www.<Domain> leitet auf <Domain> um – nur, wenn www im DNS auf diesen Server zeigt.
-www_wanted "$domain" "${test_mode:-0}" && args+=(--www)
+if tor_only; then
+  # v1.4.2: nur die Onion-Seiten – ohne alle drei Adressen gäbe es keinen Weg hinein.
+  [[ -n $onion && -n $onion_admin && -n $onion_bots ]] || die "Die Onion-Adressen fehlen." "Tor einrichten: „sudo $RELEASE/deploy/tor.sh setup“, danach dieses Skript erneut ausführen."
+  args=(caddyfile --tor-only)
+else
+  args=(caddyfile --domain "$domain")
+  [[ $test_mode == 1 ]] && args+=(--test-mode)
+  # v0.9: www.<Domain> leitet auf <Domain> um – nur, wenn www im DNS auf diesen Server zeigt.
+  www_wanted "$domain" "${test_mode:-0}" && args+=(--www)
+fi
 # v0.9: Onion-Seite (nur lokal, für Tor) und – solange Tor läuft – Onion-Location für den Tor Browser.
 if [[ -n $onion ]]; then
   args+=(--onion "$onion")

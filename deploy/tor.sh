@@ -32,9 +32,12 @@ SERVICES=(
 )
 
 # Meldet einen Fehler: Hinweis bei Installation/Update und Eintrag im Fehlerprotokoll.
+# v1.4.2: Eine Tor-only-Instanz ist ohne Tor gar nicht erreichbar (SPEC 16.6).
 tor_problem() {
   local what=$1 cause=$2 action=${3:-„journalctl -u $PE_TOR_UNIT -n 50“ auf dem Server ansehen.}
-  notice "Tor: $what $cause Die normale Seite läuft weiter. Was tun: $action"
+  local impact="Die normale Seite läuft weiter."
+  tor_only && impact="Ohne Tor ist diese Tor-only-Instanz nicht erreichbar."
+  notice "Tor: $what $cause $impact Was tun: $action"
   tor_report error --what "$what" --cause "$cause" --action "$action"
 }
 
