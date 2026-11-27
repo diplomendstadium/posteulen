@@ -17,7 +17,10 @@ import { mount } from 'svelte';
 import App from './App.svelte';
 import { registerServiceWorker } from './lib/status.svelte.ts';
 import { applyLanguage } from './lib/i18n.svelte.ts';
+import { startEdition } from './lib/edition.svelte.ts';
 
+// v1.4.2: background and notifications by the kind of instance (SPEC 16.6).
+startEdition();
 applyLanguage();
 const target = document.getElementById('app');
 if (!target) throw new Error('#app missing');

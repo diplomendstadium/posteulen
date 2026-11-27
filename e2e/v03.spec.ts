@@ -238,7 +238,7 @@ test.describe('Version 0.3', () => {
     page,
   }) => {
     await page.goto('/');
-    await expect(page.getByRole('img', { name: /Siebzehn Posteulen/ })).toBeVisible();
+    await expect(page.getByRole('img', { name: /^Posteulen / })).toBeVisible();
     await registerViaUi(page);
     await expect(page.getByRole('heading', { name: 'Eine App ganz ohne App-Store' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Android-Handy mit Chrome' })).toBeVisible();

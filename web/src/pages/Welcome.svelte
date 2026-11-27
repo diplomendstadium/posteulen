@@ -7,6 +7,8 @@
   import { t } from '../lib/i18n.svelte.ts';
   import Link from '../components/Link.svelte';
   import PushSettings from '../components/PushSettings.svelte';
+  import { edition } from '../lib/edition.svelte.ts';
+  import { withoutNotifications } from '@posteulen/shared/texts/help-tor-only.ts';
 </script>
 
 <div class="page">
@@ -27,21 +29,26 @@
 
     <h3>{t.welcome.ios}</h3>
     <ol>
-      {#each t.welcome.iosSteps as step, index (index)}<li>{step}</li>{/each}
+      {#each t.welcome.iosSteps as step, index (index)}<li>
+          {edition.torOnly ? withoutNotifications(step) : step}
+        </li>{/each}
     </ol>
 
     <h3>{t.welcome.other}</h3>
     <p>{t.welcome.otherSteps}</p>
   </section>
 
-  <section class="card" aria-labelledby="push-intro-title">
-    <h2 id="push-intro-title">{t.welcome.pushTitle}</h2>
-    <p>{t.welcome.push1}</p>
-    <p>{t.welcome.push2}</p>
-    <p>{t.welcome.push3}</p>
-  </section>
+  <!-- v1.4.2: a Tor-only instance has no notifications (SPEC 16.6). -->
+  {#if !edition.torOnly}
+    <section class="card" aria-labelledby="push-intro-title">
+      <h2 id="push-intro-title">{t.welcome.pushTitle}</h2>
+      <p>{t.welcome.push1}</p>
+      <p>{t.welcome.push2}</p>
+      <p>{t.welcome.push3}</p>
+    </section>
 
-  <PushSettings />
+    <PushSettings />
+  {/if}
 
   <p class="plate"><Link href="/hilfe#installieren">{t.welcome.helpLink}</Link></p>
   <p><Link href="/app" class="button">{t.welcome.continue}</Link></p>

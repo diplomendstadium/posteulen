@@ -9,6 +9,8 @@
    */
   import { DONATION } from '@posteulen/shared/constants.ts';
   import { ABOUT_DE, ABOUT_EN } from '@posteulen/shared/texts/about.ts';
+  import { withoutNotifications as withoutAboutNotifications } from '@posteulen/shared/texts/help-tor-only.ts';
+  import { edition } from '../lib/edition.svelte.ts';
   import { parseMarkdown } from '@posteulen/shared/markdown.ts';
   import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
   import { i18n, t, fill, speciesName } from '../lib/i18n.svelte.ts';
@@ -32,7 +34,12 @@
   });
   const host = $derived(installHost(pageHost, webHost) ?? '…');
   const blocks = $derived(
-    parseMarkdown((i18n.lang === 'en' ? ABOUT_EN : ABOUT_DE).replaceAll('{host}', host)),
+    parseMarkdown(
+      // v1.4.2: without the remark on notifications on a Tor-only instance (SPEC 16.6).
+      (edition.torOnly ? withoutAboutNotifications : (text: string) => text)(
+        (i18n.lang === 'en' ? ABOUT_EN : ABOUT_DE).replaceAll('{host}', host),
+      ),
+    ),
   );
 
   interface Picture {
@@ -73,7 +80,7 @@
       case 'post':
         return scenePicture(placeScene('post', light), placeAlt('post', light));
       case 'feeding':
-        return owlPicture('elfenkauz', 'feeding', t.owls.feeding);
+        return owlPicture('elfenkauz', 'feeding', t.owls.feedingAlt);
       default:
         return null;
     }

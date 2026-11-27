@@ -44,7 +44,9 @@
     {@const able = cargoCovers(choice.cargo, need)}
     <label class="choice" class:chosen={selected === choice.id} class:unable={!able}>
       <input type="radio" {name} value={choice.id} bind:group={selected} disabled={!able} />
-      <span class="picture"><OwlPicture speciesId={choice.species} alt="" /></span>
+      <span class="picture"
+        ><OwlPicture speciesId={choice.species} second={choice.second === true} alt="" /></span
+      >
       <span class="text">
         <strong>
           {fill(t.letters.owlOption, {

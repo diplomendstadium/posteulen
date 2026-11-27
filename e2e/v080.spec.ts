@@ -129,9 +129,7 @@ test.describe('Bots-Kontrollzentrum (v0.8)', () => {
     });
     await player.getByRole('link', { name: /Kapitän Ahoi/ }).click();
     await expect(player.getByText('Ahoi! Ich bin neu in eurer Gegend.')).toBeVisible();
-    await expect(
-      player.getByRole('img', { name: /Bild 1 zum Brief von Kapitän Ahoi/ }),
-    ).toBeVisible();
+    await expect(player.getByRole('img', { name: /Bild 1 von Kapitän Ahoi/ })).toBeVisible();
     await expect(player.getByTestId('bot-notice')).toBeVisible();
     await page.getByRole('tab', { name: 'Vergangene Events' }).click();
     await page.reload();

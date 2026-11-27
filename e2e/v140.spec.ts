@@ -65,7 +65,7 @@ test.describe('Version 1.4.0', () => {
     await page.goto('/app/eulen');
     const bored = page.getByTestId('owl-card').filter({ hasText: 'Helfer 1' });
     await expect(bored.getByRole('img')).toHaveAttribute('src', /bored/);
-    await expect(bored.getByRole('img')).toHaveAttribute('alt', /gelangweilt am Fenster/);
+    await expect(bored.getByRole('img')).toHaveAttribute('alt', /langweilt sich$/);
     // Watered today: the button is left out (v1.4), the other one still has it.
     await expect(bored.getByRole('button', { name: 'Wasser geben' })).toHaveCount(0);
     await expect(bored.getByRole('button', { name: 'Streicheln' })).toBeVisible();
@@ -78,6 +78,8 @@ test.describe('Version 1.4.0', () => {
     for (const [url, door] of [
       ['/app/postamt', 'Eulenpostamt betreten'],
       ['/app/menagerie', 'Menagerie betreten'],
+      // v1.4.2: the rescue centre likewise.
+      ['/app/rettungsstation', 'Eintreten'],
     ] as const) {
       await page.goto(url);
       const y = async (locator: ReturnType<typeof page.getByTestId>) =>

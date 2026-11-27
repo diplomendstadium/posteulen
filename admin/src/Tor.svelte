@@ -10,6 +10,8 @@
   import { message } from './lib/messages.ts';
 
   interface Overview {
+    /** v1.4.2: the instance runs in the Tor network only – no switches (SPEC 16.6). */
+    torOnly?: boolean;
     onion: string | null;
     enabled: boolean;
     status: 'ok' | 'error' | 'off' | null;
@@ -95,7 +97,7 @@
 
 <section class="card" aria-labelledby="tor-title" data-testid="admin-tor">
   <h2 id="tor-title">{t.admin.torTitle}</h2>
-  <p>{t.admin.torIntro}</p>
+  <p>{info?.torOnly ? t.admin.torOnlyIntro : t.admin.torIntro}</p>
   {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
   {#if info}
     <dl>
@@ -110,16 +112,18 @@
         {#if info.status === 'error' && info.message}<br /><span>{info.message}</span>{/if}
       </dd>
     </dl>
-    <label class="switch">
-      <input
-        type="checkbox"
-        checked={info.enabled}
-        disabled={busy}
-        onchange={(event) => void toggle(event.currentTarget)}
-      />
-      {t.admin.torSwitch}
-    </label>
-    <p class="hint">{t.admin.torSwitchHint}</p>
+    {#if !info.torOnly}
+      <label class="switch">
+        <input
+          type="checkbox"
+          checked={info.enabled}
+          disabled={busy}
+          onchange={(event) => void toggle(event.currentTarget)}
+        />
+        {t.admin.torSwitch}
+      </label>
+      <p class="hint">{t.admin.torSwitchHint}</p>
+    {/if}
     {#if saved}<p role="status">
         ✔ {info.enabled ? t.admin.torSavedOn : t.admin.torSavedOff}
       </p>{/if}
@@ -132,24 +136,24 @@
         <dt>{t.admin.torBotsAddress}</dt>
         <dd class="address">{info.botsOnion ?? t.admin.torNoAddress}</dd>
       </dl>
-      <label class="switch">
-        <input
-          type="checkbox"
-          checked={info.adminEnabled}
-          disabled={busy || !info.adminOnion}
-          onchange={(event) => void togglePanel('admin', event.currentTarget)}
-        />
-        {t.admin.torAdminSwitch}
-      </label>
-      <label class="switch">
-        <input
-          type="checkbox"
-          checked={info.botsEnabled}
-          disabled={busy || !info.botsOnion}
-          onchange={(event) => void togglePanel('bots', event.currentTarget)}
-        />
-        {t.admin.torBotsSwitch}
-      </label>
+      {#if !info.torOnly}<label class="switch">
+          <input
+            type="checkbox"
+            checked={info.adminEnabled}
+            disabled={busy || !info.adminOnion}
+            onchange={(event) => void togglePanel('admin', event.currentTarget)}
+          />
+          {t.admin.torAdminSwitch}
+        </label>
+        <label class="switch">
+          <input
+            type="checkbox"
+            checked={info.botsEnabled}
+            disabled={busy || !info.botsOnion}
+            onchange={(event) => void togglePanel('bots', event.currentTarget)}
+          />
+          {t.admin.torBotsSwitch}
+        </label>{/if}
       {#if panelSaved}<p role="status">✔ {t.admin.torPanelSaved}</p>{/if}
     {/if}
   {/if}

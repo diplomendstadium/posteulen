@@ -4,7 +4,7 @@
    * backdrop), closes on tap, click or Escape and by itself after a few seconds, has an
    * alternative text and is not animated with prefers-reduced-motion.
    */
-  import { t, fill, speciesName } from '../lib/i18n.svelte.ts';
+  import { t, speciesName } from '../lib/i18n.svelte.ts';
   import { owlImage, sceneImage } from '../lib/owl-image.ts';
   import { closeOwlImage, overlay } from '../lib/overlay.svelte.ts';
 
@@ -52,9 +52,7 @@
           sizes="(max-width: 600px) 80vw, 420px"
           width="480"
           height="480"
-          alt={current.scene
-            ? current.scene.alt
-            : fill(t.owls.imageAlt, { species: shownSpecies, what: current.caption })}
+          alt={current.scene ? current.scene.alt : shownSpecies}
         />
       </button>
       <figcaption class="name"><span role="status">{current.caption}</span></figcaption>

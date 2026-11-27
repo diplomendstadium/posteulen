@@ -47,10 +47,10 @@ test.describe('Version 0.10', () => {
     await page.goto('/app/postamt');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Postamt');
     const picture = page.getByTestId('place-image');
-    await expect(picture.locator('img')).toHaveAttribute('alt', /Eulenpostamt bei (Tag|Nacht)/);
+    await expect(picture.locator('img')).toHaveAttribute('alt', /Eulenpostamt( bei (Tag|Nacht))?$/);
     // v1.2: the loan owls are inside.
     await page.getByRole('link', { name: 'Eulenpostamt betreten' }).click();
-    await expect(picture.locator('img')).toHaveAttribute('alt', /^Im Eulenpostamt bei (Tag|Nacht)/);
+    await expect(picture.locator('img')).toHaveAttribute('alt', /^(Nachts im|Im) Eulenpostamt$/);
     const offer = page.getByTestId('loan-offer').first();
     await expect(offer.getByTestId('loan-stats')).toContainText(/Energie .* · Trägt kurzes/);
     await expect(offer).toContainText(/Leihgebühr: 0,[12] Gold/);
@@ -67,13 +67,13 @@ test.describe('Version 0.10', () => {
     await page.goto('/app/menagerie');
     await expect(page.getByTestId('place-image').locator('img')).toHaveAttribute(
       'alt',
-      /Menagerie .* bei (Tag|Nacht)/,
+      /Menagerie( bei (Tag|Nacht))?$/,
     );
     await page.getByRole('link', { name: 'Menagerie betreten' }).click();
     await expect(page).toHaveURL(/\/app\/menagerie\/innen$/);
     await expect(page.getByTestId('place-image').locator('img')).toHaveAttribute(
       'alt',
-      /^In der .*Menagerie bei (Tag|Nacht):/,
+      /^(In der|Nachts in der|Weihnachten in der|Weihnachtsnacht in der) Menagerie$/,
     );
     await expect(page.getByTestId('loan-offer')).toHaveCount(0);
     const elf = page.locator('ul.for-sale > li').filter({ hasText: 'Elfenkauz' });

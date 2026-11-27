@@ -70,9 +70,11 @@ export function homeLight(at: number = Date.now()): HomeLight {
  * The standard picture of an owl for the light at home: by night the awake owl in the dark, in
  * the Christmas season the Christmas pictures by day, by night and napping. Other kinds (flight,
  * sleep on the way, chick, brooding …) stay as they are. v1.2: a grumpy owl looks grumpy in the
- * dark at night.
+ * dark at night. v1.4.2: an owl with the second look shows its second pictures by day and night
+ * instead – in the Christmas season, too (there are no Christmas versions of them).
  */
-export function standardKind(kind: OwlImageKind, light: HomeLight): OwlImageKind {
+export function standardKind(kind: OwlImageKind, light: HomeLight, second = false): OwlImageKind {
+  if (kind === 'normal' && second) return light.day ? 'second' : 'secondNight';
   if (kind === 'normal') {
     if (light.christmas) return light.day ? 'xmasDay' : 'xmasNight';
     return light.day ? 'normal' : 'night';

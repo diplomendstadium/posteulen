@@ -20,9 +20,10 @@ export interface InstanceInfo {
    * the web and (while Tor runs and their switch is on) in the Tor network; null: not offered.
    */
   readonly links?: {
-    readonly web: string;
-    readonly admin: string;
-    readonly bots: string;
+    /** v1.4.2: null on a Tor-only instance (SPEC 16.6). */
+    readonly web: string | null;
+    readonly admin: string | null;
+    readonly bots: string | null;
     readonly webOnion: string | null;
     readonly adminOnion: string | null;
     readonly botsOnion: string | null;

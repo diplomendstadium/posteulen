@@ -11,6 +11,7 @@
     size = 160,
     perch = false,
     wide = false,
+    second = false,
   }: {
     speciesId: string;
     kind?: OwlImageKind;
@@ -20,6 +21,8 @@
     perch?: boolean;
     /** v1.1: across the whole width of its card (owl overview, borrowed owls). */
     wide?: boolean;
+    /** v1.4.2: the second look of its species (SPEC 9.2.6). */
+    second?: boolean;
   } = $props();
 
   /**
@@ -29,7 +32,7 @@
   const light = homeLight();
 
   const image = $derived.by(() => {
-    if (!perch) return owlImage(speciesId, standardKind(kind, light));
+    if (!perch) return owlImage(speciesId, standardKind(kind, light, second));
     const scene = sceneImage('perch');
     return {
       files: {

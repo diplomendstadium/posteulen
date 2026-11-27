@@ -4,7 +4,7 @@
  * the start page (AboutText).
  */
 import type { LoanTeam, SceneId } from '@posteulen/shared/species.ts';
-import { t, fill } from './i18n.svelte.ts';
+import { t } from './i18n.svelte.ts';
 import { lettersScene, rescueScene, type HomeLight } from './season.ts';
 
 export type Place =
@@ -21,11 +21,9 @@ export function placeScene(place: Place, light: HomeLight, team: LoanTeam = 'A')
 export function placeAlt(place: Place, light: HomeLight): string {
   const { day, christmas } = light;
   if (place === 'letters') {
-    const view =
-      t.letters[
-        `desk_${light.season}_${day ? 'day' : 'night'}` as `desk_${typeof light.season}_${'day' | 'night'}`
-      ];
-    return fill(t.letters.picture, { view });
+    return t.letters[
+      `desk_${light.season}_${day ? 'day' : 'night'}` as `desk_${typeof light.season}_${'day' | 'night'}`
+    ];
   }
   if (place === 'rescue') return day ? t.rescue.pictureDay : t.rescue.pictureNight;
   if (place === 'rescueInside') return day ? t.rescue.insideDay : t.rescue.insideNight;

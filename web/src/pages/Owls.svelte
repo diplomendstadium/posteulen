@@ -113,6 +113,7 @@
       <OwlPicture
         speciesId={unnamed.species}
         kind={unnamed.isChick ? 'chick' : 'normal'}
+        second={unnamed.second}
         alt={speciesName(unnamed.species)}
       />
       <form

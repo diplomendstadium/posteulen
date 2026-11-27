@@ -272,20 +272,18 @@
     return napping(owl) ? 'napHome' : 'normal';
   }
 
+  /** v1.4.2: short descriptions (at most about four words, SPEC 14). */
   function pictureAlt(owl: Owl): string {
     const name = owl.name ?? '';
-    const species = speciesName(owl.species);
-    if (boredHere(owl)) return `${fill(t.owls.boredAlt, { name })}, ${species}`;
+    if (boredHere(owl)) return fill(t.owls.boredAlt, { name });
     if (onIsland(owl)) return fill(t.owls.perchVacationAlt, { name });
     if (owl.state === 'vacation')
-      return `${fill(owl.vacation?.daylight === false ? t.owls.flyingNightAlt : t.owls.flyingDayAlt, { name })}, ${species}`;
+      return fill(owl.vacation?.daylight === false ? t.owls.flyingNightAlt : t.owls.flyingDayAlt, {
+        name,
+      });
     if (owl.state === 'menagerie') return fill(t.owls.perchAlt, { name });
     if (owl.state === 'sick') return fill(t.owls.perchRescueAlt, { name });
-    if (restingAway(owl))
-      return fill(t.owls.perchRestingAlt, {
-        name,
-        host: owl.absence?.resting?.name ?? t.letters.unknown,
-      });
+    if (restingAway(owl)) return fill(t.owls.perchRestingAlt, { name });
     if (owl.state === 'flying' && owl.absence) {
       const text = owl.absence.sleeping
         ? owl.absence.daylight
@@ -294,14 +292,13 @@
         : owl.absence.daylight
           ? t.owls.flyingDayAlt
           : t.owls.flyingNightAlt;
-      return `${fill(text, { name })}, ${species}`;
+      return fill(text, { name });
     }
     const kind = pictureKind(owl);
-    if (kind === 'napHome') return `${fill(t.owls.napAlt, { name })}, ${species}`;
-    if (kind === 'brooding') return `${fill(t.owls.broodingAlt, { name })}, ${species}`;
-    if (kind === 'grumpy' && owl.state === 'home')
-      return `${fill(t.owls.grumpyAlt, { name })}, ${species}`;
-    return `${name}, ${species}`;
+    if (kind === 'napHome') return fill(t.owls.napAlt, { name });
+    if (kind === 'brooding') return fill(t.owls.broodingAlt, { name });
+    if (kind === 'grumpy' && owl.state === 'home') return fill(t.owls.grumpyAlt, { name });
+    return `${name}, ${speciesName(owl.species)}`;
   }
 
   function stateText(owl: Owl): string {
@@ -403,6 +400,7 @@
           wide
           speciesId={owl.species}
           kind={pictureKind(owl)}
+          second={owl.second}
           perch={perch(owl)}
           alt={pictureAlt(owl)}
         />

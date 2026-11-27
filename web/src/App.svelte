@@ -4,6 +4,7 @@
   import LanguageFlag from './components/LanguageFlag.svelte';
   import HelpLink from './components/HelpLink.svelte';
   import { onMount, untrack } from 'svelte';
+  import { edition } from './lib/edition.svelte.ts';
   import { navigate, route } from './lib/router.svelte.ts';
   import { account, restore } from './lib/auth.svelte.ts';
   import Start from './pages/Start.svelte';
@@ -28,8 +29,9 @@
     if (language && language !== untrack(() => i18n.lang)) setLanguage(language);
   });
 
-  const help = $derived(helpOf(i18n.lang));
-  const legal = $derived(legalOf(i18n.lang));
+  // v1.4.2: without notifications on a Tor-only instance (SPEC 16.6).
+  const help = $derived(helpOf(i18n.lang, edition.torOnly));
+  const legal = $derived(legalOf(i18n.lang, edition.torOnly));
   /** The signed-in area shows the flag in its own top bar. */
   const inShell = $derived(route.path === '/app' || route.path.startsWith('/app/'));
 

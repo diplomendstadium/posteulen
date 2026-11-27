@@ -64,6 +64,8 @@ export const live = $state<{
   botsDisabled: boolean;
   /** v0.8.2: timed banners of the admin running right now. */
   banners: { id: string; text: string; endsAt: number }[];
+  /** v1.4.2: hardly any space left in the owl tower – no letters until the admin makes room. */
+  storageFull: boolean;
   requests: { id: string; label: string; expiresAt: number }[];
   news: NewsItem[];
   pushState: string;
@@ -80,6 +82,7 @@ export const live = $state<{
   allBots: 0,
   botsDisabled: false,
   banners: [],
+  storageFull: false,
   requests: [],
   news: [],
   pushState: 'none',
@@ -98,6 +101,7 @@ onSignOut(() => {
   live.allBots = 0;
   live.botsDisabled = false;
   live.banners = [];
+  live.storageFull = false;
   live.requests = [];
   live.news = [];
   live.pushState = 'none';
@@ -318,11 +322,13 @@ async function refresh(topics: readonly Topic[]): Promise<void> {
   if (topics.includes('chats')) tasks.push(showArrivals(context));
   if (topics.includes('banners')) {
     tasks.push(
-      get<{ banners: { id: string; text: string; endsAt: number }[] }>('/api/banners').then(
-        (result) => {
-          if (current()) live.banners = result.banners;
-        },
-      ),
+      get<{ banners: { id: string; text: string; endsAt: number }[]; storageFull?: boolean }>(
+        '/api/banners',
+      ).then((result) => {
+        if (!current()) return;
+        live.banners = result.banners;
+        live.storageFull = result.storageFull === true;
+      }),
     );
   }
   if (topics.includes('owls')) live.owlsVersion++;

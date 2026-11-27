@@ -47,6 +47,8 @@ export interface Owl {
   readonly rescue: { readonly progress: number } | null;
   /** v1.4: bored – its picture until it flies to people with a letter (SPEC 9.2.9). */
   readonly bored: boolean;
+  /** v1.4.2: the second look – the second pictures of its species (SPEC 9.2.6). */
+  readonly second: boolean;
   /** v1.4: on holiday at the owl care station on Inchlonaig (SPEC 9.12). */
   readonly vacation: {
     readonly phase: 'out' | 'island' | 'back';
@@ -106,6 +108,8 @@ export interface GuestOwl {
   readonly moreStops?: boolean;
   /** v0.8: the owl of a control-centre bot – no care, only a reply. */
   readonly bot?: boolean;
+  /** v1.4.2: the second look of the visiting owl. */
+  readonly second?: boolean;
 }
 
 export interface OwlChoice {
@@ -128,6 +132,8 @@ export interface OwlChoice {
   readonly cargo: Cargo;
   /** v0.10: price of a loan offer in tenths. */
   readonly price?: number;
+  /** v1.4.2: the second look of an own or visiting owl. */
+  readonly second?: boolean;
 }
 
 export interface Clutch {

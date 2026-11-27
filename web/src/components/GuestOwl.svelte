@@ -88,7 +88,11 @@
 
 <li class="card owl guest" data-testid="guest-owl">
   <div class="picture">
-    <OwlPicture speciesId={guest.species} alt={`${guest.name}, ${speciesName(guest.species)}`} />
+    <OwlPicture
+      speciesId={guest.species}
+      second={guest.second === true}
+      alt={`${guest.name}, ${speciesName(guest.species)}`}
+    />
   </div>
   <div class="facts">
     <p class="banner" role="note">

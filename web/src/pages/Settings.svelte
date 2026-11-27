@@ -5,6 +5,7 @@
   import ErrorText from '../components/ErrorText.svelte';
   import PasswordInput from '../components/PasswordInput.svelte';
   import PushSettings from '../components/PushSettings.svelte';
+  import { edition } from '../lib/edition.svelte.ts';
   import AccountSettings from '../components/AccountSettings.svelte';
   import LetterSettings from '../components/LetterSettings.svelte';
   import LanguageSettings from '../components/LanguageSettings.svelte';
@@ -73,8 +74,9 @@
   >
 </section>
 
-<!-- v1.2.4: notifications right below signing out, above everything else. -->
-<PushSettings />
+<!-- v1.2.4: notifications right below signing out, above everything else (v1.4.2: none on a
+     Tor-only instance, SPEC 16.6). -->
+{#if !edition.torOnly}<PushSettings />{/if}
 <!-- v1.4: holiday mode right below the notifications (SPEC 8.10). -->
 <VacationSettings />
 

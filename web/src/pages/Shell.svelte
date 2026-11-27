@@ -12,6 +12,7 @@
   import { sceneImage } from '../lib/owl-image.ts';
   import { groupScene, homeLight } from '../lib/season.ts';
   import { account, setPushHintHidden } from '../lib/auth.svelte.ts';
+  import { edition } from '../lib/edition.svelte.ts';
   import { privileged } from '../lib/purse.ts';
   import { live, startLive, stopLive } from '../lib/live.svelte.ts';
   import { api } from '../lib/api.ts';
@@ -145,7 +146,7 @@
       <LogoutButton />
     </div>
   </header>
-  {#if live.pushState !== 'confirmed' && !account.pushHintHidden}
+  {#if live.pushState !== 'confirmed' && !account.pushHintHidden && !edition.torOnly}
     <p class="push-hint">
       <Link href="/app/einstellungen">{t.push.headerHint}</Link>
       <button class="hide-hint" type="button" onclick={() => setPushHintHidden(true)}

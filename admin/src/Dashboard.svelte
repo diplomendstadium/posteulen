@@ -13,6 +13,7 @@
   import Banners from './Banners.svelte';
   import Tor from './Tor.svelte';
   import ServerLoad from './ServerLoad.svelte';
+  import Storage from './Storage.svelte';
 
   type Mode = 'closed' | 'invite' | 'open';
   interface Invite {
@@ -35,6 +36,8 @@
   }
 
   let mode = $state<Mode>('closed');
+  /** v1.4.2: open registration takes invite codes only while the disk is nearly full. */
+  let storageFull = $state(false);
   let modeSaved = $state(false);
   let invites = $state<Invite[]>([]);
   let fresh = $state<{ code: string; expiresAt: number } | null>(null);
@@ -49,7 +52,12 @@
 
   async function load(): Promise<void> {
     try {
-      mode = (await api<{ mode: Mode }>('GET', '/api/settings/registration')).mode;
+      const registration = await api<{ mode: Mode; storageFull?: boolean }>(
+        'GET',
+        '/api/settings/registration',
+      );
+      mode = registration.mode;
+      storageFull = registration.storageFull === true;
       invites = (await api<{ invites: Invite[] }>('GET', '/api/invites')).invites;
       entries = (await api<{ entries: Entry[] }>('GET', '/api/errors')).entries;
     } catch (caught) {
@@ -100,8 +108,9 @@
 
 {#if error}<p class="error" role="alert">⚠ {error}</p>{/if}
 
-<!-- v1.2.1: the server dashboard at the very top. -->
+<!-- v1.2.1: the server dashboard at the very top; v1.4.2 the free space for the database. -->
 <ServerLoad />
+<Storage />
 
 <Operations />
 
@@ -119,6 +128,9 @@
     <option value="open">{t.admin.modeOpen}</option>
   </select>
   {#if modeSaved}<p role="status">✔ {t.admin.modeSaved}</p>{/if}
+  {#if storageFull && mode === 'open'}<p class="hint" data-testid="registration-storage">
+      {t.admin.registrationStorage}
+    </p>{/if}
 </section>
 
 <section class="card" aria-labelledby="inv-title">

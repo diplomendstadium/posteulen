@@ -63,6 +63,8 @@ body {
 /*
  * The faded world map behind every page (v0.3). A fixed layer instead of
  * background-attachment: fixed, which iOS ignores. Grain on top, map below, colour unchanged.
+ * v1.4.2: a Tor-only instance shows loosely scattered onions in the same style instead (class
+ * `tor-only` on <html>, web/src/lib/edition.svelte.ts; SPEC 16.6).
  */
 body::before {
   content: '';
@@ -73,6 +75,13 @@ body::before {
   background:
     var(--paper-grain),
     url('../../assets/world-map.webp') center / cover no-repeat,
+    var(--parchment);
+}
+
+:root.tor-only body::before {
+  background:
+    var(--paper-grain),
+    url('../../assets/onion-pattern.webp') center / cover no-repeat,
     var(--parchment);
 }
 

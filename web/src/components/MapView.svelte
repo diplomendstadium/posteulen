@@ -13,8 +13,11 @@
    * olive groups of trees and the names of seas, rivers, lakes and landscapes in an italic serif,
    * more of them the closer one zooms in (shared/src/map/atlas.ts). Markers, overlays, controls
    * and the projection are unchanged.
+   * v1.4.2: smooth on old phones – while dragging, pinching or turning the wheel, the drawn map
+   * is only moved and scaled as a whole (CSS transform, at most once per frame); names, symbols
+   * and the view itself are worked out once when the gesture ends.
    */
-  import { onMount, type Snippet } from 'svelte';
+  import { onMount, tick, type Snippet } from 'svelte';
   import { i18n, t } from '../lib/i18n.svelte.ts';
   import { MAP } from '@posteulen/shared/constants.ts';
   import type { Language } from '@posteulen/shared/i18n.ts';
@@ -420,7 +423,7 @@
       widthFor(maxX - minX, pixelWidth),
       widthFor(maxY - minY, pixelHeight),
     );
-    clamp({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - w / 2, w, h: w });
+    view = clamped({ x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - w / 2, w, h: w });
     initial = view;
   });
 
@@ -434,15 +437,17 @@
     return { x: p.x, y: -p.y };
   };
 
+  type View = { x: number; y: number; w: number; h: number };
+
   /** Keeps the view inside the frame; where the view is wider than the frame, it is centred. */
-  function clamp(next: { x: number; y: number; w: number; h: number }) {
+  function clamped(next: View): View {
     const w = Math.min(largest.w, Math.max(side / 40, next.w));
     const h = w;
     const inside = (start: number, length: number, from: number, size: number): number =>
       size >= length
         ? from + (length - size) / 2
         : Math.min(from + length - size, Math.max(from, start));
-    view = {
+    return {
       x: inside(next.x, frame[2], frame[0], w),
       y: inside(next.y, frame[3], frame[1], h),
       w,
@@ -450,17 +455,88 @@
     };
   }
 
-  function zoom(factor: number, cx = view.x + view.w / 2, cy = view.y + view.h / 2) {
-    const w = view.w * factor;
-    const h = view.h * factor;
-    clamp({ x: cx - ((cx - view.x) * w) / view.w, y: cy - ((cy - view.y) * h) / view.h, w, h });
+  /**
+   * v1.4.2: the view during a gesture. The map keeps its drawn state (`view`) and is only moved
+   * and scaled as a picture until the gesture ends; then the new view is drawn once.
+   */
+  let pending: View | null = null;
+  /** Position and size of the map on the screen when the gesture began. */
+  let gestureRect: DOMRect | null = null;
+  let frameRequest = 0;
+  let wheelTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const current = (): View => pending ?? view;
+
+  function setView(next: View): void {
+    const value = clamped(next);
+    if (pending) {
+      pending = value;
+      frameRequest ||= requestAnimationFrame(paintGesture);
+    } else view = value;
   }
 
+  function startGesture(): void {
+    if (pending || !svg) return;
+    gestureRect = svg.getBoundingClientRect();
+    pending = { ...view };
+    svg.classList.add('moving');
+  }
+
+  /** Screen pixels per SVG unit and the centre of the map on the screen ("meet"). */
+  function geometry(rect: DOMRect, shown: View) {
+    return {
+      k: Math.min(rect.width / shown.w, rect.height / shown.h),
+      cx: rect.left + rect.width / 2,
+      cy: rect.top + rect.height / 2,
+    };
+  }
+
+  /** Moves and scales the drawn map so that it shows the pending view (once per frame). */
+  function paintGesture(): void {
+    frameRequest = 0;
+    if (!svg || !pending || !gestureRect) return;
+    const { k } = geometry(gestureRect, pending);
+    const ratio = view.w / pending.w;
+    const tx = (view.x + view.w / 2 - (pending.x + pending.w / 2)) * k;
+    const ty = (view.y + view.h / 2 - (pending.y + pending.h / 2)) * k;
+    svg.style.transform = `translate(${tx}px, ${ty}px) scale(${ratio})`;
+  }
+
+  /** Draws the view of the gesture once, then removes the transform in the same frame. */
+  function endGesture(): void {
+    if (!pending) return;
+    clearTimeout(wheelTimer);
+    if (frameRequest) cancelAnimationFrame(frameRequest);
+    frameRequest = 0;
+    view = pending;
+    pending = null;
+    gestureRect = null;
+    void tick().then(() => {
+      if (pending || !svg) return;
+      svg.style.transform = '';
+      svg.classList.remove('moving');
+    });
+  }
+
+  function zoom(factor: number, cx?: number, cy?: number) {
+    const shown = current();
+    const x = cx ?? shown.x + shown.w / 2;
+    const y = cy ?? shown.y + shown.h / 2;
+    const w = shown.w * factor;
+    const h = shown.h * factor;
+    setView({ x: x - ((x - shown.x) * w) / shown.w, y: y - ((y - shown.y) * h) / shown.h, w, h });
+  }
+
+  /** The SVG position under a point on the screen – during a gesture in its pending view. */
   function svgPoint(clientX: number, clientY: number) {
-    const matrix = svg?.getScreenCTM();
-    if (!svg || !matrix) return null;
-    const point = new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
-    return { x: point.x, y: point.y };
+    if (!svg) return null;
+    const shown = current();
+    const { k, cx, cy } = geometry(gestureRect ?? svg.getBoundingClientRect(), shown);
+    if (!(k > 0)) return null;
+    return {
+      x: shown.x + shown.w / 2 + (clientX - cx) / k,
+      y: shown.y + shown.h / 2 + (clientY - cy) / k,
+    };
   }
 
   // Plain Map on purpose: pointer positions are bookkeeping, not rendered state.
@@ -486,11 +562,11 @@
   function pointermove(event: PointerEvent) {
     const previous = pointers.get(event.pointerId);
     if (!previous || !svg) return;
-    const rect = svg.getBoundingClientRect();
     if (pointers.size === 2) {
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
       const pair = twoPointers();
       if (!pair) return;
+      startGesture();
       const [a, b] = pair;
       const distance = Math.hypot(a.x - b.x, a.y - b.y);
       if (pinchStart > 0 && distance > 0) {
@@ -506,32 +582,42 @@
     dragDistance += Math.hypot(dx, dy);
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (dragDistance > 6) {
-      clamp({
-        ...view,
-        x: view.x - (dx * view.w) / rect.width,
-        y: view.y - (dy * view.h) / rect.height,
-      });
+      startGesture();
+      const shown = current();
+      const { k } = geometry(gestureRect ?? svg.getBoundingClientRect(), shown);
+      if (k > 0) setView({ ...shown, x: shown.x - dx / k, y: shown.y - dy / k });
     }
   }
 
   function pointerup(event: PointerEvent) {
     const wasTap = pointers.size === 1 && dragDistance <= 6;
     pointers.delete(event.pointerId);
+    if (pointers.size === 0) endGesture();
     if (wasTap && onpick) {
       const point = svgPoint(event.clientX, event.clientY);
       if (point) onpick(unproject(point.x, -point.y));
     }
   }
 
+  function pointercancel(event: PointerEvent) {
+    pointers.delete(event.pointerId);
+    if (pointers.size === 0) endGesture();
+  }
+
   function wheel(event: WheelEvent) {
     // v0.8.5: zoomed out as far as it goes, the wheel scrolls the page instead.
-    if (event.deltaY > 0 && view.w >= largest.w) return;
+    if (event.deltaY > 0 && current().w >= largest.w) return;
     event.preventDefault();
+    startGesture();
     const point = svgPoint(event.clientX, event.clientY);
     zoom(event.deltaY > 0 ? 1.25 : 0.8, point?.x, point?.y);
+    // A burst of wheel steps is one gesture: drawn once it has been quiet for a moment.
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(endGesture, 180);
   }
 
   function keydown(event: KeyboardEvent) {
+    endGesture();
     const step = view.w / 10;
     const moves: Record<string, [number, number]> = {
       ArrowLeft: [-step, 0],
@@ -542,7 +628,7 @@
     const move = moves[event.key];
     if (move) {
       event.preventDefault();
-      clamp({ ...view, x: view.x + move[0], y: view.y + move[1] });
+      setView({ ...view, x: view.x + move[0], y: view.y + move[1] });
     } else if (event.key === '+' || event.key === '=') zoom(0.8);
     else if (event.key === '-') zoom(1.25);
     else if ((event.key === 'Enter' || event.key === ' ') && onpick) {
@@ -553,151 +639,149 @@
 </script>
 
 <div class="map" class:wide bind:this={wrapper}>
-  <!-- The map is an interactive widget (role "application") with full keyboard support:
+  <!-- v1.4.2: the frame clips the map; during a gesture the map inside it is moved as a whole. -->
+  <div class="frame" class:world={region === 'world'}>
+    <!-- The map is an interactive widget (role "application") with full keyboard support:
        arrows pan, +/− zoom, Enter picks the centre. -->
-  <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
-  <svg
-    bind:this={svg}
-    bind:clientWidth={pixelWidth}
-    bind:clientHeight={pixelHeight}
-    viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
-    role="application"
-    aria-label={ariaLabel}
-    tabindex="0"
-    onpointerdown={pointerdown}
-    onpointermove={pointermove}
-    onpointerup={pointerup}
-    onpointercancel={(event) => pointers.delete(event.pointerId)}
-    onwheel={wheel}
-    onkeydown={keydown}
-  >
-    <defs>
-      <!-- v1.2: paper grain in screen size and a darker edge, as on old paper. -->
-      <pattern
-        id={`${uid}-grain`}
-        patternUnits="userSpaceOnUse"
-        width={240 * scale}
-        height={240 * scale}
-      >
-        <image href={GRAIN} width={240 * scale} height={240 * scale} />
-      </pattern>
-      {#if data && region === 'world'}
-        <clipPath id={`${uid}-world`}><path d={data.outline} /></clipPath>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+    <svg
+      bind:this={svg}
+      bind:clientWidth={pixelWidth}
+      bind:clientHeight={pixelHeight}
+      viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
+      role="application"
+      aria-label={ariaLabel}
+      tabindex="0"
+      onpointerdown={pointerdown}
+      onpointermove={pointermove}
+      onpointerup={pointerup}
+      onpointercancel={pointercancel}
+      onwheel={wheel}
+      onkeydown={keydown}
+    >
+      <defs>
+        <!-- v1.2: paper grain in screen size and a darker edge, as on old paper. -->
+        <pattern
+          id={`${uid}-grain`}
+          patternUnits="userSpaceOnUse"
+          width={240 * scale}
+          height={240 * scale}
+        >
+          <image href={GRAIN} width={240 * scale} height={240 * scale} />
+        </pattern>
+        {#if data && region === 'world'}
+          <clipPath id={`${uid}-world`}><path d={data.outline} /></clipPath>
+        {/if}
+      </defs>
+      {#if region === 'world'}
+        <!-- v0.7: the sea within the edge of the world; parchment around it. -->
+        <!-- Beyond the view, too: a gesture may show the surroundings before the map is redrawn. -->
+        <rect
+          class="beyond"
+          x={view.x - view.w}
+          y={view.y - view.h}
+          width={view.w * 3}
+          height={view.h * 3}
+        />
+        {#if data}<path class="water" d={data.outline} />{/if}
+        {#if data}<path class="world-edge" d={data.outline} stroke-width={1.6 * scale} />{/if}
+      {:else}
+        <rect class="water" x={full[0]} y={full[1]} width={full[2]} height={full[3]} />
       {/if}
-      <radialGradient id={`${uid}-vignette`} cx="50%" cy="50%" r="72%">
-        <stop offset="62%" stop-color="#5a3a14" stop-opacity="0" />
-        <stop offset="100%" stop-color="#5a3a14" stop-opacity="0.2" />
-      </radialGradient>
-    </defs>
-    {#if region === 'world'}
-      <!-- v0.7: the sea within the edge of the world; parchment around it. -->
-      <rect class="beyond" x={view.x} y={view.y} width={view.w} height={view.h} />
-      {#if data}<path class="water" d={data.outline} />{/if}
-      {#if data}<path class="world-edge" d={data.outline} stroke-width={1.6 * scale} />{/if}
-    {:else}
-      <rect class="water" x={full[0]} y={full[1]} width={full[2]} height={full[3]} />
-    {/if}
-    {#if !data}
-      <text class="label" x={view.x + view.w / 2} y={view.y + view.h / 2} font-size={view.w / 30}
-        >{words.loading}</text
-      >
-    {/if}
-    {#if land}
-      <!-- v1.2: ripples along the coast and the coast line, drawn under the land (only the
+      {#if !data}
+        <text class="label" x={view.x + view.w / 2} y={view.y + view.h / 2} font-size={view.w / 30}
+          >{words.loading}</text
+        >
+      {/if}
+      {#if land}
+        <!-- v1.2: ripples along the coast and the coast line, drawn under the land (only the
            seaward half of each stroke stays visible). -->
-      <g clip-path={region === 'world' ? `url(#${uid}-world)` : undefined}>
-        <path class="ripple" d={land} stroke-width={15 * scale} />
-        <path class="ripple-gap" d={land} stroke-width={12.6 * scale} />
-        <path class="ripple" d={land} stroke-width={7.4 * scale} />
-        <path class="ripple-gap" d={land} stroke-width={5.2 * scale} />
-        <path class="coast" d={land} stroke-width={2.6 * scale} />
-      </g>
-    {/if}
-    {#each data?.countries ?? [] as country (country.id)}
-      <path class="country" d={country.d} stroke-width={1.6 * scale} />
-    {/each}
-    {#if data}<path class="lake" d={data.lakes} stroke-width={0.8 * scale} />{/if}
-    {#if atlas}
-      <path class="lake" d={atlas.lakes} stroke-width={0.8 * scale} />
-      {#each rivers as river (river.d.length + river.s)}
-        <path class="river" d={river.d} stroke-width={river.w * scale} />
+        <g clip-path={region === 'world' ? `url(#${uid}-world)` : undefined}>
+          <path class="ripple" d={land} stroke-width={15 * scale} />
+          <path class="ripple-gap" d={land} stroke-width={12.6 * scale} />
+          <path class="ripple" d={land} stroke-width={7.4 * scale} />
+          <path class="ripple-gap" d={land} stroke-width={5.2 * scale} />
+          <path class="coast" d={land} stroke-width={2.6 * scale} />
+        </g>
+      {/if}
+      {#each data?.countries ?? [] as country (country.id)}
+        <path class="country" d={country.d} stroke-width={1.6 * scale} />
       {/each}
-      <path
-        class="border"
-        d={atlas.borders}
-        stroke-width={1.1 * scale}
-        stroke-dasharray={`${5 * scale} ${2.5 * scale} ${1.2 * scale} ${2.5 * scale}`}
+      {#if data}<path class="lake" d={data.lakes} stroke-width={0.8 * scale} />{/if}
+      {#if atlas}
+        <path class="lake" d={atlas.lakes} stroke-width={0.8 * scale} />
+        {#each rivers as river (river.d.length + river.s)}
+          <path class="river" d={river.d} stroke-width={river.w * scale} />
+        {/each}
+        <path
+          class="border"
+          d={atlas.borders}
+          stroke-width={1.1 * scale}
+          stroke-dasharray={`${5 * scale} ${2.5 * scale} ${1.2 * scale} ${2.5 * scale}`}
+        />
+      {/if}
+      {#if graticule}<path class="graticule" d={graticule} stroke-width={0.7 * scale} />{/if}
+      {#if glyphs}
+        <g class="glyphs" data-testid="map-atlas">
+          <path class="desert" d={glyphs.dot} stroke-width={1.8 * scale} />
+          <path class="marsh" d={glyphs.marshLine} stroke-width={0.9 * scale} />
+          <path class="heath" d={glyphs.heathLine} stroke-width={1 * scale} />
+          <path class="hill" d={glyphs.hillLine} stroke-width={1 * scale} />
+          <path class="peak" d={glyphs.peakFill} stroke-width={1 * scale} />
+          <path class="peak-hatch" d={glyphs.peakLine} stroke-width={0.8 * scale} />
+          <path class="trunk" d={glyphs.treeLine + glyphs.firLine} stroke-width={1 * scale} />
+          <path class="crown" d={glyphs.treeFill} stroke-width={0.8 * scale} />
+          <path class="fir" d={glyphs.firFill} stroke-width={0.8 * scale} />
+        </g>
+      {/if}
+      <rect
+        class="grain"
+        fill={`url(#${uid}-grain)`}
+        x={view.x - view.w}
+        y={view.y - view.h}
+        width={view.w * 3}
+        height={view.h * 3}
       />
-    {/if}
-    {#if graticule}<path class="graticule" d={graticule} stroke-width={0.7 * scale} />{/if}
-    {#if glyphs}
-      <g class="glyphs" data-testid="map-atlas">
-        <path class="desert" d={glyphs.dot} stroke-width={1.8 * scale} />
-        <path class="marsh" d={glyphs.marshLine} stroke-width={0.9 * scale} />
-        <path class="heath" d={glyphs.heathLine} stroke-width={1 * scale} />
-        <path class="hill" d={glyphs.hillLine} stroke-width={1 * scale} />
-        <path class="peak" d={glyphs.peakFill} stroke-width={1 * scale} />
-        <path class="peak-hatch" d={glyphs.peakLine} stroke-width={0.8 * scale} />
-        <path class="trunk" d={glyphs.treeLine + glyphs.firLine} stroke-width={1 * scale} />
-        <path class="crown" d={glyphs.treeFill} stroke-width={0.8 * scale} />
-        <path class="fir" d={glyphs.firFill} stroke-width={0.8 * scale} />
+      {#if night !== ''}
+        <path class="night" data-testid="night-layer" d={night} />
+      {/if}
+      <g class="atlas-names">
+        {#each atlasLabels as label (label.key)}
+          <text
+            class={`atlas-name ${label.c}`}
+            class:spaced={label.spaced}
+            x={label.x}
+            y={label.y}
+            font-size={label.fontSize}
+            transform={label.a ? `rotate(${label.a} ${label.x} ${label.y})` : undefined}
+            >{#each label.lines as line, index (index)}<tspan
+                x={label.x}
+                dy={index === 0 ? `${(-(label.lines.length - 1) * 1.1) / 2}em` : '1.1em'}
+                >{line}</tspan
+              >{/each}</text
+          >
+        {/each}
       </g>
-    {/if}
-    <rect
-      class="grain"
-      fill={`url(#${uid}-grain)`}
-      x={view.x}
-      y={view.y}
-      width={view.w}
-      height={view.h}
-    />
-    <rect
-      class="vignette"
-      fill={`url(#${uid}-vignette)`}
-      x={view.x}
-      y={view.y}
-      width={view.w}
-      height={view.h}
-    />
-    {#if night !== ''}
-      <path class="night" data-testid="night-layer" d={night} />
-    {/if}
-    <g class="atlas-names">
-      {#each atlasLabels as label (label.key)}
-        <text
-          class={`atlas-name ${label.c}`}
-          class:spaced={label.spaced}
-          x={label.x}
-          y={label.y}
-          font-size={label.fontSize}
-          transform={label.a ? `rotate(${label.a} ${label.x} ${label.y})` : undefined}
-          >{#each label.lines as line, index (index)}<tspan
-              x={label.x}
-              dy={index === 0 ? `${(-(label.lines.length - 1) * 1.1) / 2}em` : '1.1em'}
+      {#each countryLabels as country (country.id)}
+        <text class="label" x={country.x} y={country.y} font-size={countryFont}
+          >{#each country.lines as line, index (index)}<tspan
+              x={country.x}
+              dy={index === 0 ? `${(-(country.lines.length - 1) * 1.05) / 2}em` : '1.05em'}
               >{line}</tspan
             >{/each}</text
         >
       {/each}
-    </g>
-    {#each countryLabels as country (country.id)}
-      <text class="label" x={country.x} y={country.y} font-size={countryFont}
-        >{#each country.lines as line, index (index)}<tspan
-            x={country.x}
-            dy={index === 0 ? `${(-(country.lines.length - 1) * 1.05) / 2}em` : '1.05em'}
-            >{line}</tspan
-          >{/each}</text
-      >
-    {/each}
-    <g class="cities" data-testid="map-cities">
-      {#each cities.dots as city (city.name)}
-        <circle class="city" cx={city.x} cy={city.y} r={3.5 * scale} stroke-width={1.2 * scale} />
-      {/each}
-      {#each cities.labels as city (city.name)}
-        <text class="city-name" x={city.x} y={city.y} font-size={13 * scale}>{city.text}</text>
-      {/each}
-    </g>
-    {@render markers?.(toSvg, scale)}
-  </svg>
+      <g class="cities" data-testid="map-cities">
+        {#each cities.dots as city (city.name)}
+          <circle class="city" cx={city.x} cy={city.y} r={3.5 * scale} stroke-width={1.2 * scale} />
+        {/each}
+        {#each cities.labels as city (city.name)}
+          <text class="city-name" x={city.x} y={city.y} font-size={13 * scale}>{city.text}</text>
+        {/each}
+      </g>
+      {@render markers?.(toSvg, scale)}
+    </svg>
+  </div>
   <div class="controls">
     <button
       type="button"
@@ -715,7 +799,10 @@
       type="button"
       class="button secondary"
       aria-label={words.reset}
-      onclick={() => (view = initial ?? largest)}>⤢</button
+      onclick={() => {
+        endGesture();
+        view = initial ?? largest;
+      }}>⤢</button
     >
   </div>
 </div>
@@ -732,16 +819,14 @@
     width: min(100%, var(--map-max, max(18rem, 100dvh - 6rem)));
   }
 
-  svg {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
+  /* v1.4.2: border, clipping and the darker edge of old paper belong to the frame, so that they
+     stay put while the map inside is moved. */
+  .frame {
+    position: relative;
+    overflow: hidden;
     border: 2px solid var(--line);
     border-radius: var(--radius);
     background: var(--atlas-water);
-    touch-action: none;
-    cursor: crosshair;
     /* v1.2: colours of the hand-drawn atlas. */
     --atlas-water: #b9ccce;
     --atlas-ripple: #8eaab0;
@@ -755,6 +840,38 @@
     --atlas-forest: #8b9758;
     --atlas-forest-dark: #56612f;
     --atlas-hatch: #6e5232;
+  }
+
+  .frame.world {
+    background: var(--atlas-beyond);
+  }
+
+  .frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      72% 72% at 50% 50%,
+      rgb(90 58 20 / 0%) 62%,
+      rgb(90 58 20 / 20%) 100%
+    );
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    /* Drawn beyond the view, too – the frame clips it (and a gesture may show it). */
+    overflow: visible;
+    transform-origin: 50% 50%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  svg:global(.moving) {
+    will-change: transform;
   }
 
   .water,
@@ -866,10 +983,6 @@
 
   .grain {
     opacity: 0.55;
-    pointer-events: none;
-  }
-
-  .vignette {
     pointer-events: none;
   }
 

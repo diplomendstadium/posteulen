@@ -50,7 +50,7 @@ test.describe('Version 1.2', () => {
     );
     await expect(page.getByTestId('place-image').locator('img')).toHaveAttribute(
       'alt',
-      /^Im (weihnachtlich geschmückten )?Eulenpostamt/,
+      /^(Nachts im|Im|Weihnachten im|Weihnachtsnacht im) Eulenpostamt$/,
     );
     // Back leads to the entrance again.
     await page.goBack();

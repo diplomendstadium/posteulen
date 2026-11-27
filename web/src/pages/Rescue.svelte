@@ -191,7 +191,7 @@
       kind={owl.healed ? 'normal' : 'sick'}
       alt={owl.healed
         ? `${nameOf(owl)}, ${speciesName(owl.species)}`
-        : fill(t.rescue.sickAlt, { name: nameOf(owl), species: speciesName(owl.species) })}
+        : fill(t.rescue.sickAlt, { name: nameOf(owl) })}
     />
     <h3 class="name">{nameOf(owl)}</h3>
     <p class="species">
@@ -236,9 +236,11 @@
 
 <BagNotice />
 {#if !inside}
+  <!-- The entrance – picture, the door right below it (v1.4.2, as in post office and Menagerie)
+       and the intro. -->
   <PlaceImage place="rescue" />
-  <p class="card intro">{t.rescue.intro}</p>
   <PlaceDoor href={INSIDE} label={t.rescue.enter} icons={['⚕', '🦉']} />
+  <p class="card intro">{t.rescue.intro}</p>
 {:else}
   <PlaceImage place="rescueInside" />
   <section class="card intro">

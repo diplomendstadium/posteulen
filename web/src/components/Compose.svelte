@@ -424,10 +424,13 @@
       {t.letters.restHint}
     </p>
   {/if}
+  {#if live.storageFull}<p class="notice" role="status" data-testid="storage-notice">
+      <span aria-hidden="true">🏰</span><span>{t.banner.storageFull}</span>
+    </p>{/if}
   <button
     class="button"
     type="button"
-    disabled={busy || !status.online || !owlId || !prepared}
+    disabled={busy || !status.online || !owlId || !prepared || live.storageFull}
     onclick={() => void send()}>{t.letters.send}</button
   >
   {#if sentNotice}<p class="notice" role="status">

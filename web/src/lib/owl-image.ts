@@ -31,6 +31,9 @@ const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
   bored: 'grumpy',
   freeNight: 'free',
   free: 'flyingDay',
+  // v1.4.2: the second look – by day if the night picture is missing, else the standard one.
+  secondNight: 'second',
+  second: 'normal',
 };
 
 export function owlImage(
