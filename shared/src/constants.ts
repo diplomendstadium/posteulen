@@ -133,14 +133,14 @@ export const OWL = {
 /**
  * The owl rescue centre (SPEC 8.13, 9.8): a sick own owl needs a random number of counted
  * interactions to get well (it only sees the progress in per cent; v1.3.1: 6–25); a wild sick
- * owl needs price × 4 × a random factor of 0.7–1.3 (v1.3.1, rolled when it comes in). One wild
- * owl per account (v1.3.1); a healed wild owl stays with the player with this chance, otherwise
- * it flies off into freedom.
+ * owl needs price × 4 × a random factor of 0.7–1.3 (v1.3.1, rolled when it comes in). Two wild
+ * owls per account (v1.4.3; v1.3.1: one); a healed wild owl stays with the player with this
+ * chance, otherwise it flies off into freedom.
  */
 export const RESCUE = {
   OWN_MIN_CARE: 6,
   OWN_MAX_CARE: 25,
-  WILD_SLOTS: 1,
+  WILD_SLOTS: 2,
   WILD_PRICE_FACTOR: 4,
   WILD_RANDOM_MIN: 0.7,
   WILD_RANDOM_MAX: 1.3,
@@ -462,4 +462,23 @@ export const STORAGE = {
   MAX_GB: 1000,
   /** The server measures at most this often, when it needs to know (no timer of its own). */
   CHECK_SECONDS: 60,
+} as const;
+
+/**
+ * v1.4.3: the second factor (SPEC 5.11): TOTP after RFC 6238 (HMAC-SHA1, 6 digits, 30 seconds,
+ * one step of clock drift either way, each step used once) and 10 single-use backup codes of 10
+ * characters. A setup waits 10 minutes for its first code; after the password a login has 5
+ * minutes and 5 tries for the code.
+ */
+export const TWO_FACTOR = {
+  DIGITS: 6,
+  PERIOD_SECONDS: 30,
+  WINDOW_STEPS: 1,
+  SECRET_BYTES: 20,
+  BACKUP_CODES: 10,
+  BACKUP_CODE_CHARS: 10,
+  SETUP_MINUTES: 10,
+  TICKET_MINUTES: 5,
+  TICKET_TRIES: 5,
+  ISSUER: 'PostEulen',
 } as const;

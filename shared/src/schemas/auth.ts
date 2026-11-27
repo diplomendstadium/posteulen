@@ -74,8 +74,28 @@ export const LoginFinish = v.strictObject({
   finishLoginRequest: OpaqueFinishLoginRequest,
 });
 
+/** v1.4.3: a code of the second factor: six digits or a backup code (SPEC 5.11). */
+export const TwoFactorCode = v.pipe(v.string(), v.minLength(1), v.maxLength(32));
+
+/** v1.4.3: re-authentication with the code of the second factor, if it is switched on. */
+export const ReauthFinish = v.strictObject({
+  attemptId: Id,
+  finishLoginRequest: OpaqueFinishLoginRequest,
+  code: v.optional(TwoFactorCode),
+});
+
+/** v1.4.3: the second step of a login with a second factor. */
+export const LoginTwoFactor = v.strictObject({
+  ticket: Id,
+  code: TwoFactorCode,
+});
+
+export const TwoFactorSetup = v.strictObject({ token: Id });
+export const TwoFactorEnable = v.strictObject({ code: TwoFactorCode });
+export const TwoFactorDisable = v.strictObject({ token: Id });
+
 export const ReauthStart = v.strictObject({
-  purpose: v.picklist(['password', 'delete']),
+  purpose: v.picklist(['password', 'delete', 'two_factor']),
   startLoginRequest: OpaqueStartLoginRequest,
   altcha: v.optional(AltchaPayload),
 });
@@ -109,6 +129,8 @@ export type LoginStartResponse =
 
 export const AdminReauthStart = v.strictObject({
   startLoginRequest: OpaqueStartLoginRequest,
+  /** v1.4.3: what the fresh login is for (missing: the password change). */
+  purpose: v.optional(v.picklist(['password', 'two_factor'])),
 });
 
 export const AdminPasswordStart = v.strictObject({

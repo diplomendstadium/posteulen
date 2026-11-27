@@ -27,6 +27,8 @@ export const BotSettings = v.strictObject({
   owlMode: v.picklist(['own', 'loan']),
   owlSpecies: v.nullable(SpeciesId),
   owlName: v.nullable(Text(40)),
+  /** v1.4.3: sex of the own owl; missing keeps it (a new bot starts with a random one). */
+  owlSex: v.optional(v.picklist(['f', 'm'])),
   /** Tenths: 5 (0.5) to 200 (20.0). */
   motivation: v.pipe(
     v.number(),

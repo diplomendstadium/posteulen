@@ -93,6 +93,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Briefe zwischen Menschen werden auf deinem Gerät mit XChaCha20-Poly1305 verschlüsselt und mit Ed25519 unterschrieben. Den Schlüssel für jeden Brief bekommen nur Absender und Empfänger, verpackt nach dem Standard HPKE (RFC 9180).',
         'Dein Passwort verlässt nie dein Gerät. Die Anmeldung läuft über OPAQUE (RFC 9807): Der Server kann dein Passwort weder sehen noch aus seiner Datenbank erraten.',
         'Mit der Sicherheitsnummer prüft ihr, dass wirklich niemand dazwischensitzt.',
+        'Wer mag, schaltet die Zwei-Faktor-Anmeldung ein: Dann reicht auch ein erratenes oder mitgelesenes Passwort nicht, um in dein Konto zu kommen.',
         'Verwendet werden nur bewährte, offen geprüfte Bibliotheken (libsodium, hpke-js, OPAQUE von Serenity) – keine selbst gebastelte Kryptografie. Der Quelltext ist offen.',
       ],
       'Was PostEulen nicht verbergen kann: wer wem wann schreibt (Metadaten). Und wer dein entsperrtes Gerät in der Hand hat, kann deine Briefe lesen. Briefe an Bots und Systemnachrichten sind nicht verschlüsselt.',
@@ -125,6 +126,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       'Beim Erstellen setzt du einen fiktiven Wohnort per Pin auf die Karte – überlege sorgfältig, ob du deine echte Adresse wählen möchtest. Dort wohnen deine Eulen; von dort fliegen sie los.',
       'Du kannst immer nur auf einem Gerät angemeldet sein. Meldest du dich auf einem anderen Gerät an, endet die Sitzung auf dem alten – das gilt auch beim Wechsel zwischen der normalen Adresse und dem Tor-Netz. Das ist auch ein Schutz: Benutzt jemand anderes dein Passwort, wirst du selbst ständig abgemeldet und merkst es sofort – ändere dann gleich dein Passwort. Nach mehrfach falschem Passwort musst du etwas warten und ein kleines Rechenrätsel lösen lassen (das macht dein Gerät automatisch).',
       `Ohne Nutzung endet die Anmeldung nach ${ACCOUNT.USER_SESSION_IDLE_DAYS} Tagen. Beim Abmelden löscht PostEulen alle Schlüssel von deinem Gerät und vergisst auch alles, was es sich über deine Kontakte gemerkt hat – meldet sich danach jemand anderes im selben Fenster an, sieht er nichts davon. Beim nächsten Anmelden holt PostEulen deine Schlüssel verschlüsselt vom Server zurück.`,
+      'Zwei-Faktor-Anmeldung: Wenn du magst, schaltest du in den Einstellungen ein zweites Schloss ein. Dann brauchst du beim Anmelden außer dem Passwort einen sechsstelligen Code, den eine App auf deinem Handy oder Computer alle 30 Sekunden neu erzeugt – zum Beispiel KeePassXC, Aegis oder FreeOTP (das Verfahren heißt TOTP). Beim Einschalten liest du einen QR-Code mit der App ein oder tippst den Schlüssel ab und bekommst einmalig zehn Notfallcodes. Mit jedem Notfallcode kommst du genau einmal ohne App hinein, und mit ihm kannst du die Zwei-Faktor-Anmeldung auch ausschalten. Den Code brauchst du außerdem, bevor du dein Passwort änderst, dein Konto löschst oder die Zwei-Faktor-Anmeldung ein- oder ausschaltest. Wichtig: Hast du weder die App noch einen Notfallcode, bleibt dein Konto für immer verschlossen – niemand kann es wieder öffnen, auch der Admin nicht.',
     ],
   },
   {
@@ -400,7 +402,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
     title: 'Die Eulenrettungsstation',
     blocks: [
       'In der Übersicht findest du die Rettungsstation mit dem Äskulapstab. Zuerst stehst du vor dem Holztor – das Bild wechselt mit den Jahreszeiten an deinem Wohnort (Weihnachtszeit, Winter, Vorfrühling, Frühling, Sommer, Herbst und November) und mit Tag und Nacht. Mit dem Knopf „Eintreten“ gleich unter dem Bild gehst du hinein; darunter begrüßt dich die Station mit ein paar Worten.',
-      'Drinnen stehen oben deine eigenen kranken Eulen, darunter eine wilde kranke Eule, die jemanden braucht. Jede Eule hat einen Balken, der zeigt, wie weit sie schon wieder gesund ist – von 0 % bis 100 %. Jede Hilfe bewegt ihn sofort.',
+      'Drinnen stehen oben deine eigenen kranken Eulen, darunter zwei wilde kranke Eulen, die jemanden brauchen. Jede Eule hat einen Balken, der zeigt, wie weit sie schon wieder gesund ist – von 0 % bis 100 %. Jede Hilfe bewegt ihn sofort.',
       [
         'Wasser geben, Streicheln, Medizin geben, Füttern (Eulenkeks) und Lieblingsleckerli – jede dieser Hilfen geht einmal am Tag und zählt einmal am Tag. Was heute schon erledigt ist, verschwindet bis morgen aus den Knöpfen.',
         'Streicheln darfst du so oft du magst; es zählt trotzdem nur einmal am Tag.',
@@ -408,7 +410,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Wie viel Pflege eine Eule braucht, siehst du nur am Balken. Eigene Eulen sind meist nach einigen Tagen wieder fit, wilde brauchen länger – je größer und wertvoller die Art, desto mehr Pflege.',
       ],
       'Wird eine Eule gesund, während es bei dir dunkel ist, zeigt das Bild sie unter dem Nachthimmel. Ist deine eigene Eule wieder gesund, darf sie nach Hause und ist sofort wieder einsatzbereit. Pflegst du sie, wirken Wasser, Futter, Leckerli und Streicheln auch wie gewohnt auf Energie und Motivation.',
-      'Ist eine wilde Eule gesund, findest du mit dem Knopf „Herausfinden, wohin … fliegt“ heraus, was sie tut: Manche fliegen dankbar zurück in die Freiheit, manche wollen sich nicht mehr von dir trennen und bleiben als Posteule bei dir. Hast du schon so viele Eulen, wie es Arten gibt, fliegt sie aber immer in die Freiheit. Danach rückt eine neue kranke Eule nach. Hast du aus der Zeit vor Version 1.3.1 noch mehrere wilde Eulen in Pflege, kommt eine neue erst, wenn alle versorgt sind. Den Phönix und den Virginiauhu triffst du hier nie als wilde Eule.',
+      'Ist eine wilde Eule gesund, findest du mit dem Knopf „Herausfinden, wohin … fliegt“ heraus, was sie tut: Manche fliegen dankbar zurück in die Freiheit, manche wollen sich nicht mehr von dir trennen und bleiben als Posteule bei dir. Hast du schon so viele Eulen, wie es Arten gibt, fliegt sie aber immer in die Freiheit. Danach rückt eine neue kranke Eule nach. Hast du aus der Zeit vor Version 1.3.1 noch drei wilde Eulen in Pflege, kommt eine neue erst, wenn nur noch eine davon da ist. Den Phönix und den Virginiauhu triffst du hier nie als wilde Eule.',
     ],
   },
   {
@@ -439,6 +441,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
       `Wie andere Bots antworten: Meist gehen sie in ihrem nächsten geplanten Brief auf deine Zeilen ein – der Brief bleibt derselbe, bekommt aber einen persönlichen Teil für dich. Haben sie in den nächsten vier Wochen nichts geplant, antworten sie dir nach etwa ${BOTS.REPLY_AFTER_HOURS} Stunden direkt.`,
       'Bots haben eigene Eulen oder schicken Leiheulen. Die Eule eines Bots wartet oft eine Weile bei dir („Zu Gast bei dir“ unter „Eulen“). Solange sie da ist, kannst du ihr eine Antwort mitgeben – dann fliegt sie sofort los. Ob du einem Bot auch mit deinen eigenen Eulen oder Leiheulen schreiben kannst, legt der Bot fest; der Chat sagt es dir. Manche Bots legen dir Eulenkekse oder Leckerlis in den Brief – sie kommen in deinen Beutel (siehe Energie und Pflege). Du kannst eine Bot-Eule tränken, streicheln und füttern wie jede Gast-Eule – bei ihr kostet das nichts, auch Eulenkeks und Leckerli nicht. Das gibt ihr Energie für den Heimweg und macht sie munterer, höchstens bis 120 % Motivation; ihre Motivation siehst du bei Bot-Eulen nicht.',
       de.bots.notice,
+      'Bevor ein Bot deinen Brief liest, geht er durch einen Filter: Die KI bekommt zuerst nur deinen Brief, ohne alles andere, und streicht daraus alle Sätze und Absätze über Drogen, Sexualität oder Gewalt – ohne zu antworten oder etwas zu verändern. Nur was übrig bleibt, liest der Bot danach, auch später noch, wenn er sich an euren Briefwechsel erinnert. Bleibt nichts übrig, antwortet er auf diesen Brief nicht. Dein eigener Brief bleibt bei dir natürlich, wie du ihn geschrieben hast.',
       'An OpenAI gehen nur die Texte, keine Namen und keine Kennungen. Jeder Bot merkt sich eine kurze Zusammenfassung eures Briefwechsels – nur deines; sie verschwindet, wenn du den Chat löschst.',
       'Einen Bot entfernst du in seinem Chat („… entfernen“). Alle auf einmal – auch den Erklärbär und alle Bots, die es künftig geben wird – entfernst du in den Einstellungen mit „Alle Bots entfernen“. Beides ist endgültig: Chat, Zusammenfassung und noch ausstehende Briefe und Geschenke sind dann weg, und die Bots schreiben dir nie wieder. Löscht die Betreiberin oder der Betreiber einen Bot, bekommst du eine Systemnachricht, falls du mit ihm Kontakt hattest.',
     ],
@@ -469,7 +472,8 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         `Gold und Buchungen: dein Goldstand, wann und wie viel tägliches Gold du bekommst, und die letzten ${GOLD.TRANSACTIONS_KEPT} Buchungen.`,
         `Nutzername ändern: einmal pro Kalenderjahr. Dein aktueller Name steht gleich dabei. Deine Kontakte erfahren es per Systemnachricht; der alte Name ist ${ACCOUNT.NAME_LOCK_DAYS} Tage gesperrt.`,
         `Wohnort ändern: bis zu ${ACCOUNT.HOME_CHANGES_PER_MONTH}-mal pro Kalendermonat, egal wie kurz hintereinander. Eulen unterwegs passen ihren Kurs an.`,
-        'Passwort ändern: altes Passwort einmal, neues zweimal. Alle Briefe bleiben lesbar.',
+        'Passwort ändern: altes Passwort einmal, neues zweimal (mit Zwei-Faktor-Anmeldung dazu ein Code). Alle Briefe bleiben lesbar.',
+        'Zwei-Faktor-Anmeldung (unter „Passwort ändern“): ein zweites Schloss mit einer App wie KeePassXC, Aegis oder FreeOTP. Einschalten mit Passwort, QR-Code und dem ersten Code; danach siehst du einmalig zehn Notfallcodes – schreib sie auf oder speichere sie sicher außerhalb deines Handys. Ausschalten mit Passwort und einem Code der App oder einem Notfallcode. Neue Notfallcodes bekommst du, indem du sie aus- und wieder einschaltest.',
         'Sprache: Deutsch oder Englisch, für dieses Konto auf jedem Gerät.',
         'Briefe: eigene Briefe und Systemnachrichten nach 30, 90, 180 Tagen oder einem Jahr löschen lassen (neue Konten: 180 Tage; gelöscht wird beim nächsten wöchentlichen Aufräumen am Montag); Briefe in Druckschrift statt Handschrift anzeigen; mit dem Regler „Links in Briefen anklickbar“ bestimmst du, ob Links in Briefen angetippt werden können (Standard: an). Mit dem Regler „ASCII-Modus“ bekommst du beim Schreiben an einen Menschen eine zusätzliche Möglichkeit: Dieser eine Brief erscheint dann für euch beide dauerhaft in schlichter Schreibmaschinenschrift – ideal für Bilder aus Buchstaben und Zeichen (ASCII-Art). Du wählst das bei jedem Brief neu; sonst bleibt es bei der Handschrift, und am Briefpapier ändert sich nichts.',
         'Benachrichtigungen (gleich unter „Abmelden“): Status ansehen und testen.',
@@ -478,7 +482,7 @@ export const HELP_SECTIONS: readonly HelpSection[] = [
         'Bots: „Alle Bots entfernen“ nimmt den Erklärbär und alle anderen Bots endgültig aus deinem Spiel – mit ihren Chats, auch Bots, die es erst später gibt. Das lässt sich nicht rückgängig machen.',
         `Nachricht an den Admin (ganz unten): Bei technischen Problemen oder Verbesserungsvorschlägen schickst du dem Admin deiner PostEulen-Instanz eine kurze Nachricht – höchstens ${FEEDBACK.MAX_CHARS} Zeichen, eine pro Tag (der Tag wechselt um Mitternacht UTC). Sie ist nicht verschlüsselt, liegt ohne deinen Namen lesbar auf dem Server und wird nach ${FEEDBACK.RETENTION_DAYS} Tagen gelöscht. Schreib also nichts Vertrauliches hinein. Sie ist übrigens das Einzige, was das Adminpanel im Klartext zeigt. Darunter, ganz am Ende, geht es zu dieser Hilfe.`,
         `Gutschein einlösen: Hast du von der Betreiberin oder dem Betreiber deiner PostEulen-Instanz einen Gutschein bekommen, tippst du hier den Code ein. Ein Gutschein bringt Gold, eine neue Eule oder Eulenkekse bzw. Leckerlis für deinen Beutel, gilt ${VOUCHER.VALID_DAYS} Tage und lässt sich einmal einlösen.`,
-        `Konto löschen: mit Passwort bestätigen. Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
+        `Konto löschen: mit Passwort bestätigen (mit Zwei-Faktor-Anmeldung dazu ein Code). Meldest du dich binnen ${ACCOUNT.SELF_DELETE_GRACE_HOURS} Stunden wieder an, wird die Löschung abgebrochen. Danach wird alles endgültig gelöscht; was andere schon von dir bekommen haben, bleibt bei ihnen.`,
       ],
     ],
   },
@@ -551,6 +555,11 @@ export const HELP_FAQ: readonly HelpQuestion[] = [
     question: 'Ich habe mein Passwort vergessen. Was nun?',
     answer:
       'Leider lässt es sich nicht zurücksetzen, weil es nirgends gespeichert ist – das ist der Preis für echte Verschlüsselung. Erstelle ein neues Konto und koppelt euch neu.',
+  },
+  {
+    question: 'Ich habe das Handy mit meiner Authenticator-App verloren. Was nun?',
+    answer:
+      'Melde dich mit deinem Passwort an und gib statt des Codes einen deiner zehn Notfallcodes ein. Danach schaltest du in den Einstellungen die Zwei-Faktor-Anmeldung aus (Passwort und noch ein Notfallcode) und mit der neuen App wieder ein. Hast du weder die App noch einen Notfallcode, kommt leider niemand mehr in dein Konto – auch der Admin nicht.',
   },
   {
     question: 'Warum kommt mein Brief nicht sofort an?',

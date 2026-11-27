@@ -4,6 +4,10 @@
  * letter; older letters are folded into the summary (one extra call at most). The network call
  * runs outside of any database transaction; due replies are stored in `bot_jobs`, so nothing
  * is lost on a restart. Daily limit reached: next day. Error: again in 24 hours.
+ *
+ * v1.4.3: every letter of the player goes through the safety filter first (`filter.ts`); the AI
+ * only ever sees the filtered versions. Is nothing left of the new letter, the Erklärbär does not
+ * answer it (the letter counts as answered).
  */
 import { BOTS, TIME } from '@posteulen/shared/constants.ts';
 import { countCodePoints } from '@posteulen/shared/names.ts';
@@ -12,6 +16,7 @@ import type { Context } from '../context.ts';
 import { logError } from '../ops/error-log.ts';
 import { utcDay } from '../security/ids.ts';
 import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from './ai.ts';
+import { aiProblem, aiTextOf } from './filter.ts';
 import { carrierNote, SUMMARY_PROMPT, systemPrompt, type CarrierOwl } from './prompts.ts';
 import { languageOf } from '../accounts/language.ts';
 import { botById, dispatchBotLetter, type BotRow } from './service.ts';
@@ -56,6 +61,8 @@ interface Letter {
   readonly sender_id: string;
   readonly sent_at: number;
   readonly plaintext: string | null;
+  /** v1.4.3: the filtered version for the AI (null: not filtered yet). */
+  readonly ai_text?: string | null;
 }
 
 /** v1.3.1: the owl that brought the letter (name, species, sex of its flight). */
@@ -164,7 +171,7 @@ export class BotReplies {
     const ctx = this.ctx;
     const bot = botById(ctx, botId);
     const letter = ctx.db.get<Letter & { status: string }>(
-      'SELECT id, sender_id, sent_at, plaintext, status FROM letters WHERE id = ? AND recipient_id = ?',
+      'SELECT id, sender_id, sent_at, plaintext, ai_text, status FROM letters WHERE id = ? AND recipient_id = ?',
       letterId,
       botId,
     );
@@ -173,13 +180,36 @@ export class BotReplies {
     if (!key) return { error: 'Es ist kein (gültiger) OpenAI-Key hinterlegt.' };
     const model = aiModel(ctx.db);
 
+    // v1.4.3: the safety step – first the new letter alone, without any context (SPEC 10.5).
+    const filtered = await aiTextOf(ctx, this.client, key, model, letter, 'explainer');
+    if (typeof filtered !== 'string') return filtered;
+    if (filtered === '') {
+      // Nothing left to answer: the letter counts as answered, the bot stays silent.
+      ctx.db.transaction(() => {
+        ctx.db.run('UPDATE letters SET read = 1 WHERE id = ?', letter.id);
+        ctx.db.run('DELETE FROM bot_jobs WHERE letter_id = ?', letter.id);
+      });
+      return 'done';
+    }
+
     const chat = ctx.db.get<{ bot_summary: string | null; bot_summarized_until: number | null }>(
       'SELECT bot_summary, bot_summarized_until FROM chats WHERE owner_id = ? AND peer_id = ?',
       bot.owner_id,
       bot.id,
     );
     let summary = chat?.bot_summary ?? null;
-    let history = this.history(bot, letter, chat?.bot_summarized_until ?? null);
+    const earlier = this.history(bot, letter, chat?.bot_summarized_until ?? null);
+    // The player's letters of the history only in their filtered version (empty ones drop out).
+    let history: Letter[] = [];
+    for (const item of earlier) {
+      if (item.sender_id === bot.id) {
+        history.push(item);
+        continue;
+      }
+      const text = await aiTextOf(ctx, this.client, key, model, item, 'explainer');
+      if (typeof text !== 'string') return text;
+      if (text !== '') history.push({ ...item, plaintext: text });
+    }
     if (history.length > BOTS.CONTEXT_LETTERS) {
       // Older letters go into the summary: one extra call (SPEC 10.5).
       const older = history.slice(0, history.length - BOTS.CONTEXT_LETTERS);
@@ -217,20 +247,12 @@ export class BotReplies {
           ...history.map((item) => this.asMessage(bot, item)),
           // v1.3.1: which owl brought the letter (SPEC 10.5).
           ...(carrier ? [{ role: 'system' as const, content: carrierNote(carrier) }] : []),
-          { role: 'user', content: letter.plaintext },
+          { role: 'user', content: filtered },
         ],
         REPLY_TOKENS,
       );
     } catch (error) {
-      const status = (error as { status?: number | null }).status;
-      return {
-        error:
-          status === 401
-            ? 'OpenAI lehnt den Key ab (ungültig oder gesperrt).'
-            : status
-              ? `OpenAI antwortete mit Status ${status}.`
-              : 'OpenAI ist nicht erreichbar oder hat nicht rechtzeitig geantwortet.',
-      };
+      return { error: aiProblem(error) };
     }
     const text = finishReply(raw);
     if (text === '') return { error: 'OpenAI lieferte eine leere Antwort.' };
@@ -251,7 +273,7 @@ export class BotReplies {
   /** Letters of the conversation after the summary, before the new letter (oldest first). */
   private history(bot: BotRow, letter: Letter, summarizedUntil: number | null): Letter[] {
     return this.ctx.db.all<Letter>(
-      `SELECT id, sender_id, sent_at, plaintext FROM letters
+      `SELECT id, sender_id, sent_at, plaintext, ai_text FROM letters
         WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))
           AND status = 'delivered' AND plaintext IS NOT NULL AND id != ?
           AND sent_at <= ? AND sent_at > ?

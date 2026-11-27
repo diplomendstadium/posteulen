@@ -8,6 +8,7 @@ import { ACCOUNT, TIME } from '@posteulen/shared/constants.ts';
 import * as client from '@posteulen/shared/crypto/opaque-client.ts';
 import { setInitialAdminPassword } from '../src/admin/admin-auth.ts';
 import { AiError, storeApiKey, type AiClient, type AiMessage } from '../src/bots/ai.ts';
+import { FILTER_PROMPT } from '../src/bots/prompts.ts';
 import { removeRelatives } from '../src/bots/relatives.ts';
 import { startFlight } from '../src/flights/service.ts';
 import {
@@ -32,6 +33,8 @@ class FakeAi implements AiClient {
   calls: { messages: readonly AiMessage[] }[] = [];
   answers: (string | Error)[] = [];
   async complete(_key: string, _model: string, messages: readonly AiMessage[]) {
+    // v1.4.3: the safety filter passes the letter through unchanged (own tests in v143).
+    if (messages[0]?.content === FILTER_PROMPT) return messages[1]?.content ?? '';
     this.calls.push({ messages });
     const next = this.answers.shift() ?? 'KI-Brief: Danke für deine Zeilen!';
     if (next instanceof Error) throw next;

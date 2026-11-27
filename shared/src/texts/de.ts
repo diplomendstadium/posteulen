@@ -413,6 +413,9 @@ export const de = {
     letter_returned_chick:
       'Das Küken für {name} wurde nicht zugestellt – es ist umgekehrt und fliegt zu dir zurück.',
     password_changed: 'Dein Passwort wurde geändert.',
+    two_factor_on:
+      'Die Zwei-Faktor-Anmeldung ist jetzt eingeschaltet. Bewahre deine zehn Notfallcodes gut auf – ohne App und ohne Notfallcode kommt niemand mehr in dein Konto, auch du nicht.',
+    two_factor_off: 'Die Zwei-Faktor-Anmeldung ist jetzt ausgeschaltet.',
     letters_purged:
       '{count} Briefe aus folgenden Chats wurden gelöscht, weil sie älter als deine Löschfrist waren: {chats}.',
     letters_purged_one:
@@ -1040,9 +1043,9 @@ export const de = {
   admin: {
     title: 'PostEulen – Verwaltung',
     /** v1.2.1: the server dashboard at the top of the panel (SPEC 13 item 13). */
-    serverTitle: 'Server-Auslastung',
+    serverTitle: 'Server der Instanz',
     serverIntro:
-      'Grobe Werte des Servers: Prozessor (alle Kerne zusammen) und Arbeitsspeicher im Durchschnitt der letzten 7 Tage, dazu die Belegung der Festplatte mit den Spieldaten. Je voller der Ring, desto höher die Auslastung – von Grün bis Rot.',
+      'Grobe Werte des Servers: Prozessor (alle Kerne zusammen) und Arbeitsspeicher im Durchschnitt der letzten 7 Tage, dazu die Belegung der Festplatte mit den Spieldaten. Je voller der Ring, desto höher die Auslastung – von Grün bis Rot. Darunter Laufzeit, wartende Updates, die automatischen Updates und die Prüfung öffentlicher Blocklisten.',
     serverCpu: 'Prozessor',
     serverRam: 'Arbeits\u00ADspeicher',
     serverDisk: 'Festplatte',
@@ -1053,6 +1056,65 @@ export const de = {
     serverSince: 'Gemessen wird erst seit {since}, der Durchschnitt umfasst nur diese Zeit.',
     serverMissing:
       'Für Prozessor und Arbeitsspeicher liegen noch keine Messwerte vor. Der Zeitgeber posteulen-stats misst alle 10 Minuten; den Prozessor zeigt der Ring ab der zweiten Messung.',
+    /** v1.4.3: below the rings – uptime, updates, nightly updates, blocklists (SPEC 13 item 13). */
+    infoUptime: 'Laufzeit seit dem letzten Neustart',
+    infoUptimeValue: '{duration} (seit {time})',
+    infoDebian: 'Updates für den Server (Debian)',
+    infoDebianNone: 'keine – alles aktuell',
+    infoDebianOne: '1 Paket wartet',
+    infoDebianSome: '{count} Pakete warten',
+    infoUnknown: 'konnte nicht geprüft werden',
+    infoReboot:
+      'Debian verlangt einen Neustart (er folgt nach den nächsten automatischen Updates).',
+    infoPosteulen: 'Updates für PostEulen',
+    infoPosteulenCurrent: 'keine – Version {version} ist die neueste',
+    infoPosteulenNew: 'Version {latest} ist verfügbar (installiert: {version})',
+    infoPosteulenUnknown: 'konnte nicht geprüft werden (installiert: {version})',
+    infoNotYet: 'noch nicht geprüft',
+    infoChecked: 'Geprüft wird stündlich, zuletzt {time}.',
+    infoNeverChecked:
+      'Noch nicht geprüft. Der Zeitgeber posteulen-check prüft stündlich und kurz nach jedem Neustart.',
+    durationDay: '{n} Tag',
+    durationDays: '{n} Tage',
+    durationHour: '{n} Stunde',
+    durationHours: '{n} Stunden',
+    durationMinute: '{n} Minute',
+    durationMinutes: '{n} Minuten',
+    autoTitle: 'Automatische Updates',
+    autoIntro:
+      'Jede Nacht nach der Sicherung installiert der Server die Updates für Debian und alle installierten Pakete (apt full-upgrade) und danach für PostEulen (posteulen-update, nur signierte Versionen). Verlangt Debian danach einen Neustart, startet der Server neu. Was nicht klappt, steht verständlich im Fehlerprotokoll.',
+    autoSwitch: 'Automatische Updates jede Nacht',
+    autoSavedOn: 'Automatische Updates sind eingeschaltet.',
+    autoSavedOff:
+      'Automatische Updates sind ausgeschaltet. Updates dann bitte von Hand einspielen.',
+    autoLast: 'Letzter Lauf',
+    autoNever: 'noch keiner',
+    autoResult_ok: 'erfolgreich',
+    autoResult_error: 'mit Fehlern – siehe Fehlerprotokoll',
+    autoResult_off: 'ausgelassen (abgeschaltet)',
+    autoResult_skipped: 'ausgelassen, weil die Sicherung fehlgeschlagen ist',
+    autoDebian: 'Debian: {count} Pakete aktualisiert',
+    autoDebianError: 'Debian: fehlgeschlagen',
+    autoPe_current: 'PostEulen: war aktuell',
+    autoPe_updated: 'PostEulen: neue Version eingespielt',
+    autoPe_error: 'PostEulen: fehlgeschlagen',
+    autoRebooted: 'Danach neu gestartet.',
+    blockTitle: 'Öffentliche Blocklisten',
+    blockIntro:
+      'Einmal am Tag prüft der Server, ob seine Domain (mit www, admin und bots) oder eine seiner öffentlichen Adressen auf einer großen öffentlichen Blockliste für Spam, Werbung oder Tracking steht. Ein Eintrag erscheint auch im Fehlerprotokoll.',
+    blockTorOnly:
+      'Dieser Bereich ist nur bei Clearnet-Installationen aktiv. Eine Instanz nur im Tor-Netz hat weder Domain noch öffentliche Adresse, die auf solchen Listen stehen könnte.',
+    blockNone: 'Noch nicht geprüft. Die Prüfung läuft einmal am Tag am frühen Morgen (UTC).',
+    blockChecked: 'Zuletzt geprüft: {time}.',
+    blockGroup_spam_ip: 'Spam – Adressen des Servers',
+    blockGroup_spam_domain: 'Spam – Domain',
+    blockGroup_ads: 'Werbung und Tracking',
+    blockState_clean: 'nicht gelistet',
+    blockState_listed: 'GELISTET',
+    blockState_unknown: 'nicht prüfbar',
+    blockNoAddress: 'keine öffentliche Adresse gefunden',
+    blockUnknownHint:
+      '„Nicht prüfbar“ heißt: Die Liste beantwortet die Frage von diesem Server aus nicht (oft, weil er einen großen öffentlichen DNS-Resolver benutzt) oder war gerade nicht erreichbar.',
     /** v0.8.3: all times of the panels in the time zone of the device. */
     timeZoneNote: 'Alle Uhrzeiten in der Zeitzone dieses Geräts ({zone}).',
     loginHeading: 'Anmeldung für die Verwaltung',
@@ -1308,8 +1370,9 @@ export const de = {
     owlLoan: 'zufällige Leiheulen',
     owlSpecies: 'Art der eigenen Eule',
     owlName: 'Name der eigenen Eule',
-    owlSexF: 'Geschlecht der Eule: weiblich',
-    owlSexM: 'Geschlecht der Eule: männlich',
+    owlSex: 'Geschlecht der eigenen Eule',
+    owlSexF: 'weiblich',
+    owlSexM: 'männlich',
     motivation: 'Motivation der Bot-Eulen (0,5 bis 20; 1 = normal)',
     motivationHint:
       'Gilt dauerhaft für eigene Eule und Leiheulen: Geschwindigkeit, Energie und Erholung mal Motivation. Mit 20 gehen Briefe auch auf andere Kontinente. Bot-Eulen werden nie krank, legen keine Eier und verlieren keine Motivation.',
@@ -1384,6 +1447,8 @@ export const de = {
     aiProblem_no_key: 'Es ist kein OpenAI-Key hinterlegt (Adminpanel).',
     aiProblem_limit: 'Das Tageslimit der Bots ist für heute erreicht.',
     aiProblem_error: 'OpenAI hat nicht geantwortet. Bitte später erneut versuchen.',
+    aiProblem_filtered:
+      'Der Vorfilter hat den ganzen Testbrief entfernt (Drogen, Sexualität oder Gewalt). Auf so einen Brief antwortet der Bot nicht.',
     saveEvent: 'Event speichern',
     cancel: 'Abbrechen',
     edit: 'Bearbeiten',
@@ -1435,6 +1500,47 @@ export const de = {
     importEvents: '{planned} geplant · {past} ins Archiv · {skip} übersprungen (ID vorhanden)',
     loading: 'Lädt …',
   },
+  /** v1.4.3: the second factor (SPEC 5.11) – app, admin panel and control centre. */
+  twoFactor: {
+    title: 'Zwei-Faktor-Anmeldung',
+    intro:
+      'Mit der Zwei-Faktor-Anmeldung brauchst du beim Anmelden außer dem Passwort einen sechsstelligen Code, den eine App auf deinem Handy oder Computer alle 30 Sekunden neu erzeugt – zum Beispiel KeePassXC, Aegis oder FreeOTP. Wer nur das Passwort kennt, kommt dann nicht hinein.',
+    warning:
+      'Wichtig: Beim Einschalten bekommst du zehn Notfallcodes. Mit jedem davon kommst du einmal ohne App hinein und kannst die Zwei-Faktor-Anmeldung auch ausschalten. Hast du weder die App noch einen Notfallcode, bleibt das Konto für immer verschlossen – niemand kann es wieder öffnen.',
+    warningPanel:
+      'Wichtig: Beim Einschalten bekommst du zehn Notfallcodes. Mit jedem davon kommst du einmal ohne App hinein und kannst die Zwei-Faktor-Anmeldung auch ausschalten. Ohne App und Notfallcode hilft nur noch „sudo posteulen-cli {command}“ auf dem Server: Es setzt Passwort und Zwei-Faktor-Anmeldung zurück.',
+    off: 'Die Zwei-Faktor-Anmeldung ist ausgeschaltet.',
+    on: 'Die Zwei-Faktor-Anmeldung ist eingeschaltet. Noch {count} Notfallcodes übrig.',
+    onOne: 'Die Zwei-Faktor-Anmeldung ist eingeschaltet. Noch 1 Notfallcode übrig.',
+    onNone:
+      'Die Zwei-Faktor-Anmeldung ist eingeschaltet. Alle Notfallcodes sind verbraucht – schalte sie aus und wieder ein, um neue zu bekommen.',
+    password: 'Passwort',
+    start: 'Einschalten',
+    stepPassword: 'Passwort wird geprüft …',
+    scan: 'Lies den QR-Code mit deiner App ein oder tippe den Schlüssel ab. Gib danach den Code ein, den die App zeigt.',
+    qrAlt: 'QR-Code für die App',
+    secret: 'Schlüssel zum Abtippen',
+    confirm: 'Bestätigen und einschalten',
+    cancel: 'Abbrechen',
+    codesTitle: 'Deine Notfallcodes',
+    codes:
+      'Sie werden nur jetzt angezeigt. Schreib sie auf oder speichere sie an einem sicheren Ort außerhalb dieses Geräts (zum Beispiel in KeePassXC). Jeder Code gilt genau einmal.',
+    codesCopy: 'Codes kopieren',
+    codesCopied: 'Die Codes sind in der Zwischenablage.',
+    codesDone: 'Ich habe die Codes sicher aufbewahrt',
+    disable: 'Ausschalten',
+    disableIntro:
+      'Zum Ausschalten brauchst du das Passwort und einen Code aus der App oder einen Notfallcode.',
+    code: 'Code aus der App oder Notfallcode',
+    codeHint: '6 Ziffern aus deiner App oder einer deiner Notfallcodes (z. B. ABCDE-FGH23).',
+    wrong: 'Der Code stimmt nicht. Codes der App gelten nur 30 Sekunden – nimm den aktuellen.',
+    enabled: 'Die Zwei-Faktor-Anmeldung ist jetzt eingeschaltet.',
+    disabled: 'Die Zwei-Faktor-Anmeldung ist jetzt ausgeschaltet.',
+    loginHeading: 'Zwei-Faktor-Anmeldung',
+    loginIntro: 'Gib den Code aus deiner App ein – oder einen deiner Notfallcodes.',
+    loginSubmit: 'Anmelden',
+    stepCode: 'Code wird geprüft …',
+  },
   errors: {
     gift_not_allowed: 'Nur aktive Spieler können alle zwei Wochen Gold oder eine Eule verschenken.',
     rescue_done_today: 'Das hat diese Eule heute schon bekommen. Morgen wieder!',
@@ -1482,6 +1588,10 @@ export const de = {
     home_invalid: 'Dieser Wohnort geht nicht. Bitte wähle einen Ort an Land auf der Karte.',
     reservation_expired: 'Das hat zu lange gedauert. Bitte versuche es noch einmal.',
     reauth_required: 'Bitte gib dein Passwort noch einmal ein.',
+    two_factor_wrong:
+      'Der Code stimmt nicht. Codes der App gelten nur 30 Sekunden – nimm den aktuellen.',
+    two_factor_setup_expired: 'Das Einschalten hat zu lange gedauert. Bitte noch einmal von vorn.',
+    two_factor_active: 'Die Zwei-Faktor-Anmeldung ist schon eingeschaltet.',
     password_change_required: 'Bitte ändere zuerst das Erstpasswort.',
     admin_not_set_up: 'Die Verwaltung ist noch nicht eingerichtet (posteulen-cli admin-init).',
     contact_limit: 'Heute sind keine weiteren Anfragen möglich (höchstens 20 pro Tag).',

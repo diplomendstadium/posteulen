@@ -35,6 +35,12 @@ export interface Config {
   readonly torSwitchFile: string;
   /** v1.2.1: measurements of posteulen-stats.timer for the server dashboard (SPEC 13 item 13). */
   readonly serverLoadFile: string;
+  /** v1.4.3: what the root helpers found for „Server der Instanz“ (SPEC 13 item 13). */
+  readonly serverInfoFile: string;
+  readonly blocklistFile: string;
+  readonly autoUpdateFile: string;
+  /** v1.4.3: the switch of the nightly updates, read by deploy/auto-update.sh (SPEC 16.3). */
+  readonly autoUpdateSwitchFile: string;
   readonly logLevel: string;
   /**
    * v1.4.2: the instance runs in the Tor network only (SPEC 16.6, `install.sh --tor-only`): no
@@ -121,6 +127,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     botsTorPort: readPort(env['POSTEULEN_BOTS_TOR_PORT'], 3009),
     torSwitchFile: path.join(dataDir, 'tor-switch'),
     serverLoadFile: path.join(dataDir, 'server-load'),
+    serverInfoFile: path.join(dataDir, 'server-info'),
+    blocklistFile: path.join(dataDir, 'blocklists'),
+    autoUpdateFile: path.join(dataDir, 'auto-update'),
+    autoUpdateSwitchFile: path.join(dataDir, 'auto-update-switch'),
     logLevel: env['POSTEULEN_LOG_LEVEL'] ?? 'info',
     torOnly,
   };

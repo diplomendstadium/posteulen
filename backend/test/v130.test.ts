@@ -251,10 +251,10 @@ describe('rescue centre: own owls (SPEC 8.13, 9.8)', () => {
 });
 
 describe('rescue centre: wild owls (SPEC 8.13)', () => {
-  it('one wild owl per account (v1.3.1), never the phoenix or the Great Horned Owl, names suit the sex', async () => {
+  it('two wild owls per account (v1.4.3), never the phoenix or the Great Horned Owl, names suit the sex', async () => {
     setRandom(seeded());
     const wild = (await rescue(anna)).wild;
-    expect(wild).toHaveLength(1);
+    expect(wild).toHaveLength(2);
     for (const owl of wild) {
       expect(['phoenix', 'virginiauhu']).not.toContain(owl.species);
       const { owlNames } = await import('@posteulen/shared/names-data.ts');
@@ -274,10 +274,10 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
     expect((await rescue(anna)).wild.map((owl) => owl.id)).toEqual(wild.map((owl) => owl.id));
   });
 
-  it('a healed wild owl joins as a post owl or flies off; three from before are used up first (v1.3.1)', async () => {
+  it('a healed wild owl joins as a post owl or flies off; three from before are used up to two (v1.4.3)', async () => {
     const [first] = (await rescue(anna)).wild;
-    // Two more wild owls from v1.3.0 (three per account then); they keep their number.
-    for (const slot of [1, 2]) {
+    // A third wild owl from v1.3.0 (three per account then); it keeps its number.
+    for (const slot of [2]) {
       app.db.run(
         `INSERT INTO rescue_wild (id, user_id, slot, species, sex, name, needed, created_at)
          VALUES (?, ?, ?, 'waldkauz', 'f', 'Alt', 17, 0)`,
@@ -328,15 +328,15 @@ describe('rescue centre: wild owls (SPEC 8.13)', () => {
       {},
     );
     expect(free.body).toEqual({ stays: false, owlId: null });
-    // One from before is still there: no new one yet.
-    expect((await rescue(anna)).wild.map((owl) => owl.id)).toEqual([third!.id]);
-    app.db.run('UPDATE rescue_wild SET needed = 1 WHERE id = ?', third!.id);
-    await anna.agent.json('POST', `/api/rescue/wild/${third!.id}/medicine`, {});
-    await anna.agent.json('POST', `/api/rescue/wild/${third!.id}/release`, {});
-    // All gone: exactly one new wild owl.
+    // Only one from before is left: exactly one new wild owl in the lowest free slot.
     const now = (await rescue(anna)).wild;
-    expect(now).toHaveLength(1);
-    expect([first!.id, second!.id, third!.id]).not.toContain(now[0]!.id);
+    expect(now).toHaveLength(2);
+    expect(now.map((owl) => owl.id)).toContain(third!.id);
+    const fresh = now.find((owl) => owl.id !== third!.id)!;
+    expect([first!.id, second!.id]).not.toContain(fresh.id);
+    expect(
+      app.db.get<{ slot: number }>('SELECT slot FROM rescue_wild WHERE id = ?', fresh.id)?.slot,
+    ).toBe(0);
   });
 
   it('at the most own owls a healed wild owl always flies off into freedom (v1.4)', async () => {

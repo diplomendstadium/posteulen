@@ -310,9 +310,13 @@ export function registerBotsCentreRoutes(app: FastifyInstance, ctx: Context): vo
       body.dueAt ?? ctx.now(),
     );
     const previousText = previous ? eventText(previous, 'follow', body.language) : '';
+    // v1.4.3: as in a real reply, the letter goes through the safety filter first (SPEC 10.5).
+    const filtered = await ctx.centralBots.filterTest(body.playerLetter);
+    if (!('text' in filtered)) return { problem: filtered.problem };
+    if (filtered.text === '') return { problem: 'filtered' };
     const result = await ctx.centralBots.ask(bot, null, body.language, body.context, {
       ...(body.planned.trim() !== '' ? { planned: body.planned } : {}),
-      letters: [{ plaintext: body.playerLetter }],
+      letters: [{ plaintext: filtered.text }],
       ...(previousText.trim() !== ''
         ? { history: [{ role: 'assistant' as const, content: previousText }] }
         : {}),

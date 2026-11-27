@@ -6,15 +6,28 @@
  */
 import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { TIME } from '@posteulen/shared/constants.ts';
+import { TIME, TWO_FACTOR } from '@posteulen/shared/constants.ts';
 import {
   AdminLoginStart,
   AdminPasswordFinish,
   AdminPasswordStart,
   AdminReauthStart,
   LoginFinish,
+  LoginTwoFactor,
+  ReauthFinish,
+  TwoFactorDisable,
+  TwoFactorEnable,
+  TwoFactorSetup,
   type LoginStartResponse,
 } from '@posteulen/shared/schemas/auth.ts';
+import {
+  checkSecondFactor,
+  disableTwoFactor,
+  finishSetup,
+  startSetup,
+  twoFactorActive,
+  twoFactorStatus,
+} from '../auth/two-factor.ts';
 import type { Context } from '../context.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { randomId, randomToken, sha256 } from '../security/ids.ts';
@@ -174,8 +187,50 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     }
     // v1.0: a login that started before a password change must not finish after it.
     if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
-    guard.reset(attempt.nameKey);
-    ctx.guards.ips.succeed(attempt.ipKey);
+    // v1.4.3: with a second factor the password alone opens nothing yet (SPEC 5.11).
+    if (twoFactorActive(ctx.db, panel.key)) {
+      const ticket = randomId();
+      ctx.twoFactorTickets.set(
+        ticket,
+        {
+          subject: panel.key,
+          userId: null,
+          nameKey: attempt.nameKey,
+          ipKey: attempt.ipKey,
+          record: attempt.record ?? '',
+          tries: 0,
+        },
+        TWO_FACTOR.TICKET_MINUTES * TIME.MINUTE,
+        now,
+      );
+      return { twoFactor: true, ticket };
+    }
+    return openSession(attempt.nameKey, attempt.ipKey, reply);
+  });
+
+  app.post('/api/login/two-factor', async (request, reply) => {
+    const body = parse(LoginTwoFactor, request.body);
+    const now = ctx.now();
+    const ticket = ctx.twoFactorTickets.get(body.ticket, now);
+    if (!ticket || ticket.subject !== panel.key) throw new HttpError(401, 'login_failed');
+    if (panelRecord().opaque_record !== ticket.record) throw new HttpError(401, 'login_failed');
+    if (!(await checkSecondFactor(ctx, panel.key, body.code, now))) {
+      ticket.tries += 1;
+      guard.fail(ticket.nameKey, now);
+      if (ticket.tries >= TWO_FACTOR.TICKET_TRIES) {
+        ctx.twoFactorTickets.delete(body.ticket);
+        throw new HttpError(401, 'login_failed');
+      }
+      throw new HttpError(401, 'two_factor_wrong');
+    }
+    ctx.twoFactorTickets.delete(body.ticket);
+    return openSession(ticket.nameKey, ticket.ipKey, reply);
+  });
+
+  function openSession(nameKey: string, ipKey: string, reply: import('fastify').FastifyReply) {
+    const now = ctx.now();
+    guard.reset(nameKey);
+    ctx.guards.ips.succeed(ipKey);
     const token = randomToken();
     ctx.db.transaction(() => {
       ctx.db.run(`DELETE FROM ${panel.sessions} WHERE last_used_at < ?`, now - panel.idleMs);
@@ -191,7 +246,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
       `SELECT must_change_password FROM ${panel.table} WHERE id = 1`,
     );
     return { mustChangePassword: admin?.must_change_password === 1 };
-  });
+  }
 
   app.post('/api/logout', { preHandler: [authenticated, emptyBody] }, async (request, reply) => {
     ctx.db.run(`DELETE FROM ${panel.sessions} WHERE token_hash = ?`, sessionOf(request).tokenHash);
@@ -218,6 +273,8 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
 
   app.get('/api/me', { preHandler: authenticated }, async (request) => ({
     mustChangePassword: sessionOf(request).mustChangePassword,
+    // v1.4.3: second factor switched on, backup codes left (SPEC 5.11).
+    twoFactor: twoFactorStatus(ctx.db, panel.key),
   }));
 
   // ── Passwort ändern (Pflicht beim ersten Login, SPEC 13 item 8) ──
@@ -247,6 +304,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
         nameKey: name,
         ipKey: ip,
         serverLoginState,
+        purpose: body.purpose ?? 'password',
         record: admin.opaque_record,
       },
       TIME.MINUTE,
@@ -256,7 +314,7 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   });
 
   app.post('/api/reauth/finish', { preHandler: authenticated }, async (request) => {
-    const body = parse(LoginFinish, request.body);
+    const body = parse(ReauthFinish, request.body);
     const now = ctx.now();
     const attempt = ctx.attempts.take(body.attemptId, now);
     if (!attempt || attempt.kind !== panel.reauthKind) throw new HttpError(401, 'login_failed');
@@ -270,11 +328,19 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     }
     // v1.0: a login that started before a password change must not finish after it.
     if (panelRecord().opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
+    // v1.4.3: also the second factor, if it is on (SPEC 5.11).
+    if (
+      twoFactorActive(ctx.db, panel.key) &&
+      (body.code === undefined || !(await checkSecondFactor(ctx, panel.key, body.code, now)))
+    ) {
+      guard.fail(attempt.nameKey, now);
+      throw new HttpError(401, 'two_factor_wrong');
+    }
     guard.reset(attempt.nameKey);
     const token = randomId();
     ctx.reauthTokens.set(
       token,
-      { subject: panel.key, purpose: `${panel.key}-password` },
+      { subject: panel.key, purpose: `${panel.key}-${attempt.purpose ?? 'password'}` },
       5 * TIME.MINUTE,
       now,
     );
@@ -284,7 +350,8 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
   app.post('/api/password/start', { preHandler: authenticated }, async (request) => {
     const body = parse(AdminPasswordStart, request.body);
     const token = ctx.reauthTokens.get(body.token, ctx.now());
-    if (token?.subject !== panel.key) throw new HttpError(403, 'reauth_required');
+    if (token?.subject !== panel.key || token.purpose !== `${panel.key}-password`)
+      throw new HttpError(403, 'reauth_required');
     const { registrationResponse } = opaqueStep(() =>
       opaque.server.createRegistrationResponse({
         serverSetup: ctx.secrets.opaqueServerSetup,
@@ -299,7 +366,8 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     const body = parse(AdminPasswordFinish, request.body);
     const now = ctx.now();
     const token = ctx.reauthTokens.get(body.token, now);
-    if (token?.subject !== panel.key) throw new HttpError(403, 'reauth_required');
+    if (token?.subject !== panel.key || token.purpose !== `${panel.key}-password`)
+      throw new HttpError(403, 'reauth_required');
     // v0.6.1: a record the server cannot use would lock the admin out.
     checkRegistrationRecord(
       ctx.secrets.opaqueServerSetup,
@@ -323,6 +391,34 @@ export function registerPanelAuth(app: FastifyInstance, ctx: Context, panel: Pan
     });
     setSessionCookie(reply, spec, session);
     return { ok: true };
+  });
+
+  // ── Zweiter Faktor (SPEC 5.11) – ein- und ausschalten nur nach erneuter Anmeldung ──
+  const twoFactorToken = (token: string): void => {
+    const found = ctx.reauthTokens.get(token, ctx.now());
+    if (found?.subject !== panel.key || found.purpose !== `${panel.key}-two_factor`)
+      throw new HttpError(403, 'reauth_required');
+    ctx.reauthTokens.delete(token);
+  };
+
+  app.post('/api/two-factor/setup', { preHandler: authenticated }, async (request) => {
+    const body = parse(TwoFactorSetup, request.body);
+    twoFactorToken(body.token);
+    const account = panel.key === 'admin' ? 'Adminpanel' : 'Bots-Kontrollzentrum';
+    return startSetup(ctx, panel.key, `${account} ${new URL(panel.origin).hostname}`, ctx.now());
+  });
+
+  app.post('/api/two-factor/enable', { preHandler: authenticated }, async (request) => {
+    const body = parse(TwoFactorEnable, request.body);
+    const codes = await finishSetup(ctx, panel.key, null, body.code, ctx.now());
+    return { backupCodes: codes, twoFactor: twoFactorStatus(ctx.db, panel.key) };
+  });
+
+  app.post('/api/two-factor/disable', { preHandler: authenticated }, async (request) => {
+    const body = parse(TwoFactorDisable, request.body);
+    twoFactorToken(body.token);
+    disableTwoFactor(ctx.db, panel.key);
+    return { twoFactor: twoFactorStatus(ctx.db, panel.key) };
   });
 
   return authenticated;

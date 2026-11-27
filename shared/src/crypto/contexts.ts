@@ -28,4 +28,7 @@ export const SERVER_CONTEXTS = {
   VOUCHER: 'PostEulen/server/voucher/v1',
   /** v1.1: the Christmas parchment of a conversation (8.4). */
   CHRISTMAS_PAPER: 'PostEulen/server/christmas-paper/v1',
+  /** v1.4.3: TOTP secrets (encrypted) and backup codes (HMAC) of the second factor (SPEC 5.11). */
+  TWO_FACTOR: 'PostEulen/server/two-factor/v1',
+  TWO_FACTOR_BACKUP: 'PostEulen/server/two-factor-backup/v1',
 } as const;

@@ -142,15 +142,21 @@ function rollWild(ctx: Context, userId: string, slot: number, now: number): void
 }
 
 /**
- * v1.3.1: there is one wild sick owl (rolled on the first visit and after it leaves). Accounts
- * that still have wild owls from before (three until v1.3.0) get a new one only once all of
- * them have left.
+ * v1.4.3: there are two wild sick owls (rolled on the first visit and after one leaves; v1.3.1:
+ * one). Accounts that still have more wild owls from before (three until v1.3.0) get a new one
+ * only once fewer than two are left. A new owl takes the lowest free slot.
  */
 export function ensureWild(ctx: Context, userId: string, now: number): void {
-  const count =
-    ctx.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM rescue_wild WHERE user_id = ?', userId)
-      ?.n ?? 0;
-  for (let slot = count; slot < RESCUE.WILD_SLOTS; slot++) rollWild(ctx, userId, slot, now);
+  const used = new Set(
+    ctx.db
+      .all<{ slot: number }>('SELECT slot FROM rescue_wild WHERE user_id = ?', userId)
+      .map((row) => row.slot),
+  );
+  for (let slot = 0; used.size < RESCUE.WILD_SLOTS; slot++) {
+    if (used.has(slot)) continue;
+    rollWild(ctx, userId, slot, now);
+    used.add(slot);
+  }
 }
 
 // ── View ──────────────────────────────────────────────────────────────────────────────────

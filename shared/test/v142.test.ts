@@ -81,6 +81,8 @@ describe('short picture descriptions (SPEC 14)', () => {
     texts.post.insideChristmasDay,
     texts.post.insideChristmasNight,
     texts.images.placeholderAlt,
+    // v1.4.3
+    texts.twoFactor.qrAlt,
   ];
 
   it.each([

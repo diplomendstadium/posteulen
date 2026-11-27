@@ -95,8 +95,8 @@ describe('rescue centre (SPEC 8.13, 9.8)', () => {
     expect(ids).toHaveLength(SPECIES.length - 2);
     expect(pickWildSpecies(0).id).toBe(ids[0]);
     expect(pickWildSpecies(0.9999999).id).toBe(ids.at(-1));
-    // v1.3.1: one wild owl per account.
-    expect(RESCUE.WILD_SLOTS).toBe(1);
+    // v1.4.3: two wild owls per account.
+    expect(RESCUE.WILD_SLOTS).toBe(2);
   });
 
   it('progress in whole per cent, 100 only when done', () => {

@@ -36,6 +36,16 @@ export interface LoginAttempt {
   readonly record: string | null;
 }
 
+/** v1.4.3: a login waiting for the code of the second factor (SPEC 5.11). */
+export interface TwoFactorTicket {
+  readonly subject: string;
+  readonly userId: string | null;
+  readonly nameKey: string;
+  readonly ipKey: string;
+  readonly record: string;
+  tries: number;
+}
+
 export interface Reservation {
   readonly userId: string;
   readonly display: string;
@@ -88,6 +98,9 @@ export interface Context {
   readonly attempts: Ephemeral<LoginAttempt>;
   readonly reservations: Ephemeral<Reservation>;
   readonly reauthTokens: Ephemeral<ReauthToken>;
+  /** v1.4.3: second factor – setups waiting for their first code, logins waiting for a code. */
+  readonly twoFactorSetups: Ephemeral<{ readonly secret: Uint8Array }>;
+  readonly twoFactorTickets: Ephemeral<TwoFactorTicket>;
   readonly letterTokens: Ephemeral<TransportToken>;
   readonly hub: EventHub;
   readonly queue: EventQueue;
@@ -216,6 +229,8 @@ export async function createContext(
     attempts: new Ephemeral(),
     reservations: new Ephemeral(),
     reauthTokens: new Ephemeral(),
+    twoFactorSetups: new Ephemeral(),
+    twoFactorTickets: new Ephemeral(),
     letterTokens: new Ephemeral(),
     hub: new EventHub(),
     queue: new EventQueue(db, now),

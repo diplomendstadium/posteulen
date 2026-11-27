@@ -50,7 +50,8 @@ export function adminExists(db: Database, table: PanelTable = 'admin'): boolean 
 
 /**
  * Sets a new one-time password (setup or reset). Ends all admin sessions; user data is not
- * touched (SPEC 13).
+ * touched (SPEC 13). v1.4.3: also switches off the second factor of the panel – the way back in
+ * for whoever has root on the server (SPEC 5.11).
  */
 export async function setInitialAdminPassword(
   db: Database,
@@ -71,6 +72,7 @@ export async function setInitialAdminPassword(
       record,
     );
     db.run(`DELETE FROM ${SESSIONS[table]}`);
+    db.run('DELETE FROM two_factor WHERE subject = ?', table === 'admin' ? 'admin' : 'bots');
   });
   return password;
 }

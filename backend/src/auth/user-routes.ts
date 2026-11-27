@@ -7,7 +7,7 @@ import { giftBlockOf } from '../accounts/stats.ts';
 import { dailyWage } from '@posteulen/shared/game/gold.ts';
 import * as opaque from '@serenity-kit/opaque';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { ACCOUNT, GOLD, LETTER, TIME } from '@posteulen/shared/constants.ts';
+import { ACCOUNT, GOLD, LETTER, TIME, TWO_FACTOR } from '@posteulen/shared/constants.ts';
 import { privilegeOf } from '../gold/privilege.ts';
 import { fromBase64Url, toBase64Url } from '@posteulen/shared/crypto/encoding.ts';
 import { isLand, roundHome } from '@posteulen/shared/map/landmask.ts';
@@ -15,9 +15,14 @@ import { checkUserName, normalizeName } from '@posteulen/shared/names.ts';
 import {
   LoginFinish,
   LoginStart,
+  LoginTwoFactor,
   PasswordFinish,
   PasswordStart,
+  ReauthFinish,
   ReauthStart,
+  TwoFactorDisable,
+  TwoFactorEnable,
+  TwoFactorSetup,
   RegisterFinish,
   RegisterStart,
   type LoginStartResponse,
@@ -35,6 +40,15 @@ import { footerOnionLink, instanceLinks } from '../ops/tor.ts';
 import { cachedInstanceStats, webHost } from '../accounts/instance.ts';
 import { effectiveRegistrationMode, inviteHmac, findValidInvite } from '../admin/settings.ts';
 import { checkPublicKeys, checkRegistrationRecord, opaqueStep } from './opaque-guard.ts';
+import {
+  checkSecondFactor,
+  disableTwoFactor,
+  finishSetup,
+  startSetup,
+  twoFactorActive,
+  twoFactorStatus,
+  userSubject,
+} from './two-factor.ts';
 import {
   clearSessionCookie,
   userCookieSpec,
@@ -341,10 +355,72 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     } catch {
       throw new HttpError(401, 'login_failed');
     }
-    if (attempt.userId === null) throw new HttpError(401, 'login_failed');
-    const userId = attempt.userId;
-    ctx.guards.names.reset(attempt.nameKey);
-    ctx.guards.ips.succeed(attempt.ipKey);
+    if (attempt.userId === null || attempt.record === null)
+      throw new HttpError(401, 'login_failed');
+    // v1.4.3: with a second factor the password alone opens nothing yet – the login waits for a
+    // code (SPEC 5.11). Until then it still counts as a failure (D-19).
+    if (twoFactorActive(ctx.db, userSubject(attempt.userId))) {
+      const current = ctx.db.get<{ opaque_record: string }>(
+        "SELECT opaque_record FROM users WHERE id = ? AND state != 'deleting'",
+        attempt.userId,
+      );
+      if (current?.opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
+      const ticket = randomId();
+      ctx.twoFactorTickets.set(
+        ticket,
+        {
+          subject: userSubject(attempt.userId),
+          userId: attempt.userId,
+          nameKey: attempt.nameKey,
+          ipKey: attempt.ipKey,
+          record: attempt.record,
+          tries: 0,
+        },
+        TWO_FACTOR.TICKET_MINUTES * TIME.MINUTE,
+        now,
+      );
+      return { twoFactor: true, ticket };
+    }
+    return completeLogin(attempt.userId, attempt.nameKey, attempt.ipKey, attempt.record, reply);
+  });
+
+  // v1.4.3: second step of a login with a second factor (SPEC 5.11).
+  app.post('/api/login/two-factor', async (request, reply) => {
+    limit(ctx, 'expensive', request);
+    const body = parse(LoginTwoFactor, request.body);
+    const now = ctx.now();
+    const ticket = ctx.twoFactorTickets.get(body.ticket, now);
+    if (!ticket || ticket.userId === null) throw new HttpError(401, 'login_failed');
+    const matched = await checkSecondFactor(
+      ctx,
+      ticket.subject as `user:${string}`,
+      body.code,
+      now,
+    );
+    if (!matched) {
+      ticket.tries += 1;
+      ctx.guards.names.fail(ticket.nameKey, now);
+      if (ticket.tries >= TWO_FACTOR.TICKET_TRIES) {
+        ctx.twoFactorTickets.delete(body.ticket);
+        throw new HttpError(401, 'login_failed');
+      }
+      throw new HttpError(401, 'two_factor_wrong');
+    }
+    ctx.twoFactorTickets.delete(body.ticket);
+    return completeLogin(ticket.userId, ticket.nameKey, ticket.ipKey, ticket.record, reply);
+  });
+
+  /** The end of every successful login: one session, keys and profile (SPEC 5.3). */
+  function completeLogin(
+    userId: string,
+    nameKey: string,
+    ipKey: string,
+    record: string,
+    reply: import('fastify').FastifyReply,
+  ) {
+    const now = ctx.now();
+    ctx.guards.names.reset(nameKey);
+    ctx.guards.ips.succeed(ipKey);
     const result = ctx.db.transaction(() => {
       const user = ctx.db.get<{ state: string; opaque_record: string }>(
         'SELECT state, opaque_record FROM users WHERE id = ?',
@@ -353,7 +429,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       if (!user || user.state === 'deleting') throw new HttpError(401, 'login_failed');
       // v1.0: a login that started before a password change must not finish after it – the old
       // password would otherwise still open a session for up to a minute.
-      if (user.opaque_record !== attempt.record) throw new HttpError(401, 'login_failed');
+      if (user.opaque_record !== record) throw new HttpError(401, 'login_failed');
       // Only one session: a login ends all others, including their push subscription (SPEC 5.3).
       ctx.db.run('DELETE FROM sessions WHERE user_id = ?', userId);
       ctx.db.run('DELETE FROM push_subscriptions WHERE user_id = ?', userId);
@@ -380,7 +456,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       ...keyMaterial(ctx, userId),
       profile: profileOf(ctx, userId),
     };
-  });
+  }
 
   app.post('/api/logout', { preHandler: [authenticated, emptyBody] }, async (request, reply) => {
     const user = userOf(request);
@@ -454,7 +530,7 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
 
   app.post('/api/reauth/finish', { preHandler: authenticated }, async (request) => {
     accountLimit(ctx, request);
-    const body = parse(LoginFinish, request.body);
+    const body = parse(ReauthFinish, request.body);
     const now = ctx.now();
     const attempt = ctx.attempts.take(body.attemptId, now);
     if (!attempt || attempt.kind !== 'reauth' || attempt.userId !== userOf(request).id) {
@@ -473,6 +549,15 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
     } catch {
       throw new HttpError(401, 'login_failed');
     }
+    // v1.4.3: before a critical action also the second factor, if it is on (SPEC 5.11).
+    const subject = userSubject(attempt.userId);
+    if (
+      twoFactorActive(ctx.db, subject) &&
+      (body.code === undefined || !(await checkSecondFactor(ctx, subject, body.code, now)))
+    ) {
+      ctx.guards.names.fail(attempt.nameKey, now);
+      throw new HttpError(401, 'two_factor_wrong');
+    }
     ctx.guards.names.reset(attempt.nameKey);
     ctx.guards.ips.succeed(attempt.ipKey);
     const token = randomId();
@@ -483,6 +568,49 @@ export function registerUserRoutes(app: FastifyInstance, ctx: Context): void {
       now,
     );
     return { token, ...keyMaterial(ctx, attempt.userId) };
+  });
+
+  // ── Zweiter Faktor (SPEC 5.11) – ein- und ausschalten nur nach erneuter Anmeldung ──
+  const reauthFor = (request: FastifyRequest, token: string): string => {
+    const userId = userOf(request).id;
+    const found = ctx.reauthTokens.get(token, ctx.now());
+    if (!found || found.subject !== userId || found.purpose !== 'two_factor')
+      throw new HttpError(403, 'reauth_required');
+    return userId;
+  };
+
+  app.post('/api/two-factor/setup', { preHandler: authenticated }, async (request) => {
+    accountLimit(ctx, request);
+    const body = parse(TwoFactorSetup, request.body);
+    const userId = reauthFor(request, body.token);
+    ctx.reauthTokens.delete(body.token);
+    const name = ctx.db.get<{ name_display: string }>(
+      'SELECT name_display FROM users WHERE id = ?',
+      userId,
+    );
+    return startSetup(ctx, userSubject(userId), name?.name_display ?? 'PostEulen', ctx.now());
+  });
+
+  app.post('/api/two-factor/enable', { preHandler: authenticated }, async (request) => {
+    accountLimit(ctx, request);
+    const body = parse(TwoFactorEnable, request.body);
+    const userId = userOf(request).id;
+    const now = ctx.now();
+    const codes = await finishSetup(ctx, userSubject(userId), userId, body.code, now);
+    addSystemMessage(ctx, userId, 'two_factor_on', {}, now);
+    return { backupCodes: codes, profile: profileOf(ctx, userId) };
+  });
+
+  app.post('/api/two-factor/disable', { preHandler: authenticated }, async (request) => {
+    accountLimit(ctx, request);
+    const body = parse(TwoFactorDisable, request.body);
+    const userId = reauthFor(request, body.token);
+    ctx.reauthTokens.delete(body.token);
+    if (twoFactorActive(ctx.db, userSubject(userId))) {
+      disableTwoFactor(ctx.db, userSubject(userId));
+      addSystemMessage(ctx, userId, 'two_factor_off', {}, ctx.now());
+    }
+    return { profile: profileOf(ctx, userId) };
   });
 
   // ── Passwortwechsel (SPEC 5.6) ──
@@ -630,5 +758,7 @@ export function profileOf(ctx: Context, userId: string) {
     privileged: privilegeOf(ctx.db, userId, ctx.now()),
     // v1.4: a planned or running holiday – the banner at the top (SPEC 8.10, 9.12).
     vacation: vacationView(ctx, userId, ctx.now()).current,
+    // v1.4.3: second factor switched on, backup codes left (SPEC 5.11).
+    twoFactor: twoFactorStatus(ctx.db, userSubject(userId)),
   };
 }

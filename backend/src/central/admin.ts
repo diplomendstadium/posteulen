@@ -81,7 +81,8 @@ export function updateSettings(
   // Renaming keeps the conversations: everything hangs on the stable ID (SPEC 10.6).
   ctx.db.run(
     `UPDATE central_bots SET name = ?, name_key = ?, character = ?, home_lat = ?, home_lon = ?, owl_mode = ?,
-            owl_species = ?, owl_name = ?, motivation = ?, rest_hours = ?, player_owls = ?, updated_at = ?
+            owl_species = ?, owl_name = ?, owl_sex = ?, motivation = ?, rest_hours = ?, player_owls = ?,
+            updated_at = ?
       WHERE id = ?`,
     name.display,
     name.key,
@@ -91,6 +92,8 @@ export function updateSettings(
     input.owlMode,
     input.owlSpecies,
     owlName === '' ? null : owlName,
+    // v1.4.3: chosen in the control centre (SPEC 10.6); flights already on their way keep theirs.
+    input.owlSex ?? bot.owl_sex,
     input.motivation,
     input.restHours,
     input.playerOwls ? 1 : 0,

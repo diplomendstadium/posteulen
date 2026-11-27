@@ -28,6 +28,10 @@ import { registerAdminOperations } from './operations.ts';
 import { registerPanelAuth } from './panel-auth.ts';
 import { setPanelTorEnabled, setTorEnabled, torOverview } from '../ops/tor.ts';
 import { serverLoad } from './server-load.ts';
+import { serverInfo, setAutoUpdate } from './server-info.ts';
+
+/** v1.4.3: the switch of the nightly automatic updates (SPEC 13 item 13, 16.3). */
+const AutoUpdate = v.strictObject({ enabled: v.boolean() });
 
 /** Error log IDs are positive integers in decimal notation (no `1e2`, no signs). */
 const ErrorLogId = v.pipe(v.string(), v.regex(/^[1-9][0-9]{0,14}$/));
@@ -51,6 +55,15 @@ export function registerAdminRoutes(app: FastifyInstance, ctx: Context): void {
   app.get('/api/server-load', { preHandler: authenticated }, async () =>
     serverLoad(ctx.config.serverLoadFile, ctx.config.dataDir, ctx.now()),
   );
+
+  // ── Server der Instanz (v1.4.3): Laufzeit, Updates, Blocklisten, automatische Updates ──
+  app.get('/api/server-info', { preHandler: authenticated }, async () => serverInfo(ctx));
+
+  app.put('/api/settings/auto-update', { preHandler: authenticated }, async (request) => {
+    const body = parse(AutoUpdate, request.body);
+    setAutoUpdate(ctx, body.enabled);
+    return serverInfo(ctx);
+  });
 
   // ── Registrierung und Einladungscodes (SPEC 13 item 3) ──
   app.get('/api/settings/registration', { preHandler: authenticated }, async () => ({

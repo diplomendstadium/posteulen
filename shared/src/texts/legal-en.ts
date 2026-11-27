@@ -18,6 +18,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
       [
         'Account: user name, fictional home (rounded to about 1 km), day of registration, day of your last activity (only the day, no time, no history) and the language of the app you have chosen.',
         'Sign-in: an OPAQUE record. Your password cannot be derived from it; the password itself never leaves your device.',
+        'Two-factor sign-in (only if you switch it on): the secret for the codes of your app, encrypted with a key of the server, when you switched it on, the last time step used and the unused backup codes only as values that cannot be reversed. Switching it off or deleting the account removes all of it.',
         `Session: a check value of your session cookie and the time it was last used; deleted after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days without use.`,
         'Keys: your public keys readably, your private keys and your contact vault only encrypted. Only your device knows the key for them while you are signed in.',
         'Contacts: who is connected with whom, open contact requests (at most 24 hours) and key warnings.',
@@ -46,6 +47,7 @@ export const PRIVACY_SECTIONS_EN: readonly HelpSection[] = [
     blocks: [
       en.bots.notice,
       'To reply, the server sends the bot’s role text, a short summary of your letters, the last 6 letters (for bots from the control centre the last 15) and your new letter to OpenAI (OpenAI, L.L.C., USA or OpenAI Ireland Ltd.). Names, user IDs or other identifiers are not transmitted, and storage at OpenAI is switched off as far as the interface allows (store: false). OpenAI may still keep requests for a limited time to detect abuse. So do not write anything personal to bots.',
+      'Before every reply, each of your letters to a bot first goes to OpenAI on its own, with the request to remove only the sentences and paragraphs about drugs, sexuality and violence. The server stores this cleaned version with the letter (in plain text, like the letter itself) and sends only that to OpenAI for replies and summaries; it is deleted with the letter.',
       'The summary is stored in plain text with the bot chat. It is deleted when you delete the chat, remove the bot or your account is deleted.',
       'Besides the Explainer Bear there are bots that the operator creates in the bots control centre. Their planned letters go to all accounts that have not removed bots; if you have written to such a bot, the AI adapts its next letter to you. In the control centre the operator only sees totals (letters sent, delivered, read, replies) and, on a map, where bot owls are flying or resting right now – without names, but a resting owl sits at your fictional home. The daily backup of the bots only contains their settings, planned letters and pictures, no letters of players. Sent events of a bot are deleted for good 36 months after sending, together with their deliveries to players.',
       'If you do not want this, simply do not write to the bots or remove them in their chat – or all of them, future ones included, in the settings.',

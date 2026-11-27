@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.4.3',
+    title: 'Ein zweites Schloss am Eulenturm: Version 1.4.3',
+    paragraphs: [
+      'Der Hausmeister hat neue Schlösser eingebaut und die Rettungsstation hat wieder mehr Platz:',
+      '• Zwei-Faktor-Anmeldung: In den Einstellungen kannst du jetzt ein zweites Schloss einschalten. Dann brauchst du beim Anmelden außer deinem Passwort einen sechsstelligen Code aus einer App wie KeePassXC, Aegis oder FreeOTP. Du bekommst dazu zehn Notfallcodes – bewahre sie gut auf! Wer weder die App noch einen Notfallcode hat, kommt nicht mehr ins Konto, auch du nicht.',
+      '• In der Rettungsstation warten jetzt wieder zwei wilde Eulen auf deine Pflege.',
+      '• Lässt sich ein Brief nicht abschicken, springt die Seite direkt zur Meldung, die dir sagt, warum.',
+      '• Die Bots lesen deine Briefe jetzt mit einer Lupe: Absätze über Drogen, Sexualität oder Gewalt überspringen sie und gehen nicht darauf ein.',
+      '• Und der Eulenturm hält sich nachts selbst auf dem neuesten Stand.',
+      'Frohes Schreiben!',
+    ],
+  },
+  {
     version: '1.4.2',
     title: 'Zwillingsfedern: Version 1.4.2',
     paragraphs: [
@@ -511,6 +524,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.4.3',
+    title: 'A second lock on the owl tower: version 1.4.3',
+    paragraphs: [
+      'The caretaker has fitted new locks, and the rescue centre has more room again:',
+      '• Two-factor sign-in: in the settings you can now switch on a second lock. Signing in then needs a six-digit code from an app such as KeePassXC, Aegis or FreeOTP besides your password. You get ten backup codes with it – keep them safe! Anyone who has neither the app nor a backup code can no longer get into the account, not even you.',
+      '• Two wild owls are waiting for your care in the rescue centre again.',
+      '• If a letter cannot be sent, the page now jumps straight to the message that tells you why.',
+      '• The bots now read your letters with a magnifying glass: they skip paragraphs about drugs, sexuality or violence and do not go into them.',
+      '• And the owl tower now keeps itself up to date at night.',
+      'Happy writing!',
+    ],
+  },
   {
     version: '1.4.2',
     title: 'Twin feathers: version 1.4.2',

@@ -13,6 +13,8 @@ export type SystemMessageType =
   | 'key_warning'
   | 'letter_returned'
   | 'password_changed'
+  | 'two_factor_on'
+  | 'two_factor_off'
   | 'owl_home'
   | 'gold_arrived'
   | 'owl_gift_received'

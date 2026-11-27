@@ -72,6 +72,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Letters between people are encrypted on your device with XChaCha20-Poly1305 and signed with Ed25519. Only sender and recipient get the key for each letter, wrapped according to the HPKE standard (RFC 9180).',
         'Your password never leaves your device. Signing in uses OPAQUE (RFC 9807): the server can neither see your password nor guess it from its database.',
         'With the safety number you check that really nobody is sitting in between.',
+        'If you like, switch on two-factor sign-in: then even a guessed or overheard password is not enough to get into your account.',
         'Only proven, openly reviewed libraries are used (libsodium, hpke-js, OPAQUE by Serenity) – no home-made cryptography. The source code is open.',
       ],
       'What PostEulen cannot hide: who writes to whom and when (metadata). And anyone holding your unlocked device can read your letters. Letters to bots and system messages are not encrypted.',
@@ -104,6 +105,7 @@ const SECTIONS: readonly HelpSection[] = [
       'When creating your account you set a fictional home on the map with a pin – think carefully about whether you want to choose your real address. That is where your owls live and where they take off from.',
       'You can only be signed in on one device at a time. If you sign in on another device, the session on the old one ends – this also applies when switching between the normal address and the Tor network. This is also a safeguard: if someone else is using your password, you keep getting signed out and notice at once – then change your password straight away. After several wrong passwords you have to wait a little and let a small sum be solved (your device does that automatically).',
       `Without use, you are signed out after ${ACCOUNT.USER_SESSION_IDLE_DAYS} days. When you sign out, PostEulen deletes all keys from your device and also forgets everything it remembered about your contacts – if someone else then signs in in the same window, they see nothing of it. The next time you sign in, PostEulen fetches your keys back from the server, encrypted.`,
+      'Two-factor sign-in: if you like, you switch on a second lock in the settings. Signing in then needs, besides the password, a six-digit code that an app on your phone or computer makes anew every 30 seconds – KeePassXC, Aegis or FreeOTP, for example (the method is called TOTP). When switching it on, you scan a QR code with the app or type in the key, and you get ten backup codes once. Each backup code lets you in exactly once without the app, and with it you can also switch two-factor sign-in off. You also need the code before you change your password, delete your account or switch two-factor sign-in on or off. Important: if you have neither the app nor a backup code, your account stays locked for good – nobody can open it again, not even the admin.',
     ],
   },
   {
@@ -379,7 +381,7 @@ const SECTIONS: readonly HelpSection[] = [
     title: 'The owl rescue centre',
     blocks: [
       'On the overview you find the rescue centre with the staff of Aesculapius. First you stand outside the wooden gate – the picture changes with the seasons at your home (Christmas season, winter, early spring, spring, summer, autumn and November) and with day and night. The button “Step inside” right below the picture takes you in; below it the centre greets you with a few words.',
-      'Inside, your own ill owls are at the top, and below them there is one wild sick owl that needs someone. Every owl has a bar showing how far it is well again – from 0 % to 100 %. Every bit of help moves it at once.',
+      'Inside, your own ill owls are at the top, and below them there are two wild sick owls that need someone. Every owl has a bar showing how far it is well again – from 0 % to 100 %. Every bit of help moves it at once.',
       [
         'Give water, stroke, give medicine, feed (owl biscuit) and favourite snack – each of these can be done once a day and counts once a day. What is done today disappears from the buttons until tomorrow.',
         'You may stroke as often as you like; it still counts only once a day.',
@@ -387,7 +389,7 @@ const SECTIONS: readonly HelpSection[] = [
         'How much care an owl needs you only see from the bar. Your own owls are usually fit again after a few days; wild ones take longer – the bigger and more valuable the species, the more care.',
       ],
       'If an owl gets well while it is dark where you live, the picture shows it under the night sky. Once your own owl is well again, it may go home and is ready for post at once. While you nurse it, water, food, snacks and stroking also work on its energy and motivation as usual.',
-      'Once a wild owl is well, the button “Find out where … flies” tells you what it does: some fly gratefully back into freedom, some do not want to leave you and stay as your post owl. If you already have as many owls as there are species, though, it always flies off into freedom. Then a new sick owl takes its place. If you still have several wild owls from before version 1.3.1, a new one only comes once all of them are looked after. You never meet the phoenix or the Great Horned Owl here as a wild owl.',
+      'Once a wild owl is well, the button “Find out where … flies” tells you what it does: some fly gratefully back into freedom, some do not want to leave you and stay as your post owl. If you already have as many owls as there are species, though, it always flies off into freedom. Then a new sick owl takes its place. If you still have three wild owls from before version 1.3.1, a new one only comes once just one of them is left. You never meet the phoenix or the Great Horned Owl here as a wild owl.',
     ],
   },
   {
@@ -419,6 +421,7 @@ const SECTIONS: readonly HelpSection[] = [
       'Bots have owls of their own or send loan owls. A bot’s owl often waits with you for a while (“Visiting you” under “Owls”). While it is there, you can hand it a reply – then it takes off at once. Whether you can also write to a bot with your own owls or loan owls is up to the bot; the chat tells you. Some bots put owl biscuits or treats into their letters – they go into your pouch (see Energy and care). You can give a bot owl water, pet it and feed it like every visiting owl – for a bot owl it costs nothing, not even the owl biscuit and the snack. That gives it energy for the way home and perks it up, up to 120% motivation at most; you do not see the motivation of bot owls.',
       'The bots write to you in the language of your account. Letters that have already arrived stay in the language they were written in.',
       en.bots.notice,
+      'Before a bot reads your letter, it goes through a filter: first the AI gets only your letter, without anything else, and removes every sentence and paragraph about drugs, sexuality or violence – without answering or changing anything. Only what is left is what the bot reads afterwards, also later when it remembers your letters. If nothing is left, it does not answer that letter. Your own letter of course stays with you as you wrote it.',
       'Only the texts go to OpenAI, no names and no identifiers. Every bot remembers a short summary of your letters – only yours; it disappears when you delete the chat.',
       'You remove a bot in its chat (“Remove …”). All of them at once – the Explainer Bear and every bot there will ever be, too – you remove in the settings with “Remove all bots”. Both are final: chat, summary and any letters and gifts still outstanding are gone then, and the bots never write to you again. If the operator deletes a bot, you get a system message if you had contact with it.',
     ],
@@ -450,7 +453,8 @@ const SECTIONS: readonly HelpSection[] = [
         `Gold and bookings: your gold, when and how much daily gold you get, and the last ${GOLD.TRANSACTIONS_KEPT} bookings.`,
         `Change user name: once per calendar year. Your current name is shown right there. Your contacts are told by system message; the old name is locked for ${ACCOUNT.NAME_LOCK_DAYS} days.`,
         `Change home: up to ${ACCOUNT.HOME_CHANGES_PER_MONTH} times per calendar month, however close together. Owls on their way change course.`,
-        'Change password: old password once, new one twice. All letters stay readable.',
+        'Change password: old password once, new one twice (with two-factor sign-in a code as well). All letters stay readable.',
+        'Two-factor sign-in (below “Change password”): a second lock with an app such as KeePassXC, Aegis or FreeOTP. Switch it on with your password, the QR code and the first code; afterwards you see ten backup codes once – write them down or keep them safe outside your phone. Switch it off with your password and a code of the app or a backup code. You get new backup codes by switching it off and on again.',
         'Letters: have your own letters and system messages deleted after 30, 90, 180 days or one year (new accounts: 180 days; deleted at the next weekly tidy-up on Monday); show letters in print instead of handwriting; the switch “Links in letters clickable” decides whether links in letters can be tapped (default: on). With the switch “ASCII mode” you get an extra option when writing to a person: that one letter then appears in a plain typewriter font for both of you, for good – ideal for pictures made of letters and signs (ASCII art). You choose it anew for every letter; otherwise it stays in handwriting, and the letter paper does not change.',
         'Language: German or English, for this account on every device.',
         'Notifications (right below “Sign out”): see the status and test them.',
@@ -459,7 +463,7 @@ const SECTIONS: readonly HelpSection[] = [
         'Bots: “Remove all bots” takes the Explainer Bear and all other bots out of your game for good – with their chats, also bots that only come later. This cannot be undone.',
         `Message to the admin (at the very bottom): for technical problems or suggestions, send the admin of your PostEulen instance a short message – at most ${FEEDBACK.MAX_CHARS} characters, one a day (the day changes at midnight UTC). It is not encrypted, lies readable on the server without your name and is deleted after ${FEEDBACK.RETENTION_DAYS} days. So do not write anything confidential in it. By the way, it is the only thing the admin panel shows in plain text. Below it, at the very end, is the way to this help.`,
         `Redeem a voucher: if the operator of your PostEulen instance has given you a voucher, type its code here. A voucher brings gold, a new owl or owl biscuits or treats for your pouch, is valid for ${VOUCHER.VALID_DAYS} days and can be redeemed once.`,
-        `Delete account: confirm with your password. If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
+        `Delete account: confirm with your password (with two-factor sign-in a code as well). If you sign in again within ${ACCOUNT.SELF_DELETE_GRACE_HOURS} hours, the deletion is cancelled. After that everything is deleted for good; whatever others have already received from you stays with them.`,
       ],
     ],
   },
@@ -531,6 +535,11 @@ const FAQ: readonly HelpQuestion[] = [
     question: 'I have forgotten my password. What now?',
     answer:
       'Sadly it cannot be reset because it is not stored anywhere – that is the price of real encryption. Create a new account and pair again.',
+  },
+  {
+    question: 'I have lost the phone with my authenticator app. What now?',
+    answer:
+      'Sign in with your password and enter one of your ten backup codes instead of the code. Then switch two-factor sign-in off in the settings (password and another backup code) and on again with the new app. If you have neither the app nor a backup code, sadly nobody can get into your account any more – not even the admin.',
   },
   {
     question: 'Why does my letter not arrive immediately?',

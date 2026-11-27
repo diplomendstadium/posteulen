@@ -84,13 +84,13 @@ describe('admin (SPEC 13)', () => {
     expect(initial).toMatch(/^([A-Za-z2-9]{4}-){5}[A-Za-z2-9]{4}$/);
     expect(await adminLogin(admin, 'falsches Passwort!!')).toBe('client');
     expect(await adminLogin(admin, initial)).toBe(200);
-    expect((await admin.json('GET', '/api/me')).body).toEqual({ mustChangePassword: true });
+    expect((await admin.json('GET', '/api/me')).body).toMatchObject({ mustChangePassword: true });
     expect((await admin.json('GET', '/api/settings/registration')).body).toMatchObject({
       code: 'password_change_required',
     });
 
     expect(await changePassword(admin, initial, 'neues sicheres Adminpasswort')).toBe(200);
-    expect((await admin.json('GET', '/api/me')).body).toEqual({ mustChangePassword: false });
+    expect((await admin.json('GET', '/api/me')).body).toMatchObject({ mustChangePassword: false });
     expect((await admin.json('GET', '/api/settings/registration')).body).toEqual({
       mode: 'open',
       storageFull: false,

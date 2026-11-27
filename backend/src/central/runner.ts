@@ -13,6 +13,10 @@
  *   error: again in 24 hours).
  * - The bot's own owl: the next letter to a player waits until its instance is back home; loan
  *   owls are new owls each time.
+ * - v1.4.3: every letter of the player goes through the safety filter first (`bots/filter.ts`);
+ *   the AI only sees the filtered versions. Letters with nothing left count as answered without
+ *   a reply; is nothing left at all, a planned letter goes unchanged and a spontaneous reply is
+ *   dropped.
  */
 import { christmasAt } from '../letters/season.ts';
 import { BOTS, LETTER, TIME } from '@posteulen/shared/constants.ts';
@@ -23,6 +27,7 @@ import { logError } from '../ops/error-log.ts';
 import { randomId, utcDay } from '../security/ids.ts';
 import { aiModel, loadApiKey, reserveCall, type AiClient, type AiMessage } from '../bots/ai.ts';
 import { finishReply } from '../bots/replies.ts';
+import { aiTextOf, filterText, aiProblem } from '../bots/filter.ts';
 import {
   carrierText,
   centralBotPrompt,
@@ -54,6 +59,8 @@ interface ConversationLetter {
   readonly sender_id: string;
   readonly sent_at: number;
   readonly plaintext: string | null;
+  /** v1.4.3: the filtered version for the AI (null: not filtered yet). */
+  readonly ai_text?: string | null;
   /** v1.3.1: the owl that brought the letter (unanswered letters of the player only). */
   readonly owl_name?: string;
   readonly owl_species?: string;
@@ -65,7 +72,8 @@ const CARRIER_HINT =
   'Zu jedem Brief steht dabei, mit welcher Eule er bei dir ankam. Wenn es passt, darfst du darauf eingehen (z. B. die Eule grüßen), musst es aber nicht. Erfinde nichts über die Eule.';
 
 /** Result of asking the AI: a text, or why not. */
-type AiResult = { text: string } | { problem: 'no_key' | 'limit' | 'error'; detail: string };
+type AiResult = { text: string } | AiProblem;
+type AiProblem = { problem: 'no_key' | 'limit' | 'error'; detail: string };
 
 /** The context of the bot's last event that ran (background for replies, SPEC 10.9). */
 function lastContext(ctx: Context, botId: string): string {
@@ -193,6 +201,7 @@ export class CentralRunner {
     const unanswered = this.unanswered(bot.id, delivery.user_id);
     let text: string | null = null;
     let personalized = false;
+    let answered: readonly ConversationLetter[] = [];
     // v0.8.3: a player who has written to the bot knows it – then always the follow-up letter
     // (the AI adapts that one, never the first letter).
     const variant = unanswered.length > 0 ? 'follow' : this.variantFor(bot.id, delivery.user_id);
@@ -200,14 +209,19 @@ export class CentralRunner {
       if (event.has_letter === 1) {
         const planned = eventText(event, variant, language);
         text = planned;
-        if (unanswered.length > 0) {
+        const filtered = await this.filtered(unanswered);
+        if ('problem' in filtered) {
+          if (filtered.problem !== 'limit')
+            this.log(filtered.detail, 'Der geplante Brief ging unverändert los.');
+        } else if (filtered.letters.length > 0) {
           const result = await this.ask(bot, delivery.user_id, language, event.context, {
             planned,
-            letters: unanswered,
+            letters: filtered.letters,
           });
           if ('text' in result) {
             text = result.text;
             personalized = true;
+            answered = filtered.letters;
           } else if (result.problem !== 'limit') {
             this.log(result.detail, 'Der geplante Brief ging unverändert los.');
           }
@@ -216,14 +230,69 @@ export class CentralRunner {
     } else {
       // Spontaneous reply: only something to say if letters still wait.
       if (unanswered.length === 0) return this.drop(delivery);
+      const filtered = await this.filtered(unanswered);
+      if ('problem' in filtered) return this.postpone(delivery, filtered);
+      // v1.4.3: nothing left after the safety filter – no reply (the letters count as answered).
+      if (filtered.letters.length === 0) return this.drop(delivery);
       const result = await this.ask(bot, delivery.user_id, language, lastContext(ctx, bot.id), {
-        letters: unanswered,
+        letters: filtered.letters,
       });
       if (!('text' in result)) return this.postpone(delivery, result);
+      answered = filtered.letters;
       text = result.text;
       personalized = true;
     }
-    this.start(bot, delivery, event, text, personalized ? unanswered : [], mode, variant);
+    this.start(bot, delivery, event, text, personalized ? answered : [], mode, variant);
+  }
+
+  /**
+   * v1.4.3: the player's unanswered letters in their filtered version (SPEC 10.5). Letters with
+   * nothing left count as answered right away; the first problem of the AI stops the step (the
+   * versions already filtered stay stored).
+   */
+  private async filtered(
+    letters: readonly ConversationLetter[],
+  ): Promise<{ letters: ConversationLetter[] } | AiProblem> {
+    if (letters.length === 0) return { letters: [] };
+    const ctx = this.ctx;
+    const key = await loadApiKey(ctx);
+    if (!key) return { problem: 'no_key', detail: 'Es ist kein (gültiger) OpenAI-Key hinterlegt.' };
+    const model = aiModel(ctx.db);
+    const kept: ConversationLetter[] = [];
+    const silent: string[] = [];
+    for (const letter of letters) {
+      const text = await aiTextOf(ctx, this.client, key, model, letter, 'bots');
+      if (text === 'limit') return { problem: 'limit', detail: 'Tageslimit erreicht.' };
+      if (typeof text !== 'string') return { problem: 'error', detail: text.error };
+      if (text === '') silent.push(letter.id);
+      else kept.push({ ...letter, plaintext: text });
+    }
+    if (silent.length > 0) {
+      ctx.db.transaction(() => {
+        for (const id of silent) {
+          const marked = ctx.db.run(
+            "UPDATE central_bot_inbox SET state = 'answered' WHERE letter_id = ? AND state = 'arrived'",
+            id,
+          );
+          if (marked.changes === 1) ctx.db.run('UPDATE letters SET read = 1 WHERE id = ?', id);
+        }
+      });
+    }
+    return { letters: kept };
+  }
+
+  /** v1.4.3: the safety filter for the test of the control centre (nothing is stored). */
+  async filterTest(text: string): Promise<{ text: string } | AiProblem> {
+    const ctx = this.ctx;
+    const key = await loadApiKey(ctx);
+    if (!key) return { problem: 'no_key', detail: 'Es ist kein (gültiger) OpenAI-Key hinterlegt.' };
+    if (!reserveCall(ctx.db, ctx.now(), 'bots'))
+      return { problem: 'limit', detail: 'Tageslimit erreicht.' };
+    try {
+      return { text: await filterText(this.client, key, aiModel(ctx.db), text) };
+    } catch (error) {
+      return { problem: 'error', detail: aiProblem(error) };
+    }
   }
 
   private variantFor(botId: string, userId: string): 'first' | 'follow' {
@@ -232,7 +301,7 @@ export class CentralRunner {
 
   private unanswered(botId: string, userId: string): ConversationLetter[] {
     return this.ctx.db.all<ConversationLetter>(
-      `SELECT l.id, l.sender_id, l.sent_at, l.plaintext, l.owl_name, l.owl_species, f.owl_sex
+      `SELECT l.id, l.sender_id, l.sent_at, l.plaintext, l.ai_text, l.owl_name, l.owl_species, f.owl_sex
          FROM central_bot_inbox i
          JOIN letters l ON l.id = i.letter_id
          LEFT JOIN flights f ON f.id = l.flight_id
@@ -303,7 +372,7 @@ export class CentralRunner {
     const memory = userId
       ? await this.memory(bot, userId, key, model)
       : { summary: null, history: [...(request.history ?? [])] };
-    if (memory === 'limit') return { problem: 'limit', detail: 'Tageslimit erreicht.' };
+    if ('problem' in memory) return memory;
     if (!reserveCall(ctx.db, ctx.now(), 'bots'))
       return { problem: 'limit', detail: 'Tageslimit erreicht.' };
     const instruction = request.planned
@@ -346,16 +415,7 @@ export class CentralRunner {
         ? { problem: 'error', detail: 'OpenAI lieferte eine leere Antwort.' }
         : { text };
     } catch (error) {
-      const status = (error as { status?: number | null }).status;
-      return {
-        problem: 'error',
-        detail:
-          status === 401
-            ? 'OpenAI lehnt den Key ab (ungültig oder gesperrt).'
-            : status
-              ? `OpenAI antwortete mit Status ${status}.`
-              : 'OpenAI ist nicht erreichbar oder hat nicht rechtzeitig geantwortet.',
-      };
+      return { problem: 'error', detail: aiProblem(error) };
     }
   }
 
@@ -368,7 +428,7 @@ export class CentralRunner {
     userId: string,
     key: string,
     model: string,
-  ): Promise<{ summary: string | null; history: AiMessage[] } | 'limit'> {
+  ): Promise<{ summary: string | null; history: AiMessage[] } | AiProblem> {
     const ctx = this.ctx;
     const chat = ctx.db.get<{ bot_summary: string | null; bot_summarized_until: number | null }>(
       'SELECT bot_summary, bot_summarized_until FROM chats WHERE owner_id = ? AND peer_id = ?',
@@ -376,8 +436,8 @@ export class CentralRunner {
       bot.id,
     );
     let summary = chat?.bot_summary ?? null;
-    let history = ctx.db.all<ConversationLetter>(
-      `SELECT id, sender_id, sent_at, plaintext FROM letters
+    const raw = ctx.db.all<ConversationLetter>(
+      `SELECT id, sender_id, sent_at, plaintext, ai_text FROM letters
         WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))
           AND status = 'delivered' AND plaintext IS NOT NULL AND sent_at > ?
           AND id NOT IN (SELECT letter_id FROM central_bot_inbox WHERE state = 'arrived')
@@ -388,9 +448,22 @@ export class CentralRunner {
       bot.id,
       chat?.bot_summarized_until ?? -1,
     );
+    // v1.4.3: the player's letters only in their filtered version (empty ones drop out).
+    let history: ConversationLetter[] = [];
+    for (const item of raw) {
+      if (item.sender_id === bot.id) {
+        history.push(item);
+        continue;
+      }
+      const text = await aiTextOf(ctx, this.client, key, model, item, 'bots');
+      if (text === 'limit') return { problem: 'limit', detail: 'Tageslimit erreicht.' };
+      if (typeof text !== 'string') return { problem: 'error', detail: text.error };
+      if (text !== '') history.push({ ...item, plaintext: text });
+    }
     if (history.length > BOTS.CENTRAL_CONTEXT_LETTERS) {
       const older = history.slice(0, history.length - BOTS.CENTRAL_CONTEXT_LETTERS);
-      if (!reserveCall(ctx.db, ctx.now(), 'bots')) return 'limit';
+      if (!reserveCall(ctx.db, ctx.now(), 'bots'))
+        return { problem: 'limit', detail: 'Tageslimit erreicht.' };
       const lines = older.map(
         (item) =>
           `${item.sender_id === bot.id ? 'Brieffigur' : 'Gegenüber'}: ${item.plaintext ?? ''}`,

@@ -2,7 +2,7 @@
 /**
  * posteulen-cli – server administration commands (run as root or the service user).
  * Commands: setup, migrate, check, admin-init, admin-reset, bots-init, bots-reset, bots-export,
- * bots-import, caddyfile, backup, tor-status (v0.9), version, schema-version.
+ * bots-import, caddyfile, backup, tor-status (v0.9), report (v1.4.3), version, schema-version.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -279,6 +279,54 @@ async function main(argv: string[]): Promise<void> {
           logError(db, { component: 'Tor', severity: 'warning', ...entry }, Date.now());
         else setTorStatus(db, state, Date.now());
         console.log(`Tor-Status: ${state}`);
+      } finally {
+        db.close();
+      }
+      return;
+    }
+
+    case 'report': {
+      // v1.4.3: the root helpers (automatic updates, blocklists) write the error log of the admin
+      // panel (SPEC 13 item 7). Only fixed texts of the scripts, never personal data.
+      const { values } = parseArgs({
+        args: rest,
+        options: {
+          component: { type: 'string', default: '' },
+          severity: { type: 'string', default: 'warning' },
+          what: { type: 'string', default: '' },
+          cause: { type: 'string', default: '' },
+          action: { type: 'string', default: '' },
+        },
+      });
+      const severity = values.severity;
+      if (
+        (severity !== 'info' && severity !== 'warning' && severity !== 'error') ||
+        values.component === '' ||
+        values.what === ''
+      ) {
+        fail(
+          'Aufruf: posteulen-cli report --component … --severity <info|warning|error> --what … [--cause … --action …]',
+        );
+      }
+      const config = configFromEnv();
+      if (!fs.existsSync(config.databaseFile)) fail(`Datenbank fehlt: ${config.databaseFile}`);
+      const db = openDatabase(config.databaseFile);
+      try {
+        if (schemaState(db, loadMigrations()).kind !== 'current')
+          fail('Bitte zuerst „posteulen-cli migrate“ ausführen.');
+        const clip = (text: string): string => Array.from(text).slice(0, 500).join('');
+        logError(
+          db,
+          {
+            component: clip(values.component),
+            severity,
+            what: clip(values.what),
+            cause: clip(values.cause || 'Unbekannt.'),
+            action: clip(values.action || '–'),
+          },
+          Date.now(),
+        );
+        console.log('Eingetragen.');
       } finally {
         db.close();
       }

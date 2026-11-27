@@ -12,6 +12,7 @@ import {
   type AiClient,
   type AiMessage,
 } from '../src/bots/ai.ts';
+import { FILTER_PROMPT } from '../src/bots/prompts.ts';
 import { finishReply } from '../src/bots/replies.ts';
 import { ensureBotsForAllUsers } from '../src/bots/service.ts';
 import {
@@ -35,7 +36,13 @@ class FakeAi implements AiClient {
   calls: { model: string; messages: readonly AiMessage[]; maxTokens: number }[] = [];
   answers: (string | Error)[] = [];
   models = ['gpt-6-luna', 'gpt-test'];
+  filterCalls: string[] = [];
   async complete(_key: string, model: string, messages: readonly AiMessage[], maxTokens: number) {
+    // v1.4.3: the safety filter passes the letter through unchanged (own tests in v143).
+    if (messages[0]?.content === FILTER_PROMPT) {
+      this.filterCalls.push(messages[1]?.content ?? '');
+      return messages[1]?.content ?? '';
+    }
     this.calls.push({ model, messages, maxTokens });
     const next = this.answers.shift() ?? 'Danke für deinen Brief! Wie geht es dir heute?';
     if (next instanceof Error) throw next;
@@ -406,7 +413,8 @@ describe('letters to bots and replies (SPEC 10.1, 10.5)', () => {
   it('daily limit: the reply moves to the next day; without key: again in 24 hours', async () => {
     const explainer = botRow(anna, 'explainer');
     const bea = await person(app, 'Bea');
-    app.db.run("INSERT INTO settings (key, value) VALUES ('ai_daily_limit', '1')");
+    // v1.4.3: two calls – the safety filter and the reply of the first letter.
+    app.db.run("INSERT INTO settings (key, value) VALUES ('ai_daily_limit', '2')");
     const first = await writeToBot(anna, explainer.id, 'Frage eins');
     const second = await writeToBot(bea, botRow(bea, 'explainer').id, 'Hallo Bär, Frage zwei');
     const due =

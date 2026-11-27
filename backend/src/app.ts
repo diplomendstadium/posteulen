@@ -39,6 +39,7 @@ import { CentralRunner } from './central/runner.ts';
 import { registerCentralHandlers } from './central/service.ts';
 import { registerBotsCentreRoutes } from './central/routes.ts';
 import { keepTorOn, panelTorEnabled, syncTorSwitch, torEnabled } from './ops/tor.ts';
+import { syncAutoUpdateSwitch } from './admin/server-info.ts';
 import { registerVacationHandlers } from './owls/vacation.ts';
 
 export interface App {
@@ -184,6 +185,8 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   if (config.torOnly) keepTorOn(ctx);
   // v0.9: hand the Tor switch of the admin panel to the root helper (also after a restore).
   if (config.env === 'production') syncTorSwitch(ctx);
+  // v1.4.3: and the switch of the nightly automatic updates (SPEC 16.3).
+  if (config.env === 'production') syncAutoUpdateSwitch(ctx);
   registerGoldJobs(ctx);
   registerUserRoutes(userApi, ctx);
   await registerContactRoutes(userApi, ctx);
