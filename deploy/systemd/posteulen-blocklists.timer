@@ -1,0 +1,10 @@
+[Unit]
+Description=PostEulen – Prüfung öffentlicher Blocklisten täglich
+
+[Timer]
+OnCalendar=*-*-* 05:15:00 UTC
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

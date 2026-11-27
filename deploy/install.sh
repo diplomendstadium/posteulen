@@ -60,7 +60,9 @@ for value in "$ssh_hardening" "$swap"; do
 done
 
 # ───────────────────────── 1. Prüfungen ─────────────────────────
-info "Prüfe das System …"
+# v1.4.3: Fortschritt in zehn Schritten (SPEC 16.1).
+progress_init 10
+step "Prüfe, ob dieser Server passt (Debian 13, Speicher, Ports) …"
 require_root
 # v0.9: nicht gleichzeitig mit einem Update oder dem Tor-Schalter (tor.sh apply wartet darauf).
 exec 9>/run/posteulen-update.lock
@@ -104,6 +106,7 @@ ok "Debian 13 ($arch), ${mem_mb} MB RAM, ${disk_mb} MB frei."
 ((disk_mb >= 6000)) || notice "Nur ${disk_mb} MB frei: Ab 4 GB freiem Speicher warnt das Fehlerprotokoll, ab 3 GB können Spieler keine Briefe mehr schreiben (Werte im Adminpanel änderbar)."
 
 # ───────────────────────── 2. Angaben ─────────────────────────
+step "Angaben zur Instanz (Domain, Quelle der Updates) …"
 if [[ -n $existing_domain ]]; then
   [[ -z $domain || $domain == "$existing_domain" ]] || die "Diese Installation läuft bereits unter $existing_domain." "Ein Domainwechsel ist in v0.1 nicht vorgesehen."
   domain=$existing_domain
@@ -150,10 +153,10 @@ add_key() {
   mv "$keyring.new" "$keyring"
 }
 
-info "Installiere Pakete …"
+step "Installiere die nötigen Programme (Node.js, Caddy, git, age …) – das dauert ein paar Minuten."
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq
-apt-get install -y -qq ca-certificates curl gnupg git openssh-client age ufw unattended-upgrades needrestart iproute2 >/dev/null
+busy 'Lade die Paketlisten von Debian' apt-get update -qq
+busy 'Installiere Grundpakete' apt-get install -y -qq ca-certificates curl gnupg git openssh-client age ufw unattended-upgrades needrestart iproute2
 add_key "$NODESOURCE_KEY_URL" "$NODESOURCE_KEY_FPR" /usr/share/keyrings/nodesource.gpg
 add_key "$CADDY_KEY_URL" "$CADDY_KEY_FPR" /usr/share/keyrings/caddy-stable.gpg
 cat >/etc/apt/sources.list.d/nodesource.sources <<SRC
@@ -175,13 +178,14 @@ Suites: any-version
 Components: main
 Signed-By: /usr/share/keyrings/caddy-stable.gpg
 SRC
-apt-get update -qq
-apt-get install -y -qq nodejs caddy >/dev/null
+busy 'Lade die Paketlisten von Node.js und Caddy' apt-get update -qq
+busy 'Installiere Node.js und Caddy' apt-get install -y -qq nodejs caddy
 node_major=$(node --version | sed -E 's/^v([0-9]+).*/\1/')
 [[ $node_major == "$PE_NODE_MAJOR" ]] || die "Node.js $node_major statt $PE_NODE_MAJOR installiert." "„apt-cache policy nodejs“ prüfen."
 ok "Node.js $(node --version), Caddy $(caddy version | cut -d' ' -f1), age, git installiert."
 
 # Automatische Sicherheitsupdates, auch für Node.js und Caddy, mit Neustart betroffener Dienste.
+step "Sichere den Server ab (Sicherheitsupdates, Firewall, SSH) …"
 cat >/etc/apt/apt.conf.d/20auto-upgrades <<'APT'
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
@@ -242,6 +246,7 @@ if ((mem_mb < 1800 && swap_mb < 1000)) && [[ ! -e /swapfile ]]; then
 fi
 
 # ───────────────────────── 4. Benutzer, Verzeichnisse, Release ─────────────────────────
+step "Lade und baue PostEulen – auf schwachen Servern dauert das bis zu 30 Minuten."
 info "Richte PostEulen ein …"
 id -u "$PE_USER" >/dev/null 2>&1 || useradd --system --home-dir "$PE_DATA" --shell /usr/sbin/nologin --user-group "$PE_USER"
 install -d -m 0755 "$PE_OPT" "$PE_RELEASES" "$PE_STATE"
@@ -316,6 +321,7 @@ prune_releases "$release"
 remove_legacy_repo
 
 # Geheimnisse (nur anlegen, nie überschreiben, SPEC 4.4).
+step "Lege Geheimnisse, Datenbank und Zugänge an …"
 secrets_created=0
 if [[ ! -f $PE_SECRETS ]]; then
   POSTEULEN_SECRETS_FILE=$PE_SECRETS node "$release/backend/src/cli.ts" setup
@@ -356,7 +362,7 @@ else
   printf 'POSTEULEN_DOMAIN=%s\n' "$domain" >"$PE_SERVICE_ENV"
 fi
 chmod 0644 "$PE_SERVICE_ENV"
-as_service node "$release/backend/src/cli.ts" migrate
+busy 'Richte die Datenbank ein' as_service node "$release/backend/src/cli.ts" migrate
 # Adminzugang mit Erstpasswort, nur wenn noch keiner existiert (SPEC 13).
 admin_output=$(as_service node "$release/backend/src/cli.ts" admin-init)
 admin_password=$(sed -n 's/^ADMIN-ERSTPASSWORT: //p' <<<"$admin_output")
@@ -368,19 +374,23 @@ switch_symlink "$release" "$PE_CURRENT"
 # v0.9: Onion-Dienst (SPEC 16.5) – Tor installieren, Schlüssel erhalten oder aus
 # /etc/posteulen/onion wiederherstellen. Probleme damit halten die Installation nie auf –
 # v1.4.2: außer bei einer Tor-only-Instanz, die ohne Tor nicht erreichbar wäre.
-"$PE_CURRENT/deploy/tor.sh" setup || true
+step "Richte das Tor-Netz ein (Onion-Adressen) – das kann einige Minuten dauern."
+busy --show 'Tor einrichten' "$PE_CURRENT/deploy/tor.sh" setup || true
 if [[ $tor_only -eq 1 ]]; then
   [[ -n $(onion_host) && -n $(onion_host "$PE_ONION_KEYS_ADMIN") && -n $(onion_host "$PE_ONION_KEYS_BOTS") ]] ||
     die "Tor ließ sich nicht einrichten – ohne Tor ist eine Tor-only-Instanz nicht erreichbar." "Die Hinweise zu Tor oben lesen, das Problem beheben und install.sh erneut ausführen."
 fi
-"$PE_CURRENT/deploy/configure.sh"
+step "Schreibe die Konfiguration (Webserver, Dienste, Zeitgeber) …"
+busy --show 'Konfiguration schreiben' "$PE_CURRENT/deploy/configure.sh"
 
 # ───────────────────────── 5. Start und Prüfung ─────────────────────────
+step "Starte PostEulen und prüfe, ob alles erreichbar ist …"
 systemctl enable --quiet posteulen.service posteulen-backup.timer
 systemctl restart posteulen.service
 systemctl start posteulen-backup.timer
-health_check "$domain" "$test_mode" || die "Die Funktionsprüfung ist fehlgeschlagen." "„journalctl -u posteulen -u caddy -n 100“ ansehen."
-"$PE_CURRENT/deploy/tor.sh" check --network || true
+busy --show 'Funktionsprüfung' health_check "$domain" "$test_mode" || die "Die Funktionsprüfung ist fehlgeschlagen." "„journalctl -u posteulen -u caddy -n 100“ ansehen."
+step "Prüfe die Onion-Adresse über das Tor-Netz – das kann einige Minuten dauern."
+busy --show 'Prüfung über das Tor-Netz' "$PE_CURRENT/deploy/tor.sh" check --network || true
 onion=$(onion_host)
 
 # ───────────────────────── 6. Zusammenfassung ─────────────────────────

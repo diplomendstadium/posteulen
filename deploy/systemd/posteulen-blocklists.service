@@ -1,0 +1,17 @@
+# PostEulen – tägliche Prüfung öffentlicher Blocklisten für Spam, Werbung und Tracking
+# (v1.4.3, SPEC 13 Punkt 13): Domain und öffentliche Adressen des Servers. Nur DNS-Abfragen und
+# Downloads der Listen in ein privates Temp-Verzeichnis; nicht auf einer Tor-only-Instanz.
+[Unit]
+Description=PostEulen – Prüfung öffentlicher Blocklisten
+ConditionPathExists=/opt/posteulen/current/deploy/server-check.sh
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/server-check.sh blocklists
+TimeoutStartSec=30min
+Nice=19
+IOSchedulingClass=idle
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes

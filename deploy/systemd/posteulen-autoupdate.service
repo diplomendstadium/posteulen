@@ -1,0 +1,14 @@
+# PostEulen – nächtliche automatische Updates (v1.4.3, SPEC 16.3): Debian (apt full-upgrade), dann
+# PostEulen (posteulen-update), danach ein Neustart, wenn Debian ihn verlangt. Ausgelöst von
+# posteulen-nightly.service (nach Erfolg wie nach einem Fehler der Sicherung – dann nur die
+# Meldung, keine Updates). Abschaltbar im Adminpanel. Fehlt das Skript (Rückfall auf eine ältere Version),
+# läuft nichts.
+[Unit]
+Description=PostEulen – automatische Updates nach der Sicherung
+ConditionPathExists=/opt/posteulen/current/deploy/auto-update.sh
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/auto-update.sh
+TimeoutStartSec=4h
+Nice=10

@@ -73,6 +73,9 @@ check "Adminpanel im Tor-Netz antwortet lokal" health_of onion-admin 3006 admin
 check "Bots-Kontrollzentrum im Tor-Netz antwortet lokal" health_of onion-bots 3007 bots
 check "Die App erkennt die Tor-only-Instanz" edition_tor_only
 check "Keine Benachrichtigungen (Push-Schlüssel: 404)" push_gone
+# v1.4.3: keine Blocklisten-Prüfung auf einer Tor-only-Instanz (SPEC 16.6).
+check "Blocklisten: nur der Hinweis auf Tor-only" bash -c \
+  "systemctl start posteulen-blocklists.service && grep -q '^tor_only=1$' /var/lib/posteulen/blocklists && ! grep -q '^result ' /var/lib/posteulen/blocklists"
 check "Adminzugang angelegt" bash -c "posteulen-cli admin-init | grep -q 'vorhanden'"
 # Der Testclient erreicht die Onion-Seite über ihren lokalen Listener (Name → 127.0.0.1).
 printf '127.0.0.1 %s\n' "$(onion_of onion)" >>/etc/hosts

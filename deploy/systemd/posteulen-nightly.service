@@ -1,0 +1,18 @@
+# PostEulen – nächtliche Sicherung mit anschließenden automatischen Updates (v1.4.3, SPEC 16.3,
+# 16.4 Punkt 5). Ausgelöst von posteulen-backup.timer; dieselbe Sicherung wie
+# posteulen-backup.service (das bleibt für Sicherungen von Hand und löst keine Updates aus).
+# Danach läuft posteulen-autoupdate.service – nach einem Fehler nur, um ihn zu melden.
+[Unit]
+Description=PostEulen – nächtliche Sicherung und automatische Updates
+After=posteulen.service
+OnSuccess=posteulen-autoupdate.service
+OnFailure=posteulen-autoupdate.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/backup.sh --reason taeglich
+Nice=10
+IOSchedulingClass=idle
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes

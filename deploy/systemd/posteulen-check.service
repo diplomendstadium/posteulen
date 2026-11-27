@@ -1,0 +1,16 @@
+# PostEulen – stündliche Angaben für „Server der Instanz“ im Adminpanel (v1.4.3, SPEC 13
+# Punkt 13): Laufzeit, wartende Updates für Debian und PostEulen, verlangter Neustart. Als root,
+# weil „apt-get update“ die Paketlisten schreibt; die Ergebnisdatei schreibt der Dienstbenutzer.
+# Ohne ProtectHome: git braucht für private Update-Quellen den Deploy-Key unter /root/.ssh.
+[Unit]
+Description=PostEulen – Laufzeit und wartende Updates
+ConditionPathExists=/opt/posteulen/current/deploy/server-check.sh
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/posteulen/current/deploy/server-check.sh updates
+TimeoutStartSec=20min
+Nice=19
+IOSchedulingClass=idle
+PrivateTmp=yes

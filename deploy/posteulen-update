@@ -78,7 +78,10 @@ cleanup() {
 trap cleanup EXIT
 meta=$(temp_repo "$url")
 
-info "Hole verfügbare Versionen …"
+# v1.4.3: Fortschritt (SPEC 16.1) – die ersten drei Schritte hier, der Rest im update.sh der neuen
+# Version, das die Zählung über PE_PROGRESS_STEP übernimmt.
+progress_init 3
+[[ $check -eq 1 ]] || step "Suche nach der neuesten Version …"
 if [[ -z $target ]]; then
   target=$(newest_remote_tag "$meta") || die "Repository $url nicht erreichbar." "Netzwerk und Zugang prüfen."
 fi
@@ -98,6 +101,7 @@ if [[ $current_release == *"-$commit" ]]; then
   exit 0
 fi
 
+step "Prüfe die Signatur von $target …"
 if [[ $verify -eq 1 ]]; then
   signature=$(verify_release_tag "$meta" "$target" "$current_release/deploy/allowed_signers") ||
     die "Die Signatur von $target ist ungültig oder fehlt (oder „$target“ ist kein signiertes Tag)." \
@@ -119,9 +123,9 @@ meta=''
 
 # Jetzt erst der volle Stand dieser einen Version – und noch einmal dieselben Prüfungen an genau
 # dem, was ausgepackt wird (dasselbe Tag-Objekt, derselbe Commit).
-info "Lade $target …"
+step "Lade $target – je nach Verbindung ein paar Minuten."
 full=$(temp_repo "$url")
-fetch_release "$full" "$target" || die "Version $target ließ sich nicht laden." "Netzwerk und freien Speicher („df -h /“) prüfen."
+busy "Lade $target" fetch_release "$full" "$target" || die "Version $target ließ sich nicht laden." "Netzwerk und freien Speicher („df -h /“) prüfen."
 [[ $(release_commit "$full" "$target") == "$commit" ]] || die "Version $target hat sich während des Updates geändert." "Herkunft prüfen und erneut versuchen."
 if [[ $verify -eq 1 ]]; then
   verify_release_tag "$full" "$target" "$current_release/deploy/allowed_signers" >/dev/null ||
@@ -136,4 +140,5 @@ rm -rf "$full"
 full=''
 # Ab hier räumt update.sh auf (auch das Staging, wenn etwas schiefgeht).
 trap - EXIT
+export PE_PROGRESS_STEP=$PE_STEP
 exec "$staging/deploy/update.sh" --apply "$current_release"

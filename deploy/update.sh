@@ -60,6 +60,8 @@ if [[ ${1:-} == --rollback ]]; then
 fi
 
 [[ ${1:-} == --apply && -n ${2:-} ]] || die "Aufruf nur über posteulen-update."
+# v1.4.3: Fortschritt (SPEC 16.1) – neun Schritte hier, dazu die von posteulen-update.
+progress_init $((${PE_PROGRESS_STEP:-0} + 9)) "${PE_PROGRESS_STEP:-0}"
 old_release=$2
 old_version=$(release_version "$old_release")
 new_version=$(release_version "$RELEASE")
@@ -83,10 +85,11 @@ trap discard_failed EXIT
 # v1.4.1: Aufräumen vor dem Build (SPEC 16.3) – auch dann, wenn eine ältere Version das Update
 # gestartet hat (deren posteulen-update räumt noch nicht auf): verwaiste Staging-Verzeichnisse,
 # alle Releases außer dem aktiven, dem vorigen und diesem; die bleibenden werden verkleinert.
+step "Räume alte Versionen auf und bereite das Update vor …"
 clean_staging "$RELEASE"
 prune_releases "$RELEASE"
-
-"$RELEASE/deploy/update-steps.sh" "$old_version"
+busy --show 'Update-Schritte dieser Version' "$RELEASE/deploy/update-steps.sh" "$old_version"
+step "Baue die neue Version – auf schwachen Servern bis zu 30 Minuten. PostEulen läuft solange weiter."
 build_release "$RELEASE" || die "Der Build ist fehlgeschlagen; der bisherige Stand läuft unverändert weiter." "Ausgabe oben lesen und erneut versuchen."
 
 # v1.4.1: Erst der fertige, verkleinerte Build wird ein Release.
@@ -97,7 +100,8 @@ if [[ $RELEASE == "$PE_STAGING"/* ]]; then
   RELEASE=$target_dir
 fi
 
-"$old_release/deploy/backup.sh" --reason update
+step "Sichere die Datenbank …"
+busy 'Sicherung vor dem Update' "$old_release/deploy/backup.sh" --reason update
 snapshot=$(cat "$PE_STATE/last-snapshot")
 
 rollback_on_error() {
@@ -110,22 +114,28 @@ rollback_on_error() {
 }
 trap rollback_on_error ERR
 
+step "Halte PostEulen kurz an und passe die Datenbank an …"
 systemctl stop posteulen.service
-as_service node "$RELEASE/backend/src/cli.ts" migrate
+busy 'Datenbank anpassen' as_service node "$RELEASE/backend/src/cli.ts" migrate
 admin_output=$(as_service node "$RELEASE/backend/src/cli.ts" admin-init)
 # v0.8: Zugang zum Bots-Kontrollzentrum – nur beim ersten Update mit dem Kontrollzentrum.
 bots_output=$(as_service node "$RELEASE/backend/src/cli.ts" bots-init)
 switch_symlink "$RELEASE" "$PE_CURRENT"
 # v0.9: Onion-Dienst einrichten bzw. erhalten (SPEC 16.5). Probleme mit Tor lösen nie einen
 # Rückfall aus – tor.sh endet immer erfolgreich und meldet sie als Hinweis.
-"$RELEASE/deploy/tor.sh" setup || true
-"$RELEASE/deploy/configure.sh"
+step "Richte das Tor-Netz ein …"
+busy --show 'Tor einrichten' "$RELEASE/deploy/tor.sh" setup || true
+step "Schreibe die Konfiguration …"
+busy --show 'Konfiguration schreiben' "$RELEASE/deploy/configure.sh"
+step "Starte PostEulen und prüfe, ob alles erreichbar ist …"
 systemctl start posteulen.service
-health_check "$domain" "$test_mode"
+busy --show 'Funktionsprüfung' health_check "$domain" "$test_mode"
 trap - ERR
 finished=1
-"$RELEASE/deploy/tor.sh" check --network || true
+step "Prüfe die Onion-Adresse über das Tor-Netz …"
+busy --show 'Prüfung über das Tor-Netz' "$RELEASE/deploy/tor.sh" check --network || true
 
+step "Räume auf …"
 printf '%s\n' "$old_release" >"$PE_STATE/previous-release"
 printf '%s\n' "$snapshot" >"$PE_STATE/previous-snapshot"
 # v1.4.1: Es bleiben das aktive und das unmittelbar vorige Release (SPEC 16.3); beide sind

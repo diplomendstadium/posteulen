@@ -54,6 +54,10 @@ readonly PE_ONION_ADMIN_LISTEN_PORT=3006
 readonly PE_ONION_BOTS_LISTEN_PORT=3007
 # Hinweise, die am Ende von Installation oder Update gesammelt angezeigt werden.
 readonly PE_NOTICES=/run/posteulen-hinweise
+# v1.4.3: Schalter der nächtlichen automatischen Updates (vom Backend aus dem Adminpanel
+# geschrieben, „on“ oder „off“) und die Sperre, die Updates und Tor-Helfer teilen.
+readonly PE_AUTO_UPDATE_SWITCH=$PE_DATA/auto-update-switch
+readonly PE_UPDATE_LOCK=/run/posteulen-update.lock
 
 # Fest eingetragene Fingerabdrücke der Paketquellen-Schlüssel (geprüft am 2026-11-05).
 readonly NODESOURCE_KEY_URL=https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
@@ -74,6 +78,74 @@ die() {
   printf '%s\n' "${PE_RED}Fehler:${PE_RESET} $1" >&2
   if [[ $# -gt 1 ]]; then printf '%s\n' "Was tun: $2" >&2; fi
   exit 1
+}
+
+# v1.4.3: Fortschritt für Installation und Update (SPEC 16.1). Jeder Abschnitt beginnt mit einem
+# Balken „Schritt x von y“ und einem verständlichen Satz; lange Befehle laufen mit busy, das im
+# Terminal jede Sekunde ein Drehsymbol und die verstrichene Zeit zeigt – so sieht man auch auf
+# schwachen Servern, dass noch etwas passiert. Ohne Terminal (systemd, automatische Updates)
+# erscheinen nur schlichte Zeilen.
+PE_STEP=0
+PE_STEPS=0
+
+# $1 = Zahl der Schritte, $2 = schon erledigte Schritte (posteulen-update gibt seine weiter).
+progress_init() {
+  PE_STEPS=$1
+  PE_STEP=${2:-0}
+}
+
+step() {
+  local total width=24 filled bar='' rest=''
+  PE_STEP=$((PE_STEP + 1))
+  total=$PE_STEPS
+  ((PE_STEP > total)) && total=$PE_STEP
+  filled=$((PE_STEP * width / total))
+  printf -v bar '%*s' "$filled" ''
+  printf -v rest '%*s' "$((width - filled))" ''
+  printf '\n%s %s\n' "${PE_BOLD}[${bar// /█}${rest// /░}] Schritt $PE_STEP von $total:${PE_RESET}" "$*"
+}
+
+# Drehsymbol mit verstrichener Zeit, bis busy es beendet oder das Skript nicht mehr läuft.
+spin() {
+  local text=$1 parent=$2 start=$SECONDS i=0 elapsed
+  local -a frames=('|' '/' '-' "\\")
+  while kill -0 "$parent" 2>/dev/null; do
+    elapsed=$((SECONDS - start))
+    printf '\r\e[K  %s %s … %d:%02d' "${frames[i % 4]}" "$text" $((elapsed / 60)) $((elapsed % 60))
+    i=$((i + 1))
+    sleep 1
+  done
+}
+
+# Führt einen langen Befehl aus: busy [--show] <Text> <Befehl …>. Im Terminal steht dabei ein
+# Drehsymbol mit der Zeit; die Ausgabe des Befehls erscheint, wenn er scheitert (die letzten
+# 60 Zeilen) oder mit --show immer danach. Ohne Terminal läuft der Befehl wie gewohnt.
+busy() {
+  local show=0 text log status=0 spinner started=$SECONDS
+  [[ $1 == --show ]] && { show=1; shift; }
+  text=$1
+  shift
+  if [[ ! -t 1 ]]; then
+    info "$text …"
+    "$@"
+    return
+  fi
+  log=$(mktemp)
+  spin "$text" "$$" &
+  spinner=$!
+  "$@" >"$log" 2>&1 </dev/null || status=$?
+  kill "$spinner" 2>/dev/null || true
+  wait "$spinner" 2>/dev/null || true
+  printf '\r\e[K'
+  if ((status == 0)); then
+    ok "$text ($(((SECONDS - started) / 60)):$(printf '%02d' $(((SECONDS - started) % 60))) min)"
+    ((show == 1)) && cat "$log"
+  else
+    warn "$text – fehlgeschlagen. Die letzten Zeilen der Ausgabe:"
+    tail -n 60 "$log" >&2
+  fi
+  rm -f "$log"
+  return "$status"
 }
 
 # Großer, unübersehbarer Hinweis (z. B. Sicherung der Geheimnis-Datei).
@@ -287,6 +359,26 @@ tor_report() {
   local cli=$PE_CURRENT/backend/src/cli.ts
   [[ -f $cli ]] || return 0
   as_service node "$cli" tor-status "$@" >/dev/null 2>&1 || true
+}
+
+# v1.4.3: Eintrag im Fehlerprotokoll des Adminpanels (SPEC 13 Punkt 7) aus einem Root-Skript.
+# Aufruf: ops_report <Komponente> <info|warning|error> <Was> <Ursache> <Was tun>. Ohne Datenbank
+# oder mit einer älteren Version still ohne Wirkung.
+ops_report() {
+  local cli=$PE_CURRENT/backend/src/cli.ts
+  [[ -f $cli ]] || return 0
+  as_service node "$cli" report --component "$1" --severity "$2" --what "$3" --cause "$4" \
+    --action "$5" >/dev/null 2>&1 || true
+}
+
+# v1.4.3: Schreibt stdin atomar in eine Datei unter $PE_DATA – als Dienstbenutzer, denn root fasst
+# dort nichts selbst an (SPEC 16.3). $1 = Dateiname.
+write_state() {
+  local name=$1 tmp
+  tmp=$(runuser -u "$PE_USER" -- mktemp "$PE_DATA/.$name.XXXXXX")
+  runuser -u "$PE_USER" -- tee "$tmp" >/dev/null
+  runuser -u "$PE_USER" -- chmod 0640 "$tmp"
+  runuser -u "$PE_USER" -- mv -T "$tmp" "$PE_DATA/$name"
 }
 
 # v0.9: Soll www.<Domain> per Weiterleitung bedient werden? Ja im Testmodus; sonst nur, wenn
@@ -591,9 +683,11 @@ build_release() {
     if [ -f deploy/fontconfig/fonts.conf ]; then
       export FONTCONFIG_FILE="$PWD/deploy/fontconfig/fonts.conf"
     fi
-    npm ci --ignore-scripts --no-audit --no-fund --loglevel=error
-    npm run build --silent
-    npm prune --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
+    # v1.4.3: mit Fortschrittsanzeige (busy); && statt set -e, das in „… || status=1“ nicht greift.
+    busy 'Lade die Bausteine (npm ci)' npm ci --ignore-scripts --no-audit --no-fund --loglevel=error &&
+      busy 'Baue App, Adminpanel und Kontrollzentrum – auf schwachen Servern bis zu 30 Minuten' \
+        npm run build --silent &&
+      busy 'Räume die Bausteine auf' npm prune --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error
   ) || status=1
   rm -rf "$PE_NPM_CACHE"
   [[ $status -eq 0 ]] || return 1

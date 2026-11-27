@@ -2,6 +2,8 @@
 Description=PostEulen – tägliche Sicherung
 
 [Timer]
+# v1.4.3: die nächtliche Sicherung mit anschließenden automatischen Updates.
+Unit=posteulen-nightly.service
 OnCalendar=*-*-* 02:30:00 UTC
 RandomizedDelaySec=15m
 Persistent=true

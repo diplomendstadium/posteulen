@@ -29,6 +29,30 @@ stats_written() {
     [[ $(stat -c %U /var/lib/posteulen/server-load) == posteulen ]] &&
     grep -Eq '^[0-9]+ [0-9]+ [0-9]+ [0-9]+ [0-9]+$' /var/lib/posteulen/server-load
 }
+# v1.4.3: „Server der Instanz“ – stündliche Prüfung, Blocklisten, nächtliche Updates (SPEC 13 Punkt 13, 16.3).
+server_info_written() {
+  local file=/var/lib/posteulen/server-info
+  systemctl start posteulen-check.service &&
+    [[ $(stat -c %U "$file") == posteulen ]] &&
+    grep -Eq '^boot_at=[0-9]+$' "$file" && grep -Eq '^apt_ok=[01]$' "$file" &&
+    grep -Eq '^posteulen_latest=v[0-9]' "$file"
+}
+blocklists_written() {
+  local file=/var/lib/posteulen/blocklists
+  systemctl start posteulen-blocklists.service &&
+    grep -Eq '^checked_at=[0-9]+$' "$file" &&
+    grep -Eq "^result dbl.spamhaus.org $DOMAIN (clean|listed|unknown)$" "$file" &&
+    grep -Eq "^result stevenblack [a-z.]+ (clean|listed|unknown)$" "$file"
+}
+auto_update_off() {
+  runuser -u posteulen -- sh -c 'printf "off\n" >/var/lib/posteulen/auto-update-switch'
+  systemctl start posteulen-autoupdate.service &&
+    grep -q '^result=off$' /var/lib/posteulen/auto-update
+}
+report_written() {
+  posteulen-cli report --component VM-Test --severity info --what Testeintrag --cause VM-Test --action nichts &&
+    [[ $(sql "SELECT COUNT(*) AS n FROM error_log WHERE component = 'VM-Test'") == '[{"n":1}]' ]]
+}
 runs_as_service_user() {
   local pid
   pid=$(systemctl show --property MainPID --value posteulen.service)
@@ -252,6 +276,16 @@ check "Backup-Timer aktiv" systemctl is-active --quiet posteulen-backup.timer
 if [[ -f /etc/systemd/system/posteulen-stats.timer ]]; then
   check "Messwert-Timer aktiv" systemctl is-active --quiet posteulen-stats.timer
   check "Messwert-Skript schreibt als posteulen" stats_written
+fi
+if [[ -f /etc/systemd/system/posteulen-check.timer ]]; then
+  check "Zeitgeber für Laufzeit und Updates aktiv" systemctl is-active --quiet posteulen-check.timer
+  check "Zeitgeber für Blocklisten aktiv" systemctl is-active --quiet posteulen-blocklists.timer
+  check "Nächtliche Sicherung startet danach die automatischen Updates" bash -c \
+    "grep -q '^Unit=posteulen-nightly.service' /etc/systemd/system/posteulen-backup.timer && grep -q '^OnSuccess=posteulen-autoupdate.service' /etc/systemd/system/posteulen-nightly.service"
+  check "Server-Infos: Laufzeit, Debian, PostEulen (als posteulen)" server_info_written
+  check "Blocklisten geprüft (Ergebnis je Liste)" blocklists_written
+  check "Automatische Updates abgeschaltet: der Lauf endet sofort" auto_update_off
+  check "posteulen-cli report schreibt ins Fehlerprotokoll" report_written
 fi
 check "systemd-Härtung (Bewertung ≤ 2,5)" hardening_score
 onion_before=''
