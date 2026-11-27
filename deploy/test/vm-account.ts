@@ -59,29 +59,31 @@ await client.ready();
 const SECOND = { name: 'Vm Zweiteule', password: 'noch ein langes Passwort fuer die VM' };
 const LETTER_TEXT = 'Brief aus der VM: bleibt nach jedem Update lesbar.';
 
+/** Starts a login; over Tor every login needs the captcha (SPEC 5.10, v1.4.2 Tor-only test). */
+async function loginStart(userName: string, userPassword: string) {
+  type First = { status: string; attemptId: string; loginResponse: string };
+  let start = client.startLogin(userPassword);
+  let first = await call<First>('POST', '/api/login/start', {
+    name: userName,
+    startLoginRequest: start.request,
+  });
+  if (first.status === 'captcha_required') {
+    start = client.startLogin(userPassword);
+    first = await call<First>('POST', '/api/login/start', {
+      name: userName,
+      startLoginRequest: start.request,
+      altcha: await captcha(),
+    });
+  }
+  return { start, first };
+}
+
 async function loginAs(
   userName: string,
   userPassword: string,
 ): Promise<{ userId: string; identity: IdentityKeys }> {
   cookie = '';
-  let start = client.startLogin(userPassword);
-  let first = await call<{ status: string; attemptId: string; loginResponse: string }>(
-    'POST',
-    '/api/login/start',
-    {
-      name: userName,
-      startLoginRequest: start.request,
-    },
-  );
-  // v1.4.2: over Tor every login needs the captcha (SPEC 5.10) – the Tor-only VM test.
-  if (first.status === 'captcha_required') {
-    start = client.startLogin(userPassword);
-    first = await call<{ status: string; attemptId: string; loginResponse: string }>(
-      'POST',
-      '/api/login/start',
-      { name: userName, startLoginRequest: start.request, altcha: await captcha() },
-    );
-  }
+  const { start, first } = await loginStart(userName, userPassword);
   if (first.status !== 'ok') throw new Error(`login start: ${first.status}`);
   const result = client.finishLogin(userPassword, start.state, first.loginResponse);
   if (!result) throw new Error('falsches Passwort');
@@ -261,15 +263,7 @@ if (command === 'letters-setup') {
   );
   console.log(`registriert: ${first.userId}`);
 } else if (command === 'login') {
-  const start = client.startLogin(password);
-  const first = await call<{ status: string; attemptId: string; loginResponse: string }>(
-    'POST',
-    '/api/login/start',
-    {
-      name,
-      startLoginRequest: start.request,
-    },
-  );
+  const { start, first } = await loginStart(name, password);
   if (first.status !== 'ok') throw new Error(`login start: ${first.status}`);
   const result = client.finishLogin(password, start.state, first.loginResponse);
   if (!result) throw new Error('falsches Passwort');
