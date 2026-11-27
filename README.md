@@ -64,7 +64,8 @@ PostEulen taugt also durchaus als sicherer Kommunikationsweg – solange es nich
 - **Benachrichtigungen, die mitdenken:** Bringt eine Eule Post und rastet bei dir, meldet sie sich nur einmal. Benachrichtigt wird auch, wenn ein neuer Kontakt mit dir verbunden ist oder eine deiner Eulen krank wird. Ein Tipp darauf öffnet gleich die passende Seite, und kommt eine Benachrichtigung einmal nicht durch, versucht PostEulen es später noch einmal. „Neue Post!“ oben in der Leiste gibt es nur für Briefe; Systemnachrichten zeigen nur ihren Zähler.
 - **Küken brauchen Zeit:** Für Namen und Geschenk hast du fünf Tage, bevor das Los entscheidet. In die Freiheit entlassen lassen sich Eulen ab mehr als 5 eigenen.
 - **Eine Voliere mit Platz für jede Art:** Jeder kann höchstens so viele eigene Eulen haben, wie es Eulenarten gibt (derzeit 21). Ist die Voliere voll, gibt es keine neuen Eulen mehr – geheilte wilde Eulen fliegen dann in die Freiheit, und schlüpfende Küken verschenkt man an Freunde, die noch Platz haben.
-- **Eulen wollen Briefe tragen:** Bringt eine Eule drei Wochen lang keinen Brief zu einem Menschen, langweilt sie sich und schaut sehnsüchtig aus dem Fenster. Wer sie dann nicht bald losschickt, dem fliegt sie davon – die letzte Eule bleibt aber immer.
+- **Eulen wollen Briefe tragen:** Bringt eine Eule drei Wochen lang keinen Brief zu einem Menschen, langweilt sie sich und schaut sehnsüchtig aus dem Fenster. Wer sie dann nicht bald losschickt, dem fliegt sie davon – die letzte Eule bleibt aber immer. Wer neu ist und noch niemanden im Adressbuch hat, muss sich keine Sorgen machen: Langweilen können sich die Eulen erst ab dem ersten Kontakt zu einem anderen Menschen.
+- **Zwillinge? Nicht ganz:** Hast du mehrere Eulen derselben Art, sieht jede zweite ein bisschen anders aus – bei Tag, bei Nacht und auch in der Weihnachtszeit. So erkennst du deine Eulen schon am Gefieder.
 - **Aushelfen im Postamt:** Eigene Eulen helfen für eine Woche im Eulenpostamt aus (einmal im Quartal) und bringen dafür etwas Gold mit. Leiheulen kommen gut ausgeruht, mit mindestens drei Vierteln ihrer Energie.
 - **Urlaubsmodus – Pause ohne Nachteile:** Ferien, Urlaub oder eine Prüfungsphase? In den Einstellungen schickst du deine Eulen bis zu dreimal im Jahr für bis zu sechs Wochen in die Eulenpflegestation auf der kleinen Insel Inchlonaig im Loch Lomond. Dort sind sie bestens versorgt, werden nicht krank und langweilen sich nicht; pünktlich zum Ende sind alle wieder zu Hause. In der Zeit musst du dich nicht anmelden – dein Konto gilt nicht als inaktiv. Auf der Karte siehst du sie hin- und zurückfliegen.
 - **Links nach Wunsch:** In den Einstellungen bestimmt ein Regler, ob Links in Briefen anklickbar sind.
@@ -117,7 +118,7 @@ Du willst deine eigene Eulerei aufmachen? Sehr gern. Diese Anleitung erklärt Sc
 
 > **Für Paranoide (im besten Sinne):** Du musst diesem Repository nicht vertrauen. Du kannst PostEulen jederzeit selbst neu entwickeln – mit oder ohne KI. Alles, was du dafür brauchst, sind [`PROMPT.md`](PROMPT.md) (der Bauauftrag), [`SPEC.md`](SPEC.md) (die Spezifikation) und der Bilderordner [`images/`](images/). Unter uns: In der `SPEC.md` steckt eigentlich die Essenz der kompletten geistigen Arbeit und der diversen Tests, die in dieses Projekt geflossen sind – der Code ist im Grunde nur ihre fleißigste Übersetzung. Eine nach der SPEC gebaute Instanz bleibt mit den Daten dieser hier verträglich (SPEC Anhang L).
 
-Stand: **Version 1.4.1** – PostEulen läuft dauerhaft auch auf kleinen vServern (1 GB Arbeitsspeicher, 20 GB Festplatte): Auf dem Server bleiben nur die laufende und die vorige Version, ohne Bildquellen und ohne Git-Kopie; Installation und Update laden nur noch die eine benötigte, signierte Version und räumen danach auf – auch wenn etwas schiefgeht. Auf einem lange laufenden Server macht das erste Update auf 1.4.1 mehrere GB frei ([Abschnitt 6](#6-updates)). In der App stehen bei „Meine Eulen“ die Gast-Eulen jetzt unter „Bereit für Post“. Keine Datenbank-Migration (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
+Stand: **Version 1.4.2** – PostEulen lässt sich jetzt auch **nur im Tor-Netz** betreiben, ganz ohne Domain – etwa in einer VM oder auf einem Raspberry Pi ([Abschnitt 3c](#3c-nur-im-tor-netz-ohne-domain)). Eine **Speicherschranke** hält immer 3 GB auf der Festplatte frei und sperrt sonst vorübergehend das Briefeschreiben ([Abschnitt 3](#3-erster-login-im-adminpanel)). In der App: zweites Aussehen für Eulen derselben Art, keine Langeweile vor dem ersten Kontakt, kurze Bildbeschreibungen, eine flüssigere Karte auf älteren Handys und der Knopf der Rettungsstation unter dem Bild. Migration 0027 (Einzelheiten in [CHANGELOG.md](CHANGELOG.md) und SPEC Anhang F).
 
 **Kurzfassung**
 
@@ -213,6 +214,7 @@ Testmodus (z. B. in einer VM ohne öffentliche Domain): `--test-mode` verwendet 
 - Banner: ein kurzer Hinweis mit Beginn und Ende (höchstens 90 Tage), Deutsch und optional Englisch, erscheint oben in der App bei allen Konten – auch bei Konten, die erst danach entstehen. Nutzer können ihn mit ✕ ausblenden.
 - OpenAI (Bots): API-Key eintragen (wird verschlüsselt gespeichert und nie wieder angezeigt), Modell wählen (Standard „gpt-6-luna“; „Modelle von OpenAI laden“ oder von Hand), zwei Tageslimits (Erklärbär, Standard 200 Aufrufe; alle anderen Bots zusammen, Standard 500), „Verbindung testen“. Ohne Key schreiben die Bots ihre festen Briefe, beantworten aber nichts; wartende Antworten werden nach dem Eintragen sofort nachgeholt. Der Server braucht dafür ausgehende Verbindungen zu `api.openai.com` (Port 443).
 - Adminpasswort vergessen? Auf dem Server erzeugt `sudo posteulen-cli admin-reset` ein neues Erstpasswort und meldet alle Admin-Sitzungen ab. Nutzerdaten bleiben unberührt.
+- **Speicherplatz für die Datenbank** (gleich unter der Server-Auslastung): Die Datenbank darf die Festplatte nie ganz füllen. Sind auf ihrer Partition höchstens **3 GB** frei (Schranke), können Spieler keine Briefe und keine Nachricht an den Admin schicken, eine offene Registrierung geht nur noch mit Einladungscode, und alle sehen oben in der App: „Im Eulenturm wird der Platz knapp …“. Schon ab **4 GB** frei (Warnschwelle) steht ein Hinweis im Fehlerprotokoll. Erst wenn wieder mehr als 4 GB frei sind, ist alles von selbst wie vorher. Beide Werte lassen sich hier ändern (in halben Gigabyte). Gemessen wird höchstens einmal pro Minute, wenn der Server es wissen muss.
 - Oben rechts schaltet ein Knopf das Adminpanel auf Englisch um.
 
 ### 3a. Das Bots-Kontrollzentrum
@@ -247,6 +249,21 @@ PostEulen ist parallel zur Domain als **Onion-Dienst** erreichbar – dieselbe A
   sudo cat /etc/posteulen/onion/hostname      # die Onion-Adresse der App
   sudo cat /etc/posteulen/onion-admin/hostname /etc/posteulen/onion-bots/hostname
   ```
+
+### 3c. Nur im Tor-Netz (ohne Domain)
+
+Für einen Server **ohne Domain, ohne DNS-Einträge und ohne feste IP-Adresse** – etwa eine VM zu Hause oder einen Raspberry Pi mit Debian 13 (arm64) – installierst du PostEulen nur im Tor-Netz:
+
+```bash
+sudo ./posteulen/deploy/install.sh --tor-only
+```
+
+- **Was anders ist:** keine Domain, keine Zertifikate, keine Seiten im normalen Web. Die App, das Adminpanel und das Bots-Kontrollzentrum gibt es nur unter ihren drei Onion-Adressen (am Ende der Installation angezeigt; im Tor Browser öffnen). Die Firewall öffnet nur SSH – Tor baut seine Verbindungen selbst nach außen auf, du musst am Router nichts freigeben.
+- **In der App:** keine Benachrichtigungen (auch keine Hinweise und Anleitungen dazu), im Hintergrund verstreute Zwiebeln statt der Weltkarte. Alles andere ist gleich.
+- **Tor ist Pflicht:** Lässt sich Tor bei der Installation nicht einrichten, bricht sie ab. Im Adminpanel gibt es keinen Schalter zum Abschalten.
+- **Updates** wie gewohnt mit `sudo posteulen-update` (der Server braucht dafür weiter Internet).
+- **Keine Umstellung:** Eine Tor-only-Instanz lässt sich nicht nachträglich auf eine Domain umstellen (und umgekehrt). Wer wechseln will, installiert neu und spielt eine Sicherung ein – mit `posteulen-onion-….tar.age` bleiben sogar die Onion-Adressen.
+- Ein Raspberry Pi braucht mindestens 1 GB Arbeitsspeicher; das Skript legt für den Build bei Bedarf eine Swap-Datei an.
 
 ### 4. Funktionstest
 
@@ -336,7 +353,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # zeigt installierte und verfügbare Version
 sudo posteulen-update             # spielt die neueste Version ein
-sudo posteulen-update v1.4.1      # spielt eine bestimmte Version ein
+sudo posteulen-update v1.4.2      # spielt eine bestimmte Version ein
 ```
 
 Ablauf: aufräumen (Reste abgebrochener Läufe, alte Versionen) → neue Version prüfen (Signatur, Versionsnummer – dafür lädt es nur ein paar Kilobyte) → nur diese eine Version laden → deren Update-Schritte ausführen → bauen (die alte Version läuft währenddessen weiter) → verschlüsselte Sicherung → Dienst stoppen → Datenbank-Migrationen → umschalten → Onion-Dienst einrichten bzw. erhalten → starten → Funktionsprüfung (mit Prüfung aller IPv4- und IPv6-Adressen und von `www`, siehe Installation) → Prüfung der Onion-Adresse. Die Ausfallzeit beträgt höchstens wenige Minuten. Versionen dürfen übersprungen werden. Probleme mit Tor oder DNS lösen nie einen Rückfall aus, sondern stehen am Ende gesammelt im gelben Kasten.

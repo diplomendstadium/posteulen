@@ -3,6 +3,34 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.4.2 – Zwillingsfedern
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-491 bis D-504).
+
+**Neu:**
+
+- **Zweites Aussehen:** Hat ein Spieler mehrere Eulen derselben Art, zeigt jede zweite eigene Bilder bei Tag und bei Nacht (auch in der Weihnachtszeit; Phönix ohne). Die Eule bekommt ihr Aussehen beim Einzug (das unter den übrigen Eulen dieser Art seltenere) und behält es. 40 neue Bilder `<Bildname>-Zweit.png` und `-Zweit-Nacht.png`.
+- **Speicherschranke für die Datenbank:** Ist auf der Partition der Datenbank höchstens 3 GB frei, können Spieler keine Briefe und keine Nachricht an den Admin mehr schicken, offene Registrierung geht nur mit Einladungscode, und alle sehen ein Banner, dass im Eulenturm Platz geschaffen werden muss. Ab 4 GB frei steht ein Hinweis im Fehlerprotokoll; erst über 4 GB ist alles von selbst wieder wie vorher. Beide Werte im Adminpanel (neue Karte „Speicherplatz für die Datenbank“).
+- **Nur im Tor-Netz:** `install.sh --tor-only` installiert PostEulen ohne Domain – App, Adminpanel und Bots-Kontrollzentrum nur unter ihren Onion-Adressen, Firewall nur SSH, keine Zertifikate. Für VMs und Raspberry Pi ohne DNS, Domain und feste IP. Dort gibt es keine Benachrichtigungen (auch nicht in Hilfe, Startseite und Datenschutzerklärung), Tor lässt sich nicht abschalten, und der Hintergrund zeigt verstreute Zwiebeln statt der Weltkarte. Keine nachträgliche Umstellung auf eine Domain.
+
+**Geändert:**
+
+- **Langeweile:** Eulen eines Spielers, der noch nie einen bestätigten Kontakt zu einem anderen Menschen hatte, langweilen sich nie; der Leerlauf beginnt mit dem ersten Kontakt bei null.
+- **Bildbeschreibungen:** überall höchstens etwa vier Wörter (bisher teils ganze Sätze aus der Bildbeschreibung).
+- **Karte:** Ziehen und Zoomen bewegen nur das fertige Bild (CSS-Transform, einmal je Frame); Namen und Symbole werden erst am Ende der Geste neu berechnet – deutlich flüssiger auf älteren Handys.
+- **Rettungsstation:** Knopf „Eintreten“ direkt unter dem Bild, Begrüßung darunter (wie Postamt und Menagerie).
+- Update-Nachricht, Hilfe, Erklärbär-Wissen, Startseite, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert; der gelieferte Ordner „Zweiteulen“ ist eingepflegt und gelöscht.
+
+**Tests:** `shared/test/v142.test.ts`, `backend/test/v142.test.ts`, `e2e/v142.spec.ts`; Tür der Rettungsstation in `e2e/v140.spec.ts`; angepasst `backend/test/v140.test.ts`, `admin.test.ts`, `routes.test.ts`, `shared/test/constants.test.ts` und die E2E-Tests mit Bildbeschreibungen. Der VM-Test startet zusätzlich eine zweite, frische VM für `--tor-only` (Installation, zweiter Lauf, abgelehnte Domain, Update, Konto über die Onion-Seite).
+
+### Hinweise für Betreiber
+
+- **Migration `0027_v142.sql`:** neue Spalten `users.human_contact_at` und `owls.look`. Konten mit Kontakten (oder Briefen) zu Menschen werden erkannt; bei allen anderen beginnt der Leerlauf der Eulen bei null. Je Spieler und Art bekommt jede zweite Eule (nach Besitzbeginn) das zweite Aussehen.
+- **Speicherplatz:** Standard 3 GB Schranke und 4 GB Warnschwelle; auf sehr kleinen Platten im Adminpanel anpassen. Der Platz wird höchstens einmal pro Minute gemessen, kein neuer Zeitgeber.
+- **Neue Bilder:** 40 Zweitbilder im Release (gebaut wie alle Bilder). Keine neuen Pakete, keine neuen npm-Abhängigkeiten.
+- **Tor-only** gilt nur für neue Installationen (`--tor-only`); bestehende Instanzen bleiben, wie sie sind.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.4.1 – Aufgeräumte Volieren
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-483 bis D-490): PostEulen soll dauerhaft auch auf kleinen vServern mit 1 GB RAM und 20 GB Festplatte laufen. Auf einer seit v0.2 laufenden Instanz belegten Releases und Update-Repository zusammen 8,5 GB bei einer Datenbank von 20 MB.

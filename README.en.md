@@ -66,7 +66,8 @@ So PostEulen is quite suitable as a secure way of communicating – as long as m
 - **Notifications that think along:** if an owl brings you post and rests with you, it announces itself only once. You are also notified when a new contact is connected with you or one of your owls falls ill. Tapping a notification opens the right page, and if one does not get through once, PostEulen tries again later. “New post!” in the bar at the top is only for letters; system messages just show their counter.
 - **Chicks need time:** you have five days for names and the gift before the lot decides. Owls can be released into the wild once you have more than 5 of your own.
 - **An aviary with room for every species:** everyone can have at most as many owls of their own as there are species (currently 21). Once the aviary is full, no new owls come in – healed wild owls then fly off into freedom, and chicks that hatch are given to friends who still have room.
-- **Owls want to carry letters:** if an owl takes no letter to a person for three weeks, it grows bored and gazes longingly out of the window. If you do not send it off soon after, it flies away – but your last owl always stays.
+- **Owls want to carry letters:** if an owl takes no letter to a person for three weeks, it grows bored and gazes longingly out of the window. If you do not send it off soon after, it flies away – but your last owl always stays. Newcomers with nobody in their address book yet need not worry: owls can only get bored after the first contact with another person.
+- **Twins? Not quite:** if you have several owls of the same species, every second one looks a little different – by day, by night and at Christmas time too. So you can tell your owls apart by their feathers.
 - **Helping out at the post office:** your own owls help out at the owl post office for a week (once a quarter) and bring back a little gold. Loan owls arrive well rested, with at least three quarters of their energy.
 - **Holiday mode – a break without drawbacks:** holidays, a trip away or exams? In the settings you send your owls up to three times a year for up to six weeks to the owl care station on the little island of Inchlonaig in Loch Lomond. There they are well looked after, do not fall ill and do not get bored; all of them are home again exactly when it ends. You need not sign in during that time – your account does not count as inactive. On the map you see them fly there and back.
 - **Links as you like:** a switch in the settings decides whether links in letters can be clicked.
@@ -121,7 +122,7 @@ You want to open your own owlery? Go ahead. This guide explains step by step how
 
 The scripts and the admin panel speak German; the commands below are the same in any language.
 
-Version: **1.4.1** – PostEulen now runs permanently even on small virtual servers (1 GB of RAM, 20 GB disk): only the running and the previous version stay on the server, without image sources and without a Git copy; installation and updates download just the one signed version needed and clean up afterwards – even if something goes wrong. On a long-running server the first update to 1.4.1 frees several GB ([section 6](#6-updates)). In the app, the visiting owls under “My owls” now come right below “Ready for post”. No database migration (details in [CHANGELOG.md](CHANGELOG.md) and SPEC appendix F).
+Version: **1.4.2** – PostEulen can now also run **in the Tor network only**, without any domain – for example in a VM or on a Raspberry Pi ([section 3c](#3c-tor-network-only-without-a-domain)). A **disk space barrier** always keeps 3 GB free and otherwise pauses letter writing for a while ([section 3](#3-first-login-to-the-admin-panel)). In the app: a second look for owls of the same species, no boredom before the first contact, short picture descriptions, a smoother map on older phones and the rescue centre button below the picture. Migration 0027 (details in [CHANGELOG.md](CHANGELOG.md) and SPEC appendix F).
 
 **In short**
 
@@ -218,6 +219,7 @@ Test mode (e.g. in a VM without a public domain): `--test-mode` uses local certi
 - Banner: a short notice with start and end (at most 90 days), German and optionally English, shown at the top of the app for all accounts – including accounts created afterwards. Users can hide it with ✕.
 - OpenAI (bots): enter the API key (stored encrypted and never shown again), choose the model (default “gpt-6-luna”; “Modelle von OpenAI laden” or by hand), two daily limits (Explainer Bear, default 200 calls; all other bots together, default 500), “Verbindung testen” (test connection). Without a key the bots send their fixed letters but answer nothing; waiting replies are sent right after a key has been entered. The server needs outgoing connections to `api.openai.com` (port 443) for this. The bots reply in the language of each account.
 - Forgotten the admin password? On the server, `sudo posteulen-cli admin-reset` creates a new initial password and signs out all admin sessions. User data stays untouched.
+- **Disk space for the database** (right below the server load): the database must never fill the disk completely. If no more than **3 GB** are free on its partition (the barrier), players cannot send letters or a message to the admin, open registration needs an invitation code, and everyone sees at the top of the app: “Space is running out in the owl tower …”. From **4 GB** free (the warning threshold) a note appears in the error log. Only once more than 4 GB are free again is everything as before by itself. Both values can be changed here (in half gigabytes). The server measures at most once a minute, whenever it needs to know.
 - A button in the top right switches the admin panel to English.
 
 ### 3a. The bots control centre
@@ -252,6 +254,21 @@ PostEulen can be reached as an **onion service** in parallel to the domain – t
   sudo cat /etc/posteulen/onion/hostname      # the onion address of the app
   sudo cat /etc/posteulen/onion-admin/hostname /etc/posteulen/onion-bots/hostname
   ```
+
+### 3c. Tor network only (without a domain)
+
+For a server **without a domain, DNS records or a fixed IP address** – such as a VM at home or a Raspberry Pi with Debian 13 (arm64) – you install PostEulen in the Tor network only:
+
+```bash
+sudo ./posteulen/deploy/install.sh --tor-only
+```
+
+- **What is different:** no domain, no certificates, no pages on the normal web. The app, the admin panel and the bots control centre exist only at their three onion addresses (shown at the end of the installation; open them in the Tor Browser). The firewall only opens SSH – Tor makes its connections outwards by itself, so there is nothing to open on your router.
+- **In the app:** no notifications (and no notes or guides about them), scattered onions instead of the world map in the background. Everything else is the same.
+- **Tor is a must:** if Tor cannot be set up during installation, it stops. The admin panel has no switch to turn it off.
+- **Updates** as usual with `sudo posteulen-update` (the server still needs the internet for that).
+- **No switching:** a Tor-only instance cannot be switched to a domain later (nor the other way round). To change, install afresh and restore a backup – with `posteulen-onion-….tar.age` even the onion addresses stay.
+- A Raspberry Pi needs at least 1 GB of RAM; the script adds a swap file for the build if needed.
 
 ### 4. Functional test
 
@@ -341,7 +358,7 @@ sudo -u posteulen posteulen-cli bots-import --file /root/posteulen-bots-….zip 
 ```bash
 sudo posteulen-update --check     # shows installed and available version
 sudo posteulen-update             # installs the newest version
-sudo posteulen-update v1.4.1      # installs a particular version
+sudo posteulen-update v1.4.2      # installs a particular version
 ```
 
 Sequence: clean up (leftovers of aborted runs, old versions) → check the new version (signature, version number – this downloads only a few kilobytes) → download just this one version → run its update steps → build (the old version keeps running meanwhile) → encrypted backup → stop the service → database migrations → switch over → set up or keep the onion service → start → functional check (including all IPv4 and IPv6 addresses and `www`, see installation) → check of the onion address. Downtime is a few minutes at most. Versions may be skipped. Problems with Tor or DNS never trigger a rollback; they are listed at the end in the yellow box.
