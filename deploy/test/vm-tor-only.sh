@@ -74,12 +74,16 @@ check "Bots-Kontrollzentrum im Tor-Netz antwortet lokal" health_of onion-bots 30
 check "Die App erkennt die Tor-only-Instanz" edition_tor_only
 check "Keine Benachrichtigungen (Push-Schlüssel: 404)" push_gone
 check "Adminzugang angelegt" bash -c "posteulen-cli admin-init | grep -q 'vorhanden'"
+# Der Testclient erreicht die Onion-Seite über ihren lokalen Listener (Name → 127.0.0.1).
+printf '127.0.0.1 %s\n' "$(onion_of onion)" >>/etc/hosts
 sql "UPDATE settings SET value = 'open' WHERE key = 'registration_mode'" >/dev/null
 check "Testkonto über die Onion-Seite registrieren" account register
 check "Testkonto meldet sich über die Onion-Seite an (mit Rechenaufgabe)" account login
 onion_before=$(onion_of onion)
 
 echo "── T2. Zweiter Lauf und Schutz vor Umstellung"
+# Nach der Installation hält der Tor-Helfer (Pfad-Unit) kurz die Sperre – darauf warten.
+flock -w 900 /run/posteulen-update.lock true || true
 check "install.sh ein zweites Mal (nichts überschrieben)" /root/posteulen/deploy/install.sh --yes \
   --repo file:///srv/posteulen.git --ssh-hardening ja
 check "Onion-Adresse unverändert" test "$(onion_of onion)" = "$onion_before"
@@ -87,6 +91,7 @@ check "install.sh --domain auf einer Tor-only-Instanz wird abgelehnt" \
   bash -c "! /root/posteulen/deploy/install.sh --domain posteulen.test --yes --repo file:///srv/posteulen.git >/dev/null 2>&1"
 
 echo "── T3. Update ($v2)"
+flock -w 900 /run/posteulen-update.lock true || true
 check "posteulen-update $v2" posteulen-update "$v2" --yes
 check "Version $v2 antwortet über die Onion-Seite" test "$(api_version)" = "${v2#v}"
 check "Nach dem Update weiter Tor-only" env_tor_only

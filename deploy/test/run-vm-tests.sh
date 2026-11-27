@@ -8,7 +8,8 @@
 # Ablauf: Cloud-Image laden und prüfen → VM starten → aus HEAD vier Test-Versionen bauen
 # (gut, gut, mit kaputter Migration, mit kaputtem Build) → Szenario deploy/test/vm-scenario.sh
 # in der VM. v1.4.2: danach eine zweite, frische VM für die Installation nur im Tor-Netz
-# (deploy/test/vm-tor-only.sh; überspringen mit POSTEULEN_VM_TOR_ONLY=0).
+# (deploy/test/vm-tor-only.sh; überspringen mit POSTEULEN_VM_TOR_ONLY=0, nur sie mit
+# POSTEULEN_VM_MAIN=0).
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 CACHE=${POSTEULEN_VM_CACHE:-$HOME/.cache/posteulen-vm}
@@ -124,34 +125,38 @@ ssh_vm() {
     -o ConnectTimeout=5 -o BatchMode=yes debian@127.0.0.1 "$@"
 }
 
-say "VM starten"
-start_vm
+status=0
+# v1.4.2: POSTEULEN_VM_MAIN=0 überspringt das Hauptszenario (nur die Tor-only-VM).
+if [[ ${POSTEULEN_VM_MAIN:-1} != 0 ]]; then
+  say "VM starten"
+  start_vm
 
-say "Szenario in der VM"
-# v1.2.1: nach /var/tmp (Festplatte) – /tmp ist in Debian 13 ein RAM-Dateisystem und für das
-# Bundle mit allen Bildern zu klein.
-scp -q -i "$CACHE/vm_key" -P "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-  "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-scenario.sh" debian@127.0.0.1:/var/tmp/
-set +e
-ssh_vm "sudo bash /var/tmp/vm-scenario.sh '$version' '$previous'" 2>&1 | tee "$run_dir/scenario.log"
-status=${PIPESTATUS[0]}
-set -e
+  say "Szenario in der VM"
+  # v1.2.1: nach /var/tmp (Festplatte) – /tmp ist in Debian 13 ein RAM-Dateisystem und für das
+  # Bundle mit allen Bildern zu klein.
+  scp -q -i "$CACHE/vm_key" -P "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    "$run_dir/posteulen.bundle" "$ROOT/deploy/test/vm-scenario.sh" debian@127.0.0.1:/var/tmp/
+  set +e
+  ssh_vm "sudo bash /var/tmp/vm-scenario.sh '$version' '$previous'" 2>&1 | tee "$run_dir/scenario.log"
+  status=${PIPESTATUS[0]}
+  set -e
 
-say "Zugriff von außen (Host → VM)"
-if curl --silent --insecure --max-time 10 --resolve "posteulen.test:$HTTPS_PORT:127.0.0.1" "https://posteulen.test:$HTTPS_PORT/api/health" | grep -q '"status":"ok"'; then
-  echo "✔ Von außen erreichbar."
-  ssh_vm "sudo systemctl stop posteulen; sleep 1" >/dev/null
-  curl --silent --insecure --max-time 10 --resolve "posteulen.test:$HTTPS_PORT:127.0.0.1" "https://posteulen.test:$HTTPS_PORT/api/health" >/dev/null || true
-  ssh_vm "sudo systemctl start posteulen; sleep 2"
-  if ssh_vm "sudo journalctl -u caddy -u posteulen --no-pager" | grep -q '10\.0\.2\.2'; then
-    echo "✘ Die IP-Adresse des Clients steht im Journal (SPEC 2.2)."
-    status=1
+  say "Zugriff von außen (Host → VM)"
+  if curl --silent --insecure --max-time 10 --resolve "posteulen.test:$HTTPS_PORT:127.0.0.1" "https://posteulen.test:$HTTPS_PORT/api/health" | grep -q '"status":"ok"'; then
+    echo "✔ Von außen erreichbar."
+    ssh_vm "sudo systemctl stop posteulen; sleep 1" >/dev/null
+    curl --silent --insecure --max-time 10 --resolve "posteulen.test:$HTTPS_PORT:127.0.0.1" "https://posteulen.test:$HTTPS_PORT/api/health" >/dev/null || true
+    ssh_vm "sudo systemctl start posteulen; sleep 2"
+    if ssh_vm "sudo journalctl -u caddy -u posteulen --no-pager" | grep -q '10\.0\.2\.2'; then
+      echo "✘ Die IP-Adresse des Clients steht im Journal (SPEC 2.2)."
+      status=1
+    else
+      echo "✔ Keine Client-IP im Journal, auch nicht bei einem Proxy-Fehler."
+    fi
   else
-    echo "✔ Keine Client-IP im Journal, auch nicht bei einem Proxy-Fehler."
+    echo "✘ Von außen nicht erreichbar."
+    status=1
   fi
-else
-  echo "✘ Von außen nicht erreichbar."
-  status=1
 fi
 
 if [[ ${POSTEULEN_VM_TOR_ONLY:-1} != 0 ]]; then
