@@ -29,6 +29,7 @@ import {
 } from '@posteulen/shared/schemas/auth.ts';
 import type { Context } from '../context.ts';
 import { vacationView } from '../owls/vacation.ts';
+import { clutchNotice } from '../owls/clutch-notice.ts';
 import { HttpError, parse, emptyBody } from '../http/errors.ts';
 import { hmac, randomId, utcDay } from '../security/ids.ts';
 import { addSystemMessage } from '../messages/system.ts';
@@ -760,5 +761,7 @@ export function profileOf(ctx: Context, userId: string) {
     vacation: vacationView(ctx, userId, ctx.now()).current,
     // v1.4.3: second factor switched on, backup codes left (SPEC 5.11).
     twoFactor: twoFactorStatus(ctx.db, userSubject(userId)),
+    // v1.5.0: a chick to give away – banner and daily notice (SPEC 8.5, 9.9).
+    clutch: clutchNotice(ctx, userId, ctx.now()),
   };
 }

@@ -12,6 +12,8 @@ export type TransactionType =
   | 'owl_purchase'
   | 'feed'
   | 'snack'
+  /** v1.5.0: a mealworm for a chick (SPEC 9.3, 9.9). */
+  | 'mealworm'
   | 'large_parchment'
   | 'transfer_out'
   | 'transfer_in'

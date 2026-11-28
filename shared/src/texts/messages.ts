@@ -48,6 +48,19 @@ export interface UpdateNote extends LongMessage {
 
 export const UPDATE_NOTES: readonly UpdateNote[] = [
   {
+    version: '1.5.0',
+    title: 'Mehlwürmer und Mondschein im Nest: Version 1.5.0',
+    paragraphs: [
+      'Im Eulenturm ist Kükenzeit – und dafür wurde einiges umgeräumt:',
+      '• Küken bekommen jetzt eigene Zuwendung: einmal am Tag einen Mehlwurm (0,1 Gold) und so viele Streicheleinheiten, wie du magst. Wasser, Eulenkekse und Leckerlis sind etwas für die Großen.',
+      '• Schlüpfen mehrere Küken derselben Art, sieht jetzt jedes ein bisschen anders aus. Und nachts sitzen die Küken im Dunkeln wie alle anderen Eulen.',
+      '• Musst du ein Küken verschenken, sagt dir das ein Hinweis oben in der App, eine große Einblendung einmal am Tag und eine tägliche Erinnerung – damit nicht aus Versehen das Los entscheidet.',
+      '• Wenn in dieser Eulenpost ganz besonders viele Briefe geflogen sind, feiern wir das künftig mit dir.',
+      '• Die Startseite ist ein kleines bisschen kürzer geworden.',
+      'Frohes Schreiben!',
+    ],
+  },
+  {
     version: '1.4.3',
     title: 'Ein zweites Schloss am Eulenturm: Version 1.4.3',
     paragraphs: [
@@ -524,6 +537,19 @@ export const DONATION_TEXTS_EN: readonly LongMessage[] = [
 
 /** English update notes (v0.4), same versions as UPDATE_NOTES. */
 export const UPDATE_NOTES_EN: readonly UpdateNote[] = [
+  {
+    version: '1.5.0',
+    title: 'Mealworms and moonlight in the nest: version 1.5.0',
+    paragraphs: [
+      'It is chick season in the owl tower – and a few things have been rearranged for it:',
+      '• Chicks now get attention of their own: a mealworm once a day (0.1 gold) and as many cuddles as you like. Water, owl biscuits and treats are for the grown-ups.',
+      '• If several chicks of the same species hatch, each of them now looks a little different. And at night the chicks sit in the dark like all the other owls.',
+      '• If you have to give a chick away, a notice at the top of the app, a big picture once a day and a daily reminder tell you – so the lot does not decide by accident.',
+      '• Whenever especially many letters have flown in this owl post, we will celebrate it with you.',
+      '• The start page has become a tiny bit shorter.',
+      'Happy writing!',
+    ],
+  },
   {
     version: '1.4.3',
     title: 'A second lock on the owl tower: version 1.4.3',
@@ -1003,4 +1029,39 @@ export function updateNote(version: string, language: 'de' | 'en' = 'de'): Updat
 /** One of the three donation requests in a language (v0.4). */
 export function donationText(index: number, language: 'de' | 'en' = 'de'): LongMessage | undefined {
   return (language === 'en' ? DONATION_TEXTS_EN : DONATION_TEXTS)[index];
+}
+
+/**
+ * v1.5.0: the festive message at 1,000, 5,000 … letters between people on the instance (SPEC
+ * 11.1). "{count}" is the milestone, "{link}" the donation link and "{feedback}" the link to the
+ * message to the admin in the settings.
+ */
+const MILESTONE_TEXT: LongMessage = {
+  title: '🎉 {count} Briefe! Die Eulerei feiert',
+  paragraphs: [
+    'Tusch und Flügelschlag! In dieser Eulenpost sind jetzt {count} Briefe von Mensch zu Mensch geflogen. Im Eulenturm hängen Girlanden aus Federn, die Schneeeule trägt einen Partyhut, und der Waldkauz übt schon seit Stunden an einer feierlichen Rede.',
+    'Wir, die diese Eulenpost betreiben, sagen von Herzen Danke: für jeden einzelnen Brief, für deine Geduld mit langsamen Eulen – und für das Vertrauen, das du uns mit deinen Worten schenkst.',
+    'Damit die Eulen noch viele Jahre fliegen können, brauchen wir ein wenig Rückenwind. Wenn du magst und es dir leisten kannst, hilft jede kleine Spende, Server, Strom und Mehlwürmer zu bezahlen: {link}',
+    'Und hast du eine Idee, was PostEulen noch schöner machen würde, oder hakt irgendwo etwas? Schreib uns in den Einstellungen eine {feedback}. Wir lesen jede einzelne.',
+    'Auf die nächsten Briefe – die Eulen sind startklar!',
+  ],
+};
+
+const MILESTONE_TEXT_EN: LongMessage = {
+  title: '🎉 {count} letters! The owlery is celebrating',
+  paragraphs: [
+    'Fanfare and flapping wings! {count} letters have now flown from person to person in this owl post. Garlands of feathers hang in the owl tower, the Snowy Owl is wearing a party hat, and the Tawny Owl has been rehearsing a solemn speech for hours.',
+    'We who run this owl post thank you with all our hearts: for every single letter, for your patience with slow owls – and for the trust you give us with your words.',
+    'So that the owls can keep flying for many years, we need a little tailwind. If you like and can afford it, every small donation helps to pay for servers, electricity and mealworms: {link}',
+    'And do you have an idea what would make PostEulen even nicer, or is something not working? Send us a {feedback} in the settings. We read every single one.',
+    'Here’s to the next letters – the owls are ready for take-off!',
+  ],
+};
+
+/** v1.5.0: the milestone message with the number written for the language (1.000 / 1,000). */
+export function milestoneText(count: number, language: 'de' | 'en' = 'de'): LongMessage {
+  const text = language === 'en' ? MILESTONE_TEXT_EN : MILESTONE_TEXT;
+  const number = new Intl.NumberFormat(language === 'en' ? 'en-GB' : 'de-DE').format(count);
+  const fill = (value: string): string => value.replaceAll('{count}', number);
+  return { title: fill(text.title), paragraphs: text.paragraphs.map(fill) };
 }

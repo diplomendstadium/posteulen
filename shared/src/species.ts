@@ -115,6 +115,15 @@ export const OWL_IMAGE_KINDS = [
   // species with the same owner (SPEC 9.2.6; 34 kinds, the phoenix has 24).
   { kind: 'second', suffix: 'Zweit' },
   { kind: 'secondNight', suffix: 'Zweit-Nacht' },
+  // v1.5.0: chicks – the second and third look of a chick, each chick picture by night, and
+  // feeding (a mealworm) and petting a chick (SPEC 9.2.6, 9.9; 41 kinds, the phoenix has 24).
+  { kind: 'chick2', suffix: 'Kueken2' },
+  { kind: 'chick3', suffix: 'Kueken3' },
+  { kind: 'chickNight', suffix: 'Kueken-Nacht' },
+  { kind: 'chick2Night', suffix: 'Kueken2-Nacht' },
+  { kind: 'chick3Night', suffix: 'Kueken3-Nacht' },
+  { kind: 'chickFeeding', suffix: 'Kueken-Fuettern' },
+  { kind: 'chickPetting', suffix: 'Kueken-Streicheln' },
 ] as const;
 
 /** Picture kinds a mythical species does not have: no eggs, no chicks, never sick. */
@@ -129,6 +138,13 @@ const NOT_MYTHICAL: readonly string[] = [
   'healthyNight',
   'second',
   'secondNight',
+  'chick2',
+  'chick3',
+  'chickNight',
+  'chick2Night',
+  'chick3Night',
+  'chickFeeding',
+  'chickPetting',
 ];
 
 /** The image kinds a species has (no chick or brooding picture for mythical species). */

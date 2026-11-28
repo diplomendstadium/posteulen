@@ -60,7 +60,7 @@ Your Explainer Bear`,
 
 Give your owls water, pet them, treat them to an owl biscuit or their favourite snack. That raises their motivation, and motivated owls fly their next leg faster and further – other people’s owls resting with you, too. If an owl gets two different kinds of care on 10 of the last 14 days at home, it falls ill much less often. If an owl falls ill, you nurse it back to health in the rescue centre.
 
-Sometimes an owl lays eggs – more often if a male of her species lives with you. With two or three chicks, you give one of them to a contact – you have five days for that and for the names.
+Sometimes an owl lays eggs. Chicks get a mealworm once a day. With two or three chicks, you must give one to a contact – otherwise the lot decides after five days.
 
 Send your owls to people often, or they get bored.
 

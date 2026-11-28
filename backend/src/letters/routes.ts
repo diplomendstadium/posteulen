@@ -4,6 +4,7 @@
  * Since stage 3 letters travel with real owls (flights/service.ts). The `deliver` handler is
  * kept for letters that were already on the way with the stage-2 placeholder owl.
  */
+import { checkLetterMilestone } from '../messages/milestones.ts';
 import { requireStorage } from '../ops/storage.ts';
 import { christmasPaperOf } from './season.ts';
 import { owlLabel } from '../owls/globe.ts';
@@ -65,6 +66,8 @@ export function registerLetterHandlers(ctx: Context): void {
        ON CONFLICT (day) DO UPDATE SET human_letters = human_letters + 1`,
       utcDay(event.logicalAt),
     );
+    // v1.5.0: 1,000, 5,000 … letters between people are celebrated (SPEC 11.1).
+    checkLetterMilestone(ctx, event.logicalAt);
     ctx.push.notify(letter.recipient_id, 'letter_arrived', letter.id, event.logicalAt, tools.after);
     tools.after(() => {
       ctx.hub.notify(letter.recipient_id, 'chats');
@@ -442,8 +445,10 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
       owl_species: string;
       arrives_at: number;
       owl_km: number | null;
+      chick_look: number | null;
     }>(
-      `SELECT l.id, l.sender_id, l.kind, l.owl_name, l.owl_species, l.arrives_at, o.km_flown AS owl_km
+      `SELECT l.id, l.sender_id, l.kind, l.owl_name, l.owl_species, l.arrives_at, o.km_flown AS owl_km,
+              o.chick_look
          FROM letters l LEFT JOIN flights f ON f.id = l.flight_id LEFT JOIN owls o ON o.id = f.owl_id
         WHERE l.recipient_id = ? AND l.recipient_has = 1 AND l.status = 'delivered' AND l.arrival_seen = 0
         ORDER BY l.arrives_at, l.id LIMIT 50`,
@@ -455,6 +460,8 @@ export function registerLetterRoutes(app: FastifyInstance, ctx: Context): void {
         owl: owlLabel({ name: row.owl_name, km_flown: row.owl_km ?? 0 }),
         species: row.owl_species,
         kind: row.kind,
+        // v1.5.0: a chick shows its chick look (9.2.6).
+        chickLook: row.chick_look === 1 || row.chick_look === 2 ? row.chick_look : 0,
         from:
           findContact(ctx.db, me, row.sender_id) || playerBot(ctx, me, row.sender_id)
             ? (displayName(ctx.db, row.sender_id) ?? null)

@@ -59,7 +59,9 @@ export type SystemMessageType =
   | 'bot_owl_gift_full'
   | 'vacation_started'
   | 'vacation_ended'
-  | 'vacation_ended_early';
+  | 'vacation_ended_early'
+  /** v1.5.0: 1,000, 5,000 … letters between people on the instance (SPEC 11.1). */
+  | 'letters_milestone';
 
 export function addSystemMessage(
   ctx: Context,

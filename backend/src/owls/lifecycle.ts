@@ -344,10 +344,11 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
   ctx.queue.schedule('clutch_names', clutchId, at + OWL.CHICK_NAME_DEADLINE_HOURS * TIME.HOUR);
   if (mustGive) {
     ctx.queue.schedule('clutch_gift', clutchId, at + OWL.CHICK_GIFT_DEADLINE_HOURS * TIME.HOUR);
+    // v1.5.0: a reminder every day until the chick is given away (before: only the last day).
     ctx.queue.schedule(
       'clutch_reminder',
       clutchId,
-      at + (OWL.CHICK_GIFT_DEADLINE_HOURS - OWL.CHICK_GIFT_REMINDER_HOURS_BEFORE) * TIME.HOUR,
+      at + OWL.CHICK_GIFT_REMINDER_EVERY_HOURS * TIME.HOUR,
     );
   }
   addSystemMessage(
@@ -361,7 +362,8 @@ function hatch(ctx: Context, motherId: string, at: number, after: After): void {
   // The mother is free again; during a holiday she flies to the island (her chicks once named).
   sendOwlsOnVacation(ctx, mother.owner_id, at, after);
   ctx.push.notify(mother.owner_id, 'chicks_hatched', clutchId, at, after);
-  after(() => ctx.hub.notify(mother.owner_id, 'owls'));
+  // v1.5.0: the profile carries the clutch to give away (banner and daily notice, 9.9).
+  after(() => ctx.hub.notify(mother.owner_id, 'owls', 'profile'));
 }
 
 /** Unnamed chicks get random names after 24 hours (9.9). */
@@ -468,19 +470,31 @@ function giftDeadline(ctx: Context, clutchId: string, at: number, after: After):
   }
   // The chicks that stay are free now; during a holiday they fly to the island.
   sendOwlsOnVacation(ctx, clutch.owner_id, at, after);
-  after(() => ctx.hub.notify(clutch.owner_id, 'owls', 'map'));
+  after(() => ctx.hub.notify(clutch.owner_id, 'owls', 'map', 'profile'));
 }
 
+/**
+ * v1.5.0: every day until the chick is given away a reminder with the days left – 4, 3, 2 and
+ * on the last day "by this time tomorrow" (9.9). Reminders scheduled before v1.5.0 (one day
+ * before the lot) are simply the last one.
+ */
 function giftReminder(ctx: Context, clutchId: string, at: number, after: After): void {
-  const clutch = ctx.db.get<{ owner_id: string; gift_state: string; gift_all: number }>(
-    'SELECT owner_id, gift_state, gift_all FROM clutches WHERE id = ?',
-    clutchId,
-  );
-  if (clutch?.gift_state === 'open') {
-    // v1.4: beyond the limit every chick still at home (wording variant "all").
-    const params: Record<string, string> = clutch.gift_all === 1 ? { cargo: 'all' } : {};
-    addSystemMessage(ctx, clutch.owner_id, 'clutch_reminder', params, at, after);
-  }
+  const clutch = ctx.db.get<{
+    owner_id: string;
+    gift_state: string;
+    gift_all: number;
+    hatched_at: number;
+  }>('SELECT owner_id, gift_state, gift_all, hatched_at FROM clutches WHERE id = ?', clutchId);
+  if (clutch?.gift_state !== 'open') return;
+  const deadline = clutch.hatched_at + OWL.CHICK_GIFT_DEADLINE_HOURS * TIME.HOUR;
+  const days = Math.max(1, Math.round((deadline - at) / TIME.DAY));
+  // v1.4: beyond the limit every chick still at home (wording variant "all").
+  const params: Record<string, string | number> = { days };
+  if (clutch.gift_all === 1) params['cargo'] = 'all';
+  addSystemMessage(ctx, clutch.owner_id, 'clutch_reminder', params, at, after);
+  const next = at + OWL.CHICK_GIFT_REMINDER_EVERY_HOURS * TIME.HOUR;
+  if (next < deadline) ctx.queue.schedule('clutch_reminder', clutchId, next);
+  after(() => ctx.hub.notify(clutch.owner_id, 'profile'));
 }
 
 function chickAdult(ctx: Context, chickId: string, at: number, after: After): void {

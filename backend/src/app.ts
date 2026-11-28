@@ -27,6 +27,7 @@ import {
   registerDonationHandler,
   sendUpdateNotes,
 } from './messages/periodic.ts';
+import { initLetterMilestones, registerMilestoneHandler } from './messages/milestones.ts';
 import { BotReplies, registerReplyHandler } from './bots/replies.ts';
 import { registerBotRoutes } from './bots/routes.ts';
 import { registerGoldJobs, registerGoldRoutes } from './gold/routes.ts';
@@ -180,6 +181,9 @@ export async function createApp(config: Config, options: ContextOptions = {}): P
   backfillStats(ctx, ctx.now());
   // v1.3: owls that flew around the Earth before get their 🌍 announced once.
   announceAllBadges(ctx, ctx.now());
+  // v1.5.0: milestones of letters between people – the highest one passed is celebrated once.
+  registerMilestoneHandler(ctx);
+  initLetterMilestones(ctx);
   // v1.4.2: a Tor-only instance cannot switch Tor off – also not with a restored backup of an
   // instance that had it switched off (SPEC 16.6).
   if (config.torOnly) keepTorOn(ctx);

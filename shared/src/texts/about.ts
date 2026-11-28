@@ -22,7 +22,7 @@ Weißt du noch, wie schön es war, einen richtigen Brief im Briefkasten zu finde
 
 ![homecoming](left)
 
-Du kannst dir Eulen in der Menagerie kaufen oder leihst sie dir im Eulenpostamt. Du kannst ihnen Namen geben, Wasser hinstellen, sie streicheln und sie mit Eulenkeksen oder ihrem Lieblingsleckerli verwöhnen. Zwanzig Eulenarten wohnen derzeit in der Menagerie, vom winzigen Elfenkauz über die rostrote Ostkreischeule und die Zypern-Zwergohreule bis zum mächtigen Virginiauhu. Nicht jede trägt alles: Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen Eulen tragen außerdem Gold. Gepflegte Eulen sind motivierter und fliegen die nächste Strecke schneller und weiter – vernachlässigte schauen grummelig drein. Gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier – noch eher, wenn ein Eulenmann ihrer Art mit ihr zu Hause wohnt. Kranke und verletzte Eulen pflegst du in der Eulenrettungsstation gesund; manche wilde Eule bleibt danach sogar als Posteule bei dir.
+Du kannst dir Eulen in der Menagerie kaufen oder leihst sie dir im Eulenpostamt. Du kannst ihnen Namen geben, Wasser hinstellen, sie streicheln und sie mit Eulenkeksen oder ihrem Lieblingsleckerli verwöhnen. Zwanzig Eulenarten wohnen derzeit in der Menagerie, vom winzigen Elfenkauz über die rostrote Ostkreischeule und die Zypern-Zwergohreule bis zum mächtigen Virginiauhu. Nicht jede trägt alles: Kleine Eulen schaffen nur ein kurzes Pergament, mittlere auch ein langes, und nur die kräftigen Eulen tragen außerdem Gold. Gepflegte Eulen sind motivierter und fliegen die nächste Strecke schneller und weiter – vernachlässigte schauen grummelig drein. Gut umsorgte Eulen werden außerdem seltener krank, und mit etwas Glück legt eine eines Tages Eier – noch eher, wenn ein Eulenmann ihrer Art mit ihr zu Hause wohnt. Die Küken päppelst du mit Streicheleinheiten und Mehlwürmern auf. Kranke und verletzte Eulen pflegst du in der Eulenrettungsstation gesund; manche wilde Eule bleibt danach sogar als Posteule bei dir.
 
 ![menagerie](right)
 
@@ -38,7 +38,7 @@ Stehen Ferien, Urlaub oder eine Prüfungsphase an, gibt es den Urlaubsmodus: Bis
 
 **Selbstverständlich gibt es auch keine In-App-Käufe.**
 
-Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI (ihre Briefe sind nicht verschlüsselt und gehen zum Beantworten an OpenAI). Vorher streicht ein Filter alle Absätze über Drogen, Sexualität oder Gewalt – darauf gehen die Bots nicht ein. Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
+Die Brieffreunde – der Erklärbär und andere Bots – antworten per KI. Wer das nicht möchte, entfernt sie in ihrem Briefwechsel – oder alle auf einmal, endgültig und auch für künftige Bots, in den Einstellungen („Alle Bots entfernen“). Ins Adressbuch kommen sie gar nicht erst; dort stehen nur echte Menschen.
 
 # Spiel? Messenger? Beides – und zwar ernsthaft sicher.
 
@@ -75,7 +75,7 @@ Remember how lovely it was to find a real letter in the letterbox? PostEulen bri
 
 ![homecoming](left)
 
-You can buy owls in the Menagerie or borrow them at the owl post office. You can give them names, put out water for them, pet them and spoil them with owl biscuits or their favourite snack. Twenty owl species currently live in the Menagerie, from the tiny Elf Owl via the rust-red Eastern Screech Owl and the Cyprus Scops Owl to the mighty Great Horned Owl. Not every owl carries everything: small owls only manage a short parchment, medium ones a long one as well, and only the strong owls also carry gold. Cared-for owls are more motivated and fly their next leg faster and further – neglected ones look grumpy. Well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day – all the more if a male of her species lives at home with her. Ill and injured owls get nursed back to health in the owl rescue centre; some wild owls even stay with you as a post owl afterwards.
+You can buy owls in the Menagerie or borrow them at the owl post office. You can give them names, put out water for them, pet them and spoil them with owl biscuits or their favourite snack. Twenty owl species currently live in the Menagerie, from the tiny Elf Owl via the rust-red Eastern Screech Owl and the Cyprus Scops Owl to the mighty Great Horned Owl. Not every owl carries everything: small owls only manage a short parchment, medium ones a long one as well, and only the strong owls also carry gold. Cared-for owls are more motivated and fly their next leg faster and further – neglected ones look grumpy. Well looked-after owls also fall ill less often, and with a bit of luck one of them lays eggs one day – all the more if a male of her species lives at home with her. You feed the chicks up with cuddles and mealworms. Ill and injured owls get nursed back to health in the owl rescue centre; some wild owls even stay with you as a post owl afterwards.
 
 ![menagerie](right)
 
@@ -91,7 +91,7 @@ When holidays, a trip away or exams come up, there is holiday mode: up to three 
 
 **Of course there are no in-app purchases either.**
 
-The pen friends – the Explainer Bear and other bots – reply using AI (their letters are not encrypted and are sent to OpenAI to be answered). Before that, a filter removes every paragraph about drugs, sexuality or violence – the bots do not go into them. If you do not want that, remove them in their correspondence – or all at once, for good and for future bots too, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
+The pen friends – the Explainer Bear and other bots – reply using AI. If you do not want that, remove them in their correspondence – or all at once, for good and for future bots too, in the settings (“Remove all bots”). They never appear in the address book; only real people are listed there.
 
 # Game? Messenger? Both – and seriously secure.
 

@@ -525,15 +525,16 @@ describe('eggs and chicks (SPEC 9.9, 17.2)', () => {
     expect(list.owls.filter((owl) => owl.isChick)).toHaveLength(3);
     expect(list.clutches).toHaveLength(1);
     expect(await systemTypes(anna)).toContain('chicks_hatched_gift');
-    // v0.8.5: a day later nothing is decided yet – the holder has five days.
-    advanceTo(app, hatchAt + 24 * TIME.HOUR);
+    // v0.8.5: a day later nothing is decided yet – the holder has five days; v1.5.0: but a
+    // reminder comes every day.
+    advanceTo(app, hatchAt + 24 * TIME.HOUR - 1);
     expect(app.db.all("SELECT 1 FROM owls WHERE is_chick = 1 AND state = 'gift_flight'")).toEqual(
       [],
     );
     expect(app.db.all('SELECT 1 FROM owls WHERE is_chick = 1 AND name IS NULL')).toHaveLength(3);
     expect(await systemTypes(anna)).not.toContain('clutch_reminder');
     advanceTo(app, hatchAt + 4 * TIME.DAY);
-    expect(await systemTypes(anna)).toContain('clutch_reminder');
+    expect((await systemTypes(anna)).filter((type) => type === 'clutch_reminder')).toHaveLength(4);
     advanceTo(app, hatchAt + 5 * TIME.DAY);
     const chicks = app.db.all<{ id: string; name: string | null; state: string }>(
       'SELECT id, name, state FROM owls WHERE is_chick = 1',

@@ -436,13 +436,18 @@ export const en: Texts = {
     chicks_hatched:
       '{owl} has hatched a chick. Give it a name within the next 5 days – otherwise the lot picks one.',
     chicks_hatched_gift:
-      '{owl} has hatched {count} chicks. Take your time: give them names and give one of them away within 5 days. Only then will lots be drawn.',
+      '🐣 {owl} has hatched {count} chicks! Important: you must give one of them to one of your contacts within 5 days. Give the chicks names and choose at the very top of “My owls” which chick flies to whom. If you do not decide in time, the lot decides.',
     chicks_hatched_gift_all:
       '{owl} has hatched chicks ({count}). With them you would have more than {max} owls – as many as there are species – so they cannot stay with you: give them names and give them away within 5 days to contacts who still have room. Only then will lots be drawn.',
+    /** v1.5.0: every day until the chick is given away – the last day and the days before. */
     clutch_reminder:
-      'Reminder: a chick must be given away by this time tomorrow, or lots will be drawn.',
+      '🐣 Last reminder: by this time tomorrow you must give one of your chicks to a contact – otherwise the lot decides who gets it. Choose it yourself at the very top of “My owls”.',
+    clutch_reminder_days:
+      '🐣 Reminder: one of your chicks must be given to a contact. You have {days} days left – after that the lot decides who gets it. Choose it yourself at the very top of “My owls”.',
     clutch_reminder_all:
-      'Reminder: your chicks must be given away by this time tomorrow, or lots will be drawn.',
+      '🐣 Last reminder: by this time tomorrow your chicks must be given away – otherwise the lot hands them out to your contacts. Give them away yourself at the very top of “My owls”.',
+    clutch_reminder_all_days:
+      '🐣 Reminder: your chicks must be given to contacts who still have room. You have {days} days left – after that the lot hands them out. Give them away yourself at the very top of “My owls”.',
     clutch_lot: 'The lot has decided: the chick {owl} is flying to {name}.',
     clutch_kept:
       'None of your active contacts has room for a chick – the remaining chicks stay with you.',
@@ -463,6 +468,8 @@ export const en: Texts = {
       'Welcome back! Holiday mode is over and your owls are home again – well rested and well looked after.',
     vacation_ended_early:
       'You have ended holiday mode. Your owls are setting off home from Inchlonaig straight away.',
+    /** v1.5.0: the instance celebrates letters between people (the long text: messages.ts). */
+    letters_milestone: '🎉 {count} letters between people – the owlery is celebrating!',
     deletion_warning:
       'Your account will be deleted in 30 days if you do not sign in. Any use of the app prevents this.',
     deletion_cancelled: 'The deletion of your account has been cancelled.',
@@ -649,14 +656,17 @@ export const en: Texts = {
     lendConfirm:
       'Lend {name} to the owl post office for 7 days? Afterwards you get {amount}. Each owl can help out only once a quarter.',
     chickNameTitle: 'What should your chick be called?',
-    clutchTitle: 'Give a chick away',
+    clutchTitle: '🐣 Important: give a chick away',
     clutchIntro:
-      'With two or three chicks you have to give one of them to a contact. If you do not decide by {until}, lots are drawn (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
-    clutchTitleAll: 'Give the chicks away',
+      'With two or three chicks you have to give one of them to a contact – those are the rules of the owlery. Choose by {until} which chick flies to whom; otherwise the lot decides (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
+    clutchTitleAll: '🐣 Important: give the chicks away',
     clutchIntroAll:
       'With these chicks you would have more owls than there are species – so you have to give all of them away, one after the other, to contacts who still have room. Whatever is not given away by {until} is handed out by lot (then without a cover letter). Chicks fly slowly: 10 km/h, with an hour’s rest after every hour of flying.',
     clutchChick: 'Which chick?',
     clutchNameFirst: 'Please give the chick a name first.',
+    /** v1.5.0: no active contact has room for a chick right now (9.9). */
+    clutchNoRecipients:
+      'Right now none of your active contacts has room for a chick. If that is still so at {until}, you may keep all the chicks.',
     /** v1.1 */
     nextStop: 'Next stop: {name} at about {time}.',
     backAt: 'Expected back in {duration} (about {time}).',
@@ -665,6 +675,8 @@ export const en: Texts = {
     water: 'Give water',
     feed: 'Owl biscuit ({price})',
     snack: 'Give {snack} ({price})',
+    /** v1.5.0: a chick gets a mealworm once a day (SPEC 9.3, 9.9). */
+    mealworm: 'Mealworm ({price})',
     /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
     fromBag: 'from your pouch',
     free: 'free',
@@ -766,6 +778,8 @@ export const en: Texts = {
     drinking: '{name} is having a drink',
     snacking: '{name} is enjoying {snack}',
     petting: '{name} is enjoying being petted',
+    /** v1.5.0: a chick and its mealworm. */
+    mealwormEating: '{name} is gobbling up a mealworm',
   },
   rescue: {
     intro:
@@ -874,6 +888,7 @@ export const en: Texts = {
     type_owl_purchase: 'Owl purchase',
     type_feed: 'Food',
     type_snack: 'Favourite snack',
+    type_mealworm: 'Mealworm',
     type_large_parchment: 'Long parchment',
     type_transfer_out: 'Transfer',
     type_transfer_in: 'Transfer received',
@@ -966,7 +981,7 @@ export const en: Texts = {
     interactionsTitle: 'Attention for owls',
     water: 'Water given',
     pet: 'Stroked',
-    feed: 'Owl biscuits',
+    feed: 'Owl biscuits and mealworms',
     snack: 'Favourite snacks',
     medicine: 'Medicine given',
     countedSince:
@@ -983,6 +998,28 @@ export const en: Texts = {
     faqTitle: 'Frequently asked questions',
     toTop: 'Back to top',
     notFound: 'This page does not exist. Perhaps an owl has mislaid the address.',
+  },
+  /** v1.5.0: the chick to give away – the daily notice and the banner (SPEC 8.5, 9.9). */
+  clutchNotice: {
+    title: 'A chick is looking for a new home',
+    titleAll: 'Your chicks are looking for a new home',
+    text: '{count} chicks have hatched at your home – and you must give one of them to one of your contacts. Those are the rules of the owlery: that way new owls move in with your pen friends, too.',
+    textAll:
+      'With your chicks you would have more owls than there are species. So you must give all the chicks to contacts who still have room – one after the other.',
+    left: 'You have until {until} – {left}.',
+    lot: 'If you do not decide by then, the lot decides who gets a chick. Better choose yourself!',
+    noRecipients:
+      'Right now none of your active contacts has room for a chick. If that is still so by then, you may keep all the chicks.',
+    go: 'Give a chick away now',
+    later: 'Later',
+    alt: 'chick',
+    days: '{days} days left',
+    day: '1 day left',
+    hours: '{hours} hours left',
+    hour: 'less than 2 hours left',
+    banner: 'You still have to give a chick away – by {until}, or the lot decides.',
+    bannerAll: 'You still have to give chicks away – by {until}, or the lot decides.',
+    bannerLink: 'Give it away now',
   },
   banner: {
     hide: 'Hide notice',
@@ -1557,6 +1594,7 @@ export const en: Texts = {
     vacation_none: 'No holiday is planned or running right now.',
     owl_not_for_sale: 'This owl is not for sale in the Menagerie.',
     owl_fed_today: 'This owl has already eaten today and is full.',
+    owl_chick_care: 'Chicks only get mealworms and cuddles.',
     owl_watered_today: 'This owl has already had a drink today.',
     owl_snacked_today: 'This owl has already had its favourite snack today and is full.',
     owl_cannot_carry: 'This owl cannot carry that. Choose another owl or a short parchment.',

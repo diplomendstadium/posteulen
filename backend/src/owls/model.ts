@@ -72,6 +72,14 @@ export interface OwlRow {
   readonly lent_quarter?: string | null;
   /** v1.4.2: 1 – the second pictures of its species (9.2.6). */
   readonly look?: number;
+  /** v1.5.0: 0, 1 or 2 – the standard, second or third chick picture of its species (9.2.6). */
+  readonly chick_look?: number;
+}
+
+/** v1.5.0: the chick look of an own chick (0 otherwise). */
+export function chickLookValue(owl: OwlRow): 0 | 1 | 2 {
+  if (owl.kind !== 'own' || owl.is_chick !== 1) return 0;
+  return owl.chick_look === 1 || owl.chick_look === 2 ? owl.chick_look : 0;
 }
 
 export function facts(owl: OwlRow): {
@@ -180,6 +188,8 @@ export interface OwlView {
   readonly bored: boolean;
   /** The second look: standard pictures by day and night from the second set (9.2.6). */
   readonly second: boolean;
+  /** v1.5.0: the chick look – standard, second or third chick picture (9.2.6). */
+  readonly chickLook: 0 | 1 | 2;
   /** v1.4: on holiday at the owl care station on Inchlonaig: where and until when (9.12). */
   readonly vacation: VacationTripView | null;
   readonly actions: {
@@ -405,8 +415,13 @@ export function owlView(
     pettedToday: owl.petted_on === today,
     wateredToday: owl.watered_on === today,
     snackedToday: owl.snacked_on === today,
-    feedable: canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
-    snackable: canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
+    // v1.5.0: a chick gets its mealworm strictly once a day and no snack (9.3, 9.9).
+    feedable:
+      owl.is_chick === 1
+        ? owl.fed_on !== today
+        : canFeedAgain({ fedToday: owl.fed_on === today, energy, maxEnergy }),
+    snackable:
+      owl.is_chick !== 1 && canFeedAgain({ fedToday: owl.snacked_on === today, energy, maxEnergy }),
     cargo: cargoOf(owl.species),
     motivation: owl.motivation,
     caredAt: owl.cared_at,
@@ -424,6 +439,7 @@ export function owlView(
     rescue: rescue ? { progress: rescueProgress(rescue.done, rescue.needed) } : null,
     bored: owl.kind === 'own' && (owl.bored_at ?? null) !== null,
     second: owl.kind === 'own' && owl.look === 1,
+    chickLook: chickLookValue(owl),
     vacation,
     actions: {
       care: canCare(ownFacts),

@@ -44,6 +44,7 @@ import {
 } from '@posteulen/shared/schemas/owls.ts';
 import { interact, leftHome } from './care.ts';
 import { requireRoom } from './limit.ts';
+import { clutchNoticeSeen } from './clutch-notice.ts';
 import { assignLook, hasSecondLook } from './look.ts';
 import {
   cancelVacation,
@@ -250,6 +251,13 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
           energy: displayEnergy(currentEnergy(ctx, owl, now)),
           maxEnergy: species.maxEnergy,
         });
+      // v1.5.0: a chick knows only two interactions – a mealworm (0.1 gold, strictly once a
+      // day, never from the pouch, no energy) and petting (SPEC 9.3, 9.9).
+      const chick = !guest && owl.is_chick === 1;
+      if (chick && (kind === 'water' || kind === 'snack'))
+        throw new HttpError(400, 'owl_chick_care');
+      if (chick && kind === 'feed' && owl.fed_on === today)
+        throw new HttpError(400, 'owl_fed_today');
       if (kind === 'feed' && owl.fed_on === today && fullNow())
         throw new HttpError(400, 'owl_fed_today');
       if (kind === 'water' && owl.watered_on === today)
@@ -257,10 +265,12 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
       if (kind === 'snack' && owl.snacked_on === today && fullNow())
         throw new HttpError(400, 'owl_snacked_today');
       // v1.3.1: from the pouch while it holds some, free for privileged players (9.1.6, 9.1.7).
-      if (kind === 'feed') payCare(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
+      if (chick && kind === 'feed') pay(ctx.db, me, 'mealworm', GOLD.MEALWORM_PRICE, now);
+      else if (kind === 'feed') payCare(ctx.db, me, 'feed', GOLD.FEED_PRICE, now);
       if (kind === 'snack') payCare(ctx.db, me, 'snack', GOLD.SNACK_PRICE, now);
-      const energy =
-        kind === 'feed'
+      const energy = chick
+        ? undefined
+        : kind === 'feed'
           ? energyAfterFeeding(currentEnergy(ctx, owl, now), species)
           : kind === 'snack'
             ? energyAfterSnack(currentEnergy(ctx, owl, now), species)
@@ -674,9 +684,22 @@ export function registerOwlRoutes(app: FastifyInstance, ctx: Context): void {
         arrivesAt: route[0]?.arrivesAt ?? now,
       };
     });
-    ctx.hub.notify(me, 'owls', 'map', 'chats');
+    ctx.hub.notify(me, 'owls', 'map', 'chats', 'profile');
     return result;
   });
+
+  /** v1.5.0: the big notice about a chick to give away was shown today (SPEC 9.9). */
+  app.post(
+    '/api/clutches/:id/notice-seen',
+    { preHandler: [authenticated, emptyBody] },
+    async (request) => {
+      const clutchId = owlIdParam(request.params);
+      const me = userOf(request).id;
+      clutchNoticeSeen(ctx, me, clutchId, ctx.now());
+      ctx.hub.notify(me, 'profile');
+      return { ok: true };
+    },
+  );
 
   /** v1.4: holiday mode (SPEC 8.10, 9.12). */
   app.get('/api/vacation', { preHandler: authenticated }, async (request) =>

@@ -62,7 +62,7 @@ Dein Erklärbär`,
 
 Gib deinen Eulen Wasser, streichle sie, gönn ihnen einen Eulenkeks oder ihr Lieblingsleckerli. Das hebt ihre Motivation, und motiviert fliegen sie schneller und weiter – auch fremde Eulen, die bei dir rasten. Bekommt eine Eule an 10 der letzten 14 Tage zu Hause zwei verschiedene Arten von Pflege, wird sie viel seltener krank. Wird eine Eule krank, pflegst du sie in der Rettungsstation wieder gesund.
 
-Manchmal legt eine Eule Eier – öfter, wenn ein Eulenmann ihrer Art bei dir wohnt. Bei zwei oder drei Küken verschenkst du eines an einen Kontakt – dafür und für die Namen hast du fünf Tage Zeit.
+Manchmal legt eine Eule Eier. Küken bekommen einmal am Tag einen Mehlwurm. Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken – sonst entscheidet nach fünf Tagen das Los.
 
 Schick deine Eulen oft zu Menschen, sonst langweilen sie sich.
 

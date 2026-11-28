@@ -26,6 +26,11 @@ export const GOLD = {
   FEED_PRICE: 1,
   /** Favourite snack (v0.5); v0.10: like the biscuit, more than once while not full. */
   SNACK_PRICE: 2,
+  /**
+   * v1.5.0: a mealworm for a chick – once a day, always paid with gold (not from the pouch;
+   * free for privileged players, SPEC 9.3, 9.9).
+   */
+  MEALWORM_PRICE: 1,
   TRANSFER_MIN: 1,
   TRANSFER_MAX: 200,
   /** Balance after a transfer must be strictly greater than this. */
@@ -124,8 +129,11 @@ export const OWL = {
   /** v0.8.5: five days to choose the gift and the names (before: 24 hours, 9.9). */
   CHICK_GIFT_DEADLINE_HOURS: 120,
   CHICK_NAME_DEADLINE_HOURS: 120,
-  /** v0.8.5: the reminder comes one day before the lot (before: 4 hours). */
-  CHICK_GIFT_REMINDER_HOURS_BEFORE: 24,
+  /**
+   * v1.5.0: a reminder every day until the chick is given away – 24, 48, 72 and 96 hours after
+   * hatching, the last one day before the lot (v0.8.5 to v1.4.3 only that last one).
+   */
+  CHICK_GIFT_REMINDER_EVERY_HOURS: 24,
   CHICK_ADULT_AT_MOTHER_DAYS: 14,
   CHICK_ADULT_AT_RECIPIENT_DAYS: 7,
 } as const;
@@ -383,6 +391,16 @@ export const CENTRAL_BOTS = {
 } as const;
 
 /** Friendly request for donations as a system message (v0.3), on every server. */
+/**
+ * v1.5.0: the instance celebrates letters between people (SPEC 11.1, Anhang C) – a system
+ * message to every account at 1,000, 5,000, 10,000, 50,000, 100,000 and 1,000,000 letters, after
+ * that every further 500,000.
+ */
+export const LETTER_MILESTONES = {
+  FIRST: [1_000, 5_000, 10_000, 50_000, 100_000, 1_000_000],
+  EVERY_AFTER: 500_000,
+} as const;
+
 export const DONATION = {
   INTERVAL_DAYS: 35,
   URL: 'https://ko-fi.com/posteulen',

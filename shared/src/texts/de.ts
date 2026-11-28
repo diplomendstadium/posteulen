@@ -459,14 +459,19 @@ export const de = {
     chicks_hatched:
       'Bei {owl} ist ein Küken geschlüpft. Gib ihm in den nächsten 5 Tagen einen Namen – sonst sucht das Los einen aus.',
     chicks_hatched_gift:
-      'Bei {owl} sind {count} Küken geschlüpft. Lass dir ruhig Zeit: Gib ihnen Namen und verschenke eines davon innerhalb von 5 Tagen. Erst danach entscheidet das Los.',
+      '🐣 Bei {owl} sind {count} Küken geschlüpft! Wichtig: Eines davon musst du innerhalb von 5 Tagen an einen deiner Kontakte verschenken. Gib den Küken Namen und such unter „Meine Eulen“ ganz oben aus, welches Küken zu wem fliegt. Entscheidest du dich nicht rechtzeitig, entscheidet das Los.',
     /** v1.4: beyond the most own owls all chicks must be given away (9.9). */
     chicks_hatched_gift_all:
       'Bei {owl} sind Küken geschlüpft ({count}). Weil du damit mehr als {max} Eulen hättest – so viele Eulenarten gibt es –, dürfen sie nicht bei dir bleiben: Gib ihnen Namen und verschenke sie innerhalb von 5 Tagen an Kontakte, die noch Platz haben. Erst danach entscheidet das Los.',
+    /** v1.5.0: every day until the chick is given away – the last day and the days before. */
     clutch_reminder:
-      'Erinnerung: Ein Küken muss bis morgen um diese Zeit verschenkt sein, sonst wird gelost.',
+      '🐣 Letzte Erinnerung: Bis morgen um diese Zeit musst du eines deiner Küken an einen Kontakt verschenken – sonst entscheidet das Los, wer es bekommt. Unter „Meine Eulen“ ganz oben suchst du es selbst aus.',
+    clutch_reminder_days:
+      '🐣 Erinnerung: Eines deiner Küken muss an einen Kontakt verschenkt werden. Du hast noch {days} Tage Zeit – danach entscheidet das Los, wer es bekommt. Unter „Meine Eulen“ ganz oben suchst du es selbst aus.',
     clutch_reminder_all:
-      'Erinnerung: Deine Küken müssen bis morgen um diese Zeit verschenkt sein, sonst wird gelost.',
+      '🐣 Letzte Erinnerung: Bis morgen um diese Zeit müssen deine Küken verschenkt sein – sonst verteilt das Los sie auf deine Kontakte. Unter „Meine Eulen“ ganz oben verschenkst du sie selbst.',
+    clutch_reminder_all_days:
+      '🐣 Erinnerung: Deine Küken müssen an Kontakte verschenkt werden, die noch Platz haben. Du hast noch {days} Tage Zeit – danach verteilt das Los sie. Unter „Meine Eulen“ ganz oben verschenkst du sie selbst.',
     clutch_lot: 'Das Los hat entschieden: Das Küken {owl} fliegt zu {name}.',
     clutch_kept:
       'Keiner deiner aktiven Kontakte hat noch Platz für ein Küken – die übrigen Küken bleiben bei dir.',
@@ -489,6 +494,8 @@ export const de = {
       'Willkommen zurück! Der Urlaubsmodus ist vorbei, deine Eulen sind wieder zu Hause – ausgeruht und gut versorgt.',
     vacation_ended_early:
       'Du hast den Urlaubsmodus beendet. Deine Eulen machen sich sofort auf den Heimweg von Inchlonaig.',
+    /** v1.5.0: the instance celebrates letters between people (the long text: messages.ts). */
+    letters_milestone: '🎉 {count} Briefe zwischen Menschen – die Eulerei feiert!',
     deletion_warning:
       'Dein Konto wird in 30 Tagen gelöscht, wenn du dich nicht anmeldest. Jede Nutzung der App verhindert das.',
     deletion_cancelled: 'Die Löschung deines Kontos wurde abgebrochen.',
@@ -683,15 +690,18 @@ export const de = {
     lendConfirm:
       '{name} für 7 Tage an das Eulenpostamt verleihen? Danach gibt es {amount}. Jede Eule kann nur einmal im Quartal aushelfen.',
     chickNameTitle: 'Wie soll dein Küken heißen?',
-    clutchTitle: 'Ein Küken verschenken',
+    clutchTitle: '🐣 Wichtig: Ein Küken verschenken',
     clutchIntro:
-      'Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken. Entscheidest du dich nicht bis {until}, wird gelost (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
+      'Bei zwei oder drei Küken musst du eines an einen Kontakt verschenken – so sind die Regeln der Eulerei. Such bis {until} selbst aus, welches Küken zu wem fliegt; sonst entscheidet das Los (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
     /** v1.4: beyond the most own owls all chicks of the clutch (SPEC 9.9). */
-    clutchTitleAll: 'Küken verschenken',
+    clutchTitleAll: '🐣 Wichtig: Küken verschenken',
     clutchIntroAll:
       'Mit diesen Küken hättest du mehr Eulen, als es Eulenarten gibt – deshalb musst du alle verschenken, eines nach dem anderen, an Kontakte, die noch Platz haben. Was bis {until} nicht verschenkt ist, verteilt das Los (dann ohne Begleitbrief). Küken fliegen langsam: 10 km/h, nach jeder Flugstunde eine Stunde Pause.',
     clutchChick: 'Welches Küken?',
     clutchNameFirst: 'Bitte gib dem Küken zuerst einen Namen.',
+    /** v1.5.0: no active contact has room for a chick right now (9.9). */
+    clutchNoRecipients:
+      'Gerade hat keiner deiner aktiven Kontakte Platz für ein Küken. Bleibt das bis {until} so, darfst du alle Küken behalten.',
     /** v1.1: with the times of the journey, as on the map. */
     nextStop: 'Nächster Halt: {name} um ca. {time}.',
     backAt: 'Voraussichtlich zurück in {duration} (ca. {time}).',
@@ -700,6 +710,8 @@ export const de = {
     water: 'Wasser geben',
     feed: 'Eulenkeks ({price})',
     snack: '{snack} geben ({price})',
+    /** v1.5.0: a chick gets a mealworm once a day (SPEC 9.3, 9.9). */
+    mealworm: 'Mehlwurm ({price})',
     /** v1.3.1: instead of the price – from the pouch, or free (bot owls, privileged players). */
     fromBag: 'aus dem Beutel',
     free: 'kostenlos',
@@ -808,6 +820,8 @@ export const de = {
     drinking: '{name} trinkt einen Schluck',
     snacking: '{name} genießt {snack}',
     petting: '{name} genießt das Streicheln',
+    /** v1.5.0: a chick and its mealworm. */
+    mealwormEating: '{name} verputzt einen Mehlwurm',
   },
   /** v1.3: the owl rescue centre (SPEC 8.13; texts of the client, lightly edited). */
   rescue: {
@@ -916,6 +930,7 @@ export const de = {
     type_owl_purchase: 'Eulenkauf',
     type_feed: 'Futter',
     type_snack: 'Lieblingsleckerli',
+    type_mealworm: 'Mehlwurm',
     type_large_parchment: 'Langes Pergament',
     type_transfer_out: 'Überweisung',
     type_transfer_in: 'Überweisung erhalten',
@@ -1014,7 +1029,7 @@ export const de = {
     interactionsTitle: 'Zuwendung für Eulen',
     water: 'Wasser gegeben',
     pet: 'Gestreichelt',
-    feed: 'Eulenkekse',
+    feed: 'Eulenkekse und Mehlwürmer',
     snack: 'Lieblingsleckerli',
     medicine: 'Medizin gegeben',
     countedSince:
@@ -1034,6 +1049,28 @@ export const de = {
     notFound: 'Diese Seite gibt es nicht. Vielleicht hat eine Eule die Adresse verlegt.',
   },
   /** v0.8.2: timed banners of the admin. */
+  /** v1.5.0: the chick to give away – the daily notice and the banner (SPEC 8.5, 9.9). */
+  clutchNotice: {
+    title: 'Ein Küken sucht ein neues Zuhause',
+    titleAll: 'Deine Küken suchen ein neues Zuhause',
+    text: 'Bei dir sind {count} Küken geschlüpft – und eines davon musst du an einen deiner Kontakte verschenken. So wollen es die Regeln der Eulerei: Auf diese Weise ziehen neue Eulen auch bei deinen Brieffreunden ein.',
+    textAll:
+      'Mit deinen Küken hättest du mehr Eulen, als es Eulenarten gibt. Deshalb musst du alle Küken an Kontakte verschenken, die noch Platz haben – eines nach dem anderen.',
+    left: 'Du hast Zeit bis {until} – {left}.',
+    lot: 'Entscheidest du dich bis dahin nicht, entscheidet das Los, wer ein Küken bekommt. Such es lieber selbst aus!',
+    noRecipients:
+      'Gerade hat keiner deiner aktiven Kontakte Platz für ein Küken. Bleibt das bis dahin so, darfst du alle Küken behalten.',
+    go: 'Jetzt Küken verschenken',
+    later: 'Später',
+    alt: 'Küken',
+    days: 'noch {days} Tage',
+    day: 'noch 1 Tag',
+    hours: 'noch {hours} Stunden',
+    hour: 'noch weniger als 2 Stunden',
+    banner: 'Du musst noch ein Küken verschenken – bis {until}, sonst entscheidet das Los.',
+    bannerAll: 'Du musst noch Küken verschenken – bis {until}, sonst entscheidet das Los.',
+    bannerLink: 'Jetzt verschenken',
+  },
   banner: {
     hide: 'Hinweis ausblenden',
     /** v1.4.2: hardly any free space left on the server (SPEC 13 item 14). */
@@ -1623,6 +1660,7 @@ export const de = {
     vacation_none: 'Gerade ist kein Urlaub geplant oder unterwegs.',
     owl_not_for_sale: 'Diese Eule ist in der Menagerie nicht zu kaufen.',
     owl_fed_today: 'Diese Eule hat heute schon gefressen und ist satt.',
+    owl_chick_care: 'Küken bekommen nur Mehlwürmer und Streicheleinheiten.',
     owl_watered_today: 'Diese Eule hat heute schon getrunken.',
     owl_snacked_today: 'Diese Eule hat heute schon ihr Lieblingsleckerli bekommen und ist satt.',
     owl_cannot_carry:

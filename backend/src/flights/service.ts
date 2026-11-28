@@ -24,7 +24,8 @@ import { isDay } from '@posteulen/shared/game/sun.ts';
 import { isLandAnywhere } from '@posteulen/shared/map/landmask.ts';
 import { backHome } from '../owls/care.ts';
 import { resetIdle, toPeople } from '../owls/boredom.ts';
-import { assignLook } from '../owls/look.ts';
+import { assignLook, chickLookOf } from '../owls/look.ts';
+import { checkLetterMilestone } from '../messages/milestones.ts';
 import { sendOwlsOnVacation } from '../owls/vacation.ts';
 import type { Context } from '../context.ts';
 import { randomId, utcDay } from '../security/ids.ts';
@@ -503,6 +504,7 @@ function deliverReplies(ctx: Context, flight: FlightRow, at: number, after: Afte
       utcDay(at),
       replies.length,
     );
+    checkLetterMilestone(ctx, at);
   }
   return replies.length;
 }
@@ -675,6 +677,8 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       utcDay(at),
       letters.length,
     );
+    // v1.5.0: 1,000, 5,000 … letters between people are celebrated (SPEC 11.1).
+    checkLetterMilestone(ctx, at);
   }
   const hasCover = letters.some((letter) => letter.kind !== 'letter');
   const senderName = displayName(ctx.db, flight.holder_id) ?? '';
@@ -720,7 +724,8 @@ function deliver(ctx: Context, flight: FlightRow, stop: RouteStop, at: number, a
       { name: senderName, owl: flightOwlLabel(ctx, flight), species: flight.owl_species },
       at,
       after,
-      chick && image ? `${image}:chick` : image,
+      // v1.5.0: with the chick look it got at the recipient (9.2.6).
+      chick && image ? `${image}:chick:${chickLookOf(ctx, flight.owl_id)}` : image,
     );
     push = chick ? 'chick_gift' : 'owl_gift';
     // v1.4: a new owner – it starts counting afresh; during a holiday on to the island.
