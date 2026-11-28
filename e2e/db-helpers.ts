@@ -4,6 +4,7 @@
  */
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import type { Page } from '@playwright/test';
 import { SPECIES } from '@posteulen/shared/species.ts';
 
 function databaseOf(instance: 'main' | 'admin'): string {
@@ -67,8 +68,8 @@ export function hatchChicks(name: string, species: string, count: number): void 
     for (let i = 0; i < count; i++) {
       db.prepare(
         `INSERT INTO owls (id, owner_id, kind, species, sex, name, energy, energy_at, is_chick, adult_at,
-                           owned_since, created_at, clutch_id, hatched_at)
-         VALUES (?, ?, 'own', ?, 'f', NULL, 100, ?, 1, ?, ?, ?, ?, ?)`,
+                           owned_since, created_at, clutch_id, hatched_at, chick_look)
+         VALUES (?, ?, 'own', ?, 'f', NULL, 100, ?, 1, ?, ?, ?, ?, ?, ?)`,
       ).run(
         id(),
         owner.id,
@@ -79,9 +80,21 @@ export function hatchChicks(name: string, species: string, count: number): void 
         now,
         clutch,
         now,
+        // v1.5.0: the standard, second and third chick picture in turn (SPEC 9.2.6).
+        i % 3,
       );
     }
   });
+}
+
+/**
+ * v1.5.0: closes the big notice about a chick to give away (once a day, SPEC 9.9) – a modal
+ * dialog that would otherwise cover the page.
+ */
+export async function closeChickNotice(page: Page): Promise<void> {
+  const notice = page.getByTestId('clutch-notice');
+  await notice.getByRole('button').last().click();
+  await notice.waitFor({ state: 'detached' });
 }
 
 /** v0.8.5: named adult owls at home, e.g. to pass the 20 needed for releasing one (9.2.8). */

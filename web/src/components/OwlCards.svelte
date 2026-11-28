@@ -34,7 +34,7 @@
   import WriteDialog from './WriteDialog.svelte';
   import GoldDialog from './GoldDialog.svelte';
   import { account } from '../lib/auth.svelte.ts';
-  import { careCost, spendableGold } from '../lib/purse.ts';
+  import { careCost, privileged, spendableGold } from '../lib/purse.ts';
   import {
     feedOwl,
     lendToPostOffice,
@@ -107,10 +107,12 @@
   const shows = (owl: Owl) => ({
     write: owl.ready,
     gold: canSendGold(owl) && giftAllowed,
-    water: owl.actions.care && !owl.wateredToday,
+    // v1.5.0: a chick knows only petting and its mealworm once a day (SPEC 9.3, 9.9).
+    water: owl.actions.care && !owl.isChick && !owl.wateredToday,
     pet: owl.actions.care,
-    feed: owl.actions.care && owl.feedable,
-    snack: owl.actions.care && owl.snackable,
+    feed: owl.actions.care && !owl.isChick && owl.feedable,
+    mealworm: owl.actions.care && owl.isChick && owl.feedable,
+    snack: owl.actions.care && !owl.isChick && owl.snackable,
     lend: owl.actions.menagerie,
     rename: owl.actions.rename,
     gift: owl.actions.gift && giftAllowed,
@@ -136,7 +138,23 @@
   const pet = (owl: Owl) =>
     act(async () => {
       onchange((await petOwl(owl.id)).owl);
-      showOwlImage(owl.species, 'petting', fill(t.owls.petting, { name: owl.name ?? '' }));
+      showOwlImage(
+        owl.species,
+        owl.isChick ? 'chickPetting' : 'petting',
+        fill(t.owls.petting, { name: owl.name ?? '' }),
+      );
+    });
+
+  /** v1.5.0: a mealworm for a chick – 0.1 gold, once a day (SPEC 9.3, 9.9). */
+  const mealworm = (owl: Owl) =>
+    act(async () => {
+      onchange((await feedOwl(owl.id)).owl);
+      showOwlImage(
+        owl.species,
+        'chickFeeding',
+        fill(t.owls.mealwormEating, { name: owl.name ?? '' }),
+      );
+      void refreshTopics('profile');
     });
 
   const water = (owl: Owl) =>
@@ -401,6 +419,7 @@
           speciesId={owl.species}
           kind={pictureKind(owl)}
           second={owl.second}
+          chickLook={owl.chickLook}
           perch={perch(owl)}
           alt={pictureAlt(owl)}
         />
@@ -513,6 +532,18 @@
                 disabled={busy || !status.online}
                 onclick={() => void feed(owl)}
                 >{fill(t.owls.feed, { price: careCost('feed', GOLD.FEED_PRICE) })}</button
+              >
+            {/if}
+            {#if show.mealworm}
+              <!-- v1.5.0: a chick gets a mealworm once a day, always for gold (SPEC 9.9). -->
+              <button
+                class="button secondary"
+                type="button"
+                disabled={busy || !status.online}
+                onclick={() => void mealworm(owl)}
+                >{fill(t.owls.mealworm, {
+                  price: privileged() ? t.owls.free : goldText(GOLD.MEALWORM_PRICE),
+                })}</button
               >
             {/if}
             {#if show.snack}

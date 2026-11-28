@@ -12,6 +12,8 @@ import { currentContext, isCurrent, type AccountContext } from './context.ts';
 import { syncVault } from './vault.svelte.ts';
 import { clearOwlImages, queueOwlImage, showOwlImage } from './overlay.svelte.ts';
 import { t, fill } from './i18n.svelte.ts';
+import { chickKind, homeLight } from './season.ts';
+import { asChickLook } from '@posteulen/shared/game/look.ts';
 
 export interface ChatSummary {
   readonly peerId: string;
@@ -190,7 +192,15 @@ const queuedArrivals = new Set<string>();
 async function showArrivals(context: AccountContext): Promise<void> {
   if (document.visibilityState !== 'visible') return;
   const { arrivals } = await api<{
-    arrivals: { id: string; owl: string; species: string; kind: string; from: string | null }[];
+    arrivals: {
+      id: string;
+      owl: string;
+      species: string;
+      kind: string;
+      from: string | null;
+      /** v1.5.0: the chick look of a chick that brought a cover letter. */
+      chickLook?: number;
+    }[];
   }>('GET', '/api/arrivals', undefined, { context });
   if (!isCurrent(context)) return;
   const fresh = arrivals.filter((item) => !queuedArrivals.has(item.id));
@@ -199,7 +209,11 @@ async function showArrivals(context: AccountContext): Promise<void> {
     queuedArrivals.add(item.id);
     queueOwlImage(() => ({
       species: item.species,
-      kind: item.kind === 'cover_chick' ? 'chick' : 'arrival',
+      // v1.5.0: a chick in its own look, by day or at night at home (9.2.6).
+      kind:
+        item.kind === 'cover_chick'
+          ? chickKind(asChickLook(item.chickLook), homeLight().day)
+          : 'arrival',
       caption: fill(t.owls.arrivesFrom, {
         name: item.owl,
         from: item.from ?? t.letters.unknown,
@@ -245,7 +259,8 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
   // `species:chick` marks a chick: its arrival shows the chick picture (9.2.6). v0.7:
   // `species:home` is an own owl back home – on the window sill by day or by candlelight,
   // depending on whether it is light at the user's (fictional) home right now.
-  const [species = '', variant] = latest.arrivalImage.split(':');
+  // v1.5.0: `species:chick:<look>` – the chick look it got here (0, 1 or 2).
+  const [species = '', variant, look] = latest.arrivalImage.split(':');
   const name = String(latest.params['owl'] ?? '');
   if (variant === 'home') {
     const home = account.profile?.home;
@@ -254,7 +269,7 @@ export async function showSystemArrivals(messages?: readonly SystemMessage[]): P
   } else {
     showOwlImage(
       species,
-      variant === 'chick' ? 'chick' : 'arrival',
+      variant === 'chick' ? chickKind(asChickLook(Number(look)), homeLight().day) : 'arrival',
       fill(t.owls.arrives, { name }),
     );
   }

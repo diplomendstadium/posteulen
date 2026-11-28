@@ -4,7 +4,13 @@
   import { api } from '../lib/api.ts';
   import { dateTime } from '../lib/format.ts';
   import { DONATION } from '@posteulen/shared/constants.ts';
-  import { donationText, updateNote, type LongMessage } from '@posteulen/shared/texts/messages.ts';
+  import {
+    donationText,
+    milestoneText,
+    updateNote,
+    type LongMessage,
+  } from '@posteulen/shared/texts/messages.ts';
+  import Link from '../components/Link.svelte';
   import { scrollToLatest, scrollToLetter } from '../lib/scroll.ts';
   import { sceneImage } from '../lib/owl-image.ts';
   import { live, showSystemArrivals, type SystemMessage as Message } from '../lib/live.svelte.ts';
@@ -116,6 +122,11 @@
     // v1.4: the end of a holiday (local time at home).
     if (message.type === 'vacation_started' && typeof params['until'] === 'number')
       params['until'] = dateTime(params['until']);
+    // v1.5.0: a reminder every day – the days left until the lot (the last one: "tomorrow").
+    if (message.type === 'clutch_reminder' && Number(params['days']) > 1) {
+      const key = params['cargo'] === 'all' ? 'clutch_reminder_all_days' : 'clutch_reminder_days';
+      return fill(texts[key] ?? message.type, params);
+    }
     // Returned gold or gift has its own wording (SPEC 9.5, Anhang C).
     const variant = params['cargo']
       ? texts[`${message.type}_${String(params['cargo'])}`]
@@ -150,12 +161,26 @@
       return donationText(Number(message.params['text']) || 0, i18n.lang);
     if (message.type === 'update_notes')
       return updateNote(String(message.params['version'] ?? ''), i18n.lang);
+    // v1.5.0: 1,000, 5,000 … letters between people (SPEC 11.1).
+    if (message.type === 'letters_milestone')
+      return milestoneText(Number(message.params['count']) || 0, i18n.lang);
     return undefined;
   }
 
-  /** Splits a paragraph at "{link}" so the donation link can be a real link. */
-  function linkParts(paragraph: string): string[] {
-    return paragraph.split('{link}');
+  /**
+   * Splits a paragraph at "{link}" (the donation link) and – v1.5.0 – "{feedback}" (the message
+   * to the admin in the settings), so both can be real links.
+   */
+  function linkParts(paragraph: string): { text: string; link: 'donation' | 'feedback' | null }[] {
+    return paragraph
+      .split(/(\{link\}|\{feedback\})/)
+      .map((text) =>
+        text === '{link}'
+          ? { text: '', link: 'donation' }
+          : text === '{feedback}'
+            ? { text: '', link: 'feedback' }
+            : { text, link: null },
+      );
   }
 </script>
 
@@ -181,11 +206,13 @@
         {#each long.paragraphs as paragraph, index (index)}
           {@const parts = linkParts(paragraph)}
           <p class:item={paragraph.startsWith('• ')}>
-            {#each parts as part, partIndex (partIndex)}{#if partIndex > 0}<a
+            {#each parts as part, partIndex (partIndex)}{#if part.link === 'donation'}<a
                   href={DONATION.URL}
                   target="_blank"
                   rel="noopener noreferrer">{DONATION.URL.replace('https://', '')}</a
-                >{/if}{part}{/each}
+                >{:else if part.link === 'feedback'}<Link href="/app/einstellungen#feedback"
+                  >{t.feedback.title}</Link
+                >{:else}{part.text}{/if}{/each}
           </p>
         {/each}
       {:else}

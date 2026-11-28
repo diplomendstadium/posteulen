@@ -1,6 +1,7 @@
 <script lang="ts">
   import Banners from '../components/Banners.svelte';
   import VacationBanner from '../components/VacationBanner.svelte';
+  import ClutchNotice from '../components/ClutchNotice.svelte';
   import { t, fill, formatGold } from '../lib/i18n.svelte.ts';
   import { VERSION } from '@posteulen/shared/version.ts';
   import Link from '../components/Link.svelte';
@@ -156,6 +157,8 @@
   {/if}
   <!-- v1.4: holiday mode (SPEC 8.10). -->
   <VacationBanner />
+  <!-- v1.5.0: a chick to give away – banner and daily notice (SPEC 8.5, 9.9). -->
+  <ClutchNotice />
   <Banners />
 
   <div class="content">

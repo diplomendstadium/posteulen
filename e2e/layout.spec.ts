@@ -6,7 +6,7 @@
 import { expect, type Page } from '@playwright/test';
 import { test } from './fixtures.ts';
 import { borrowViaUi, registerViaUi, uniqueName } from './account-helpers.ts';
-import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
+import { closeChickNotice, hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
 // v0.7.1: four widths – smallest phone, usual phone, tablet, desktop.
 const DEFAULT_WIDTHS = [320, 390, 768, 1440];
@@ -133,6 +133,9 @@ test.describe('Layout in vielen Breiten (v0.6, SPEC 14)', () => {
     await expect(page.getByRole('heading', { name: 'Fischers Fritz Fisch' })).toBeVisible();
     makeSick(me.name);
     hatchChicks(me.name, 'suedliche-weissgesichtseule', 3);
+    // v1.5.0: the daily notice about the chicks first (SPEC 9.9).
+    await page.goto('/app/eulen');
+    await closeChickNotice(page);
     const found = await checkPages(page, APP_PAGES, 'de');
     await page.goto('/app/einstellungen');
     await page.getByRole('button', { name: 'Switch to English' }).click();

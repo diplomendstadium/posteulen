@@ -49,6 +49,8 @@ export interface Owl {
   readonly bored: boolean;
   /** v1.4.2: the second look – the second pictures of its species (SPEC 9.2.6). */
   readonly second: boolean;
+  /** v1.5.0: the chick look – standard, second or third chick picture (SPEC 9.2.6). */
+  readonly chickLook: 0 | 1 | 2;
   /** v1.4: on holiday at the owl care station on Inchlonaig (SPEC 9.12). */
   readonly vacation: {
     readonly phase: 'out' | 'island' | 'back';

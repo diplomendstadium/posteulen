@@ -98,8 +98,6 @@
   );
 </script>
 
-<!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6). -->
-<BagNotice />
 <ErrorText message={error} />
 
 {#if unnamed}
@@ -114,6 +112,7 @@
         speciesId={unnamed.species}
         kind={unnamed.isChick ? 'chick' : 'normal'}
         second={unnamed.second}
+        chickLook={unnamed.chickLook}
         alt={speciesName(unnamed.species)}
       />
       <form
@@ -144,6 +143,9 @@
     ondone={() => void load()}
   />
 {/each}
+
+<!-- v1.3.1: owl biscuits and treats in the pouch (SPEC 9.1.6); v1.5.0 below the chicks to give. -->
+<BagNotice />
 
 {#if loaded && owls.length === 0 && guests.length === 0}
   <p class="notice">

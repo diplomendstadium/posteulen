@@ -34,6 +34,15 @@ const FALLBACK: Partial<Record<OwlImageKind, OwlImageKind>> = {
   // v1.4.2: the second look – by day if the night picture is missing, else the standard one.
   secondNight: 'second',
   second: 'normal',
+  // v1.5.0: chicks – by day if the night picture is missing, else the standard chick picture;
+  // feeding and petting a chick fall back to the pictures of the adult owl.
+  chickNight: 'chick',
+  chick2Night: 'chick2',
+  chick3Night: 'chick3',
+  chick2: 'chick',
+  chick3: 'chick',
+  chickFeeding: 'feeding',
+  chickPetting: 'petting',
 };
 
 export function owlImage(

@@ -54,6 +54,17 @@ export interface Profile {
   readonly privileged?: { readonly until: number | null } | null;
   /** v1.4.3: second factor switched on, backup codes left (SPEC 5.11). */
   readonly twoFactor?: { readonly active: boolean; readonly backupLeft: number };
+  /** v1.5.0: a chick to give away – banner and the daily notice (SPEC 8.5, 9.9). */
+  readonly clutch?: {
+    readonly id: string;
+    readonly species: string;
+    readonly giftAll: boolean;
+    readonly deadline: number;
+    readonly chicks: number;
+    readonly look: 0 | 1 | 2;
+    readonly due: boolean;
+    readonly recipients: boolean;
+  } | null;
 }
 
 /** "Benachrichtigungen sind nicht bestätigt" hidden until the next login (v0.3). */

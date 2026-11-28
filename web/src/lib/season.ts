@@ -18,6 +18,7 @@ import {
 } from '@posteulen/shared/game/season.ts';
 import { devicePlace } from '@posteulen/shared/map/zone-place.ts';
 import type { OwlImageKind, SceneId } from '@posteulen/shared/species.ts';
+import type { ChickLook } from '@posteulen/shared/game/look.ts';
 import { account } from './auth.svelte.ts';
 
 export interface HomeLight {
@@ -73,7 +74,14 @@ export function homeLight(at: number = Date.now()): HomeLight {
  * dark at night. v1.4.2: an owl with the second look shows its second pictures by day and night
  * instead – in the Christmas season, too (there are no Christmas versions of them).
  */
-export function standardKind(kind: OwlImageKind, light: HomeLight, second = false): OwlImageKind {
+export function standardKind(
+  kind: OwlImageKind,
+  light: HomeLight,
+  second = false,
+  chickLook: ChickLook = 0,
+): OwlImageKind {
+  // v1.5.0: a chick shows its chick look by day and in the dark at night (no Christmas version).
+  if (kind === 'chick') return chickKind(chickLook, light.day);
   if (kind === 'normal' && second) return light.day ? 'second' : 'secondNight';
   if (kind === 'normal') {
     if (light.christmas) return light.day ? 'xmasDay' : 'xmasNight';
@@ -90,6 +98,16 @@ export function standardKind(kind: OwlImageKind, light: HomeLight, second = fals
   if (kind === 'bored' && !light.day) return 'boredNight';
   if (kind === 'free' && !light.day) return 'freeNight';
   return kind;
+}
+
+/**
+ * v1.5.0: the picture of a chick – the standard, second or third chick picture of its species,
+ * by day or at night (SPEC 9.2.6). Also for its departure and arrival.
+ */
+export function chickKind(look: ChickLook, day: boolean): OwlImageKind {
+  const byDay = (['chick', 'chick2', 'chick3'] as const)[look];
+  const atNight = (['chickNight', 'chick2Night', 'chick3Night'] as const)[look];
+  return day ? byDay : atNight;
 }
 
 /** The group picture for the light at home (start page and overview). */

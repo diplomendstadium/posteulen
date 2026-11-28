@@ -20,8 +20,12 @@
   import Link from '../components/Link.svelte';
   import { account, changePassword, logout } from '../lib/auth.svelte.ts';
   import { errorMessage } from '../lib/messages.ts';
-  import { navigate } from '../lib/router.svelte.ts';
+  import { navigate, scrollToHash } from '../lib/router.svelte.ts';
+  import { onMount } from 'svelte';
   import { status } from '../lib/status.svelte.ts';
+
+  // v1.5.0: "/app/einstellungen#feedback" from the milestone message opens the message form.
+  onMount(() => scrollToHash());
 
   let oldPassword = $state('');
   let newPassword = $state('');

@@ -13,6 +13,7 @@
   import { showOwlImage } from '../lib/overlay.svelte.ts';
   import { status } from '../lib/status.svelte.ts';
   import { dateTime } from '../lib/format.ts';
+  import { chickKind, homeLight } from '../lib/season.ts';
 
   let { clutch, chicks, ondone }: { clutch: Clutch; chicks: readonly Owl[]; ondone: () => void } =
     $props();
@@ -36,7 +37,12 @@
     error = null;
     try {
       await giftChick(clutch.id, chosen.id, recipient, cover);
-      showOwlImage(chosen.species, 'chick', fill(t.owls.departs, { name: chosen.name }));
+      // v1.5.0: its own chick picture, by day or at night at home (SPEC 9.2.6).
+      showOwlImage(
+        chosen.species,
+        chickKind(chosen.chickLook, homeLight().day),
+        fill(t.owls.departs, { name: chosen.name }),
+      );
       ondone();
     } catch (caught) {
       error =
@@ -49,13 +55,24 @@
   }
 </script>
 
-<section class="card clutch" aria-labelledby={`clutch-${clutch.id}`}>
+<!-- v1.5.0: hard to miss – on top of "Meine Eulen" with a red frame (SPEC 8.5, 9.9). -->
+<section
+  id="clutch"
+  class="card clutch"
+  aria-labelledby={`clutch-${clutch.id}`}
+  data-testid="chick-gift"
+>
   <h2 id={`clutch-${clutch.id}`}>{clutch.giftAll ? t.owls.clutchTitleAll : t.owls.clutchTitle}</h2>
   <p>
     {fill(clutch.giftAll ? t.owls.clutchIntroAll : t.owls.clutchIntro, {
       until: dateTime(clutch.giftDeadline),
     })}
   </p>
+  {#if contacts.length === 0}
+    <p class="no-recipients" data-testid="clutch-no-recipients">
+      {fill(t.owls.clutchNoRecipients, { until: dateTime(clutch.giftDeadline) })}
+    </p>
+  {/if}
   <form
     onsubmit={(event) => {
       event.preventDefault();
@@ -87,7 +104,15 @@
 <style>
   .clutch {
     margin-bottom: 1.5rem;
-    border: 3px solid var(--wood);
+    border: 3px solid var(--seal);
+  }
+
+  .clutch h2 {
+    color: var(--seal);
+  }
+
+  .no-recipients {
+    font-weight: 700;
   }
 
   select {

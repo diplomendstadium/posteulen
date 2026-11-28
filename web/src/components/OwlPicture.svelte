@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { OwlImageKind } from '@posteulen/shared/species.ts';
+  import type { ChickLook } from '@posteulen/shared/game/look.ts';
   import { t } from '../lib/i18n.svelte.ts';
   import { owlImage, sceneImage } from '../lib/owl-image.ts';
   import { homeLight, standardKind } from '../lib/season.ts';
@@ -12,6 +13,7 @@
     perch = false,
     wide = false,
     second = false,
+    chickLook = 0,
   }: {
     speciesId: string;
     kind?: OwlImageKind;
@@ -23,6 +25,8 @@
     wide?: boolean;
     /** v1.4.2: the second look of its species (SPEC 9.2.6). */
     second?: boolean;
+    /** v1.5.0: the chick look – standard, second or third chick picture (SPEC 9.2.6). */
+    chickLook?: ChickLook;
   } = $props();
 
   /**
@@ -32,7 +36,7 @@
   const light = homeLight();
 
   const image = $derived.by(() => {
-    if (!perch) return owlImage(speciesId, standardKind(kind, light, second));
+    if (!perch) return owlImage(speciesId, standardKind(kind, light, second, chickLook));
     const scene = sceneImage('perch');
     return {
       files: {

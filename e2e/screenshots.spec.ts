@@ -1,7 +1,7 @@
 import { ADMIN_URL, test } from './fixtures.ts';
 import { shoot } from './screenshot-helpers.ts';
 import { borrowViaUi, registerViaUi } from './account-helpers.ts';
-import { hatchChicks, makeSick, setGold } from './db-helpers.ts';
+import { closeChickNotice, hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
 // v0.7.1: the screenshot tour is not part of the normal run (the same flows are tested elsewhere,
 // accessibility of all pages in stage6.spec.ts). On request:
@@ -187,6 +187,10 @@ test.describe('Screenshots Stufe 4', () => {
     makeSick(me.name);
     hatchChicks(me.name, 'schleiereule', 2);
     await page.reload();
+    // v1.5.0: the daily notice about the chick to give away (SPEC 9.9).
+    await page.getByTestId('clutch-notice').waitFor();
+    await shoot(page, info, 'kueken-hinweis');
+    await closeChickNotice(page);
     await page.getByRole('heading', { name: 'Wie soll dein Küken heißen?' }).waitFor();
     await shoot(page, info, 'kueken-benennen');
     for (const name of ['Flaum', 'Daune']) {

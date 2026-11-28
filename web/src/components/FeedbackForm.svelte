@@ -54,7 +54,8 @@
   }
 </script>
 
-<section class="card" aria-labelledby="feedback-title" data-testid="feedback">
+<!-- v1.5.0: id for the link in the milestone message (SPEC 11.1). -->
+<section id="feedback" class="card" aria-labelledby="feedback-title" data-testid="feedback">
   <h2 id="feedback-title">{t.feedback.title}</h2>
   <p>{t.feedback.intro}</p>
   <p class="notice"><span aria-hidden="true">🔓</span><span>{t.feedback.notEncrypted}</span></p>

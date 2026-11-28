@@ -1,7 +1,7 @@
 import type { Browser, Page } from '@playwright/test';
 import { expect, test } from './fixtures.ts';
 import { borrowViaUi, loginViaUi, PASSWORD, registerViaUi } from './account-helpers.ts';
-import { allowHomeChange, hatchChicks, makeSick, setGold } from './db-helpers.ts';
+import { allowHomeChange, closeChickNotice, hatchChicks, makeSick, setGold } from './db-helpers.ts';
 
 async function addContact(page: Page, name: string): Promise<void> {
   await page.goto('/app/adressbuch');
@@ -85,6 +85,14 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     const { anna, ben, other, otherContext } = await pair(browser, page);
     hatchChicks(anna.name, 'schleiereule', 2);
     await page.goto('/app/eulen');
+    // v1.5.0: once a day the big notice and, until the chick is given away, the banner (9.9).
+    await expect(
+      page.getByTestId('clutch-notice').getByRole('heading', {
+        name: 'Ein Küken sucht ein neues Zuhause',
+      }),
+    ).toBeVisible();
+    await expect(page.getByTestId('clutch-banner')).toContainText('Du musst noch ein Küken');
+    await closeChickNotice(page);
     await expect(page.getByRole('heading', { name: 'Wie soll dein Küken heißen?' })).toBeVisible();
     for (const name of ['Flaum', 'Daune']) {
       await page.getByLabel('Name (2–20 Zeichen)').fill(name);
@@ -103,14 +111,23 @@ test.describe('Stufe 4 (SPEC 7, 9.6–9.9, 17.4)', () => {
     await page.getByLabel('Begleitbrief mitgeben (kurzes Pergament, kostenlos)').check();
     await page.getByLabel('Begleitbrief', { exact: true }).fill('Für dich, Daune!');
     await page.getByRole('button', { name: 'Verschenken' }).click();
-    await expect(page.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick');
+    // v1.5.0: its own chick picture, by day or at night (SPEC 9.2.6).
+    await expect(page.getByTestId('owl-overlay')).toHaveAttribute(
+      'data-kind',
+      /^chick\d?(Night)?$/,
+    );
     await expect(page.getByRole('heading', { name: 'Ein Küken verschenken' })).toHaveCount(0);
+    await expect(page.getByTestId('clutch-banner')).toHaveCount(0);
 
     // v1.1: the chick's landing appears as soon as Ben opens the app.
     await other.goto('/app');
-    await expect(other.getByTestId('owl-overlay')).toHaveAttribute('data-kind', 'chick', {
-      timeout: 60_000,
-    });
+    await expect(other.getByTestId('owl-overlay')).toHaveAttribute(
+      'data-kind',
+      /^chick\d?(Night)?$/,
+      {
+        timeout: 60_000,
+      },
+    );
     await other.goto('/app/briefe');
     await other.getByRole('link', { name: new RegExp(anna.name) }).click({ timeout: 30_000 });
     await expect(other.getByText('Begleitbrief zum Küken Daune')).toBeVisible({ timeout: 30_000 });
