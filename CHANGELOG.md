@@ -3,6 +3,32 @@
 Alle Versionen von PostEulen.de. Format: neueste Version oben. Jede Version enthält einen
 Abschnitt **Hinweise für Betreiber**.
 
+## v1.5.0 – Mehlwürmer und Mondschein im Nest
+
+Wünsche des Auftraggebers (SPEC Anhang F, D-525 bis D-534).
+
+**Neu:**
+
+- **Küken-Pflege:** Küken haben nur noch zwei Knöpfe – **Streicheln** (kostenlos, beliebig oft) und einmal am Tag einen **Mehlwurm** (0,1 Gold, immer in Gold, nie aus dem Beutel, ohne Energie; Buchung „Mehlwurm“). Beide heben die Motivation einmal am Tag und ergeben zusammen einen gepflegten Tag. Wasser, Eulenkeks und Leckerli gibt es nur noch für erwachsene Eulen (`400 owl_chick_care`). Eigene Einblendungen „Küken füttern“ und „Küken streicheln“.
+- **Drei Küken-Bilder je Art:** Ein Küken bekommt beim Einzug (Schlupf, Ankunft als Geschenk) das Bild, das unter den übrigen Küken derselben Art des Spielers am seltensten ist, und behält es (`owls.chick_look`, API `chickLook`). Vorhandene Küken bekamen ihr Bild beim Update reihum.
+- **Küken bei Nacht:** Alle drei Küken-Bilder gibt es auch bei Nacht; Abflug und Ankunft eines Kükens zeigen sein eigenes Bild bei Tag oder Nacht.
+- **Verschenkpflicht, die niemand übersieht:** Solange ein Küken verschenkt werden muss, steht oben auf jeder Seite ein roter Hinweis, einmal am Tag erscheint eine große Einblendung mit dem Bild des Kükens, der verbleibenden Zeit und „Jetzt Küken verschenken“, und jeden Tag (statt nur am Vortag) kommt eine Erinnerung im Systemchat. Die Karte „🐣 Wichtig: Ein Küken verschenken“ steht ganz oben unter „Meine Eulen“, rot umrandet; die Texte sagen deutlicher, dass eines verschenkt werden muss.
+- **Jubiläum der Eulenpost:** Bei 1.000, 5.000, 10.000, 50.000, 100.000 und 1.000.000 Briefen zwischen Menschen (danach alle 500.000) bekommt jedes Konto eine feierliche Systemnachricht der Betreiber – mit Dank für das Vertrauen und der Bitte um Spenden und Verbesserungsvorschläge (Link auf die Nachricht an den Admin). Ohne Push.
+
+**Geändert:**
+
+- **Startseite:** Im Infotext entfällt der Satz über OpenAI und den Vorfilter der Bots (Datenschutz, Hilfe und der Hinweis in jedem Bot-Chat nennen beides weiterhin).
+- Update-Nachricht, Hilfe, Erklärbär (Brief von Tag 7 und Regelwissen), Startseite, README, SPEC und PROMPT auf Deutsch und Englisch aktualisiert. Die gelieferten Bilder (Ordner „Kükeninteraktion“, „Nachtküken“, „Zweit und Drittküken“) sind nach Anhang B umbenannt in `images/` eingepflegt und die Lieferordner gelöscht.
+
+**Tests:** `shared/test/v150.test.ts`, `backend/test/v150.test.ts` (Küken-Aussehen samt Migration, Mehlwurm und Streicheln, Gelege im Profil, tägliche Erinnerungen, Meilensteine), `e2e/v150.spec.ts`; angepasst `backend/test/stage4.test.ts`, `v02.test.ts`, `v03.test.ts`, `shared/test/constants.test.ts`, `e2e/stage4.spec.ts`, `layout.spec.ts`, `screenshots.spec.ts`, `e2e/db-helpers.ts`.
+
+### Hinweise für Betreiber
+
+- **Migration `0029_v150.sql`** (Schema-Version 29): neue Spalten `owls.chick_look` und `clutches.notice_on`; vorhandene Küken bekommen ihr Küken-Bild reihum.
+- **Jubiläum beim Update:** Hat deine Instanz schon 1.000 oder mehr Briefe zwischen Menschen gezählt, bekommen beim ersten Start einmal alle Konten die Jubiläumsnachricht zur höchsten bereits erreichten Marke. Danach kommt jede neue Marke genau einmal.
+- **Neue Bilder:** 140 Küken-Bilder (je Art Küken 2 und 3, drei Nachtbilder, Füttern und Streicheln); der Build erzeugt daraus wie immer WebP-Dateien. Keine neuen Abhängigkeiten, keine neuen Dienste.
+- Update wie immer mit `sudo posteulen-update`.
+
 ## v1.4.3 – Ein zweites Schloss am Eulenturm
 
 Wünsche des Auftraggebers (SPEC Anhang F, D-505 bis D-524).
